@@ -3,7 +3,7 @@ import type { StyleProp, ViewStyle } from "react-native";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors, spacing } from "@/theme";
+import { semanticColors, spacing } from "@/theme";
 
 type ScreenProps = PropsWithChildren<{
   contentContainerStyle?: StyleProp<ViewStyle>;
@@ -39,10 +39,10 @@ export function Screen({
 const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
-    padding: spacing.lg
+    padding: spacing[5]
   },
   safeArea: {
-    backgroundColor: colors.background,
+    backgroundColor: semanticColors.background,
     flex: 1
   }
 });

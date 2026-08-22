@@ -1,5 +1,7 @@
 module.exports = {
   moduleNameMapper: {
+    "^expo-font$": "<rootDir>/tests/mocks/expoFont.ts",
+    "^expo-splash-screen$": "<rootDir>/tests/mocks/expoSplashScreen.ts",
     "^react-native-safe-area-context$": "<rootDir>/tests/mocks/safeAreaContext.tsx",
     "^react-native-screens$": "<rootDir>/tests/mocks/reactNativeScreens.tsx",
     "^@/(.*)$": "<rootDir>/src/$1"
