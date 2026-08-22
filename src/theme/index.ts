@@ -1,4 +1,4 @@
-export { colors } from "./colors";
+export { baseColors, colors, semanticColors } from "./colors";
 export { radius } from "./radius";
 export { spacing } from "./spacing";
-export { typography } from "./typography";
+export { fontFamily, fontWeight, typography } from "./typography";

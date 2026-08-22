@@ -23,6 +23,9 @@ refactor/REC-123-description
 
 - Código de domínio deve ficar dentro da feature correspondente em `src/features`.
 - Componentes em `src/components/ui` não devem conhecer regras de negócio.
+- Componentes não devem usar hexadecimais hardcoded; prefira tokens de `src/theme`.
+- Use `semanticColors` para significados de UI e primitive colors apenas para compor tokens semânticos.
+- Evite valores arbitrários de spacing quando existir um token em `spacing`.
 - Chamadas HTTP devem passar por `src/services/api`.
 - Estado de servidor deve usar TanStack Query.
 - Estado local simples deve permanecer local ao componente sempre que possível.

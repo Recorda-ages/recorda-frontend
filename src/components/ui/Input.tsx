@@ -1,7 +1,7 @@
 import type { TextInputProps } from "react-native";
 import { StyleSheet, TextInput, View } from "react-native";
 
-import { colors, radius, spacing, typography } from "@/theme";
+import { semanticColors, radius, spacing, typography } from "@/theme";
 
 import { AppText } from "./Text";
 
@@ -14,14 +14,14 @@ export function Input({ error, label, style, ...props }: InputProps) {
   return (
     <View style={styles.container}>
       {label ? (
-        <AppText color="muted" variant="label">
+        <AppText color="muted" variant="body2">
           {label}
         </AppText>
       ) : null}
       <TextInput
         accessibilityHint={error}
         accessibilityLabel={props.accessibilityLabel ?? label}
-        placeholderTextColor={colors.muted}
+        placeholderTextColor={semanticColors.textDisabled}
         style={[styles.input, error ? styles.inputError : undefined, style]}
         {...props}
       />
@@ -36,23 +36,23 @@ export function Input({ error, label, style, ...props }: InputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.xs
+    gap: spacing[1]
   },
   error: {
-    color: colors.danger
+    color: semanticColors.error
   },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: semanticColors.background,
+    borderColor: semanticColors.border,
     borderRadius: radius.md,
     borderWidth: 1,
-    color: colors.text,
-    fontSize: typography.size.md,
+    color: semanticColors.textPrimary,
+    ...typography.body1,
     minHeight: 48,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2]
   },
   inputError: {
-    borderColor: colors.danger
+    borderColor: semanticColors.error
   }
 });

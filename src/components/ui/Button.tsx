@@ -1,7 +1,7 @@
 import type { PressableProps, StyleProp, ViewStyle } from "react-native";
 import { ActivityIndicator, Pressable, StyleSheet } from "react-native";
 
-import { colors, radius, spacing } from "@/theme";
+import { baseColors, semanticColors, radius, spacing } from "@/theme";
 
 import { AppText } from "./Text";
 
@@ -41,9 +41,12 @@ export function Button({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? colors.onPrimary : colors.primary} />
+        <ActivityIndicator color={isPrimary ? baseColors.white : semanticColors.actionPrimary} />
       ) : (
-        <AppText style={isPrimary ? styles.primaryLabel : styles.secondaryLabel} variant="button">
+        <AppText
+          style={isPrimary ? styles.primaryLabel : styles.secondaryLabel}
+          variant="buttonLarge"
+        >
           {label}
         </AppText>
       )}
@@ -57,8 +60,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     justifyContent: "center",
     minHeight: 48,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md
+    paddingHorizontal: spacing[5],
+    paddingVertical: spacing[3]
   },
   disabled: {
     opacity: 0.56
@@ -67,17 +70,17 @@ const styles = StyleSheet.create({
     opacity: 0.82
   },
   primary: {
-    backgroundColor: colors.primary
+    backgroundColor: semanticColors.actionPrimary
   },
   primaryLabel: {
-    color: colors.onPrimary
+    color: baseColors.white
   },
   secondary: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
+    backgroundColor: semanticColors.background,
+    borderColor: semanticColors.border,
     borderWidth: 1
   },
   secondaryLabel: {
-    color: colors.text
+    color: semanticColors.textPrimary
   }
 });
