@@ -24,14 +24,14 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   actions: {
-    gap: spacing.sm,
+    gap: spacing[2],
     width: "100%"
   },
   content: {
-    gap: spacing.xl,
+    gap: spacing[8],
     justifyContent: "center"
   },
   hero: {
-    gap: spacing.sm
+    gap: spacing[2]
   }
 });

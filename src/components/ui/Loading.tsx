@@ -1,6 +1,6 @@
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import { colors, spacing } from "@/theme";
+import { semanticColors, spacing } from "@/theme";
 
 import { AppText } from "./Text";
 
@@ -11,7 +11,7 @@ type LoadingProps = {
 export function Loading({ label }: LoadingProps) {
   return (
     <View accessibilityRole="progressbar" style={styles.container}>
-      <ActivityIndicator color={colors.primary} />
+      <ActivityIndicator color={semanticColors.actionPrimary} />
       {label ? (
         <AppText color="muted" variant="caption">
           {label}
@@ -24,8 +24,8 @@ export function Loading({ label }: LoadingProps) {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing[2],
     justifyContent: "center",
-    padding: spacing.lg
+    padding: spacing[5]
   }
 });
