@@ -3,7 +3,7 @@ import { Text } from "react-native";
 import { useTheme } from "react-native-paper";
 
 import { AppProviders } from "@/app/providers/AppProviders";
-import { colors } from "@/theme";
+import { semanticColors } from "@/theme";
 
 function PaperThemeConsumer() {
   const theme = useTheme();
@@ -19,6 +19,8 @@ describe("AppProviders", () => {
       </AppProviders>
     );
 
-    expect(screen.getByTestId("paper-primary-color")).toHaveTextContent(colors.primary);
+    expect(screen.getByTestId("paper-primary-color")).toHaveTextContent(
+      semanticColors.actionPrimary
+    );
   });
 });

@@ -3,101 +3,86 @@ import type { Theme as NavigationTheme } from "@react-navigation/native";
 import { configureFonts, MD3LightTheme } from "react-native-paper";
 import type { MD3Theme } from "react-native-paper";
 
-import { colors } from "./colors";
+import { baseColors, semanticColors } from "./colors";
 import { radius } from "./radius";
-import { typography } from "./typography";
+import { fontWeight, typography } from "./typography";
 
 const paperFonts = configureFonts({
   config: {
     bodyLarge: {
-      fontSize: typography.size.md,
-      fontWeight: typography.weight.regular,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.md
+      fontFamily: typography.body1.fontFamily,
+      fontSize: typography.body1.fontSize,
+      fontWeight: fontWeight.regular
     },
     bodyMedium: {
-      fontSize: typography.size.sm,
-      fontWeight: typography.weight.regular,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.sm
+      fontFamily: typography.body1.fontFamily,
+      fontSize: typography.body1.fontSize,
+      fontWeight: fontWeight.regular
     },
     bodySmall: {
-      fontSize: typography.size.xs,
-      fontWeight: typography.weight.regular,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.xs
+      fontFamily: typography.body2.fontFamily,
+      fontSize: typography.body2.fontSize,
+      fontWeight: fontWeight.regular
     },
     displayLarge: {
-      fontSize: typography.size.xxl,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.xxl
+      fontFamily: typography.title.fontFamily,
+      fontSize: typography.title.fontSize,
+      fontWeight: fontWeight.bold
     },
     displayMedium: {
-      fontSize: typography.size.xxl,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.xxl
+      fontFamily: typography.headline1.fontFamily,
+      fontSize: typography.headline1.fontSize,
+      fontWeight: fontWeight.regular
     },
     displaySmall: {
-      fontSize: typography.size.xl,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.xl
+      fontFamily: typography.headline2.fontFamily,
+      fontSize: typography.headline2.fontSize,
+      fontWeight: fontWeight.regular
     },
     headlineLarge: {
-      fontSize: typography.size.xl,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.xl
+      fontFamily: typography.headline1.fontFamily,
+      fontSize: typography.headline1.fontSize,
+      fontWeight: fontWeight.regular
     },
     headlineMedium: {
-      fontSize: typography.size.lg,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.lg
+      fontFamily: typography.headline2.fontFamily,
+      fontSize: typography.headline2.fontSize,
+      fontWeight: fontWeight.regular
     },
     headlineSmall: {
-      fontSize: typography.size.lg,
-      fontWeight: typography.weight.medium,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.lg
+      fontFamily: typography.headline3.fontFamily,
+      fontSize: typography.headline3.fontSize,
+      fontWeight: fontWeight.regular
     },
     labelLarge: {
-      fontSize: typography.size.md,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.md
+      fontFamily: typography.buttonLarge.fontFamily,
+      fontSize: typography.buttonLarge.fontSize,
+      fontWeight: fontWeight.semiBold
     },
     labelMedium: {
-      fontSize: typography.size.sm,
-      fontWeight: typography.weight.medium,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.sm
+      fontFamily: typography.buttonSmall.fontFamily,
+      fontSize: typography.buttonSmall.fontSize,
+      fontWeight: fontWeight.semiBold
     },
     labelSmall: {
-      fontSize: typography.size.xs,
-      fontWeight: typography.weight.medium,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.xs
+      fontFamily: typography.caption.fontFamily,
+      fontSize: typography.caption.fontSize,
+      fontWeight: fontWeight.regular
     },
     titleLarge: {
-      fontSize: typography.size.lg,
-      fontWeight: typography.weight.bold,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.lg
+      fontFamily: typography.headline4.fontFamily,
+      fontSize: typography.headline4.fontSize,
+      fontWeight: fontWeight.regular
     },
     titleMedium: {
-      fontSize: typography.size.md,
-      fontWeight: typography.weight.medium,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.md
+      fontFamily: typography.body1.fontFamily,
+      fontSize: typography.body1.fontSize,
+      fontWeight: fontWeight.regular
     },
     titleSmall: {
-      fontSize: typography.size.sm,
-      fontWeight: typography.weight.medium,
-      letterSpacing: 0,
-      lineHeight: typography.lineHeight.sm
+      fontFamily: typography.body2.fontFamily,
+      fontSize: typography.body2.fontSize,
+      fontWeight: fontWeight.regular
     }
   }
 });
@@ -106,19 +91,19 @@ export const paperTheme: MD3Theme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
-    background: colors.background,
-    error: colors.danger,
-    errorContainer: colors.dangerSurface,
-    onBackground: colors.text,
-    onErrorContainer: colors.danger,
-    onPrimary: colors.onPrimary,
-    onSurface: colors.text,
-    onSurfaceVariant: colors.muted,
-    outline: colors.border,
-    outlineVariant: colors.border,
-    primary: colors.primary,
-    surface: colors.surface,
-    surfaceVariant: colors.surfaceMuted
+    background: semanticColors.background,
+    error: semanticColors.error,
+    errorContainer: MD3LightTheme.colors.errorContainer,
+    onBackground: semanticColors.textPrimary,
+    onErrorContainer: semanticColors.error,
+    onPrimary: baseColors.black,
+    onSurface: semanticColors.textPrimary,
+    onSurfaceVariant: semanticColors.textSecondary,
+    outline: semanticColors.border,
+    outlineVariant: semanticColors.border,
+    primary: semanticColors.actionPrimary,
+    surface: semanticColors.surface,
+    surfaceVariant: semanticColors.surface
   },
   fonts: paperFonts,
   roundness: radius.md
@@ -128,11 +113,11 @@ export const navigationTheme: NavigationTheme = {
   ...NavigationDefaultTheme,
   colors: {
     ...NavigationDefaultTheme.colors,
-    background: colors.background,
-    border: colors.border,
-    card: colors.surface,
-    notification: colors.danger,
-    primary: colors.primary,
-    text: colors.text
+    background: semanticColors.background,
+    border: semanticColors.border,
+    card: semanticColors.surface,
+    notification: semanticColors.error,
+    primary: semanticColors.actionPrimary,
+    text: semanticColors.textPrimary
   }
 };
