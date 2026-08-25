@@ -23,6 +23,7 @@ Você pode criar a sua feature-branch de duas maneiras, mas ela **sempre** deve 
 ```
 
 **Tipos de branch:**
+
 - `feat`: nova funcionalidade
 - `fix`: correção de bug
 - `docs`: documentação
@@ -32,15 +33,20 @@ Você pode criar a sua feature-branch de duas maneiras, mas ela **sempre** deve 
 - `chore`: manutenção / dependências / infraestrutura
 
 **Exemplos:**
+
 - `feat/123-login-screen`
 - `fix/456-audio-player-crash`
 
 ### Opção A: Pela interface do GitHub (Recomendado)
-No card da sua Issue, no campo `Development` (na barra lateral direita), clique em `Create a branch`. 
+
+No card da sua Issue, no campo `Development` (na barra lateral direita), clique em `Create a branch`.
+
 > ⚠️ **Atenção:** Certifique-se de selecionar a branch **`dev`** como base (source branch), e não a `main`.
 
 ### Opção B: Pelo Terminal (Localmente)
+
 Se preferir criar via linha de comando, garanta que sua base `dev` está atualizada antes de criar a nova ramificação:
+
 ```bash
 git checkout dev                  # Garante que está na branch dev
 git pull origin dev               # Atualiza sua branch dev local
@@ -50,15 +56,18 @@ git checkout -b <nome-da-branch>  # Cria a branch a partir da dev e troca para e
 ## 3. Acessar e Sincronizar o Repositório
 
 ### Baixando a Branch (Caso tenha usado a Opção A)
+
 Como você criou a branch pela interface do GitHub, o seu computador local ainda não sabe que ela existe. Para baixar e acessar sua branch, execute:
 
 ```bash
 git fetch origin                      # Baixa as informações mais recentes do GitHub
 git checkout <nome-da-sua-branch>     # Entra na branch da sua tarefa
 ```
-> *(Se você usou a Opção B, você já está na branch e pode pular este passo).*
+
+> _(Se você usou a Opção B, você já está na branch e pode pular este passo)._
 
 ### Sincronizando o Repositório
+
 A branch `dev` receberá novos códigos de outros colegas frequentemente. Para manter seu histórico limpo e evitar quebras de pipeline, **SEMPRE** antes de abrir ou atualizar seu PR, sincronize sua branch puxando as novidades da `dev` com **rebase**:
 
 ```bash
@@ -81,6 +90,7 @@ git rebase origin/dev           # Aplica seus commits no topo da dev mais recent
 ⚠️ Não serão aceitos PRs sem validação de lint, checagem de tipos e testes bem-sucedidos.
 
 **Comandos de Validação Local:**
+
 ```bash
 npm run lint           # Valida regras de lint com ESLint (--max-warnings=0)
 npm run format:check   # Valida formatação com Prettier (use 'npm run format' para auto-formatar)
@@ -89,6 +99,7 @@ npm test -- --coverage # Executa os testes (Jest + Testing Library) com relatór
 ```
 
 **Requisitos mínimos:**
+
 - ✅ Todos os testes devem passar.
 - ✅ Zero erros de TypeScript (`npm run typecheck`).
 - ✅ Zero avisos/erros no linter (`npm run lint`).
@@ -103,6 +114,7 @@ Utilize o padrão de **Conventional Commits:**
 ```
 
 **Exemplos:**
+
 ```text
 feat(auth): add login screen with email validation
 fix(profile): adjust avatar image cropping
@@ -113,10 +125,12 @@ chore(deps): update expo packages
 ## 7. Push
 
 Envie sua branch para o repositório remoto:
+
 ```bash
 git push origin <nome-da-branch>
 ```
-*(Se você fez rebase após já ter feito push anteriormente, utilize `git push --force-with-lease origin <nome-da-branch>`)*.
+
+_(Se você fez rebase após já ter feito push anteriormente, utilize `git push --force-with-lease origin <nome-da-branch>`)_.
 
 ## 8. Verificar CI (GitHub Actions)
 
@@ -146,27 +160,32 @@ git push origin <nome-da-branch>
 Os AGES III (e eventualmente os AGES IV) irão analisar o PR.
 
 ### ✅ Aprovado
+
 - O revisor move o card para **Done**.
 - O PR é mesclado na branch **`dev`**.
 
 ### ❌ Reprovado / Alterações Solicitadas
+
 - Os comentários e pontos de ajuste serão indicados diretamente no PR.
 - O card retorna para **In Progress** no board.
 - Você será notificado no Discord.
 
 **Se houver correções solicitadas:**
+
 - Corrija os pontos levantados.
 - Repita o fluxo a partir do passo 5 (Qualidade e Testes) até a aprovação (é chato, eu sei 😓).
 
 ## 12. Pós-Merge (Integração Contínua)
 
 Após o merge na branch `dev`:
+
 - A pipeline de CI valida a integração contínua do repositório.
 - Futuramente, as entregas acumuladas em `dev` serão mescladas na `main` para lançamentos de release e deploys.
 
 ---
 
 ## Pronto! 🥳
+
 Seguindo este documento, sua contribuição será integrada com qualidade, rapidez e sem surpresas.
 
-> ***P.S.:** Qualquer dúvida, favor acionar os AGES III e IV no Discord.*
+> _**P.S.:** Qualquer dúvida, favor acionar os AGES III e IV no Discord._
