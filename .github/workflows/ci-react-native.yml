@@ -1,0 +1,147 @@
+name: React Native CI
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: Directory containing the React Native project.
+        required: false
+        type: string
+        default: "."
+    secrets:
+      SONAR_TOKEN:
+        description: Token used to authenticate the SonarCloud analysis.
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-pr:
+    name: Validate PR
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate pull request
+        uses: ./.github/actions/validate-pr
+        with:
+          github-token: ${{ github.token }}
+
+  lint-format:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ inputs.working-directory }}/.nvmrc
+          cache: npm
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Lint
+        run: npm run lint
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Check formatting
+        run: npm run format:check
+        working-directory: ${{ inputs.working-directory }}
+
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ inputs.working-directory }}/.nvmrc
+          cache: npm
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Type check
+        run: npm run typecheck
+        working-directory: ${{ inputs.working-directory }}
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ inputs.working-directory }}/.nvmrc
+          cache: npm
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run unit tests with coverage
+        run: npm test -- --coverage
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-react-native
+          path: ${{ inputs.working-directory }}/coverage/
+          if-no-files-found: error
+          retention-days: 7
+
+  expo-build-validation:
+    name: Expo Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ${{ inputs.working-directory }}/.nvmrc
+          cache: npm
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Export Expo bundles
+        run: npx expo export --platform all --output-dir dist
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          EXPO_NO_TELEMETRY: "1"
+
+  static-analysis:
+    name: Static Analysis
+    needs:
+      - unit-tests
+    uses: ./.github/workflows/sonar-scan.yml
+    with:
+      working-directory: ${{ inputs.working-directory }}
+      coverage-artifact: coverage-react-native
+      sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
+      sonar-organization: ${{ vars.SONAR_ORGANIZATION }}
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

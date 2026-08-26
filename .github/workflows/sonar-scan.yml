@@ -1,0 +1,80 @@
+name: SonarCloud Scan
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: Directory containing the project to analyze.
+        required: false
+        type: string
+        default: "."
+      coverage-artifact:
+        description: Name of the artifact containing Jest coverage.
+        required: false
+        type: string
+        default: coverage-react-native
+      sonar-project-key:
+        description: SonarCloud project key.
+        required: true
+        type: string
+      sonar-organization:
+        description: SonarCloud organization key.
+        required: true
+        type: string
+    secrets:
+      SONAR_TOKEN:
+        description: Token used to authenticate the SonarCloud analysis.
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.coverage-artifact }}
+          path: ${{ inputs.working-directory }}/coverage
+
+      - name: Validate SonarCloud configuration
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ inputs.sonar-project-key }}
+          SONAR_ORGANIZATION: ${{ inputs.sonar-organization }}
+        run: |
+          if [[ -z "$SONAR_TOKEN" ]]; then
+            echo "::error::SONAR_TOKEN is not configured or is unavailable for this pull request."
+            exit 1
+          fi
+
+          if [[ -z "$SONAR_PROJECT_KEY" || -z "$SONAR_ORGANIZATION" ]]; then
+            echo "::error::SONAR_PROJECT_KEY and SONAR_ORGANIZATION repository variables are required."
+            exit 1
+          fi
+
+          if [[ ! -f coverage/lcov.info ]]; then
+            echo "::error::coverage/lcov.info was not found in the downloaded artifact."
+            exit 1
+          fi
+
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarqube-scan-action@v8.1.0
+        with:
+          projectBaseDir: ${{ inputs.working-directory }}
+          args: >
+            -Dsonar.projectKey=${{ inputs.sonar-project-key }}
+            -Dsonar.organization=${{ inputs.sonar-organization }}
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
