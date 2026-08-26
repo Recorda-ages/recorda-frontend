@@ -1,3 +1,5 @@
+// teste
+
 import { env } from "@/app/config";
 
 import { ApiError, createApiError } from "./errors";
