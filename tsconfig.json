@@ -2,7 +2,7 @@
   "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "jsx": "react-native",
     "paths": {
       "@/*": ["src/*"]
