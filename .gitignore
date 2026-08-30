@@ -28,3 +28,10 @@ pnpm-debug.log*
 .DS_Store
 .idea/
 .vscode/
+
+# AI
+.agents/
+.claude/
+.codex/
+.cursor/
+.windsurf/
