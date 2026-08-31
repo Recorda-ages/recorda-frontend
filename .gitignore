@@ -6,6 +6,9 @@ node_modules/
 dist/
 web-build/
 
+# Test coverage
+coverage/
+
 # Native build output
 android/
 ios/

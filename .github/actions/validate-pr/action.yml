@@ -1,0 +1,44 @@
+name: Validate PR
+description: Validates the pull request branch name and title conventions.
+
+inputs:
+  github-token:
+    description: GitHub token used to read pull request metadata.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate branch name
+      shell: bash
+      env:
+        HEAD_REF: ${{ github.head_ref }}
+      run: |
+        branch_pattern='^(feat|fix|build|chore|ci|docs|style|refactor|perf|test)/[0-9]+-[a-z0-9]+(-[a-z0-9]+)*$'
+
+        if [[ -z "$HEAD_REF" ]]; then
+          echo "::error::Pull request branch name is unavailable."
+          exit 1
+        fi
+
+        if [[ ! "$HEAD_REF" =~ $branch_pattern ]]; then
+          echo "::error::Invalid branch name '$HEAD_REF'. Expected: <type>/<id>-<kebab-case-description>."
+          exit 1
+        fi
+
+    - name: Validate pull request title
+      uses: amannn/action-semantic-pull-request@v6.1.1
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      with:
+        types: |
+          feat
+          fix
+          build
+          chore
+          ci
+          docs
+          style
+          refactor
+          perf
+          test
