@@ -16,3 +16,5 @@ export type MusicPreferences = {
   artists: MusicSelection[];
   track: MusicTrack;
 };
+
+export type Genre = { id: number; imagem: string; nome: string };

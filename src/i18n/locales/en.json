@@ -57,6 +57,16 @@
       "preview": "Preview: favorite song",
       "demo": "Demo completed. No data was sent.",
       "close": "Go back"
+    },
+    "genres": {
+      "back": "Back",
+      "continue": "Next",
+      "header": "Genres",
+      "loadError": "We couldn't load the genres.",
+      "loading": "Loading genres...",
+      "step": "STEP 2 OF 3",
+      "subtitle": "Choose at least 3 genres. You can change this later.",
+      "title": "What sounds feel like you?"
     }
   },
   "recordaDetails": {
