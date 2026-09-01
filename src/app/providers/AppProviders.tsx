@@ -4,6 +4,7 @@ import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
 import { i18n } from "@/i18n";
 import { paperTheme } from "@/theme";
 
@@ -14,7 +15,9 @@ export function AppProviders({ children }: PropsWithChildren) {
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <PaperProvider theme={paperTheme}>{children}</PaperProvider>
+          <PaperProvider theme={paperTheme}>
+            <OnboardingProvider>{children}</OnboardingProvider>
+          </PaperProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
     </I18nextProvider>

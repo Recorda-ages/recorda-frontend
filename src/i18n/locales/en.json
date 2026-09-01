@@ -4,5 +4,17 @@
     "secondaryAction": "View structure",
     "subtitle": "Memories with a soundtrack.",
     "title": "Recorda"
+  },
+  "onboarding": {
+    "genres": {
+      "back": "Back",
+      "continue": "Next",
+      "header": "Genres",
+      "loadError": "We couldn't load the genres.",
+      "loading": "Loading genres...",
+      "step": "STEP 2 OF 3",
+      "subtitle": "Choose at least 3 genres. You can change this later.",
+      "title": "What sounds feel like you?"
+    }
   }
 }

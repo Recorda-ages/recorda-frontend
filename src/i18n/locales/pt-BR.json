@@ -4,5 +4,17 @@
     "secondaryAction": "Ver estrutura",
     "subtitle": "Memorias que tem trilha sonora.",
     "title": "Recorda"
+  },
+  "onboarding": {
+    "genres": {
+      "back": "Voltar",
+      "continue": "Próximo",
+      "header": "Gêneros",
+      "loadError": "Não foi possível carregar os gêneros.",
+      "loading": "Carregando gêneros...",
+      "step": "ETAPA 2 DE 3",
+      "subtitle": "Escolha pelo menos 3 gêneros. Você poderá mudar isso depois.",
+      "title": "Que sons combinam com você?"
+    }
   }
 }

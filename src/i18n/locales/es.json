@@ -4,5 +4,17 @@
     "secondaryAction": "Ver estructura",
     "subtitle": "Memorias con banda sonora.",
     "title": "Recorda"
+  },
+  "onboarding": {
+    "genres": {
+      "back": "Volver",
+      "continue": "Siguiente",
+      "header": "Géneros",
+      "loadError": "No fue posible cargar los géneros.",
+      "loading": "Cargando géneros...",
+      "step": "PASO 2 DE 3",
+      "subtitle": "Elige al menos 3 géneros. Podrás cambiarlo después.",
+      "title": "¿Qué sonidos combinan contigo?"
+    }
   }
 }
