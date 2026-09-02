@@ -1,13 +1,5 @@
 {
   "auth": {
-    "login": {
-      "email": "Email",
-      "forgotPassword": "Forgot my password",
-      "password": "Password",
-      "submit": "Sign in",
-      "subtitle": "Sign in to keep remembering.",
-      "title": "Recorda"
-    },
     "passwordRecovery": {
       "appBarTitle": "Recover Password",
       "back": "Go back",

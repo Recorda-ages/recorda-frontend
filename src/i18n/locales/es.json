@@ -1,13 +1,5 @@
 {
   "auth": {
-    "login": {
-      "email": "Email",
-      "forgotPassword": "Olvide mi contrasena",
-      "password": "Contrasena",
-      "submit": "Entrar",
-      "subtitle": "Entra para seguir recordando.",
-      "title": "Recorda"
-    },
     "passwordRecovery": {
       "appBarTitle": "Recuperar Contrasena",
       "back": "Volver",

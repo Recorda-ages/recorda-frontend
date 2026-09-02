@@ -43,7 +43,7 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
     const timeout = setTimeout(() => {
       navigation.reset({
         index: 0,
-        routes: [{ name: "Login" }]
+        routes: [{ name: "Home" }]
       });
     }, successRedirectDelayMs);
 

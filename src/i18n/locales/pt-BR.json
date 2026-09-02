@@ -1,13 +1,5 @@
 {
   "auth": {
-    "login": {
-      "email": "Email",
-      "forgotPassword": "Esqueci minha senha",
-      "password": "Senha",
-      "submit": "Entrar",
-      "subtitle": "Entre para continuar recordando.",
-      "title": "Recorda"
-    },
     "passwordRecovery": {
       "appBarTitle": "Recuperar Senha",
       "back": "Voltar",
