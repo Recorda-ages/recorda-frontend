@@ -1,4 +1,17 @@
 {
+  "auth": {
+    "passwordRecovery": {
+      "appBarTitle": "Recuperar Contrasena",
+      "back": "Volver",
+      "description": "Ingresa tu email para definir una nueva contrasena.",
+      "email": "Email",
+      "genericError": "No fue posible restablecer tu contrasena. Intenta nuevamente.",
+      "logo": "recorda.",
+      "submit": "Restablecer Contrasena",
+      "success": "Enviamos las instrucciones a tu email.",
+      "title": "Vuelve a recordar"
+    }
+  },
   "home": {
     "primaryAction": "Comenzar",
     "secondaryAction": "Ver estructura",
