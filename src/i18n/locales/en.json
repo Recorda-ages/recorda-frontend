@@ -1,4 +1,25 @@
 {
+  "auth": {
+    "login": {
+      "email": "Email",
+      "forgotPassword": "Forgot my password",
+      "password": "Password",
+      "submit": "Sign in",
+      "subtitle": "Sign in to keep remembering.",
+      "title": "Recorda"
+    },
+    "passwordRecovery": {
+      "appBarTitle": "Recover Password",
+      "back": "Go back",
+      "description": "Enter your email to define a new password.",
+      "email": "Email",
+      "genericError": "We could not reset your password. Try again.",
+      "logo": "recorda.",
+      "submit": "Reset Password",
+      "success": "We sent the instructions to your email.",
+      "title": "Back to remembering"
+    }
+  },
   "home": {
     "primaryAction": "Start",
     "secondaryAction": "View structure",
