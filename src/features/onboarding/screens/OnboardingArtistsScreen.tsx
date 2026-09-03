@@ -9,6 +9,10 @@ import {
   ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+<<<<<<< HEAD
+=======
+import { LinearGradient } from "expo-linear-gradient";
+>>>>>>> 48c7b64 (ajuste design parte 1)
 import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
@@ -24,7 +28,11 @@ const COLORS = {
   textPrimary: "#EAEAEA",
   textSecondary: "#BFBFBF",
   textOnChip: "#F4FFFC",
+<<<<<<< HEAD
   stepperInactive: "#002D22"
+=======
+  stepperInactive: "#3E3E3E"
+>>>>>>> 48c7b64 (ajuste design parte 1)
 };
 
 const MIN_ARTISTS = 3;
@@ -59,12 +67,25 @@ export function OnboardingArtistsScreen() {
   ];
 
   return (
+<<<<<<< HEAD
     <View style={styles.root}>
+=======
+    <LinearGradient
+      colors={["rgba(0, 226, 169, 0.15)", COLORS.background]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 0.3 }}
+      style={styles.root}
+    >
+>>>>>>> 48c7b64 (ajuste design parte 1)
       <SafeAreaView style={styles.safeArea}>
         {/* ── Top Header ──────────────────────────────────────────────── */}
         <View style={styles.topHeader}>
           <TouchableOpacity style={styles.backButton}>
+<<<<<<< HEAD
             <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
+=======
+            <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
+>>>>>>> 48c7b64 (ajuste design parte 1)
           </TouchableOpacity>
           <Text style={styles.topHeaderTitle}>Artistas</Text>
           <View style={{ width: 40 }} />
@@ -85,7 +106,11 @@ export function OnboardingArtistsScreen() {
           {/* Header */}
           <View style={styles.headerSection}>
             <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
+<<<<<<< HEAD
             <Text style={styles.title}>Quem faz parte da sua história?</Text>
+=======
+            <Text style={styles.title}>Quem faz parte da{"\n"}sua história?</Text>
+>>>>>>> 48c7b64 (ajuste design parte 1)
             <Text style={styles.subtitle}>
               Escolha pelo menos 3 artistas para personalizar suas recordações.
             </Text>
@@ -93,6 +118,10 @@ export function OnboardingArtistsScreen() {
 
           {/* Search bar */}
           <View style={styles.searchBar}>
+<<<<<<< HEAD
+=======
+            <Text style={styles.searchIcon}>🔍</Text>
+>>>>>>> 48c7b64 (ajuste design parte 1)
             <TextInput
               style={styles.searchInput}
               placeholder="Buscar artistas"
@@ -103,7 +132,10 @@ export function OnboardingArtistsScreen() {
               returnKeyType="search"
               selectionColor={COLORS.primary}
             />
+<<<<<<< HEAD
             <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+=======
+>>>>>>> 48c7b64 (ajuste design parte 1)
           </View>
 
           {/* Results */}
@@ -149,27 +181,41 @@ export function OnboardingArtistsScreen() {
               <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
                 Próximo
               </Text>
+<<<<<<< HEAD
               <Ionicons
                 name="chevron-forward"
                 size={24}
                 color={!canAdvance ? COLORS.primary : COLORS.background}
               />
+=======
+>>>>>>> 48c7b64 (ajuste design parte 1)
             </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
+<<<<<<< HEAD
     </View>
+=======
+    </LinearGradient>
+>>>>>>> 48c7b64 (ajuste design parte 1)
   );
 }
 
 const styles = StyleSheet.create({
   root: {
+<<<<<<< HEAD
     flex: 1,
     backgroundColor: COLORS.background
   },
   safeArea: {
     flex: 1,
     zIndex: 1
+=======
+    flex: 1
+  },
+  safeArea: {
+    flex: 1
+>>>>>>> 48c7b64 (ajuste design parte 1)
   },
 
   // Top Header
@@ -185,8 +231,13 @@ const styles = StyleSheet.create({
     width: 40
   },
   topHeaderTitle: {
+<<<<<<< HEAD
     fontSize: 20,
     fontWeight: "700",
+=======
+    fontSize: 16,
+    fontWeight: "600",
+>>>>>>> 48c7b64 (ajuste design parte 1)
     color: COLORS.textPrimary
   },
 
@@ -227,13 +278,21 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "600",
     color: COLORS.textPrimary,
+<<<<<<< HEAD
     lineHeight: 37
+=======
+    lineHeight: 36
+>>>>>>> 48c7b64 (ajuste design parte 1)
   },
   subtitle: {
     fontSize: 15,
     fontWeight: "400",
     color: COLORS.textSecondary,
+<<<<<<< HEAD
     lineHeight: 22
+=======
+    lineHeight: 20
+>>>>>>> 48c7b64 (ajuste design parte 1)
   },
 
   // Search
@@ -245,6 +304,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 56,
     gap: 8
+<<<<<<< HEAD
+=======
+  },
+  searchIcon: {
+    fontSize: 16
+>>>>>>> 48c7b64 (ajuste design parte 1)
   },
   searchInput: {
     flex: 1,
@@ -288,6 +353,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     flexDirection: "row",
     alignItems: "center",
+<<<<<<< HEAD
     justifyContent: "center",
     gap: 8
   },
@@ -305,5 +371,21 @@ const styles = StyleSheet.create({
   },
   buttonLabelDisabled: {
     color: COLORS.primary
+=======
+    justifyContent: "center"
+  },
+  buttonDisabled: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: COLORS.textSecondary
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.background
+  },
+  buttonLabelDisabled: {
+    color: COLORS.textSecondary
+>>>>>>> 48c7b64 (ajuste design parte 1)
   }
 });
