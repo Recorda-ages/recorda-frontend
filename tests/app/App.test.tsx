@@ -6,8 +6,7 @@ describe("App", () => {
   it("renders the initial screen", () => {
     render(<App />);
 
-    expect(screen.getByTestId("home-screen")).toBeTruthy();
-    expect(screen.getByText("Recorda")).toBeTruthy();
-    expect(screen.getByText("Memorias que tem trilha sonora.")).toBeTruthy();
+    expect(screen.getByText("Quem faz parte da sua história?")).toBeTruthy();
+    expect(screen.getByText("Artistas")).toBeTruthy();
   });
 });
