@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
   },
   descriptionContent: {
     color: baseColors.white,
-    fontFamily: fontFamily.primary.regular,
-    fontSize: 14,
+    fontFamily: fontFamily.display.medium,
+    fontSize: 16,
     letterSpacing: 0.15,
     lineHeight: 21,
     paddingHorizontal: 0,
