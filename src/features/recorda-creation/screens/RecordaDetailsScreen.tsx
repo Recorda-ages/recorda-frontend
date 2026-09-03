@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Button, IconButton, Text, TextInput } from "react-native-paper";
 
 import { Screen } from "@/components/ui";
@@ -33,7 +33,15 @@ export function RecordaDetailsScreen({
       style={styles.screen}
       testID="recorda-details-screen"
     >
-      <View style={styles.mediaStage}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoiding}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.mediaStage}>
         {draft.media ? (
           draft.media.type === "video" ? (
             <VideoView
@@ -58,8 +66,8 @@ export function RecordaDetailsScreen({
           </View>
         )}
 
-        {draft.song ? (
-          <View style={styles.song}>
+            {draft.song ? (
+              <View style={styles.song}>
             {draft.song.coverUrl && !coverLoadFailed ? (
               <Image
                 accessibilityLabel={t("recordaDetails.songCover")}
@@ -81,26 +89,29 @@ export function RecordaDetailsScreen({
             <Text style={styles.songArtist} variant="bodySmall">
               {draft.song.artistName}
             </Text>
+              </View>
+            ) : null}
           </View>
-        ) : null}
-      </View>
 
-      <View style={styles.bottomArea}>
+          <View style={styles.bottomArea}>
         <TextInput
           accessibilityLabel={t("recordaDetails.descriptionLabel")}
           contentStyle={styles.descriptionContent}
+          cursorColor={semanticColors.actionPrimary}
           maxLength={DESCRIPTION_MAX_LENGTH}
           multiline
           onChangeText={(text) => setDescription(text.slice(0, DESCRIPTION_MAX_LENGTH))}
           placeholder={t("recordaDetails.descriptionPlaceholder")}
-          placeholderTextColor={baseColors.white}
+          placeholderTextColor="rgba(255, 255, 255, 0.6)"
+          selectionColor={semanticColors.actionPrimary}
           style={styles.description}
+          textColor={baseColors.white}
           underlineColor="transparent"
           activeUnderlineColor="transparent"
           value={description}
         />
 
-        <View style={styles.actions}>
+          <View style={styles.actions}>
           <IconButton
             accessibilityLabel={t("recordaDetails.share")}
             icon={({ color, size }) => (
@@ -120,8 +131,10 @@ export function RecordaDetailsScreen({
           >
             {t("recordaDetails.publish")}
           </Button>
-        </View>
-      </View>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
@@ -142,6 +155,9 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: colors.neutrals[900],
     padding: 0
+  },
+  keyboardAvoiding: {
+    flex: 1
   },
   media: {
     ...StyleSheet.absoluteFillObject,
@@ -169,6 +185,9 @@ const styles = StyleSheet.create({
   },
   screen: {
     backgroundColor: colors.neutrals[900]
+  },
+  scrollContent: {
+    flexGrow: 1
   },
   shareButton: {
     borderColor: semanticColors.actionPrimary,
