@@ -6,6 +6,17 @@ import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/Record
 import type { RecordaDraft } from "@/features/recorda-creation/types";
 import { mockRecordaDraft } from "@/features/recorda-creation/mocks/recordaDraft";
 
+const mockGoBack = jest.fn();
+
+jest.mock("@react-navigation/native", () => {
+  const actual = jest.requireActual("@react-navigation/native");
+
+  return {
+    ...actual,
+    useNavigation: () => ({ goBack: mockGoBack })
+  };
+});
+
 function renderScreen(ui: ReactElement) {
   return render(<AppProviders>{ui}</AppProviders>);
 }
@@ -15,6 +26,10 @@ function createDraft(overrides: Partial<RecordaDraft> = {}): RecordaDraft {
 }
 
 describe("RecordaDetailsScreen", () => {
+  beforeEach(() => {
+    mockGoBack.mockClear();
+  });
+
   it("renders the selected media and song as read-only content", () => {
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onPublish={jest.fn()} />);
 
@@ -26,6 +41,15 @@ describe("RecordaDetailsScreen", () => {
     expect(screen.getByRole("button", { name: "Compartilhar" })).toBeTruthy();
     expect(screen.queryByText(/\/2200/)).toBeNull();
     expect(screen.getByPlaceholderText("Adicione uma descrição...")).toBeTruthy();
+    expect(screen.getByText("Descrição")).toBeTruthy();
+  });
+
+  it("goes back when the header back button is pressed", () => {
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onPublish={jest.fn()} />);
+
+    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it("renders selected video media for review", () => {

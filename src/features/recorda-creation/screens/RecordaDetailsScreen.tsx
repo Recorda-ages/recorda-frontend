@@ -1,12 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View
+} from "react-native";
 import { Button, IconButton, Text, TextInput } from "react-native-paper";
 
 import { Screen } from "@/components/ui";
-import { baseColors, colors, fontFamily, radius, semanticColors, spacing } from "@/theme";
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import {
+  baseColors,
+  colors,
+  fontFamily,
+  radius,
+  semanticColors,
+  spacing,
+  typography
+} from "@/theme";
 
 import { mockRecordaDraft } from "../mocks/recordaDraft";
 import type { RecordaDraft } from "../types";
@@ -23,6 +43,7 @@ export function RecordaDetailsScreen({
   onPublish = () => undefined
 }: RecordaDetailsScreenProps) {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [description, setDescription] = useState(draft.description);
   const [coverLoadFailed, setCoverLoadFailed] = useState(false);
   const videoPlayer = useVideoPlayer(draft.media?.uri ?? "");
@@ -37,10 +58,31 @@ export function RecordaDetailsScreen({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoiding}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+            keyboardShouldPersistTaps="handled"
+          >
+          <View style={styles.header}>
+            <IconButton
+              accessibilityLabel="Voltar"
+              icon={({ color, size }) => <Ionicons color={color} name="chevron-back" size={size} />}
+              iconColor={baseColors.white}
+              onPress={() => navigation.goBack()}
+              size={32}
+              style={styles.backButton}
+            />
+            <Text
+              ellipsizeMode="tail"
+              numberOfLines={1}
+              style={styles.headerTitle}
+              variant="titleMedium"
+            >
+              Descrição
+            </Text>
+            <View style={styles.headerSpacer} />
+          </View>
           <View style={styles.mediaStage}>
         {draft.media ? (
           draft.media.type === "video" ? (
@@ -133,7 +175,8 @@ export function RecordaDetailsScreen({
           </Button>
             </View>
           </View>
-        </ScrollView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -155,6 +198,30 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: colors.neutrals[900],
     padding: 0
+  },
+  header: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[1],
+    height: 64,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2]
+  },
+  backButton: {
+    margin: 0,
+    width: 48
+  },
+  headerSpacer: {
+    width: 48
+  },
+  headerTitle: {
+    ...typography.headline4,
+    color: colors.secondary[100],
+    fontFamily: fontFamily.primary.bold,
+    flex: 1,
+    lineHeight: 27,
+    overflow: "hidden",
+    textAlign: "center"
   },
   keyboardAvoiding: {
     flex: 1
