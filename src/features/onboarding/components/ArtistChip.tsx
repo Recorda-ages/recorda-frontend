@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Image, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Artist } from "@/types/artist";
 
 // Design tokens extraídos do Figma (node 562:5932)
@@ -12,8 +13,9 @@ const COLORS = {
   chipSelected: "#002D22",
   chipUnselected: "transparent",
   chipBorderUnselected: "#3E3E3E",
+  chipBorderSelected: "#00E2A9",
   chipTextSelected: "#F4FFFC",
-  chipTextUnselected: "#A9A9A9",
+  chipTextUnselected: "#A9A9A9"
 };
 
 interface ArtistChipProps {
@@ -27,26 +29,16 @@ export function ArtistChip({ artist, selected, onPress }: ArtistChipProps) {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
-      style={[
-        styles.chip,
-        selected ? styles.chipSelected : styles.chipUnselected,
-      ]}
+      style={[styles.chip, selected ? styles.chipSelected : styles.chipUnselected]}
     >
-      {artist.imageUrl && (
-        <Image
-          source={{ uri: artist.imageUrl }}
-          style={styles.avatar}
-        />
-      )}
+      {artist.imageUrl && <Image source={{ uri: artist.imageUrl }} style={styles.avatar} />}
       <Text
-        style={[
-          styles.label,
-          selected ? styles.labelSelected : styles.labelUnselected,
-        ]}
+        style={[styles.label, selected ? styles.labelSelected : styles.labelUnselected]}
         numberOfLines={1}
       >
         {artist.name}
       </Text>
+      {selected && <Ionicons name="checkmark" size={16} color={COLORS.chipBorderSelected} />}
     </TouchableOpacity>
   );
 }
@@ -59,29 +51,31 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingLeft: 4,
     paddingRight: 14,
-    gap: 10,
+    gap: 10
   },
   chipSelected: {
     backgroundColor: COLORS.chipSelected,
+    borderWidth: 1,
+    borderColor: COLORS.chipBorderSelected
   },
   chipUnselected: {
     backgroundColor: COLORS.chipUnselected,
     borderWidth: 1,
-    borderColor: COLORS.chipBorderUnselected,
+    borderColor: COLORS.chipBorderUnselected
   },
   avatar: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 16
   },
   label: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: "500"
   },
   labelSelected: {
-    color: COLORS.chipTextSelected,
+    color: COLORS.chipTextSelected
   },
   labelUnselected: {
-    color: COLORS.chipTextUnselected,
-  },
+    color: COLORS.chipTextUnselected
+  }
 });

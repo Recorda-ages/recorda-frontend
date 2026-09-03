@@ -6,9 +6,11 @@ import {
   TextInput,
   TouchableOpacity,
   Text,
-  ActivityIndicator,
+  ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
 import { searchArtistsMock } from "@/services/api/mock/artists";
@@ -23,7 +25,7 @@ const COLORS = {
   textPrimary: "#EAEAEA",
   textSecondary: "#BFBFBF",
   textOnChip: "#F4FFFC",
-  stepperInactive: "#3E3E3E",
+  stepperInactive: "#3E3E3E"
 };
 
 const MIN_ARTISTS = 3;
@@ -52,98 +54,139 @@ export function OnboardingArtistsScreen() {
 
   const canAdvance = selectedArtists.length >= MIN_ARTISTS;
 
+  const displayedArtists = [
+    ...selectedArtists,
+    ...results.filter((r) => !selectedArtists.some((sa) => sa.id === r.id))
+  ];
+
   return (
-    <SafeAreaView style={styles.root}>
-      {/* ── Stepper ─────────────────────────────────────────────────── */}
-      <View style={styles.stepperRow}>
-        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.stepperBar,
-              i === 0 && { backgroundColor: COLORS.primary },
-            ]}
-          />
-        ))}
-      </View>
-
-      {/* ── Body ────────────────────────────────────────────────────── */}
-      <View style={styles.body}>
-        {/* Header */}
-        <View style={styles.headerSection}>
-          <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
-          <Text style={styles.title}>Quem faz parte da{"\n"}sua história?</Text>
-          <Text style={styles.subtitle}>
-            Escolha pelo menos 3 artistas para personalizar suas recordações.
-          </Text>
-        </View>
-
-        {/* Search bar */}
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar artistas"
-            placeholderTextColor={COLORS.textSecondary}
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={handleSearch}
-            returnKeyType="search"
-            selectionColor={COLORS.primary}
-          />
-        </View>
-
-        {/* Results */}
-        <ScrollView
-          contentContainerStyle={styles.chipsContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={COLORS.primary} style={styles.loader} />
-          ) : (
-            <>
-              {results.map((artist) => {
-                const isSelected = selectedArtists.some((a) => a.id === artist.id);
-                return (
-                  <ArtistChip
-                    key={artist.id}
-                    artist={artist}
-                    selected={isSelected}
-                    onPress={() => toggleArtist(artist)}
-                  />
-                );
-              })}
-              {hasSearched && results.length === 0 && (
-                <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
-              )}
-            </>
-          )}
-        </ScrollView>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          {selectedArtists.length > 0 && (
-            <Text style={styles.selectionCount}>
-              {selectedArtists.length} artista{selectedArtists.length !== 1 ? "s" : ""} selecionado{selectedArtists.length !== 1 ? "s" : ""}
-            </Text>
-          )}
-          <TouchableOpacity
-            style={[styles.button, !canAdvance && styles.buttonDisabled]}
-            disabled={!canAdvance}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonLabel}>Continuar</Text>
+    <LinearGradient
+      colors={["rgba(0, 226, 169, 0.15)", COLORS.background]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 0.3 }}
+      style={styles.root}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        {/* ── Top Header ──────────────────────────────────────────────── */}
+        <View style={styles.topHeader}>
+          <TouchableOpacity style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
+          <Text style={styles.topHeaderTitle}>Artistas</Text>
+          <View style={{ width: 40 }} />
         </View>
-      </View>
-    </SafeAreaView>
+
+        {/* ── Stepper ─────────────────────────────────────────────────── */}
+        <View style={styles.stepperRow}>
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            <View
+              key={i}
+              style={[styles.stepperBar, i === 0 && { backgroundColor: COLORS.primary }]}
+            />
+          ))}
+        </View>
+
+        {/* ── Body ────────────────────────────────────────────────────── */}
+        <View style={styles.body}>
+          {/* Header */}
+          <View style={styles.headerSection}>
+            <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
+            <Text style={styles.title}>Quem faz parte da{"\n"}sua história?</Text>
+            <Text style={styles.subtitle}>
+              Escolha pelo menos 3 artistas para personalizar suas recordações.
+            </Text>
+          </View>
+
+          {/* Search bar */}
+          <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar artistas"
+              placeholderTextColor={COLORS.textSecondary}
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+              selectionColor={COLORS.primary}
+            />
+          </View>
+
+          {/* Results */}
+          <ScrollView
+            contentContainerStyle={styles.chipsContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={COLORS.primary} style={styles.loader} />
+            ) : (
+              <>
+                {displayedArtists.map((artist) => {
+                  const isSelected = selectedArtists.some((a) => a.id === artist.id);
+                  return (
+                    <ArtistChip
+                      key={artist.id}
+                      artist={artist}
+                      selected={isSelected}
+                      onPress={() => toggleArtist(artist)}
+                    />
+                  );
+                })}
+                {hasSearched && displayedArtists.length === 0 && (
+                  <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
+                )}
+              </>
+            )}
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            {selectedArtists.length > 0 && (
+              <Text style={styles.selectionCount}>
+                {selectedArtists.length} artista{selectedArtists.length !== 1 ? "s" : ""}{" "}
+                selecionado{selectedArtists.length !== 1 ? "s" : ""}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={[styles.button, !canAdvance && styles.buttonDisabled]}
+              disabled={!canAdvance}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
+                Próximo
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+    flex: 1
+  },
+  safeArea: {
+    flex: 1
+  },
+
+  // Top Header
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 12
+  },
+  backButton: {
+    padding: 8,
+    width: 40
+  },
+  topHeaderTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.textPrimary
   },
 
   // Stepper
@@ -151,13 +194,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 8
   },
   stepperBar: {
     flex: 1,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.stepperInactive,
+    backgroundColor: COLORS.stepperInactive
   },
 
   // Body
@@ -165,31 +208,31 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 24,
-    gap: 16,
+    gap: 16
   },
 
   // Header
   headerSection: {
     gap: 8,
-    marginTop: 16,
+    marginTop: 16
   },
   etapaLabel: {
     fontSize: 12,
     fontWeight: "400",
     color: COLORS.primary,
-    letterSpacing: 0.5,
+    letterSpacing: 0.5
   },
   title: {
     fontSize: 28,
     fontWeight: "600",
     color: COLORS.textPrimary,
-    lineHeight: 36,
+    lineHeight: 36
   },
   subtitle: {
     fontSize: 14,
     fontWeight: "400",
     color: COLORS.textSecondary,
-    lineHeight: 20,
+    lineHeight: 20
   },
 
   // Search
@@ -200,59 +243,65 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 14,
     height: 56,
-    gap: 8,
+    gap: 8
   },
   searchIcon: {
-    fontSize: 16,
+    fontSize: 16
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
     fontWeight: "400",
-    color: COLORS.textPrimary,
+    color: COLORS.textPrimary
   },
 
   // Chips area
   chipsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 8
   },
   loader: {
     marginTop: 24,
-    alignSelf: "center",
+    alignSelf: "center"
   },
   emptyText: {
     color: COLORS.textSecondary,
     fontSize: 14,
     textAlign: "center",
     marginTop: 24,
-    flex: 1,
+    flex: 1
   },
 
   // Footer
   footer: {
     gap: 8,
-    marginTop: "auto",
+    marginTop: "auto"
   },
   selectionCount: {
     fontSize: 12,
     fontWeight: "500",
     color: COLORS.primary,
+    textAlign: "center"
   },
   button: {
     height: 58,
     borderRadius: 100,
     backgroundColor: COLORS.primary,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "center"
   },
   buttonDisabled: {
-    opacity: 0.35,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: COLORS.textSecondary
   },
   buttonLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.background,
+    color: COLORS.background
   },
+  buttonLabelDisabled: {
+    color: COLORS.textSecondary
+  }
 });

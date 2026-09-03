@@ -45,7 +45,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         addArtist,
         removeArtist,
         toggleArtist,
-        clearArtists,
+        clearArtists
       }}
     >
       {children}
