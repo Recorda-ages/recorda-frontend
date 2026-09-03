@@ -9,7 +9,6 @@ import {
   ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
@@ -25,7 +24,7 @@ const COLORS = {
   textPrimary: "#EAEAEA",
   textSecondary: "#BFBFBF",
   textOnChip: "#F4FFFC",
-  stepperInactive: "#3E3E3E"
+  stepperInactive: "#002D22"
 };
 
 const MIN_ARTISTS = 3;
@@ -60,17 +59,12 @@ export function OnboardingArtistsScreen() {
   ];
 
   return (
-    <LinearGradient
-      colors={["rgba(0, 226, 169, 0.15)", COLORS.background]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 0.3 }}
-      style={styles.root}
-    >
+    <View style={styles.root}>
       <SafeAreaView style={styles.safeArea}>
         {/* ── Top Header ──────────────────────────────────────────────── */}
         <View style={styles.topHeader}>
           <TouchableOpacity style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
+            <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.topHeaderTitle}>Artistas</Text>
           <View style={{ width: 40 }} />
@@ -91,7 +85,7 @@ export function OnboardingArtistsScreen() {
           {/* Header */}
           <View style={styles.headerSection}>
             <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
-            <Text style={styles.title}>Quem faz parte da{"\n"}sua história?</Text>
+            <Text style={styles.title}>Quem faz parte da sua história?</Text>
             <Text style={styles.subtitle}>
               Escolha pelo menos 3 artistas para personalizar suas recordações.
             </Text>
@@ -99,7 +93,6 @@ export function OnboardingArtistsScreen() {
 
           {/* Search bar */}
           <View style={styles.searchBar}>
-            <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
               placeholder="Buscar artistas"
@@ -110,6 +103,7 @@ export function OnboardingArtistsScreen() {
               returnKeyType="search"
               selectionColor={COLORS.primary}
             />
+            <Ionicons name="search" size={20} color={COLORS.textSecondary} />
           </View>
 
           {/* Results */}
@@ -155,20 +149,27 @@ export function OnboardingArtistsScreen() {
               <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
                 Próximo
               </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={!canAdvance ? COLORS.primary : COLORS.background}
+              />
             </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1
+    flex: 1,
+    backgroundColor: COLORS.background
   },
   safeArea: {
-    flex: 1
+    flex: 1,
+    zIndex: 1
   },
 
   // Top Header
@@ -184,8 +185,8 @@ const styles = StyleSheet.create({
     width: 40
   },
   topHeaderTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "700",
     color: COLORS.textPrimary
   },
 
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
   },
   etapaLabel: {
     fontSize: 12,
-    fontWeight: "400",
+    fontWeight: "600",
     color: COLORS.primary,
     letterSpacing: 0.5
   },
@@ -226,13 +227,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "600",
     color: COLORS.textPrimary,
-    lineHeight: 36
+    lineHeight: 37
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "400",
     color: COLORS.textSecondary,
-    lineHeight: 20
+    lineHeight: 22
   },
 
   // Search
@@ -241,16 +242,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.surface,
     borderRadius: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     height: 56,
     gap: 8
   },
-  searchIcon: {
-    fontSize: 16
-  },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "400",
     color: COLORS.textPrimary
   },
@@ -279,7 +277,7 @@ const styles = StyleSheet.create({
     marginTop: "auto"
   },
   selectionCount: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "500",
     color: COLORS.primary,
     textAlign: "center"
@@ -288,20 +286,24 @@ const styles = StyleSheet.create({
     height: 58,
     borderRadius: 100,
     backgroundColor: COLORS.primary,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    gap: 8
   },
   buttonDisabled: {
     backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: COLORS.textSecondary
+    borderWidth: 1.5,
+    borderColor: COLORS.primary
   },
   buttonLabel: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    lineHeight: 26,
+    letterSpacing: 0.46,
     color: COLORS.background
   },
   buttonLabelDisabled: {
-    color: COLORS.textSecondary
+    color: COLORS.primary
   }
 });
