@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   mediaOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: baseColors.black,
-    opacity: 0.6
+    opacity: 0.45
   },
   publishButton: {
     borderRadius: radius.full,
