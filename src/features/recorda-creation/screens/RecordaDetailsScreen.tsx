@@ -108,6 +108,8 @@ export function RecordaDetailsScreen({
           </View>
         )}
 
+        <View style={styles.mediaOverlay} testID="recorda-details-media-overlay" />
+
             {draft.song ? (
               <View style={styles.song}>
             {draft.song.coverUrl && !coverLoadFailed ? (
@@ -242,6 +244,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     position: "relative"
+  },
+  mediaOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: baseColors.black,
+    opacity: 0.6
   },
   publishButton: {
     borderRadius: radius.full,
