@@ -7,6 +7,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { apiClient } from "@/services/api/client";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { baseColors, colors } from "@/theme/colors";
+import { fontFamily } from "@/theme/typography";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Splash">;
 
@@ -104,27 +105,40 @@ const styles = StyleSheet.create({
   },
   radialGlowTop: {
     position: "absolute",
-    top: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: colors.primary[900],
-    opacity: 0.6
+    top: -210,
+    left: -210,
+    width: 440,
+    height: 440,
+    borderRadius: 220,
+    backgroundColor: colors.primary[400],
+    opacity: 0.38,
+    filter: "blur(115px)",
+    shadowColor: colors.primary[400],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 115,
+    elevation: 20
   },
   radialGlowBottom: {
     position: "absolute",
-    bottom: -80,
-    right: -40,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: colors.primary[800],
-    opacity: 0.5
+    bottom: -210,
+    right: -210,
+    width: 440,
+    height: 440,
+    borderRadius: 220,
+    backgroundColor: colors.primary[500],
+    opacity: 0.34,
+    filter: "blur(115px)",
+    shadowColor: colors.primary[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 115,
+    elevation: 20
   },
   logoText: {
     color: colors.primary[500],
-    fontSize: 44,
-    fontWeight: "900",
+    fontSize: 56,
+    fontFamily: "Inter_700Bold",
     fontStyle: "italic",
     letterSpacing: -1.5
   }
