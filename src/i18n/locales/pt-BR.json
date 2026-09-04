@@ -4,5 +4,14 @@
     "secondaryAction": "Ver estrutura",
     "subtitle": "Memorias que tem trilha sonora.",
     "title": "Recorda"
+  },
+  "recordaDetails": {
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Adicione uma descrição...",
+    "mediaSelected": "Mídia selecionada",
+    "mediaUnavailable": "Mídia indisponível",
+    "publish": "Publicar",
+    "share": "Compartilhar",
+    "songCover": "Capa da música"
   }
 }

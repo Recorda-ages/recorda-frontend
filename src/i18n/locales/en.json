@@ -4,5 +4,14 @@
     "secondaryAction": "View structure",
     "subtitle": "Memories with a soundtrack.",
     "title": "Recorda"
+  },
+  "recordaDetails": {
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Add a description...",
+    "mediaSelected": "Selected media",
+    "mediaUnavailable": "Media unavailable",
+    "publish": "Publish",
+    "share": "Share",
+    "songCover": "Song cover"
   }
 }
