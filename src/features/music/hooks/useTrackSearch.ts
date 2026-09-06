@@ -5,6 +5,6 @@ export function useTrackSearch(q: string) {
   return useQuery({
     queryKey: ["music", "tracks", q],
     queryFn: () => musicService.searchTracks(q),
-    enabled: q.trim().length > 0,
+    enabled: q.trim().length > 0
   });
 }

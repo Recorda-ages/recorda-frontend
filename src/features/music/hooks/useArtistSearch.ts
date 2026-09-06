@@ -5,6 +5,6 @@ export function useArtistSearch(q: string) {
   return useQuery({
     queryKey: ["music", "artists", q],
     queryFn: () => musicService.searchArtists(q),
-    enabled: q.trim().length > 0,
+    enabled: q.trim().length > 0
   });
 }

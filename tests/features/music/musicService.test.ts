@@ -2,7 +2,7 @@ import { apiClient } from "@/services/api";
 import { musicService } from "@/features/music/services/musicService";
 
 jest.mock("@/services/api", () => ({
-  apiClient: { get: jest.fn() },
+  apiClient: { get: jest.fn() }
 }));
 
 const mockGet = apiClient.get as jest.Mock;
@@ -17,8 +17,8 @@ const TRACKS = [
     album: "8 Mile",
     cover_url: null,
     preview_url: null,
-    genre_id: 1,
-  },
+    genre_id: 1
+  }
 ];
 
 beforeEach(() => mockGet.mockReset());
@@ -59,9 +59,7 @@ describe("musicService.searchTracks", () => {
 
     const result = await musicService.searchTracks("Lose Yourself");
 
-    expect(mockGet).toHaveBeenCalledWith(
-      "/music/tracks/search?q=Lose%20Yourself"
-    );
+    expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself");
     expect(result).toEqual(TRACKS);
   });
 });

@@ -6,14 +6,14 @@ import { useGenres } from "@/features/music/hooks/useGenres";
 import { musicService } from "@/features/music/services/musicService";
 
 jest.mock("@/features/music/services/musicService", () => ({
-  musicService: { getGenres: jest.fn() },
+  musicService: { getGenres: jest.fn() }
 }));
 
 const mockGetGenres = musicService.getGenres as jest.Mock;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false } }
   });
   return React.createElement(QueryClientProvider, { client }, children);
 }

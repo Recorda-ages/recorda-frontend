@@ -6,14 +6,14 @@ import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
 import { musicService } from "@/features/music/services/musicService";
 
 jest.mock("@/features/music/services/musicService", () => ({
-  musicService: { searchArtists: jest.fn() },
+  musicService: { searchArtists: jest.fn() }
 }));
 
 const mockSearchArtists = musicService.searchArtists as jest.Mock;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false } }
   });
   return React.createElement(QueryClientProvider, { client }, children);
 }

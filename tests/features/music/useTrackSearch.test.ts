@@ -6,14 +6,14 @@ import { useTrackSearch } from "@/features/music/hooks/useTrackSearch";
 import { musicService } from "@/features/music/services/musicService";
 
 jest.mock("@/features/music/services/musicService", () => ({
-  musicService: { searchTracks: jest.fn() },
+  musicService: { searchTracks: jest.fn() }
 }));
 
 const mockSearchTracks = musicService.searchTracks as jest.Mock;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false } }
   });
   return React.createElement(QueryClientProvider, { client }, children);
 }
@@ -30,13 +30,13 @@ describe("useTrackSearch", () => {
         album: "8 Mile",
         cover_url: null,
         preview_url: null,
-        genre_id: 1,
-      },
+        genre_id: 1
+      }
     ];
     mockSearchTracks.mockResolvedValueOnce(tracks);
 
     const { result } = renderHook(() => useTrackSearch("Lose Yourself"), {
-      wrapper,
+      wrapper
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

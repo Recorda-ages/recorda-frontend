@@ -29,5 +29,5 @@ export const musicService = {
     apiClient.get<Artist[]>(`/music/artists/search?q=${encodeURIComponent(q)}`),
 
   searchTracks: (q: string) =>
-    apiClient.get<Track[]>(`/music/tracks/search?q=${encodeURIComponent(q)}`),
+    apiClient.get<Track[]>(`/music/tracks/search?q=${encodeURIComponent(q)}`)
 };
