@@ -1,4 +1,21 @@
 {
+  "auth": {
+    "signUp": {
+      "email": "Email",
+      "hasAccount": "Já tem uma conta?",
+      "hidePassword": "Ocultar senha",
+      "loginAction": "Entrar",
+      "logo": "recorda.",
+      "name": "Nome",
+      "networkError": "Não foi possível conectar ao servidor. Tente novamente.",
+      "password": "Senha",
+      "showPassword": "Mostrar senha",
+      "submit": "Cadastrar",
+      "subtitle": "Crie sua conta e transforme momentos em trilhas.",
+      "title": "Guarde o momento",
+      "username": "Usuário"
+    }
+  },
   "home": {
     "primaryAction": "Comecar",
     "secondaryAction": "Ver estrutura",
