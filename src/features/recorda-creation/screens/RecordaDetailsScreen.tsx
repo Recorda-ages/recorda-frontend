@@ -64,119 +64,121 @@ export function RecordaDetailsScreen({
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             keyboardShouldPersistTaps="handled"
           >
-          <View style={styles.header}>
-            <IconButton
-              accessibilityLabel="Voltar"
-              icon={({ color, size }) => <Ionicons color={color} name="chevron-back" size={size} />}
-              iconColor={baseColors.white}
-              onPress={() => navigation.goBack()}
-              size={32}
-              style={styles.backButton}
-            />
-            <Text
-              ellipsizeMode="tail"
-              numberOfLines={1}
-              style={styles.headerTitle}
-              variant="titleMedium"
-            >
-              Descrição
-            </Text>
-            <View style={styles.headerSpacer} />
-          </View>
-          <View style={styles.mediaStage}>
-        {draft.media ? (
-          draft.media.type === "video" ? (
-            <VideoView
-              accessibilityLabel={t("recordaDetails.mediaSelected")}
-              contentFit="cover"
-              nativeControls={false}
-              player={videoPlayer}
-              style={styles.media}
-              testID="recorda-details-video"
-            />
-          ) : (
-            <Image
-              accessibilityLabel={t("recordaDetails.mediaSelected")}
-              source={{ uri: draft.media.uri }}
-              style={styles.media}
-              testID="recorda-details-media"
-            />
-          )
-        ) : (
-          <View style={styles.mediaUnavailable} testID="recorda-details-media">
-            <Text>{t("recordaDetails.mediaUnavailable")}</Text>
-          </View>
-        )}
-
-        <View style={styles.mediaOverlay} testID="recorda-details-media-overlay" />
-
-            {draft.song ? (
-              <View style={styles.song}>
-            {draft.song.coverUrl && !coverLoadFailed ? (
-              <Image
-                accessibilityLabel={t("recordaDetails.songCover")}
-                onError={() => setCoverLoadFailed(true)}
-                source={{ uri: draft.song.coverUrl }}
-                style={styles.songCover}
-                testID="recorda-details-song-cover"
+            <View style={styles.header}>
+              <IconButton
+                accessibilityLabel="Voltar"
+                icon={({ color, size }) => (
+                  <Ionicons color={color} name="chevron-back" size={size} />
+                )}
+                iconColor={baseColors.white}
+                onPress={() => navigation.goBack()}
+                size={32}
+                style={styles.backButton}
               />
-            ) : (
-              <View
-                accessibilityLabel={t("recordaDetails.songCover")}
-                style={[styles.songCover, styles.songCoverPlaceholder]}
-                testID="recorda-details-song-cover"
-              />
-            )}
-            <Text style={styles.songTitle} variant="titleMedium">
-              {draft.song.title}
-            </Text>
-            <Text style={styles.songArtist} variant="bodySmall">
-              {draft.song.artistName}
-            </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <View style={styles.bottomArea}>
-        <TextInput
-          accessibilityLabel={t("recordaDetails.descriptionLabel")}
-          contentStyle={styles.descriptionContent}
-          cursorColor={semanticColors.actionPrimary}
-          maxLength={DESCRIPTION_MAX_LENGTH}
-          multiline
-          onChangeText={(text) => setDescription(text.slice(0, DESCRIPTION_MAX_LENGTH))}
-          placeholder={t("recordaDetails.descriptionPlaceholder")}
-          placeholderTextColor="rgba(255, 255, 255, 0.6)"
-          selectionColor={semanticColors.actionPrimary}
-          style={styles.description}
-          textColor={baseColors.white}
-          underlineColor="transparent"
-          activeUnderlineColor="transparent"
-          value={description}
-        />
-
-          <View style={styles.actions}>
-          <IconButton
-            accessibilityLabel={t("recordaDetails.share")}
-            icon={({ color, size }) => (
-              <Ionicons color={color} name="share-social-outline" size={size} />
-            )}
-            iconColor={styles.shareIcon.color}
-            mode="outlined"
-            size={32}
-            style={styles.shareButton}
-          />
-          <Button
-            contentStyle={styles.publishContent}
-            disabled={!draft.song}
-            mode="contained"
-            onPress={onPublish}
-            style={styles.publishButton}
-          >
-            {t("recordaDetails.publish")}
-          </Button>
+              <Text
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={styles.headerTitle}
+                variant="titleMedium"
+              >
+                Descrição
+              </Text>
+              <View style={styles.headerSpacer} />
             </View>
-          </View>
+            <View style={styles.mediaStage}>
+              {draft.media ? (
+                draft.media.type === "video" ? (
+                  <VideoView
+                    accessibilityLabel={t("recordaDetails.mediaSelected")}
+                    contentFit="cover"
+                    nativeControls={false}
+                    player={videoPlayer}
+                    style={styles.media}
+                    testID="recorda-details-video"
+                  />
+                ) : (
+                  <Image
+                    accessibilityLabel={t("recordaDetails.mediaSelected")}
+                    source={{ uri: draft.media.uri }}
+                    style={styles.media}
+                    testID="recorda-details-media"
+                  />
+                )
+              ) : (
+                <View style={styles.mediaUnavailable} testID="recorda-details-media">
+                  <Text>{t("recordaDetails.mediaUnavailable")}</Text>
+                </View>
+              )}
+
+              <View style={styles.mediaOverlay} testID="recorda-details-media-overlay" />
+
+              {draft.song ? (
+                <View style={styles.song}>
+                  {draft.song.coverUrl && !coverLoadFailed ? (
+                    <Image
+                      accessibilityLabel={t("recordaDetails.songCover")}
+                      onError={() => setCoverLoadFailed(true)}
+                      source={{ uri: draft.song.coverUrl }}
+                      style={styles.songCover}
+                      testID="recorda-details-song-cover"
+                    />
+                  ) : (
+                    <View
+                      accessibilityLabel={t("recordaDetails.songCover")}
+                      style={[styles.songCover, styles.songCoverPlaceholder]}
+                      testID="recorda-details-song-cover"
+                    />
+                  )}
+                  <Text style={styles.songTitle} variant="titleMedium">
+                    {draft.song.title}
+                  </Text>
+                  <Text style={styles.songArtist} variant="bodySmall">
+                    {draft.song.artistName}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={styles.bottomArea}>
+              <TextInput
+                accessibilityLabel={t("recordaDetails.descriptionLabel")}
+                contentStyle={styles.descriptionContent}
+                cursorColor={semanticColors.actionPrimary}
+                maxLength={DESCRIPTION_MAX_LENGTH}
+                multiline
+                onChangeText={(text) => setDescription(text.slice(0, DESCRIPTION_MAX_LENGTH))}
+                placeholder={t("recordaDetails.descriptionPlaceholder")}
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                selectionColor={semanticColors.actionPrimary}
+                style={styles.description}
+                textColor={baseColors.white}
+                underlineColor="transparent"
+                activeUnderlineColor="transparent"
+                value={description}
+              />
+
+              <View style={styles.actions}>
+                <IconButton
+                  accessibilityLabel={t("recordaDetails.share")}
+                  icon={({ color, size }) => (
+                    <Ionicons color={color} name="share-social-outline" size={size} />
+                  )}
+                  iconColor={styles.shareIcon.color}
+                  mode="outlined"
+                  size={32}
+                  style={styles.shareButton}
+                />
+                <Button
+                  contentStyle={styles.publishContent}
+                  disabled={!draft.song}
+                  mode="contained"
+                  onPress={onPublish}
+                  style={styles.publishButton}
+                >
+                  {t("recordaDetails.publish")}
+                </Button>
+              </View>
+            </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>

@@ -6,5 +6,7 @@ type IoniconsProps = {
 };
 
 export function Ionicons({ color, size }: IoniconsProps) {
-  return <View accessibilityRole="image" style={{ backgroundColor: color, height: size, width: size }} />;
+  return (
+    <View accessibilityRole="image" style={{ backgroundColor: color, height: size, width: size }} />
+  );
 }

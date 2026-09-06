@@ -102,10 +102,7 @@ describe("RecordaDetailsScreen", () => {
 
   it("allows an empty description", () => {
     renderScreen(
-      <RecordaDetailsScreen
-        draft={createDraft({ description: "" })}
-        onPublish={jest.fn()}
-      />
+      <RecordaDetailsScreen draft={createDraft({ description: "" })} onPublish={jest.fn()} />
     );
 
     expect(screen.getByLabelText("Descrição")).toHaveProp("value", "");
@@ -125,10 +122,7 @@ describe("RecordaDetailsScreen", () => {
 
   it("disables publishing when no song is associated", () => {
     renderScreen(
-      <RecordaDetailsScreen
-        draft={createDraft({ song: null })}
-        onPublish={jest.fn()}
-      />
+      <RecordaDetailsScreen draft={createDraft({ song: null })} onPublish={jest.fn()} />
     );
 
     expect(screen.getByRole("button", { name: "Publicar" })).toBeDisabled();
@@ -145,10 +139,7 @@ describe("RecordaDetailsScreen", () => {
 
   it("renders without failing when media is absent", () => {
     renderScreen(
-      <RecordaDetailsScreen
-        draft={createDraft({ media: null })}
-        onPublish={jest.fn()}
-      />
+      <RecordaDetailsScreen draft={createDraft({ media: null })} onPublish={jest.fn()} />
     );
 
     expect(screen.getByText("Mídia indisponível")).toBeTruthy();
