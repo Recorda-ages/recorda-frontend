@@ -4,26 +4,47 @@ import { View } from "react-native";
 type MockPlayer = {
   loop: boolean;
   pause: () => void;
-  play: () => void;
+  play: jest.Mock<void, []>;
   playing: boolean;
 };
 
-export function useVideoPlayer(_source: unknown, setup?: (player: MockPlayer) => void) {
-  const player: MockPlayer = {
+type MockVideoSource = null | number | string | Record<string, unknown>;
+
+function createMockPlayer(): MockPlayer {
+  return {
     loop: false,
     pause: () => undefined,
-    play: () => undefined,
+    play: jest.fn(),
     playing: false
   };
+}
 
-  if (setup) {
-    setup(player);
-  }
+export const mockUseVideoPlayer = jest.fn<
+  MockPlayer,
+  [MockVideoSource, ((player: MockPlayer) => void)?]
+>();
 
-  return player;
+export function resetVideoMock() {
+  mockUseVideoPlayer.mockReset();
+  mockUseVideoPlayer.mockImplementation((source, setup) => {
+    const player = createMockPlayer();
+
+    if (setup) {
+      setup(player);
+    }
+
+    return player;
+  });
+}
+
+resetVideoMock();
+
+export function useVideoPlayer(source: MockVideoSource, setup?: (player: MockPlayer) => void) {
+  return mockUseVideoPlayer(source, setup);
 }
 
 type VideoViewProps = {
+  player?: MockPlayer;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 };

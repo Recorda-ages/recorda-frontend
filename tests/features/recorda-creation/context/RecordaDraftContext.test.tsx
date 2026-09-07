@@ -18,6 +18,12 @@ function DraftConsumer() {
       >
         <Text>set</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setMedia({ type: "video", uri: "file://test.mp4" })}
+        testID="replace-button"
+      >
+        <Text>replace</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={clearMedia} testID="clear-button">
         <Text>clear</Text>
       </TouchableOpacity>
@@ -46,6 +52,19 @@ describe("RecordaDraftContext", () => {
     fireEvent.press(screen.getByTestId("set-button"));
 
     expect(screen.getByTestId("media-value")).toHaveTextContent("photo:file://test.jpg");
+  });
+
+  it("replaces the current media instead of storing multiple items", () => {
+    render(
+      <RecordaDraftProvider>
+        <DraftConsumer />
+      </RecordaDraftProvider>
+    );
+
+    fireEvent.press(screen.getByTestId("set-button"));
+    fireEvent.press(screen.getByTestId("replace-button"));
+
+    expect(screen.getByTestId("media-value")).toHaveTextContent("video:file://test.mp4");
   });
 
   it("clears media via clearMedia", () => {

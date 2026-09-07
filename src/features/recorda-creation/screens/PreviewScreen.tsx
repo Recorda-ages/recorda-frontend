@@ -3,6 +3,7 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { useEffect, useRef, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -15,34 +16,60 @@ export function PreviewScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "Preview">>();
   const { type, uri } = route.params;
   const { setMedia } = useRecordaDraft();
+  const [isConfirming, setIsConfirming] = useState(false);
+  const isConfirmingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
-  const player = useVideoPlayer(uri, (playerInstance) => {
+  const player = useVideoPlayer(type === "video" ? uri : null, (playerInstance) => {
     playerInstance.loop = true;
-    playerInstance.play();
+
+    if (type === "video") {
+      playerInstance.play();
+    }
   });
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   function handleDiscard() {
     navigation.goBack();
   }
 
   async function handleConfirm() {
-    let finalUri = uri;
-
-    if (type === "photo") {
-      const context = ImageManipulator.manipulate(uri);
-      const manipulatedImage = await context.renderAsync();
-      const result = await manipulatedImage.saveAsync({
-        compress: 0.6,
-        format: SaveFormat.JPEG
-      });
-
-      finalUri = result.uri;
-      context.release();
-      manipulatedImage.release();
+    if (isConfirmingRef.current) {
+      return;
     }
 
-    setMedia({ type, uri: finalUri });
-    navigation.navigate("Home");
+    isConfirmingRef.current = true;
+    setIsConfirming(true);
+    let finalUri = uri;
+
+    try {
+      if (type === "photo") {
+        const context = ImageManipulator.manipulate(uri);
+        const manipulatedImage = await context.renderAsync();
+        const result = await manipulatedImage.saveAsync({
+          compress: 0.6,
+          format: SaveFormat.JPEG
+        });
+
+        finalUri = result.uri;
+        context.release();
+        manipulatedImage.release();
+      }
+
+      setMedia({ type, uri: finalUri });
+      navigation.navigate("Home");
+    } finally {
+      isConfirmingRef.current = false;
+
+      if (isMountedRef.current) {
+        setIsConfirming(false);
+      }
+    }
   }
 
   return (
@@ -63,7 +90,7 @@ export function PreviewScreen() {
         </TouchableOpacity>
 
         <View style={styles.bottomBar}>
-          <Button label="Avançar" onPress={handleConfirm} />
+          <Button label="Avançar" loading={isConfirming} onPress={handleConfirm} />
         </View>
       </SafeAreaView>
     </View>
