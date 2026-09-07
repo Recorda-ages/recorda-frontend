@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +21,8 @@ type OnboardingGenresScreenProps = {
 export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
   const { onBack, onContinue, onSelectedGenreIdsChange, selectedGenreIds } = props;
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  const backgroundScale = width / 393;
 
   const genresQuery = useQuery({
     queryFn: getGenres,
@@ -30,8 +32,30 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
   return (
     <SafeAreaView style={styles.screen} testID="onboarding-genres-screen">
       <StatusBar style="light" />
-      <View pointerEvents="none" style={[styles.glow, styles.glowTop]} />
-      <View pointerEvents="none" style={[styles.glow, styles.glowBottom]} />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Image
+          source={require("../assets/gradient-glow.svg")}
+          contentFit="contain"
+          style={{
+            position: "absolute",
+            width: 894 * backgroundScale,
+            height: 894 * backgroundScale,
+            left: -446 * backgroundScale,
+            top: -468 * backgroundScale
+          }}
+        />
+        <Image
+          source={require("../assets/gradient-glow.svg")}
+          contentFit="contain"
+          style={{
+            position: "absolute",
+            width: 894 * backgroundScale,
+            height: 894 * backgroundScale,
+            right: -535 * backgroundScale,
+            bottom: -271 * backgroundScale
+          }}
+        />
+      </View>
 
       <View style={styles.topBar}>
         <Pressable
@@ -224,22 +248,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingTop: spacing[4]
   },
-  glow: {
-    backgroundColor: colors.primary[900],
-    borderRadius: 447,
-    height: 620,
-    opacity: 0.42,
-    position: "absolute",
-    width: 620
-  },
-  glowBottom: {
-    bottom: -330,
-    right: -360
-  },
-  glowTop: {
-    left: -420,
-    top: -420
-  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -265,6 +273,7 @@ const styles = StyleSheet.create({
   },
   screen: {
     backgroundColor: colors.neutrals[900],
+    overflow: "hidden",
     flex: 1
   },
   scroll: {
