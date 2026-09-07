@@ -9,20 +9,12 @@ import {
   ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-import { LinearGradient } from "expo-linear-gradient";
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
 import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
 import { searchArtistsMock } from "@/services/api/mock/artists";
 import { Artist } from "@/types/artist";
 
-// ─── Figma design tokens ──────────────────────────────────────────────────────
 const COLORS = {
   background: "#151515",
   surface: "#292929",
@@ -31,15 +23,7 @@ const COLORS = {
   textPrimary: "#EAEAEA",
   textSecondary: "#BFBFBF",
   textOnChip: "#F4FFFC",
-<<<<<<< HEAD
-<<<<<<< HEAD
-  stepperInactive: "#002D22"
-=======
   stepperInactive: "#3E3E3E"
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-  stepperInactive: "#002D22"
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
 };
 
 const MIN_ARTISTS = 3;
@@ -74,33 +58,12 @@ export function OnboardingArtistsScreen() {
   ];
 
   return (
-<<<<<<< HEAD
-<<<<<<< HEAD
     <View style={styles.root}>
-=======
-    <LinearGradient
-      colors={["rgba(0, 226, 169, 0.15)", COLORS.background]}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 0.3 }}
-      style={styles.root}
-    >
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    <View style={styles.root}>
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
       <SafeAreaView style={styles.safeArea}>
         {/* ── Top Header ──────────────────────────────────────────────── */}
         <View style={styles.topHeader}>
           <TouchableOpacity style={styles.backButton}>
-<<<<<<< HEAD
-<<<<<<< HEAD
             <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
-=======
-            <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-            <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
           </TouchableOpacity>
           <Text style={styles.topHeaderTitle}>Artistas</Text>
           <View style={{ width: 40 }} />
@@ -121,15 +84,7 @@ export function OnboardingArtistsScreen() {
           {/* Header */}
           <View style={styles.headerSection}>
             <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
-<<<<<<< HEAD
-<<<<<<< HEAD
             <Text style={styles.title}>Quem faz parte da sua história?</Text>
-=======
-            <Text style={styles.title}>Quem faz parte da{"\n"}sua história?</Text>
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-            <Text style={styles.title}>Quem faz parte da sua história?</Text>
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
             <Text style={styles.subtitle}>
               Escolha pelo menos 3 artistas para personalizar suas recordações.
             </Text>
@@ -137,13 +92,6 @@ export function OnboardingArtistsScreen() {
 
           {/* Search bar */}
           <View style={styles.searchBar}>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-            <Text style={styles.searchIcon}>🔍</Text>
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
             <TextInput
               style={styles.searchInput}
               placeholder="Buscar artistas"
@@ -154,14 +102,7 @@ export function OnboardingArtistsScreen() {
               returnKeyType="search"
               selectionColor={COLORS.primary}
             />
-<<<<<<< HEAD
-<<<<<<< HEAD
             <Ionicons name="search" size={20} color={COLORS.textSecondary} />
-=======
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-            <Ionicons name="search" size={20} color={COLORS.textSecondary} />
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
           </View>
 
           {/* Results */}
@@ -207,60 +148,27 @@ export function OnboardingArtistsScreen() {
               <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
                 Próximo
               </Text>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
               <Ionicons
                 name="chevron-forward"
                 size={24}
                 color={!canAdvance ? COLORS.primary : COLORS.background}
               />
-<<<<<<< HEAD
-=======
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
             </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
-<<<<<<< HEAD
-<<<<<<< HEAD
     </View>
-=======
-    </LinearGradient>
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    </View>
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
   );
 }
 
 const styles = StyleSheet.create({
   root: {
-<<<<<<< HEAD
-<<<<<<< HEAD
     flex: 1,
     backgroundColor: COLORS.background
   },
   safeArea: {
     flex: 1,
     zIndex: 1
-=======
-    flex: 1
-  },
-  safeArea: {
-    flex: 1
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    flex: 1,
-    backgroundColor: COLORS.background
-  },
-  safeArea: {
-    flex: 1,
-    zIndex: 1
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
   },
 
   // Top Header
@@ -276,18 +184,8 @@ const styles = StyleSheet.create({
     width: 40
   },
   topHeaderTitle: {
-<<<<<<< HEAD
-<<<<<<< HEAD
     fontSize: 20,
     fontWeight: "700",
-=======
-    fontSize: 16,
-    fontWeight: "600",
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    fontSize: 20,
-    fontWeight: "700",
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
     color: COLORS.textPrimary
   },
 
@@ -328,29 +226,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "600",
     color: COLORS.textPrimary,
-<<<<<<< HEAD
-<<<<<<< HEAD
     lineHeight: 37
-=======
-    lineHeight: 36
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    lineHeight: 37
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
   },
   subtitle: {
     fontSize: 15,
     fontWeight: "400",
     color: COLORS.textSecondary,
-<<<<<<< HEAD
-<<<<<<< HEAD
     lineHeight: 22
-=======
-    lineHeight: 20
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    lineHeight: 22
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
   },
 
   // Search
@@ -362,16 +244,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 56,
     gap: 8
-<<<<<<< HEAD
-=======
   },
-<<<<<<< HEAD
-  searchIcon: {
-    fontSize: 16
->>>>>>> 48c7b64 (ajuste design parte 1)
-  },
-=======
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
   searchInput: {
     flex: 1,
     fontSize: 16,
@@ -414,8 +287,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     flexDirection: "row",
     alignItems: "center",
-<<<<<<< HEAD
-<<<<<<< HEAD
     justifyContent: "center",
     gap: 8
   },
@@ -433,31 +304,5 @@ const styles = StyleSheet.create({
   },
   buttonLabelDisabled: {
     color: COLORS.primary
-=======
-    justifyContent: "center"
-=======
-    justifyContent: "center",
-    gap: 8
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
-  },
-  buttonDisabled: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: COLORS.primary
-  },
-  buttonLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    lineHeight: 26,
-    letterSpacing: 0.46,
-    color: COLORS.background
-  },
-  buttonLabelDisabled: {
-<<<<<<< HEAD
-    color: COLORS.textSecondary
->>>>>>> 48c7b64 (ajuste design parte 1)
-=======
-    color: COLORS.primary
->>>>>>> 62bd91b (feat: Tela onboarding Artistas sem gradiente)
   }
 });
