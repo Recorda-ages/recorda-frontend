@@ -4,5 +4,25 @@
     "secondaryAction": "Ver estrutura",
     "subtitle": "Memorias que tem trilha sonora.",
     "title": "Recorda"
+  },
+  "onboarding": {
+    "music": {
+      "header": "Música favorita",
+      "back": "Voltar para gêneros",
+      "step": "ETAPA 3 DE 3",
+      "title": "Qual música não pode faltar?",
+      "subtitle": "Escolha 1 música para dar o tom das suas primeiras recordações.",
+      "search": "Buscar músicas",
+      "finish": "Começar a Recordar",
+      "selected": "Selecionada: {{title}} — {{artist}}",
+      "loading": "Buscando músicas",
+      "searchError": "Não foi possível buscar músicas.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhuma música encontrada. Tente outro nome ou artista.",
+      "saveError": "Não foi possível salvar. Suas escolhas foram mantidas. Tente novamente.",
+      "preview": "Prévia: música favorita",
+      "demo": "Demonstração concluída. Nenhum dado foi enviado.",
+      "close": "Voltar"
+    }
   }
 }

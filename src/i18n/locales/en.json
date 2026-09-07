@@ -4,5 +4,25 @@
     "secondaryAction": "View structure",
     "subtitle": "Memories with a soundtrack.",
     "title": "Recorda"
+  },
+  "onboarding": {
+    "music": {
+      "header": "Favorite song",
+      "back": "Back to genres",
+      "step": "STEP 3 OF 3",
+      "title": "Which song is a must?",
+      "subtitle": "Choose 1 song to set the tone for your first memories.",
+      "search": "Search songs",
+      "finish": "Start remembering",
+      "selected": "Selected: {{title}} — {{artist}}",
+      "loading": "Searching songs",
+      "searchError": "Could not search songs.",
+      "retry": "Try again",
+      "empty": "No songs found. Try another title or artist.",
+      "saveError": "Could not save. Your selections are safe. Try again.",
+      "preview": "Preview: favorite song",
+      "demo": "Demo completed. No data was sent.",
+      "close": "Go back"
+    }
   }
 }
