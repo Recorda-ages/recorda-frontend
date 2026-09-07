@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
-import { searchArtistsMock } from "@/services/api/mock/artists";
+import { searchArtists } from "@/services/api";
 import { Artist } from "@/types/artist";
 
 const COLORS = {
@@ -35,16 +35,22 @@ export function OnboardingArtistsScreen() {
   const [results, setResults] = useState<Artist[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     setIsLoading(true);
     setHasSearched(true);
+    setErrorMessage(null);
     try {
-      const data = await searchArtistsMock(query);
+      const data = await searchArtists(query);
       setResults(data);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao buscar artistas no Deezer:", error);
+      const message =
+        error instanceof Error ? error.message : "Erro desconhecido ao buscar artistas.";
+      setErrorMessage(message);
+      setResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -125,9 +131,11 @@ export function OnboardingArtistsScreen() {
                     />
                   );
                 })}
-                {hasSearched && displayedArtists.length === 0 && (
+                {errorMessage ? (
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                ) : hasSearched && displayedArtists.length === 0 ? (
                   <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
-                )}
+                ) : null}
               </>
             )}
           </ScrollView>
@@ -264,6 +272,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: COLORS.textSecondary,
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 24,
+    flex: 1
+  },
+  errorText: {
+    color: "#FF6B6B",
     fontSize: 14,
     textAlign: "center",
     marginTop: 24,
