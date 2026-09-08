@@ -5,3 +5,7 @@ export function useFonts() {
 export function isLoaded() {
   return true;
 }
+
+export function loadAsync() {
+  return Promise.resolve();
+}
