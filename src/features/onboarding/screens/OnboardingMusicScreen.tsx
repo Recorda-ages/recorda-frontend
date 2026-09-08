@@ -19,12 +19,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui";
 import { colors, fontFamily, spacing } from "@/theme";
-import type { MusicPreferences, MusicTrack } from "../types";
+import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
 
 export type OnboardingMusicScreenProps = {
   selectedTrack: MusicTrack | null;
-  selectedArtistIds: number[];
-  selectedGenreIds: number[];
+  selectedArtists: MusicSelection[];
+  selectedGenres: MusicSelection[];
   onSelectTrack: (track: MusicTrack) => void;
   onBack: () => void;
   onComplete: () => void;
@@ -34,8 +34,8 @@ export type OnboardingMusicScreenProps = {
 
 export function OnboardingMusicScreen({
   selectedTrack,
-  selectedArtistIds,
-  selectedGenreIds,
+  selectedArtists,
+  selectedGenres,
   onSelectTrack,
   onBack,
   onComplete,
@@ -65,8 +65,8 @@ export function OnboardingMusicScreen({
     submitting.current = true;
     try {
       await save.mutateAsync({
-        artistIds: selectedArtistIds,
-        genreIds: selectedGenreIds,
+        artists: selectedArtists,
+        genres: selectedGenres,
         track: selectedTrack
       });
     } catch {
@@ -128,7 +128,7 @@ export function OnboardingMusicScreen({
           />
           <FlatList
             data={!waiting && debouncedQuery ? (results.data ?? []) : []}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => String(item.id)}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.list}
             ListHeaderComponent={

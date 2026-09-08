@@ -6,11 +6,11 @@ import { OnboardingMusicScreen } from "./OnboardingMusicScreen";
 import type { MusicTrack } from "../types";
 
 const demoTracks: MusicTrack[] = [
-  { id: "demo-1", title: "Tempo Perdido", artist: "Legião Urbana" },
-  { id: "demo-2", title: "Evidências", artist: "Chitãozinho & Xororó" },
-  { id: "demo-3", title: "Velha Infância", artist: "Tribalistas" },
-  { id: "demo-4", title: "O Sol", artist: "Vitor Kley" },
-  { id: "demo-5", title: "Aquarela", artist: "Toquinho" }
+  { id: 1, title: "Tempo Perdido", artist: "Legião Urbana" },
+  { id: 2, title: "Evidências", artist: "Chitãozinho & Xororó" },
+  { id: 3, title: "Velha Infância", artist: "Tribalistas" },
+  { id: 4, title: "O Sol", artist: "Vitor Kley" },
+  { id: 5, title: "Aquarela", artist: "Toquinho" }
 ];
 const normalize = (text: string) =>
   text
@@ -41,8 +41,8 @@ export function OnboardingMusicPreview() {
   return (
     <OnboardingMusicScreen
       selectedTrack={selectedTrack}
-      selectedArtistIds={[]}
-      selectedGenreIds={[]}
+      selectedArtists={[]}
+      selectedGenres={[]}
       onSelectTrack={setSelectedTrack}
       onBack={() => navigation.goBack()}
       onComplete={() => setCompleted(true)}

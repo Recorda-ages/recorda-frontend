@@ -1,13 +1,18 @@
 export type MusicTrack = {
-  id: string;
+  id: number;
   title: string;
   artist: string;
   artworkUrl?: string;
 };
 
-// The host owns selections from all three steps and maps them to the backend contract.
+// A genre or artist chosen in steps 1 and 2. `id` is the Deezer id the backend stores.
+export type MusicSelection = {
+  id: number;
+  name: string;
+};
+
 export type MusicPreferences = {
-  artistIds: number[];
-  genreIds: number[];
+  genres: MusicSelection[];
+  artists: MusicSelection[];
   track: MusicTrack;
 };

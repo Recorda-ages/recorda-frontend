@@ -4,11 +4,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nextProvider } from "react-i18next";
 import { i18n } from "@/i18n";
 import { OnboardingMusicScreen } from "@/features/onboarding";
-import type { MusicTrack } from "@/features/onboarding";
+import type { MusicSelection, MusicTrack } from "@/features/onboarding";
 
 const tracks: MusicTrack[] = [
-  { id: "1", title: "Tempo Perdido", artist: "Legião Urbana" },
-  { id: "2", title: "Evidências", artist: "Chitãozinho & Xororó" }
+  { id: 1, title: "Tempo Perdido", artist: "Legião Urbana" },
+  { id: 2, title: "Evidências", artist: "Chitãozinho & Xororó" }
+];
+
+const artists: MusicSelection[] = [
+  { id: 10, name: "Legião Urbana" },
+  { id: 20, name: "Tribalistas" },
+  { id: 60, name: "Toquinho" }
+];
+const genres: MusicSelection[] = [
+  { id: 30, name: "Rock" },
+  { id: 40, name: "MPB" },
+  { id: 50, name: "Pop" }
 ];
 
 function setup(options: { save?: () => Promise<void>; search?: () => Promise<MusicTrack[]> } = {}) {
@@ -26,8 +37,8 @@ function setup(options: { save?: () => Promise<void>; search?: () => Promise<Mus
     return (
       <OnboardingMusicScreen
         selectedTrack={track}
-        selectedArtistIds={[10, 20]}
-        selectedGenreIds={[30, 40, 50]}
+        selectedArtists={artists}
+        selectedGenres={genres}
         onSelectTrack={setTrack}
         onBack={back}
         onComplete={complete}
@@ -61,11 +72,7 @@ it("starts disabled, debounces search and replaces the single selection before s
   expect(save).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole("button", { name: "Começar a Recordar" }));
   await waitFor(() => expect(complete).toHaveBeenCalledTimes(1));
-  expect(save.mock.calls[0]?.[0]).toEqual({
-    artistIds: [10, 20],
-    genreIds: [30, 40, 50],
-    track: tracks[1]
-  });
+  expect(save.mock.calls[0]?.[0]).toEqual({ artists, genres, track: tracks[1] });
 });
 
 it("preserves selection on failed submission and allows retry without completing early", async () => {
