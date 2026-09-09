@@ -1,8 +1,15 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View
+} from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
@@ -16,6 +23,8 @@ import { baseColors, colors, fontFamily, fontWeight, radius, spacing } from "@/t
 import { zodResolver } from "@/utils/validation";
 
 type PasswordRecoveryScreenProps = NativeStackScreenProps<RootStackParamList, "PasswordRecovery">;
+
+const SUCCESS_REDIRECT_DELAY_MS = 1200;
 
 export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenProps) {
   const { t } = useTranslation();
@@ -35,11 +44,28 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
     resolver: zodResolver(passwordRecoverySchema)
   });
 
+  useEffect(() => {
+    if (feedback !== "success") {
+      return undefined;
+    }
+
+    const redirectTimer = setTimeout(() => {
+      navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+    }, SUCCESS_REDIRECT_DELAY_MS);
+
+    return () => clearTimeout(redirectTimer);
+  }, [feedback, navigation]);
+
+  const submitDisabled = !isValid || passwordRecoveryMutation.isPending || feedback === "success";
+
   const onSubmit = handleSubmit(async (values) => {
     setFeedback(null);
 
     try {
-      await passwordRecoveryMutation.mutateAsync(values);
+      await passwordRecoveryMutation.mutateAsync({
+        email: values.email,
+        newPassword: values.newPassword
+      });
       setFeedback("success");
     } catch {
       setFeedback("error");
@@ -198,7 +224,12 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
           ) : null}
 
           {feedback === "error" ? (
-            <AppText accessibilityLiveRegion="polite" style={styles.formError} variant="body2">
+            <AppText
+              accessibilityLiveRegion="polite"
+              accessibilityRole="alert"
+              style={styles.formError}
+              variant="body2"
+            >
               {t("auth.passwordRecovery.genericError")}
             </AppText>
           ) : null}
@@ -207,18 +238,19 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
             accessibilityRole="button"
             accessibilityState={{
               busy: passwordRecoveryMutation.isPending,
-              disabled: !isValid || passwordRecoveryMutation.isPending
+              disabled: submitDisabled
             }}
-            disabled={!isValid || passwordRecoveryMutation.isPending}
+            disabled={submitDisabled}
             onPress={onSubmit}
-            style={[
-              styles.submitButton,
-              !isValid || passwordRecoveryMutation.isPending ? styles.submitButtonDisabled : null
-            ]}
+            style={[styles.submitButton, submitDisabled ? styles.submitButtonDisabled : null]}
           >
-            <AppText style={styles.submitButtonLabel} variant="buttonLarge">
-              {t("auth.passwordRecovery.submit")}
-            </AppText>
+            {passwordRecoveryMutation.isPending ? (
+              <ActivityIndicator color={colors.neutrals[900]} size="small" />
+            ) : (
+              <AppText style={styles.submitButtonLabel} variant="buttonLarge">
+                {t("auth.passwordRecovery.submit")}
+              </AppText>
+            )}
           </Pressable>
         </View>
       </ScrollView>
@@ -257,7 +289,7 @@ const styles = StyleSheet.create({
     width: 18
   },
   background: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.neutrals[900],
     experimental_backgroundImage:
       "radial-gradient(circle at 18% 45%, rgba(0, 226, 169, 0.42) 0%, rgba(0, 226, 169, 0.18) 28%, rgba(21, 21, 21, 0) 58%), radial-gradient(circle at 82% 88%, rgba(0, 226, 169, 0.38) 0%, rgba(0, 226, 169, 0.12) 30%, rgba(21, 21, 21, 0) 62%)"

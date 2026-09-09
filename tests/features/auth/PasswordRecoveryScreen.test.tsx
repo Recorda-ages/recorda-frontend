@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { i18n } from "@/i18n";
 import { paperTheme } from "@/theme";
+import * as passwordRecoveryApi from "@/features/auth/api/passwordRecovery";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 
 let testQueryClient: QueryClient | null = null;
@@ -43,12 +44,16 @@ function renderPasswordRecoveryScreen() {
 
 describe("PasswordRecoveryScreen", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest
+      .spyOn(passwordRecoveryApi, "requestPasswordRecovery")
+      .mockResolvedValue({ message: "Senha redefinida com sucesso" });
   });
 
   afterEach(() => {
     testQueryClient?.clear();
     testQueryClient = null;
+    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it("renders the password recovery screen from the visual reference", () => {
@@ -60,8 +65,8 @@ describe("PasswordRecoveryScreen", () => {
     expect(screen.getByText("Volte a recordar")).toBeTruthy();
     expect(screen.getByText("Informe seu email para definir uma nova senha.")).toBeTruthy();
     expect(screen.getByLabelText("Email")).toBeTruthy();
-    expect(screen.getByLabelText("Nova senha").props.secureTextEntry).toBe(true);
-    expect(screen.getByLabelText("Confirmar nova senha").props.secureTextEntry).toBe(true);
+    expect(screen.getByLabelText("Nova Senha").props.secureTextEntry).toBe(true);
+    expect(screen.getByLabelText("Confirmar Senha").props.secureTextEntry).toBe(true);
     expect(screen.getByRole("button", { name: "Redefinir Senha" })).toBeTruthy();
   });
 
@@ -79,7 +84,7 @@ describe("PasswordRecoveryScreen", () => {
 
     fireEvent.changeText(screen.getByLabelText("Email"), "email-invalido");
 
-    expect(await screen.findByText("Informe um email valido.")).toBeTruthy();
+    expect(await screen.findByText("Informe um email válido.")).toBeTruthy();
     expect(submitButton).toBeDisabled();
 
     fireEvent.changeText(screen.getByLabelText("Email"), "ana@example.com");
@@ -88,22 +93,24 @@ describe("PasswordRecoveryScreen", () => {
       expect(submitButton).toBeDisabled();
     });
 
-    fireEvent.changeText(screen.getByLabelText("Nova senha"), "1234567");
+    fireEvent.changeText(screen.getByLabelText("Nova Senha"), "1234567");
 
     expect(await screen.findByText("A senha deve ter pelo menos 8 caracteres.")).toBeTruthy();
     expect(submitButton).toBeDisabled();
 
-    fireEvent.changeText(screen.getByLabelText("Nova senha"), "senha-segura");
-    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-diferente");
+    fireEvent.changeText(screen.getByLabelText("Nova Senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar Senha"), "senha-diferente");
 
-    expect(await screen.findByText("As senhas devem ser identicas.")).toBeTruthy();
+    expect(await screen.findByText("As senhas devem ser idênticas.")).toBeTruthy();
     expect(submitButton).toBeDisabled();
 
-    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar Senha"), "senha-segura");
 
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled();
     });
+
+    expect(passwordRecoveryApi.requestPasswordRecovery).not.toHaveBeenCalled();
   });
 
   it("goes back from the app bar action", () => {
@@ -115,11 +122,12 @@ describe("PasswordRecoveryScreen", () => {
   });
 
   it("shows success feedback after submitting a valid form", async () => {
+    jest.useFakeTimers();
     const navigation = renderPasswordRecoveryScreen();
 
     fireEvent.changeText(screen.getByLabelText("Email"), "ana@example.com");
-    fireEvent.changeText(screen.getByLabelText("Nova senha"), "senha-segura");
-    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Nova Senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar Senha"), "senha-segura");
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Redefinir Senha" })).not.toBeDisabled();
@@ -127,18 +135,33 @@ describe("PasswordRecoveryScreen", () => {
 
     fireEvent.press(screen.getByRole("button", { name: "Redefinir Senha" }));
 
+    await waitFor(() => {
+      expect(passwordRecoveryApi.requestPasswordRecovery).toHaveBeenCalledTimes(1);
+    });
+    expect((passwordRecoveryApi.requestPasswordRecovery as jest.Mock).mock.calls[0][0]).toEqual({
+      email: "ana@example.com",
+      newPassword: "senha-segura"
+    });
     expect(await screen.findByText("Sua senha foi redefinida com sucesso.")).toBeTruthy();
-    expect(screen.queryByTestId("login-screen")).toBeNull();
+    expect(screen.getByRole("button", { name: "Redefinir Senha" })).toBeDisabled();
 
-    expect(navigation.reset).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(1200);
+    });
+
+    expect(navigation.reset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   });
 
   it("shows a generic error when the mocked recovery request fails", async () => {
+    jest
+      .spyOn(passwordRecoveryApi, "requestPasswordRecovery")
+      .mockRejectedValueOnce(new Error("Mock password recovery failed."));
+
     renderPasswordRecoveryScreen();
 
     fireEvent.changeText(screen.getByLabelText("Email"), "erro@example.com");
-    fireEvent.changeText(screen.getByLabelText("Nova senha"), "senha-segura");
-    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Nova Senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar Senha"), "senha-segura");
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Redefinir Senha" })).not.toBeDisabled();
@@ -147,7 +170,7 @@ describe("PasswordRecoveryScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Redefinir Senha" }));
 
     expect(
-      await screen.findByText("Nao foi possivel redefinir sua senha. Tente novamente.")
+      await screen.findByText("Não foi possível redefinir sua senha. Tente novamente.")
     ).toBeTruthy();
     expect(screen.queryByText("Mock password recovery failed.")).toBeNull();
     expect(screen.queryByTestId("login-screen")).toBeNull();

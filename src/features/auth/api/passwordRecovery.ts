@@ -1,15 +1,19 @@
+import { apiClient } from "@/services/api/client";
+
 export type PasswordRecoveryRequest = {
-  confirmPassword: string;
   email: string;
   newPassword: string;
 };
 
-const mockedFailureEmail = "erro@example.com";
+export type PasswordRecoveryResponse = {
+  message: string;
+};
 
-export async function requestPasswordRecovery(request: PasswordRecoveryRequest) {
-  await Promise.resolve();
-
-  if (request.email.trim().toLowerCase() === mockedFailureEmail) {
-    throw new Error("Mock password recovery failed.");
-  }
+export async function requestPasswordRecovery(
+  request: PasswordRecoveryRequest
+): Promise<PasswordRecoveryResponse> {
+  return apiClient.post<PasswordRecoveryResponse>("/auth/reset-password", {
+    email: request.email.trim(),
+    new_password: request.newPassword
+  });
 }
