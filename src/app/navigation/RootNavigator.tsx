@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Onboarding: undefined;
+  Profile: undefined;
   SignUp: undefined;
   Camera: undefined;
   Preview: { uri: string; type: "photo" | "video" };
@@ -38,6 +39,14 @@ function OnboardingPlaceholderScreen() {
   );
 }
 
+function ProfilePlaceholderScreen() {
+  return (
+    <View style={styles.placeholder} testID="profile-screen">
+      <AppText variant="headline3">Perfil</AppText>
+    </View>
+  );
+}
+
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -45,6 +54,7 @@ export function RootNavigator() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
+        <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Preview" component={PreviewScreen} />

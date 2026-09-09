@@ -1,22 +1,32 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { ReactElement } from "react";
-import { Share } from "react-native";
+import { Alert, Share } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import type { RecordaDraft } from "@/features/recorda-creation/types";
 import { mockRecordaDraft } from "@/features/recorda-creation/mocks/recordaDraft";
+import { usePublishRecorda } from "@/features/recorda-publish";
 
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
+const mockPublish = jest.fn();
+const mockRetry = jest.fn();
 
 jest.mock("@react-navigation/native", () => {
   const actual = jest.requireActual("@react-navigation/native");
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack })
+    useNavigation: () => ({ goBack: mockGoBack, reset: mockReset })
   };
 });
+
+jest.mock("@/features/recorda-publish", () => ({
+  usePublishRecorda: jest.fn()
+}));
+
+const mockedUsePublishRecorda = usePublishRecorda as jest.Mock;
 
 function renderScreen(ui: ReactElement) {
   return render(<AppProviders>{ui}</AppProviders>);
@@ -29,6 +39,22 @@ function createDraft(overrides: Partial<RecordaDraft> = {}): RecordaDraft {
 describe("RecordaDetailsScreen", () => {
   beforeEach(() => {
     mockGoBack.mockClear();
+    mockReset.mockClear();
+    mockPublish.mockReset();
+    mockRetry.mockReset();
+    mockPublish.mockResolvedValue(undefined);
+    mockRetry.mockResolvedValue(undefined);
+    mockedUsePublishRecorda.mockReturnValue({
+      error: null,
+      publish: mockPublish,
+      retry: mockRetry,
+      status: "idle"
+    });
+    jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("renders the selected media and song as read-only content", () => {
@@ -129,6 +155,14 @@ describe("RecordaDetailsScreen", () => {
     expect(screen.getByRole("button", { name: "Publicar" })).toBeDisabled();
   });
 
+  it("disables publishing when no media is available", () => {
+    renderScreen(
+      <RecordaDetailsScreen draft={createDraft({ media: null })} onPublish={jest.fn()} />
+    );
+
+    expect(screen.getByRole("button", { name: "Publicar" })).toBeDisabled();
+  });
+
   it("publishes the current draft when a song is available", () => {
     const onPublish = jest.fn();
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onPublish={onPublish} />);
@@ -143,14 +177,102 @@ describe("RecordaDetailsScreen", () => {
         song: mockRecordaDraft.song
       })
     );
+    expect(mockPublish).not.toHaveBeenCalled();
   });
 
-  it("keeps the publish action safe without an explicit publish handler", () => {
+  it("publishes through the default publish flow without an explicit handler", async () => {
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
 
-    expect(() => {
-      fireEvent.press(screen.getByRole("button", { name: "Publicar" }));
-    }).not.toThrow();
+    fireEvent.changeText(screen.getByLabelText("Descrição"), "Uma memória especial");
+    fireEvent.press(screen.getByRole("button", { name: "Publicar" }));
+
+    await waitFor(() => {
+      expect(mockPublish).toHaveBeenCalledWith({
+        description: "Uma memória especial",
+        media: {
+          fileName: "recorda.jpg",
+          mimeType: "image/jpeg",
+          type: "PHOTO",
+          uri: mockRecordaDraft.media!.uri
+        },
+        song: {
+          artistName: mockRecordaDraft.song!.artistName,
+          coverUrl: mockRecordaDraft.song!.coverUrl,
+          deezerTrackId: mockRecordaDraft.song!.deezerTrackId,
+          previewUrl: undefined,
+          title: mockRecordaDraft.song!.title
+        }
+      });
+    });
+  });
+
+  it("shows progress and blocks another publish while uploading", () => {
+    mockedUsePublishRecorda.mockReturnValue({
+      error: null,
+      publish: mockPublish,
+      retry: mockRetry,
+      status: "uploading"
+    });
+
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
+
+    expect(screen.getByText("Enviando mídia...")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Enviando mídia..." })).toBeDisabled();
+
+    fireEvent.press(screen.getByRole("button", { name: "Enviando mídia..." }));
+
+    expect(mockPublish).not.toHaveBeenCalled();
+  });
+
+  it("keeps data visible and allows retry when publishing fails", async () => {
+    mockedUsePublishRecorda.mockReturnValue({
+      error: { message: "Falha ao publicar.", step: "create" },
+      publish: mockPublish,
+      retry: mockRetry,
+      status: "error"
+    });
+
+    renderScreen(
+      <RecordaDetailsScreen draft={createDraft({ description: "Descrição preservada" })} />
+    );
+
+    expect(screen.getByTestId("recorda-details-media")).toBeTruthy();
+    expect(screen.getByText(mockRecordaDraft.song!.title)).toBeTruthy();
+    expect(screen.getByLabelText("Descrição")).toHaveProp("value", "Descrição preservada");
+    expect(screen.getByText("Falha ao publicar.")).toBeTruthy();
+
+    fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+
+    await waitFor(() => {
+      expect(mockRetry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          media: expect.objectContaining({ uri: mockRecordaDraft.media!.uri }),
+          song: expect.objectContaining({ deezerTrackId: mockRecordaDraft.song!.deezerTrackId })
+        })
+      );
+    });
+  });
+
+  it("shows confirmation and redirects to profile on successful publish", async () => {
+    mockedUsePublishRecorda.mockReturnValue({
+      error: null,
+      publish: mockPublish,
+      retry: mockRetry,
+      status: "success"
+    });
+
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Recorda publicada",
+        "Sua Recorda foi publicada com sucesso."
+      );
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: "Profile" }]
+      });
+    });
   });
 
   it("shares the current draft when a share action is provided", () => {

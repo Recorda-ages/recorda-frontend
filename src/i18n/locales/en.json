@@ -30,6 +30,11 @@
     "mediaSelected": "Selected media",
     "mediaUnavailable": "Media unavailable",
     "publish": "Publish",
+    "publishCreating": "Publishing...",
+    "publishRetry": "Try again",
+    "publishSuccessMessage": "Your Recorda was published successfully.",
+    "publishSuccessTitle": "Recorda published",
+    "publishUploading": "Uploading media...",
     "share": "Share",
     "songCover": "Song cover"
   }

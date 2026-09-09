@@ -3,8 +3,9 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -19,6 +20,7 @@ import { Button, IconButton, Text, TextInput } from "react-native-paper";
 
 import { Screen } from "@/components/ui";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import { usePublishRecorda, type PublishRecordaDraft } from "@/features/recorda-publish";
 import {
   baseColors,
   colors,
@@ -29,8 +31,9 @@ import {
   typography
 } from "@/theme";
 
+import { useRecordaDraft } from "../context/RecordaDraftContext";
 import { mockRecordaDraft } from "../mocks/recordaDraft";
-import type { RecordaDraft } from "../types";
+import type { RecordaDraft, RecordaDraftMedia } from "../types";
 
 const DESCRIPTION_MAX_LENGTH = 2200;
 
@@ -40,23 +43,61 @@ type RecordaDetailsScreenProps = {
   onShare?: (draft: RecordaDraft) => void;
 };
 
-export function RecordaDetailsScreen({
-  draft = mockRecordaDraft,
-  onPublish = () => undefined,
-  onShare
-}: RecordaDetailsScreenProps) {
+export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetailsScreenProps) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [description, setDescription] = useState(draft.description);
+  const { clearMedia, media: storedMedia } = useRecordaDraft();
+  const publishFlow = usePublishRecorda();
+  const handledSuccessRef = useRef(false);
+  const currentDraft = useMemo<RecordaDraft>(
+    () => draft ?? { ...mockRecordaDraft, media: storedMedia ?? mockRecordaDraft.media },
+    [draft, storedMedia]
+  );
+  const [description, setDescription] = useState(currentDraft.description);
   const [coverLoadFailed, setCoverLoadFailed] = useState(false);
-  const videoPlayer = useVideoPlayer(draft.media?.uri ?? "");
+  const videoPlayer = useVideoPlayer(currentDraft.media?.uri ?? "");
+  const isPublishing = publishFlow.status === "uploading" || publishFlow.status === "creating";
+  const canPublish = Boolean(currentDraft.media && currentDraft.song);
 
-  function getCurrentDraft() {
-    return { ...draft, description };
+  useEffect(() => {
+    if (onPublish || publishFlow.status !== "success" || handledSuccessRef.current) {
+      return;
+    }
+
+    handledSuccessRef.current = true;
+    clearMedia();
+    setDescription("");
+    Alert.alert(t("recordaDetails.publishSuccessTitle"), t("recordaDetails.publishSuccessMessage"));
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Profile" }]
+    });
+  }, [clearMedia, navigation, onPublish, publishFlow.status, t]);
+
+  function getCurrentDraft(): RecordaDraft {
+    return { ...currentDraft, description };
   }
 
-  function handlePublish() {
-    onPublish(getCurrentDraft());
+  async function handlePublish() {
+    const draftToPublish = getCurrentDraft();
+
+    if (onPublish) {
+      onPublish(draftToPublish);
+      return;
+    }
+
+    const publishDraft = toPublishRecordaDraft(draftToPublish);
+
+    if (!publishDraft) {
+      return;
+    }
+
+    if (publishFlow.status === "error") {
+      await publishFlow.retry(publishDraft);
+      return;
+    }
+
+    await publishFlow.publish(publishDraft);
   }
 
   function handleShare() {
@@ -116,8 +157,8 @@ export function RecordaDetailsScreen({
               <View style={styles.headerSpacer} />
             </View>
             <View style={styles.mediaStage}>
-              {draft.media ? (
-                draft.media.type === "video" ? (
+              {currentDraft.media ? (
+                currentDraft.media.type === "video" ? (
                   <VideoView
                     accessibilityLabel={t("recordaDetails.mediaSelected")}
                     contentFit="cover"
@@ -129,7 +170,7 @@ export function RecordaDetailsScreen({
                 ) : (
                   <Image
                     accessibilityLabel={t("recordaDetails.mediaSelected")}
-                    source={{ uri: draft.media.uri }}
+                    source={{ uri: currentDraft.media.uri }}
                     style={styles.media}
                     testID="recorda-details-media"
                   />
@@ -142,13 +183,13 @@ export function RecordaDetailsScreen({
 
               <View style={styles.mediaOverlay} testID="recorda-details-media-overlay" />
 
-              {draft.song ? (
+              {currentDraft.song ? (
                 <View style={styles.song}>
-                  {draft.song.coverUrl && !coverLoadFailed ? (
+                  {currentDraft.song.coverUrl && !coverLoadFailed ? (
                     <Image
                       accessibilityLabel={t("recordaDetails.songCover")}
                       onError={() => setCoverLoadFailed(true)}
-                      source={{ uri: draft.song.coverUrl }}
+                      source={{ uri: currentDraft.song.coverUrl }}
                       style={styles.songCover}
                       testID="recorda-details-song-cover"
                     />
@@ -160,10 +201,10 @@ export function RecordaDetailsScreen({
                     />
                   )}
                   <Text style={styles.songTitle} variant="titleMedium">
-                    {draft.song.title}
+                    {currentDraft.song.title}
                   </Text>
                   <Text style={styles.songArtist} variant="bodySmall">
-                    {draft.song.artistName}
+                    {currentDraft.song.artistName}
                   </Text>
                 </View>
               ) : null}
@@ -190,7 +231,7 @@ export function RecordaDetailsScreen({
               <View style={styles.actions}>
                 <IconButton
                   accessibilityLabel={t("recordaDetails.share")}
-                  disabled={!draft.song}
+                  disabled={!currentDraft.song}
                   icon={({ color, size }) => (
                     <Ionicons color={color} name="share-social-outline" size={size} />
                   )}
@@ -202,14 +243,26 @@ export function RecordaDetailsScreen({
                 />
                 <Button
                   contentStyle={styles.publishContent}
-                  disabled={!draft.song}
+                  disabled={!canPublish || isPublishing}
+                  loading={isPublishing}
                   mode="contained"
                   onPress={handlePublish}
                   style={styles.publishButton}
                 >
-                  {t("recordaDetails.publish")}
+                  {getPublishLabel(publishFlow.status, t)}
                 </Button>
               </View>
+
+              {publishFlow.error ? (
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={styles.publishError}
+                  testID="recorda-publish-error"
+                  variant="bodySmall"
+                >
+                  {publishFlow.error.message}
+                </Text>
+              ) : null}
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -291,6 +344,10 @@ const styles = StyleSheet.create({
   publishContent: {
     minHeight: 58
   },
+  publishError: {
+    color: colors.error[200],
+    textAlign: "center"
+  },
   screen: {
     backgroundColor: colors.neutrals[900]
   },
@@ -355,3 +412,55 @@ const styles = StyleSheet.create({
     textAlign: "center"
   }
 });
+
+function toPublishRecordaDraft(draft: RecordaDraft): PublishRecordaDraft | null {
+  if (!draft.media || !draft.song) {
+    return null;
+  }
+
+  const mediaType = draft.media.type === "video" ? "VIDEO" : "PHOTO";
+
+  return {
+    description: draft.description || undefined,
+    media: {
+      fileName: getMediaFileName(draft.media, mediaType),
+      mimeType: mediaType === "VIDEO" ? "video/mp4" : "image/jpeg",
+      type: mediaType,
+      uri: draft.media.uri
+    },
+    song: {
+      artistName: draft.song.artistName,
+      coverUrl: draft.song.coverUrl,
+      deezerTrackId: draft.song.deezerTrackId,
+      previewUrl: draft.song.previewUrl ?? undefined,
+      title: draft.song.title
+    }
+  };
+}
+
+function getMediaFileName(
+  media: RecordaDraftMedia,
+  mediaType: PublishRecordaDraft["media"]["type"]
+) {
+  const fallback = mediaType === "VIDEO" ? "recorda.mp4" : "recorda.jpg";
+  const pathWithoutQuery = media.uri.split("?")[0];
+  const fileName = pathWithoutQuery.split("/").filter(Boolean).pop();
+
+  return fileName && fileName.includes(".") ? fileName : fallback;
+}
+
+function getPublishLabel(status: string, t: ReturnType<typeof useTranslation>["t"]) {
+  if (status === "uploading") {
+    return t("recordaDetails.publishUploading");
+  }
+
+  if (status === "creating") {
+    return t("recordaDetails.publishCreating");
+  }
+
+  if (status === "error") {
+    return t("recordaDetails.publishRetry");
+  }
+
+  return t("recordaDetails.publish");
+}

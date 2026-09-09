@@ -30,6 +30,11 @@
     "mediaSelected": "Mídia selecionada",
     "mediaUnavailable": "Mídia indisponível",
     "publish": "Publicar",
+    "publishCreating": "Publicando...",
+    "publishRetry": "Tentar novamente",
+    "publishSuccessMessage": "Sua Recorda foi publicada com sucesso.",
+    "publishSuccessTitle": "Recorda publicada",
+    "publishUploading": "Enviando mídia...",
     "share": "Compartilhar",
     "songCover": "Capa da música"
   }
