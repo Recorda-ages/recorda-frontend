@@ -31,6 +31,15 @@ describe("useArtistSearch", () => {
     expect(result.current.data).toEqual(artists);
   });
 
+  it("uses the trimmed query when searching artists", async () => {
+    mockSearchArtists.mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() => useArtistSearch("  Eminem  "), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockSearchArtists).toHaveBeenCalledWith("Eminem");
+  });
+
   it("does not fetch when query is empty", () => {
     const { result } = renderHook(() => useArtistSearch(""), { wrapper });
 

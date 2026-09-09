@@ -22,12 +22,16 @@ export type Track = {
   genre_id: number | null;
 };
 
+function buildMusicSearchPath(path: string, q: string) {
+  return `${path}?q=${encodeURIComponent(q.trim())}`;
+}
+
 export const musicService = {
   getGenres: () => apiClient.get<Genre[]>("/music/genres"),
 
   searchArtists: (q: string) =>
-    apiClient.get<Artist[]>(`/music/artists/search?q=${encodeURIComponent(q)}`),
+    apiClient.get<Artist[]>(buildMusicSearchPath("/music/artists/search", q)),
 
   searchTracks: (q: string) =>
-    apiClient.get<Track[]>(`/music/tracks/search?q=${encodeURIComponent(q)}`)
+    apiClient.get<Track[]>(buildMusicSearchPath("/music/tracks/search", q))
 };

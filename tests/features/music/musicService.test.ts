@@ -51,6 +51,14 @@ describe("musicService.searchArtists", () => {
 
     expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=AC%2FDC");
   });
+
+  it("trims the query before requesting artists", async () => {
+    mockGet.mockResolvedValueOnce([]);
+
+    await musicService.searchArtists("  Eminem  ");
+
+    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=Eminem");
+  });
 });
 
 describe("musicService.searchTracks", () => {
@@ -61,5 +69,13 @@ describe("musicService.searchTracks", () => {
 
     expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself");
     expect(result).toEqual(TRACKS);
+  });
+
+  it("trims the query before requesting tracks", async () => {
+    mockGet.mockResolvedValueOnce([]);
+
+    await musicService.searchTracks("  Lose Yourself  ");
+
+    expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself");
   });
 });

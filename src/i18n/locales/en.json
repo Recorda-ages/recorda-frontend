@@ -1,8 +1,36 @@
 {
+  "auth": {
+    "signUp": {
+      "email": "Email",
+      "hasAccount": "Already have an account?",
+      "hidePassword": "Hide password",
+      "loginAction": "Log in",
+      "logo": "recorda.",
+      "name": "Name",
+      "networkError": "Unable to connect to the server. Please try again.",
+      "password": "Password",
+      "showPassword": "Show password",
+      "submit": "Sign Up",
+      "subtitle": "Create your account and transform moments into trails.",
+      "title": "Save the moment",
+      "username": "Username"
+    }
+  },
   "home": {
     "primaryAction": "Start",
+    "recordaDetailsShortcut": "Recorda details screen",
     "secondaryAction": "View structure",
     "subtitle": "Memories with a soundtrack.",
     "title": "Recorda"
+  },
+  "recordaDetails": {
+    "back": "Back",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Add a description...",
+    "mediaSelected": "Selected media",
+    "mediaUnavailable": "Media unavailable",
+    "publish": "Publish",
+    "share": "Share",
+    "songCover": "Song cover"
   }
 }

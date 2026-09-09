@@ -43,6 +43,17 @@ describe("useTrackSearch", () => {
     expect(result.current.data).toEqual(tracks);
   });
 
+  it("uses the trimmed query when searching tracks", async () => {
+    mockSearchTracks.mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() => useTrackSearch("  Lose Yourself  "), {
+      wrapper
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockSearchTracks).toHaveBeenCalledWith("Lose Yourself");
+  });
+
   it("does not fetch when query is empty", () => {
     const { result } = renderHook(() => useTrackSearch(""), { wrapper });
 

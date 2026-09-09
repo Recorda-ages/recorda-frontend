@@ -8,12 +8,15 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "edgeToEdgeEnabled": true
-    },
     "web": {
       "bundler": "metro"
     },
-    "plugins": ["expo-font", "expo-splash-screen"]
+    "plugins": [
+      "expo-font",
+      "expo-splash-screen",
+      "expo-secure-store",
+      "expo-status-bar",
+      "expo-video"
+    ]
   }
 }
