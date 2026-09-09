@@ -1,4 +1,21 @@
 {
+  "auth": {
+    "signUp": {
+      "email": "Correo electrónico",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "hidePassword": "Ocultar contraseña",
+      "loginAction": "Iniciar sesión",
+      "logo": "recorda.",
+      "name": "Nombre",
+      "networkError": "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+      "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "submit": "Registrarse",
+      "subtitle": "Crea tu cuenta y transforma momentos en huellas.",
+      "title": "Guarda el momento",
+      "username": "Usuario"
+    }
+  },
   "home": {
     "primaryAction": "Comenzar",
     "recordaDetailsShortcut": "Pantalla de detalles de Recorda",
