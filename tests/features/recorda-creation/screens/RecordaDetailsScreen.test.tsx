@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { Share } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
@@ -144,6 +145,14 @@ describe("RecordaDetailsScreen", () => {
     );
   });
 
+  it("keeps the publish action safe without an explicit publish handler", () => {
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
+
+    expect(() => {
+      fireEvent.press(screen.getByRole("button", { name: "Publicar" }));
+    }).not.toThrow();
+  });
+
   it("shares the current draft when a share action is provided", () => {
     const onShare = jest.fn();
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onShare={onShare} />);
@@ -157,6 +166,19 @@ describe("RecordaDetailsScreen", () => {
         song: mockRecordaDraft.song
       })
     );
+  });
+
+  it("uses the native share sheet when no share action is provided", () => {
+    const share = jest.spyOn(Share, "share").mockResolvedValue({ action: Share.sharedAction });
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
+
+    fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+
+    expect(share).toHaveBeenCalledWith({
+      message: `${mockRecordaDraft.song!.title}\n${mockRecordaDraft.song!.artistName}`
+    });
+
+    share.mockRestore();
   });
 
   it("renders without failing when media is absent", () => {

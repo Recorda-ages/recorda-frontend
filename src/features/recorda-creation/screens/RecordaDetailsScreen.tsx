@@ -67,13 +67,9 @@ export function RecordaDetailsScreen({
       return;
     }
 
-    if (!currentDraft.song) {
-      return;
-    }
-
     const message = [
-      currentDraft.song.title,
-      currentDraft.song.artistName,
+      currentDraft.song?.title,
+      currentDraft.song?.artistName,
       currentDraft.description
     ]
       .filter(Boolean)

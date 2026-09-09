@@ -17,7 +17,15 @@ jest.mock("@react-navigation/native", () => {
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => (key === "home.primaryAction" ? "Comecar" : key)
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        "home.primaryAction": "Comecar",
+        "home.recordaDetailsShortcut": "Tela de detalhes da Recorda",
+        "home.secondaryAction": "Ver estrutura"
+      };
+
+      return translations[key] ?? key;
+    }
   })
 }));
 
@@ -32,5 +40,21 @@ describe("HomeScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Comecar" }));
 
     expect(mockNavigate).toHaveBeenCalledWith("Camera");
+  });
+
+  it("keeps the secondary action inert while the structure flow is not implemented", () => {
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByRole("button", { name: "Ver estrutura" }));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("opens the recorda details shortcut in development", () => {
+    render(<HomeScreen />);
+
+    fireEvent.press(screen.getByRole("button", { name: "Tela de detalhes da Recorda" }));
+
+    expect(mockNavigate).toHaveBeenCalledWith("RecordaDetails");
   });
 });
