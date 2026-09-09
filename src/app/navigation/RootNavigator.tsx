@@ -5,6 +5,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AppText } from "@/components/ui";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
+import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
+import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
+import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { baseColors, navigationTheme } from "@/theme";
 
 export type RootStackParamList = {
@@ -12,6 +15,9 @@ export type RootStackParamList = {
   Login: undefined;
   Onboarding: undefined;
   SignUp: undefined;
+  Camera: undefined;
+  Preview: { uri: string; type: "photo" | "video" };
+  RecordaDetails: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -37,9 +43,12 @@ export function RootNavigator() {
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="SignUp" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Camera" component={CameraScreen} />
+        <Stack.Screen name="Preview" component={PreviewScreen} />
+        <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -115,6 +115,21 @@ describe("SignUpScreen", () => {
     expect(registerSpy).not.toHaveBeenCalled();
   });
 
+  it("validates that username cannot contain leading or trailing spaces", async () => {
+    const registerSpy = jest.spyOn(registerApi, "registerUser");
+    renderSignUpScreen();
+
+    fireEvent.changeText(screen.getByTestId("input-name"), "Eduardo");
+    fireEvent.changeText(screen.getByTestId("input-username"), " eduardo ");
+    fireEvent.changeText(screen.getByTestId("input-email"), "eduardo@example.com");
+    fireEvent.changeText(screen.getByTestId("input-password"), "senha1234");
+
+    fireEvent.press(screen.getByTestId("submit-button"));
+
+    expect(await screen.findByText("O usuário não pode conter espaços.")).toBeTruthy();
+    expect(registerSpy).not.toHaveBeenCalled();
+  });
+
   it("validates email format", async () => {
     const registerSpy = jest.spyOn(registerApi, "registerUser");
     renderSignUpScreen();

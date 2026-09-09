@@ -18,8 +18,19 @@
   },
   "home": {
     "primaryAction": "Comenzar",
+    "recordaDetailsShortcut": "Pantalla de detalles de Recorda",
     "secondaryAction": "Ver estructura",
     "subtitle": "Memorias con banda sonora.",
     "title": "Recorda"
+  },
+  "recordaDetails": {
+    "back": "Volver",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Añade una descripción...",
+    "mediaSelected": "Medio seleccionado",
+    "mediaUnavailable": "Medio no disponible",
+    "publish": "Publicar",
+    "share": "Compartir",
+    "songCover": "Portada de la canción"
   }
 }

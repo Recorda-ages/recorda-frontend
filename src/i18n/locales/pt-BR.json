@@ -18,8 +18,19 @@
   },
   "home": {
     "primaryAction": "Comecar",
+    "recordaDetailsShortcut": "Tela de detalhes da Recorda",
     "secondaryAction": "Ver estrutura",
     "subtitle": "Memorias que tem trilha sonora.",
     "title": "Recorda"
+  },
+  "recordaDetails": {
+    "back": "Voltar",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Adicione uma descrição...",
+    "mediaSelected": "Mídia selecionada",
+    "mediaUnavailable": "Mídia indisponível",
+    "publish": "Publicar",
+    "share": "Compartilhar",
+    "songCover": "Capa da música"
   }
 }

@@ -63,7 +63,7 @@ export function SignUpScreen() {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: "Onboarding" as never }]
+        routes: [{ name: "Onboarding" }]
       });
     } catch (error) {
       if (error instanceof ApiError) {
@@ -313,7 +313,7 @@ export function SignUpScreen() {
               accessibilityLabel={t("auth.signUp.loginAction")}
               accessibilityRole="button"
               hitSlop={8}
-              onPress={() => navigation.navigate("Login" as never)}
+              onPress={() => navigation.navigate("Login")}
               testID="login-link"
             >
               <AppText style={styles.footerLink} variant="body2">
