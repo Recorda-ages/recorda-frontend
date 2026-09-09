@@ -23,7 +23,7 @@ const COLORS = {
   textPrimary: "#EAEAEA",
   textSecondary: "#BFBFBF",
   textOnChip: "#F4FFFC",
-  stepperInactive: "#002D22"
+  stepperInactive: "#3E3E3E"
 };
 
 const MIN_ARTISTS = 3;
