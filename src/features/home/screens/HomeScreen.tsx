@@ -19,6 +19,12 @@ export function HomeScreen() {
       </View>
 
       <View style={styles.actions}>
+        {__DEV__ ? (
+          <Button
+            label={t("onboarding.music.preview")}
+            onPress={() => navigation.navigate("OnboardingMusicPreview")}
+          />
+        ) : null}
         <Button label={t("home.primaryAction")} onPress={() => navigation.navigate("Camera")} />
         <Button label={t("home.secondaryAction")} onPress={() => undefined} variant="secondary" />
         {__DEV__ ? (

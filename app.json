@@ -16,6 +16,7 @@
       "expo-splash-screen",
       "expo-secure-store",
       "expo-status-bar",
+      "expo-image",
       "expo-video"
     ]
   }
