@@ -14,7 +14,8 @@ import type {
 // autenticação da requisição — pendência de integração futura, sem contrato confirmado.
 
 type UploadRecordaMediaApiResponse = {
-  media_url: string;
+  media_url?: string;
+  url?: string;
 };
 
 type CreateRecordaApiPayload = {
@@ -43,7 +44,13 @@ export async function uploadRecordaMedia(
 
   const response = await apiClient.post<UploadRecordaMediaApiResponse>("/recordas/media", formData);
 
-  return { mediaUrl: response.media_url };
+  const mediaUrl = response.url ?? response.media_url;
+
+  if (!mediaUrl) {
+    throw new Error("Resposta de upload de mídia inválida.");
+  }
+
+  return { mediaUrl };
 }
 
 export function createRecorda(payload: CreateRecordaPayload): Promise<CreateRecordaResult> {

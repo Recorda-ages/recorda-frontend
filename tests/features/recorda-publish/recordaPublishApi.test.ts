@@ -27,7 +27,7 @@ describe("recordaPublishApi", () => {
     };
 
     it("posts the media as multipart form data to /recordas/media", async () => {
-      mockedPost.mockResolvedValueOnce({ media_url: "https://cdn.example.com/recorda.jpg" });
+      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
       const appendSpy = jest.spyOn(FormData.prototype, "append");
 
       await uploadRecordaMedia(media);
@@ -47,12 +47,28 @@ describe("recordaPublishApi", () => {
       appendSpy.mockRestore();
     });
 
-    it("maps the response to { mediaUrl } without assuming a mediaId", async () => {
+    it("maps the upload url response to { mediaUrl } without assuming a mediaId", async () => {
+      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
+
+      const result = await uploadRecordaMedia(media);
+
+      expect(result).toEqual({ mediaUrl: "https://cdn.example.com/recorda.jpg" });
+    });
+
+    it("keeps compatibility with media_url upload responses", async () => {
       mockedPost.mockResolvedValueOnce({ media_url: "https://cdn.example.com/recorda.jpg" });
 
       const result = await uploadRecordaMedia(media);
 
       expect(result).toEqual({ mediaUrl: "https://cdn.example.com/recorda.jpg" });
+    });
+
+    it("fails clearly when upload response does not include a media link", async () => {
+      mockedPost.mockResolvedValueOnce({});
+
+      await expect(uploadRecordaMedia(media)).rejects.toThrow(
+        "Resposta de upload de mídia inválida."
+      );
     });
   });
 

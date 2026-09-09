@@ -1,10 +1,14 @@
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, Screen } from "@/components/ui";
 import { spacing } from "@/theme";
 
 export function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
 
   return (
@@ -15,8 +19,15 @@ export function HomeScreen() {
       </View>
 
       <View style={styles.actions}>
-        <Button label={t("home.primaryAction")} onPress={() => undefined} />
+        <Button label={t("home.primaryAction")} onPress={() => navigation.navigate("Camera")} />
         <Button label={t("home.secondaryAction")} onPress={() => undefined} variant="secondary" />
+        {__DEV__ ? (
+          <Button
+            label={t("home.recordaDetailsShortcut")}
+            onPress={() => navigation.navigate("RecordaDetails")}
+            variant="secondary"
+          />
+        ) : null}
       </View>
     </Screen>
   );
