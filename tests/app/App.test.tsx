@@ -3,11 +3,10 @@ import { render, screen } from "@testing-library/react-native";
 import App from "../../App";
 
 describe("App", () => {
-  it("renders the initial sign-up screen", () => {
+  it("renders the initial artist onboarding screen", () => {
     render(<App />);
 
-    expect(screen.getByTestId("sign-up-screen")).toBeTruthy();
-    expect(screen.getByText("recorda.")).toBeTruthy();
-    expect(screen.getByText("Guarde o momento")).toBeTruthy();
+    expect(screen.getByText("Quem faz parte da sua história?")).toBeTruthy();
+    expect(screen.getByText("Artistas")).toBeTruthy();
   });
 });
