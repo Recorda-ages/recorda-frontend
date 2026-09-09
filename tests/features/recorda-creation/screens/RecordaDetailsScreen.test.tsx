@@ -128,13 +128,35 @@ describe("RecordaDetailsScreen", () => {
     expect(screen.getByRole("button", { name: "Publicar" })).toBeDisabled();
   });
 
-  it("publishes through the temporary action when a song is available", () => {
+  it("publishes the current draft when a song is available", () => {
     const onPublish = jest.fn();
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onPublish={onPublish} />);
 
+    fireEvent.changeText(screen.getByLabelText("Descrição"), "Uma memória especial");
     fireEvent.press(screen.getByRole("button", { name: "Publicar" }));
 
-    expect(onPublish).toHaveBeenCalledTimes(1);
+    expect(onPublish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "Uma memória especial",
+        media: mockRecordaDraft.media,
+        song: mockRecordaDraft.song
+      })
+    );
+  });
+
+  it("shares the current draft when a share action is provided", () => {
+    const onShare = jest.fn();
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onShare={onShare} />);
+
+    fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+
+    expect(onShare).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "",
+        media: mockRecordaDraft.media,
+        song: mockRecordaDraft.song
+      })
+    );
   });
 
   it("renders without failing when media is absent", () => {

@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Share,
   StyleSheet,
   TouchableWithoutFeedback,
   View
@@ -35,18 +36,51 @@ const DESCRIPTION_MAX_LENGTH = 2200;
 
 type RecordaDetailsScreenProps = {
   draft?: RecordaDraft;
-  onPublish?: () => void;
+  onPublish?: (draft: RecordaDraft) => void;
+  onShare?: (draft: RecordaDraft) => void;
 };
 
 export function RecordaDetailsScreen({
   draft = mockRecordaDraft,
-  onPublish = () => undefined
+  onPublish = () => undefined,
+  onShare
 }: RecordaDetailsScreenProps) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [description, setDescription] = useState(draft.description);
   const [coverLoadFailed, setCoverLoadFailed] = useState(false);
   const videoPlayer = useVideoPlayer(draft.media?.uri ?? "");
+
+  function getCurrentDraft() {
+    return { ...draft, description };
+  }
+
+  function handlePublish() {
+    onPublish(getCurrentDraft());
+  }
+
+  function handleShare() {
+    const currentDraft = getCurrentDraft();
+
+    if (onShare) {
+      onShare(currentDraft);
+      return;
+    }
+
+    if (!currentDraft.song) {
+      return;
+    }
+
+    const message = [
+      currentDraft.song.title,
+      currentDraft.song.artistName,
+      currentDraft.description
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    void Share.share({ message });
+  }
 
   return (
     <Screen
@@ -66,7 +100,7 @@ export function RecordaDetailsScreen({
           >
             <View style={styles.header}>
               <IconButton
-                accessibilityLabel="Voltar"
+                accessibilityLabel={t("recordaDetails.back")}
                 icon={({ color, size }) => (
                   <Ionicons color={color} name="chevron-back" size={size} />
                 )}
@@ -81,7 +115,7 @@ export function RecordaDetailsScreen({
                 style={styles.headerTitle}
                 variant="titleMedium"
               >
-                Descrição
+                {t("recordaDetails.descriptionLabel")}
               </Text>
               <View style={styles.headerSpacer} />
             </View>
@@ -160,11 +194,13 @@ export function RecordaDetailsScreen({
               <View style={styles.actions}>
                 <IconButton
                   accessibilityLabel={t("recordaDetails.share")}
+                  disabled={!draft.song}
                   icon={({ color, size }) => (
                     <Ionicons color={color} name="share-social-outline" size={size} />
                   )}
                   iconColor={styles.shareIcon.color}
                   mode="outlined"
+                  onPress={handleShare}
                   size={32}
                   style={styles.shareButton}
                 />
@@ -172,7 +208,7 @@ export function RecordaDetailsScreen({
                   contentStyle={styles.publishContent}
                   disabled={!draft.song}
                   mode="contained"
-                  onPress={onPublish}
+                  onPress={handlePublish}
                   style={styles.publishButton}
                 >
                   {t("recordaDetails.publish")}
@@ -231,7 +267,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   media: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     height: undefined,
     width: undefined
   },
@@ -248,7 +284,7 @@ const styles = StyleSheet.create({
     position: "relative"
   },
   mediaOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: baseColors.black,
     opacity: 0.45
   },
