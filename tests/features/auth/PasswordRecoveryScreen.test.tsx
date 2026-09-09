@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -49,7 +49,6 @@ describe("PasswordRecoveryScreen", () => {
   afterEach(() => {
     testQueryClient?.clear();
     testQueryClient = null;
-    jest.useRealTimers();
   });
 
   it("renders the password recovery screen from the visual reference", () => {
@@ -61,10 +60,12 @@ describe("PasswordRecoveryScreen", () => {
     expect(screen.getByText("Volte a recordar")).toBeTruthy();
     expect(screen.getByText("Informe seu email para definir uma nova senha.")).toBeTruthy();
     expect(screen.getByLabelText("Email")).toBeTruthy();
+    expect(screen.getByLabelText("Nova senha").props.secureTextEntry).toBe(true);
+    expect(screen.getByLabelText("Confirmar nova senha").props.secureTextEntry).toBe(true);
     expect(screen.getByRole("button", { name: "Redefinir Senha" })).toBeTruthy();
   });
 
-  it("requires a valid email before allowing submission", async () => {
+  it("requires a valid email and matching passwords before allowing submission", async () => {
     renderPasswordRecoveryScreen();
 
     const submitButton = screen.getByRole("button", { name: "Redefinir Senha" });
@@ -84,6 +85,23 @@ describe("PasswordRecoveryScreen", () => {
     fireEvent.changeText(screen.getByLabelText("Email"), "ana@example.com");
 
     await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
+
+    fireEvent.changeText(screen.getByLabelText("Nova senha"), "1234567");
+
+    expect(await screen.findByText("A senha deve ter pelo menos 8 caracteres.")).toBeTruthy();
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.changeText(screen.getByLabelText("Nova senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-diferente");
+
+    expect(await screen.findByText("As senhas devem ser identicas.")).toBeTruthy();
+    expect(submitButton).toBeDisabled();
+
+    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-segura");
+
+    await waitFor(() => {
       expect(submitButton).not.toBeDisabled();
     });
   });
@@ -96,35 +114,31 @@ describe("PasswordRecoveryScreen", () => {
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
   });
 
-  it("shows success feedback and returns to login after submitting a valid email", async () => {
+  it("shows success feedback after submitting a valid form", async () => {
     const navigation = renderPasswordRecoveryScreen();
 
     fireEvent.changeText(screen.getByLabelText("Email"), "ana@example.com");
+    fireEvent.changeText(screen.getByLabelText("Nova senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-segura");
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Redefinir Senha" })).not.toBeDisabled();
     });
 
-    jest.useFakeTimers();
     fireEvent.press(screen.getByRole("button", { name: "Redefinir Senha" }));
 
-    expect(await screen.findByText("Enviamos as instrucoes para o seu email.")).toBeTruthy();
+    expect(await screen.findByText("Sua senha foi redefinida com sucesso.")).toBeTruthy();
     expect(screen.queryByTestId("login-screen")).toBeNull();
 
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
-
-    expect(navigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: "Home" }]
-    });
+    expect(navigation.reset).not.toHaveBeenCalled();
   });
 
   it("shows a generic error when the mocked recovery request fails", async () => {
     renderPasswordRecoveryScreen();
 
     fireEvent.changeText(screen.getByLabelText("Email"), "erro@example.com");
+    fireEvent.changeText(screen.getByLabelText("Nova senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar nova senha"), "senha-segura");
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Redefinir Senha" })).not.toBeDisabled();

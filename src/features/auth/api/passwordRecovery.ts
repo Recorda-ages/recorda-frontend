@@ -1,5 +1,7 @@
 export type PasswordRecoveryRequest = {
+  confirmPassword: string;
   email: string;
+  newPassword: string;
 };
 
 const mockedFailureEmail = "erro@example.com";

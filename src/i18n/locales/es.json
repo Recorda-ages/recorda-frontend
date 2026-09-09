@@ -5,17 +5,13 @@
       "back": "Volver",
       "description": "Ingresa tu email para definir una nueva contrasena.",
       "email": "Email",
+      "confirmPassword": "Confirmar nueva contrasena",
       "genericError": "No fue posible restablecer tu contrasena. Intenta nuevamente.",
       "logo": "recorda.",
+      "newPassword": "Nueva contrasena",
       "submit": "Restablecer Contrasena",
-      "success": "Enviamos las instrucciones a tu email.",
+      "success": "Tu contrasena se restablecio correctamente.",
       "title": "Vuelve a recordar"
     }
-  },
-  "home": {
-    "primaryAction": "Comenzar",
-    "secondaryAction": "Ver estructura",
-    "subtitle": "Memorias con banda sonora.",
-    "title": "Recorda"
   }
 }

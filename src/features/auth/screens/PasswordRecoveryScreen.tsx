@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,6 @@ import { zodResolver } from "@/utils/validation";
 
 type PasswordRecoveryScreenProps = NativeStackScreenProps<RootStackParamList, "PasswordRecovery">;
 
-const successRedirectDelayMs = 1200;
-
 export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenProps) {
   const { t } = useTranslation();
   const passwordRecoveryMutation = usePasswordRecoveryMutation();
@@ -29,32 +27,19 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
     handleSubmit
   } = useForm<PasswordRecoveryFormValues>({
     defaultValues: {
-      email: ""
+      confirmPassword: "",
+      email: "",
+      newPassword: ""
     },
     mode: "all",
     resolver: zodResolver(passwordRecoverySchema)
   });
 
-  useEffect(() => {
-    if (feedback !== "success") {
-      return undefined;
-    }
-
-    const timeout = setTimeout(() => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Home" }]
-      });
-    }, successRedirectDelayMs);
-
-    return () => clearTimeout(timeout);
-  }, [feedback, navigation]);
-
   const onSubmit = handleSubmit(async (values) => {
     setFeedback(null);
 
     try {
-      await passwordRecoveryMutation.mutateAsync({ email: values.email });
+      await passwordRecoveryMutation.mutateAsync(values);
       setFeedback("success");
     } catch {
       setFeedback("error");
@@ -102,42 +87,109 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
         </View>
 
         <View style={styles.form}>
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onBlur, onChange, value } }) => (
-              <View>
-                <View style={[styles.emailInputFrame, errors.email ? styles.inputError : null]}>
-                  <View
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                    style={styles.emailIcon}
-                  >
-                    <View style={styles.emailIconFlapLeft} />
-                    <View style={styles.emailIconFlapRight} />
+          <View style={styles.fieldGroup}>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onBlur, onChange, value } }) => (
+                <View>
+                  <View style={[styles.inputFrame, errors.email ? styles.inputError : null]}>
+                    <View
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                      style={styles.emailIcon}
+                    >
+                      <View style={styles.emailIconFlapLeft} />
+                      <View style={styles.emailIconFlapRight} />
+                    </View>
+                    <TextInput
+                      accessibilityHint={errors.email ? errors.email.message : undefined}
+                      accessibilityLabel={t("auth.passwordRecovery.email")}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      keyboardType="email-address"
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      placeholder={t("auth.passwordRecovery.email")}
+                      placeholderTextColor={colors.primary[100]}
+                      style={styles.textInput}
+                      textContentType="emailAddress"
+                      value={value}
+                    />
                   </View>
-                  <TextInput
-                    accessibilityHint={errors.email ? errors.email.message : undefined}
-                    accessibilityLabel={t("auth.passwordRecovery.email")}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    placeholder={t("auth.passwordRecovery.email")}
-                    placeholderTextColor={colors.primary[100]}
-                    style={styles.emailInput}
-                    textContentType="emailAddress"
-                    value={value}
-                  />
+                  {errors.email ? (
+                    <AppText style={styles.fieldError} variant="caption">
+                      {errors.email.message}
+                    </AppText>
+                  ) : null}
                 </View>
-                {errors.email ? (
-                  <AppText style={styles.fieldError} variant="caption">
-                    {errors.email.message}
-                  </AppText>
-                ) : null}
-              </View>
-            )}
-          />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="newPassword"
+              render={({ field: { onBlur, onChange, value } }) => (
+                <View>
+                  <View style={[styles.inputFrame, errors.newPassword ? styles.inputError : null]}>
+                    <TextInput
+                      accessibilityHint={
+                        errors.newPassword ? errors.newPassword.message : undefined
+                      }
+                      accessibilityLabel={t("auth.passwordRecovery.newPassword")}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      placeholder={t("auth.passwordRecovery.newPassword")}
+                      placeholderTextColor={colors.primary[100]}
+                      secureTextEntry
+                      style={styles.textInput}
+                      value={value}
+                    />
+                  </View>
+                  {errors.newPassword ? (
+                    <AppText style={styles.fieldError} variant="caption">
+                      {errors.newPassword.message}
+                    </AppText>
+                  ) : null}
+                </View>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="confirmPassword"
+              render={({ field: { onBlur, onChange, value } }) => (
+                <View>
+                  <View
+                    style={[styles.inputFrame, errors.confirmPassword ? styles.inputError : null]}
+                  >
+                    <TextInput
+                      accessibilityHint={
+                        errors.confirmPassword ? errors.confirmPassword.message : undefined
+                      }
+                      accessibilityLabel={t("auth.passwordRecovery.confirmPassword")}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      placeholder={t("auth.passwordRecovery.confirmPassword")}
+                      placeholderTextColor={colors.primary[100]}
+                      secureTextEntry
+                      style={styles.textInput}
+                      value={value}
+                    />
+                  </View>
+                  {errors.confirmPassword ? (
+                    <AppText style={styles.fieldError} variant="caption">
+                      {errors.confirmPassword.message}
+                    </AppText>
+                  ) : null}
+                </View>
+              )}
+            />
+          </View>
 
           {feedback === "success" ? (
             <AppText accessibilityLiveRegion="polite" style={styles.success} variant="body2">
@@ -253,29 +305,11 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "135deg" }],
     width: 17
   },
-  emailInput: {
-    color: colors.primary[100],
-    flex: 1,
-    fontFamily: fontFamily.primary.regular,
-    fontSize: 20,
-    minHeight: 64,
-    paddingVertical: spacing[2]
-  },
-  emailInputFrame: {
-    alignItems: "center",
-    backgroundColor: "rgba(41, 41, 41, 0.92)",
-    borderColor: colors.primary[100],
-    borderCurve: "continuous",
-    borderRadius: 16,
-    borderWidth: 1.5,
-    flexDirection: "row",
-    gap: spacing[4],
-    minHeight: 68,
-    paddingHorizontal: spacing[5],
-    width: "100%"
+  fieldGroup: {
+    gap: spacing[4]
   },
   form: {
-    gap: spacing[10],
+    gap: spacing[6],
     width: "100%"
   },
   formError: {
@@ -293,6 +327,27 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: colors.error[200]
+  },
+  inputFrame: {
+    alignItems: "center",
+    backgroundColor: "rgba(41, 41, 41, 0.92)",
+    borderColor: colors.primary[100],
+    borderCurve: "continuous",
+    borderRadius: 16,
+    borderWidth: 1.5,
+    flexDirection: "row",
+    gap: spacing[4],
+    minHeight: 68,
+    paddingHorizontal: spacing[5],
+    width: "100%"
+  },
+  textInput: {
+    color: colors.primary[100],
+    flex: 1,
+    fontFamily: fontFamily.primary.regular,
+    fontSize: 20,
+    minHeight: 64,
+    paddingVertical: spacing[2]
   },
   logo: {
     color: colors.primary[500],

@@ -5,17 +5,13 @@
       "back": "Go back",
       "description": "Enter your email to define a new password.",
       "email": "Email",
+      "confirmPassword": "Confirm new password",
       "genericError": "We could not reset your password. Try again.",
       "logo": "recorda.",
+      "newPassword": "New password",
       "submit": "Reset Password",
-      "success": "We sent the instructions to your email.",
+      "success": "Your password was reset successfully.",
       "title": "Back to remembering"
     }
-  },
-  "home": {
-    "primaryAction": "Start",
-    "secondaryAction": "View structure",
-    "subtitle": "Memories with a soundtrack.",
-    "title": "Recorda"
   }
 }
