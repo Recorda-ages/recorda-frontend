@@ -2,6 +2,7 @@ module.exports = {
   moduleNameMapper: {
     "^expo-camera$": "<rootDir>/tests/mocks/expoCamera.tsx",
     "^expo-font$": "<rootDir>/tests/mocks/expoFont.ts",
+    "^@expo/vector-icons$": "<rootDir>/tests/mocks/expoVectorIcons.tsx",
     "^expo-image-manipulator$": "<rootDir>/tests/mocks/expoImageManipulator.ts",
     "^expo-image-picker$": "<rootDir>/tests/mocks/expoImagePicker.ts",
     "^expo-media-library$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",

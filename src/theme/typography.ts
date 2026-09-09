@@ -8,6 +8,7 @@ export const fontFamily = {
   },
   display: {
     regular: "BaiJamjuree_400Regular",
+    medium: "BaiJamjuree_500Medium",
     semiBold: "BaiJamjuree_600SemiBold",
     bold: "BaiJamjuree_700Bold"
   }
