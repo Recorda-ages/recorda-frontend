@@ -20,7 +20,7 @@ export function OnboardingMusicRoute() {
       selectedGenres={genres}
       onSelectTrack={setSelectedTrack}
       onBack={() => navigation.goBack()}
-      onComplete={() => navigation.reset({ index: 0, routes: [{ name: "Home" }] })}
+      onComplete={() => navigation.reset({ index: 0, routes: [{ name: "Feed" }] })}
       searchTracks={searchTracks}
       savePreferences={saveMusicPreferences}
     />

@@ -56,7 +56,7 @@ it("submits the three steps and lands on the feed", async () => {
     genres: mockParams.genres,
     track: { id: 1, title: "Tempo Perdido", artist: "Legião Urbana" }
   });
-  expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Home" }] });
+  expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Feed" }] });
 });
 
 it("goes back to the previous step without submitting", () => {

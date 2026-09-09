@@ -40,7 +40,7 @@ escolhas em caso de erro. A busca tem debounce de 350 ms e propaga o
 ## Pendências fora desta issue
 
 - Etapas 1 e 2 vivem nas branches de #99 e #117; ainda não navegam para cá.
-- Não existe tela de Feed: o sucesso reinicia a pilha em `Home`. Trocar o
-  `navigation.reset` por `Feed` quando a tela existir.
+- A rota `Feed` usa a tela atual de home/feed como componente temporário.
+  Trocar apenas o componente da rota quando a tela definitiva existir.
 - O token é lido a cada requisição; mover para o `apiClient` quando a camada de
   sessão de autenticação (#97) for integrada.
