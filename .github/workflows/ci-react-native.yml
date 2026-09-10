@@ -98,7 +98,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
 
       - name: Run unit tests with coverage
-        run: npm test -- --coverage
+        run: npm test -- --coverage --runInBand --forceExit
         working-directory: ${{ inputs.working-directory }}
 
       - name: Upload coverage
