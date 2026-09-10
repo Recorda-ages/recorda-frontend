@@ -1,8 +1,8 @@
 import React from "react";
-import { render, waitFor, act } from "@testing-library/react-native";
+import { act, render, waitFor } from "@testing-library/react-native";
 import { useNavigation } from "@react-navigation/native";
 
-import { SplashScreen, AUTH_TOKEN_KEY } from "@/features/splash";
+import { AUTH_TOKEN_KEY, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
 import { apiClient } from "@/services/api/client";
 import { secureStorage } from "@/services/storage/secureStorage";
 
@@ -23,12 +23,22 @@ jest.mock("@/services/storage/secureStorage", () => ({
   }
 }));
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, reject, resolve };
+}
+
 describe("SplashScreen", () => {
   const mockReplace = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     (useNavigation as jest.Mock).mockReturnValue({ replace: mockReplace });
   });
 
@@ -50,25 +60,30 @@ describe("SplashScreen", () => {
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("Login");
     });
+    expect(apiClient.get).not.toHaveBeenCalled();
   });
 
   it("navigates to Feed when user is regular account", async () => {
     (secureStorage.getItem as jest.Mock).mockResolvedValueOnce("valid-token");
-    (apiClient.get as jest.Mock).mockResolvedValueOnce({ role: "user" });
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({ account_type: "common" });
 
     render(<SplashScreen />);
 
     await waitFor(() => {
-      expect(apiClient.get).toHaveBeenCalledWith("/auth/me", {
-        headers: { Authorization: "Bearer valid-token" }
-      });
       expect(mockReplace).toHaveBeenCalledWith("Feed");
     });
+    expect(apiClient.get).toHaveBeenCalledWith(
+      "/auth/me",
+      expect.objectContaining({
+        headers: { Authorization: "Bearer valid-token" },
+        signal: expect.any(Object)
+      })
+    );
   });
 
-  it("navigates to Admin when user has admin role", async () => {
+  it("navigates to Admin when user has admin account type", async () => {
     (secureStorage.getItem as jest.Mock).mockResolvedValueOnce("valid-token");
-    (apiClient.get as jest.Mock).mockResolvedValueOnce({ role: "admin" });
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({ account_type: "admin" });
 
     render(<SplashScreen />);
 
@@ -89,16 +104,34 @@ describe("SplashScreen", () => {
     });
   });
 
-  it("navigates to Login on 3-second timeout and ignores subsequent responses", async () => {
-    (secureStorage.getItem as jest.Mock).mockReturnValue(new Promise(() => {}));
+  it("navigates to Login on 3-second timeout and ignores subsequent backend responses", async () => {
+    jest.useFakeTimers();
+    const delayedUser = createDeferred<{ account_type: string }>();
+    (secureStorage.getItem as jest.Mock).mockResolvedValueOnce("valid-token");
+    (apiClient.get as jest.Mock).mockReturnValueOnce(delayedUser.promise);
 
     render(<SplashScreen />);
 
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(apiClient.get).toHaveBeenCalledTimes(1);
+
     act(() => {
-      jest.advanceTimersByTime(3000);
+      jest.advanceTimersByTime(SPLASH_TIMEOUT_MS);
     });
 
     expect(mockReplace).toHaveBeenCalledWith("Login");
     expect(mockReplace).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      delayedUser.resolve({ account_type: "admin" });
+      await Promise.resolve();
+    });
+
+    expect(mockReplace).toHaveBeenCalledWith("Login");
+    expect(mockReplace).toHaveBeenCalledTimes(1);
+    expect(secureStorage.removeItem).not.toHaveBeenCalled();
   });
 });

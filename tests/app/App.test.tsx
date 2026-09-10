@@ -1,7 +1,7 @@
-import React from "react";
-import { render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import App from "../../App";
+import { secureStorage } from "@/services/storage/secureStorage";
 
 jest.mock("@/services/storage/secureStorage", () => ({
   secureStorage: {
@@ -11,15 +11,28 @@ jest.mock("@/services/storage/secureStorage", () => ({
   }
 }));
 
+const mockGetItem = secureStorage.getItem as jest.Mock;
+
 describe("App", () => {
-  it("renders the splash screen initially", async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetItem.mockResolvedValue(null);
+  });
+
+  it("renders the splash screen before routing unauthenticated users to login", async () => {
     render(<App />);
 
     expect(screen.getByTestId("splash-screen-container")).toBeTruthy();
     expect(screen.getByText("recorda.")).toBeTruthy();
+    expect(await screen.findByTestId("login-screen")).toBeTruthy();
+  });
 
-    await waitFor(() => {
-      expect(screen.getByTestId("splash-screen-container")).toBeTruthy();
-    });
+  it("opens password recovery from the login forgot password link", async () => {
+    render(<App />);
+
+    expect(await screen.findByTestId("login-screen")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("forgot-password-link"));
+    expect(await screen.findByTestId("password-recovery-screen")).toBeTruthy();
   });
 });

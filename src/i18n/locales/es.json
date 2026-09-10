@@ -1,8 +1,77 @@
 {
+  "auth": {
+    "login": {
+      "forgotPassword": "Olvidé mi contraseña"
+    },
+    "passwordRecovery": {
+      "appBarTitle": "Recuperar Contraseña",
+      "back": "Volver",
+      "description": "Ingresa tu email para definir una nueva contraseña.",
+      "email": "Email",
+      "confirmPassword": "Confirmar Contraseña",
+      "genericError": "No fue posible restablecer tu contraseña. Intenta nuevamente.",
+      "logo": "recorda.",
+      "newPassword": "Nueva Contraseña",
+      "submit": "Restablecer Contraseña",
+      "success": "Tu contraseña se restableció correctamente.",
+      "title": "Vuelve a recordar"
+    },
+    "signUp": {
+      "email": "Correo electrónico",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "hidePassword": "Ocultar contraseña",
+      "loginAction": "Iniciar sesión",
+      "logo": "recorda.",
+      "name": "Nombre",
+      "networkError": "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+      "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "submit": "Registrarse",
+      "subtitle": "Crea tu cuenta y transforma momentos en huellas.",
+      "title": "Guarda el momento",
+      "username": "Usuario"
+    }
+  },
   "home": {
     "primaryAction": "Comenzar",
+    "recordaDetailsShortcut": "Pantalla de detalles de Recorda",
     "secondaryAction": "Ver estructura",
     "subtitle": "Memorias con banda sonora.",
     "title": "Recorda"
+  },
+  "onboarding": {
+    "music": {
+      "header": "Canción favorita",
+      "back": "Volver a géneros",
+      "step": "PASO 3 DE 3",
+      "title": "¿Qué canción no puede faltar?",
+      "subtitle": "Elige 1 canción para dar el tono a tus primeros recuerdos.",
+      "search": "Buscar canciones",
+      "finish": "Comenzar a recordar",
+      "selected": "Seleccionada: {{title}} — {{artist}}",
+      "loading": "Buscando canciones",
+      "searchError": "No se pudieron buscar canciones.",
+      "retry": "Intentar de nuevo",
+      "empty": "No se encontraron canciones. Prueba otro título o artista.",
+      "saveError": "No se pudo guardar. Tus selecciones se conservaron. Inténtalo de nuevo.",
+      "preview": "Vista previa: canción favorita",
+      "demo": "Demostración completada. No se enviaron datos.",
+      "close": "Volver"
+    }
+  },
+  "recordaDetails": {
+    "back": "Volver",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Añade una descripción...",
+    "mediaSelected": "Medio seleccionado",
+    "mediaUnavailable": "Medio no disponible",
+    "publish": "Publicar",
+    "publishCreating": "Publicando...",
+    "publishRetry": "Intentar de nuevo",
+    "publishSuccessMessage": "Tu Recorda se publicó correctamente.",
+    "publishSuccessTitle": "Recorda publicada",
+    "publishUploading": "Enviando medio...",
+    "share": "Compartir",
+    "songCover": "Portada de la canción"
   }
 }
