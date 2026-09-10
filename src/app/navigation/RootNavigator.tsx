@@ -10,27 +10,30 @@ import { AppText } from "@/components/ui";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
+import type { MusicSelection } from "@/features/onboarding";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
-import type { MusicSelection } from "@/features/onboarding";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
+import { SplashScreen } from "@/features/splash";
 import { baseColors, navigationTheme, spacing } from "@/theme";
 
 export type RootStackParamList = {
+  Splash: undefined;
+  Admin: undefined;
+  Camera: undefined;
   Feed: undefined;
   Home: undefined;
   Login: undefined;
   Onboarding: undefined;
-  PasswordRecovery: undefined;
-  Profile: undefined;
-  SignUp: undefined;
-  Camera: undefined;
-  Preview: { uri: string; type: "photo" | "video" };
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
   OnboardingMusicPreview: undefined;
+  PasswordRecovery: undefined;
+  Preview: { uri: string; type: "photo" | "video" };
+  Profile: undefined;
   RecordaDetails: undefined;
+  SignUp: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -59,6 +62,14 @@ function LoginPlaceholderScreen({ navigation }: LoginPlaceholderScreenProps) {
   );
 }
 
+function AdminPlaceholderScreen() {
+  return (
+    <View style={styles.placeholder} testID="admin-screen">
+      <AppText variant="headline3">Admin</AppText>
+    </View>
+  );
+}
+
 function OnboardingPlaceholderScreen() {
   return (
     <View style={styles.placeholder} testID="onboarding-screen">
@@ -78,12 +89,14 @@ function ProfilePlaceholderScreen() {
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName="SignUp" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Feed" component={HomeScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
