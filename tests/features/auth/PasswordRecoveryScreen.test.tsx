@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -122,7 +122,6 @@ describe("PasswordRecoveryScreen", () => {
   });
 
   it("shows success feedback after submitting a valid form", async () => {
-    jest.useFakeTimers();
     const navigation = renderPasswordRecoveryScreen();
 
     fireEvent.changeText(screen.getByLabelText("Email"), "ana@example.com");
@@ -145,11 +144,12 @@ describe("PasswordRecoveryScreen", () => {
     expect(await screen.findByText("Sua senha foi redefinida com sucesso.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Redefinir Senha" })).toBeDisabled();
 
-    act(() => {
-      jest.advanceTimersByTime(1200);
-    });
-
-    expect(navigation.reset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
+    await waitFor(
+      () => {
+        expect(navigation.reset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
+      },
+      { timeout: 2500 }
+    );
   });
 
   it("shows a generic error when the mocked recovery request fails", async () => {
