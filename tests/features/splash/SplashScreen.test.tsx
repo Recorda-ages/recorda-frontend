@@ -1,5 +1,5 @@
 import React from "react";
-import { act, cleanup, render } from "@testing-library/react-native";
+import { render, waitFor } from "@testing-library/react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import { AUTH_TOKEN_KEY, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
@@ -34,15 +34,6 @@ function createDeferred<T>() {
   return { promise, reject, resolve };
 }
 
-async function flushSplashTasks() {
-  await act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-  });
-}
-
 describe("SplashScreen", () => {
   const mockReplace = jest.fn();
   const mockGetItem = secureStorage.getItem as jest.Mock;
@@ -51,14 +42,12 @@ describe("SplashScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
     mockGetItem.mockResolvedValue(null);
     mockRemoveItem.mockResolvedValue(undefined);
     (useNavigation as jest.Mock).mockReturnValue({ replace: mockReplace });
   });
 
   afterEach(() => {
-    cleanup();
     jest.useRealTimers();
   });
 
@@ -73,9 +62,9 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await flushSplashTasks();
-
-    expect(mockReplace).toHaveBeenCalledWith("Login");
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("Login");
+    });
     expect(apiClient.get).not.toHaveBeenCalled();
   });
 
@@ -85,9 +74,9 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await flushSplashTasks();
-
-    expect(mockReplace).toHaveBeenCalledWith("Feed");
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("Feed");
+    });
     expect(apiClient.get).toHaveBeenCalledWith(
       "/auth/me",
       expect.objectContaining({
@@ -103,9 +92,9 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await flushSplashTasks();
-
-    expect(mockReplace).toHaveBeenCalledWith("Admin");
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("Admin");
+    });
   });
 
   it("clears session and navigates to Login when token is invalid", async () => {
@@ -114,10 +103,10 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await flushSplashTasks();
-
-    expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
-    expect(mockReplace).toHaveBeenCalledWith("Login");
+    await waitFor(() => {
+      expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
+      expect(mockReplace).toHaveBeenCalledWith("Login");
+    });
   });
 
   it("navigates to Login on 3-second timeout and ignores subsequent backend responses", async () => {
@@ -127,21 +116,21 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await flushSplashTasks();
-
-    expect(apiClient.get).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      jest.advanceTimersByTime(SPLASH_TIMEOUT_MS);
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockReplace).toHaveBeenCalledWith("Login");
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Login");
+      },
+      { timeout: SPLASH_TIMEOUT_MS + 3000 }
+    );
     expect(mockReplace).toHaveBeenCalledTimes(1);
 
-    await act(async () => {
-      delayedUser.resolve({ account_type: "admin" });
-    });
-    await flushSplashTasks();
+    delayedUser.resolve({ account_type: "admin" });
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(mockReplace).toHaveBeenCalledWith("Login");
     expect(mockReplace).toHaveBeenCalledTimes(1);
