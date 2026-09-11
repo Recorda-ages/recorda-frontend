@@ -9,13 +9,13 @@ import { Artist } from "../../../src/types/artist";
 const mockArtist: Artist = {
   id: "1",
   name: "Artist 1",
-  picture_medium: "http://example.com/1.jpg"
+  imageUrl: "http://example.com/1.jpg"
 };
 
 const mockArtist2: Artist = {
   id: "2",
   name: "Artist 2",
-  picture_medium: "http://example.com/2.jpg"
+  imageUrl: "http://example.com/2.jpg"
 };
 
 describe("OnboardingContext", () => {
