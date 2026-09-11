@@ -6,8 +6,10 @@ import {
   TextInput,
   TouchableOpacity,
   Text,
-  ActivityIndicator
+  ActivityIndicator,
+  useWindowDimensions
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
@@ -23,7 +25,8 @@ const COLORS = {
   textPrimary: "#EAEAEA",
   textSecondary: "#BFBFBF",
   textOnChip: "#F4FFFC",
-  stepperInactive: "#3E3E3E"
+  stepperInactive: "#3E3E3E",
+  neutral400: "#7F7F7F"
 };
 
 const MIN_ARTISTS = 3;
@@ -31,6 +34,8 @@ const TOTAL_STEPS = 3;
 
 export function OnboardingArtistsScreen() {
   const { selectedArtists, toggleArtist } = useOnboarding();
+  const { width } = useWindowDimensions();
+  const scale = width / 393;
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -59,6 +64,30 @@ export function OnboardingArtistsScreen() {
 
   return (
     <View style={styles.root}>
+      {/* ── Background gradients ─────────────────────────────────────── */}
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Image
+          source={require("../assets/gradient-glow.svg")}
+          style={{
+            position: "absolute",
+            width: 894 * scale,
+            height: 894 * scale,
+            left: -446 * scale,
+            top: -468 * scale
+          }}
+        />
+        <Image
+          source={require("../assets/gradient-glow.svg")}
+          style={{
+            position: "absolute",
+            width: 894 * scale,
+            height: 894 * scale,
+            left: 34 * scale,
+            bottom: -271 * scale
+          }}
+        />
+      </View>
+
       <SafeAreaView style={styles.safeArea}>
         {/* ── Top Header ──────────────────────────────────────────────── */}
         <View style={styles.topHeader}>
@@ -152,7 +181,7 @@ export function OnboardingArtistsScreen() {
               <Ionicons
                 name="chevron-forward"
                 size={24}
-                color={!canAdvance ? COLORS.primary : COLORS.background}
+                color={!canAdvance ? COLORS.neutral400 : COLORS.primary}
               />
             </TouchableOpacity>
           </View>
@@ -292,25 +321,25 @@ const styles = StyleSheet.create({
   button: {
     height: 58,
     borderRadius: 100,
-    backgroundColor: COLORS.primary,
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8
   },
   buttonDisabled: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: COLORS.primary
+    borderColor: COLORS.neutral400
   },
   buttonLabel: {
     fontSize: 16,
     fontWeight: "700",
     lineHeight: 26,
     letterSpacing: 0.46,
-    color: COLORS.background
+    color: COLORS.primary
   },
   buttonLabelDisabled: {
-    color: COLORS.primary
+    color: COLORS.neutral400
   }
 });
