@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   ScrollView,
@@ -12,8 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
-import { searchArtists } from "@/services/api";
-import { Artist } from "@/types/artist";
+import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
+import type { Artist } from "@/types/artist";
 
 const COLORS = {
   background: "#151515",
@@ -32,30 +32,24 @@ const TOTAL_STEPS = 3;
 export function OnboardingArtistsScreen() {
   const { selectedArtists, toggleArtist } = useOnboarding();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Artist[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-    setIsLoading(true);
-    setHasSearched(true);
-    setErrorMessage(null);
-    try {
-      const data = await searchArtists(query);
-      setResults(data);
-    } catch (error) {
-      console.error("Erro ao buscar artistas no Deezer:", error);
-      const message =
-        error instanceof Error ? error.message : "Erro desconhecido ao buscar artistas.";
-      setErrorMessage(message);
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Debounce de 350 ms — mesmo padrão da OnboardingMusicScreen
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [query]);
 
+  const { data, isFetching, isError } = useArtistSearch(debouncedQuery);
+
+  // Mapeia id: number (musicService) → id: string (tipo Artist do contexto)
+  const results: Artist[] = (data ?? []).map((a) => ({
+    id: String(a.id),
+    name: a.name,
+    imageUrl: a.picture_url ?? undefined
+  }));
+
+  const hasSearched = debouncedQuery.length > 0;
   const canAdvance = selectedArtists.length >= MIN_ARTISTS;
 
   const displayedArtists = [
@@ -104,11 +98,14 @@ export function OnboardingArtistsScreen() {
               placeholderTextColor={COLORS.textSecondary}
               value={query}
               onChangeText={setQuery}
-              onSubmitEditing={handleSearch}
               returnKeyType="search"
               selectionColor={COLORS.primary}
             />
-            <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+            {isFetching ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+            )}
           </View>
 
           {/* Results */}
@@ -116,38 +113,34 @@ export function OnboardingArtistsScreen() {
             contentContainerStyle={styles.chipsContainer}
             showsVerticalScrollIndicator={false}
           >
-            {isLoading ? (
-              <ActivityIndicator color={COLORS.primary} style={styles.loader} />
-            ) : (
-              <>
-                {displayedArtists.map((artist) => {
-                  const isSelected = selectedArtists.some((a) => a.id === artist.id);
-                  return (
-                    <ArtistChip
-                      key={artist.id}
-                      artist={artist}
-                      selected={isSelected}
-                      onPress={() => toggleArtist(artist)}
-                    />
-                  );
-                })}
-                {errorMessage ? (
-                  <Text style={styles.errorText}>{errorMessage}</Text>
-                ) : hasSearched && displayedArtists.length === 0 ? (
-                  <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
-                ) : null}
-              </>
-            )}
+            <>
+              {displayedArtists.map((artist) => {
+                const isSelected = selectedArtists.some((a) => a.id === artist.id);
+                return (
+                  <ArtistChip
+                    key={artist.id}
+                    artist={artist}
+                    selected={isSelected}
+                    onPress={() => toggleArtist(artist)}
+                  />
+                );
+              })}
+              {isError ? (
+                <Text style={styles.errorText}>Não foi possível buscar artistas. Verifique sua conexão.</Text>
+              ) : hasSearched && displayedArtists.length === 0 && !isFetching ? (
+                <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
+              ) : null}
+            </>
           </ScrollView>
 
           {/* Footer */}
           <View style={styles.footer}>
-            {selectedArtists.length > 0 && (
+            {selectedArtists.length > 0 ? (
               <Text style={styles.selectionCount}>
                 {selectedArtists.length} artista{selectedArtists.length !== 1 ? "s" : ""}{" "}
                 selecionado{selectedArtists.length !== 1 ? "s" : ""}
               </Text>
-            )}
+            ) : null}
             <TouchableOpacity
               style={[styles.button, !canAdvance && styles.buttonDisabled]}
               disabled={!canAdvance}

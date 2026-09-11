@@ -4,7 +4,6 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { CameraMode } from "expo-camera";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-import * as MediaLibrary from "expo-media-library";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Image, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,12 +18,10 @@ const MAX_VIDEO_DURATION_MS = MAX_VIDEO_DURATION_SECONDS * 1000;
 export function CameraScreen() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
-  const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
   const [facing, setFacing] = useState<"back" | "front">("back");
   const [cameraMode, setCameraMode] = useState<CameraMode>("picture");
   const [isRecording, setIsRecording] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [lastGalleryUri, setLastGalleryUri] = useState<null | string>(null);
   const isFocused = useIsFocused();
   const cameraRef = useRef<CameraView>(null);
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,37 +38,6 @@ export function CameraScreen() {
   const shouldStopRecordingWhenReadyRef = useRef(false);
   const skipPhotoOnPressOutRef = useRef(false);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  useEffect(() => {
-    async function loadLastGalleryAsset() {
-      try {
-        let permission = mediaLibraryPermission;
-
-        if (!permission?.granted) {
-          permission = await requestMediaLibraryPermission();
-        }
-
-        if (!permission?.granted) {
-          return;
-        }
-
-        const { assets } = await MediaLibrary.getAssetsAsync({
-          first: 1,
-          sortBy: "creationTime"
-        });
-
-        if (assets[0] && isMountedRef.current) {
-          const assetInfo = await MediaLibrary.getAssetInfoAsync(assets[0]);
-          setLastGalleryUri(assetInfo.localUri ?? assets[0].uri);
-        }
-      } catch (error) {
-        console.log("erro ao carregar galeria:", error);
-      }
-    }
-
-    void loadLastGalleryAsset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -469,11 +435,9 @@ export function CameraScreen() {
 
         <View style={styles.bottomBar}>
           <TouchableOpacity onPress={handleOpenGallery} testID="camera-gallery-button">
-            {lastGalleryUri ? (
-              <Image source={{ uri: lastGalleryUri }} style={styles.galleryThumb} />
-            ) : (
-              <View style={styles.galleryThumb} />
-            )}
+            <View style={styles.galleryThumb}>
+              <Ionicons name="images-outline" size={24} color="white" />
+            </View>
           </TouchableOpacity>
 
           <Pressable
@@ -545,7 +509,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 8,
     height: 44,
-    width: 44
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center"
   },
   overlay: {
     flex: 1
