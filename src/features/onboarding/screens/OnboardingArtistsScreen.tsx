@@ -70,26 +70,23 @@ export function OnboardingArtistsScreen() {
     <View style={styles.root}>
       {/* ── Background gradients ─────────────────────────────────────── */}
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Image
-          source={require("../assets/gradient-glow.svg")}
-          style={{
-            position: "absolute",
-            width: 894 * scale,
-            height: 894 * scale,
-            left: -446 * scale,
-            top: -468 * scale
-          }}
-        />
-        <Image
-          source={require("../assets/gradient-glow.svg")}
-          style={{
-            position: "absolute",
-            width: 894 * scale,
-            height: 894 * scale,
-            left: 34 * scale,
-            bottom: -271 * scale
-          }}
-        />
+        {[
+          { id: "top-grad", left: -446, top: -468 },
+          { id: "bottom-grad", left: 34, bottom: -271 }
+        ].map((pos) => (
+          <Image
+            key={pos.id}
+            source={require("../assets/gradient-glow.svg")}
+            style={{
+              position: "absolute",
+              width: 894 * scale,
+              height: 894 * scale,
+              left: pos.left * scale,
+              ...(pos.top !== undefined && { top: pos.top * scale }),
+              ...(pos.bottom !== undefined && { bottom: pos.bottom * scale })
+            }}
+          />
+        ))}
       </View>
 
       <SafeAreaView style={styles.safeArea}>
@@ -169,7 +166,9 @@ export function OnboardingArtistsScreen() {
                 );
               })}
               {isError ? (
-                <Text style={styles.errorText}>Não foi possível buscar artistas. Verifique sua conexão.</Text>
+                <Text style={styles.errorText}>
+                  Não foi possível buscar artistas. Verifique sua conexão.
+                </Text>
               ) : hasSearched && displayedArtists.length === 0 && !isFetching ? (
                 <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
               ) : null}

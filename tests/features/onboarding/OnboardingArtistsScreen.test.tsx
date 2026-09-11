@@ -111,4 +111,40 @@ describe("OnboardingArtistsScreen", () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
+
+  it("does not navigate back if canGoBack is false", () => {
+    mockCanGoBack.mockReturnValueOnce(false);
+    renderScreen();
+
+    const backButton = screen.getByTestId("onboarding-artists-back-button");
+    fireEvent.press(backButton);
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it("shows empty state when no artists are found", async () => {
+    mockSearchArtists.mockResolvedValueOnce([]);
+    renderScreen();
+
+    const searchInput = screen.getByPlaceholderText("Buscar artistas");
+    fireEvent.changeText(searchInput, "UnknownArtist123");
+
+    await waitFor(() => {
+      expect(screen.getByText("Nenhum artista encontrado.")).toBeTruthy();
+    });
+  });
+
+  it("shows error state when search fails", async () => {
+    mockSearchArtists.mockRejectedValueOnce(new Error("Network Error"));
+    renderScreen();
+
+    const searchInput = screen.getByPlaceholderText("Buscar artistas");
+    fireEvent.changeText(searchInput, "ErrorQuery");
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Não foi possível buscar artistas. Verifique sua conexão.")
+      ).toBeTruthy();
+    });
+  });
 });
