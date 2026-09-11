@@ -14,11 +14,6 @@ jest.mock("@/services/storage/secureStorage", () => ({
 const mockGetItem = secureStorage.getItem as jest.Mock;
 
 describe("App", () => {
-  it("renders the initial artist onboarding screen", () => {
-    render(<App />);
-
-    expect(screen.getByText("Quem faz parte da sua história?")).toBeTruthy();
-    expect(screen.getByText("Artistas")).toBeTruthy();
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetItem.mockResolvedValue(null);

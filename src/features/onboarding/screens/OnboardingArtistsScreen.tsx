@@ -12,9 +12,12 @@ import {
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useOnboarding } from "../providers/OnboardingContext";
 import { ArtistChip } from "../components/ArtistChip";
 import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import type { Artist } from "@/types/artist";
 
 const COLORS = {
@@ -33,6 +36,7 @@ const MIN_ARTISTS = 3;
 const TOTAL_STEPS = 3;
 
 export function OnboardingArtistsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { selectedArtists, toggleArtist } = useOnboarding();
   const { width } = useWindowDimensions();
   const scale = width / 393;
@@ -91,7 +95,17 @@ export function OnboardingArtistsScreen() {
       <SafeAreaView style={styles.safeArea}>
         {/* ── Top Header ──────────────────────────────────────────────── */}
         <View style={styles.topHeader}>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              }
+            }}
+            testID="onboarding-artists-back-button"
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
             <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.topHeaderTitle}>Artistas</Text>
@@ -174,6 +188,14 @@ export function OnboardingArtistsScreen() {
               style={[styles.button, !canAdvance && styles.buttonDisabled]}
               disabled={!canAdvance}
               activeOpacity={0.8}
+              onPress={() => {
+                navigation.navigate("OnboardingGenres", {
+                  artists: selectedArtists.map((a) => ({ id: Number(a.id), name: a.name }))
+                });
+              }}
+              testID="onboarding-artists-next-button"
+              accessibilityRole="button"
+              accessibilityLabel="Próximo"
             >
               <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
                 Próximo
