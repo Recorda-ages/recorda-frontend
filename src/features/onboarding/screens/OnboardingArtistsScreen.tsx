@@ -1,0 +1,366 @@
+import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  ScrollView,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  useWindowDimensions
+} from "react-native";
+import { Image } from "expo-image";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useOnboarding } from "../providers/OnboardingContext";
+import { ArtistChip } from "../components/ArtistChip";
+import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import type { Artist } from "@/types/artist";
+
+const COLORS = {
+  background: "#151515",
+  surface: "#292929",
+  primary: "#00E2A9",
+  primaryDeep: "#002D22",
+  textPrimary: "#EAEAEA",
+  textSecondary: "#BFBFBF",
+  textOnChip: "#F4FFFC",
+  stepperInactive: "#3E3E3E",
+  neutral400: "#7F7F7F"
+};
+
+const MIN_ARTISTS = 3;
+const TOTAL_STEPS = 3;
+
+export function OnboardingArtistsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { selectedArtists, toggleArtist } = useOnboarding();
+  const { width } = useWindowDimensions();
+  const scale = width / 393;
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  // Debounce de 350 ms — mesmo padrão da OnboardingMusicScreen
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data, isFetching, isError } = useArtistSearch(debouncedQuery);
+
+  // Mapeia id: number (musicService) → id: string (tipo Artist do contexto)
+  const results: Artist[] = (data ?? []).map((a) => ({
+    id: String(a.id),
+    name: a.name,
+    imageUrl: a.picture_url ?? undefined
+  }));
+
+  const hasSearched = debouncedQuery.length > 0;
+  const canAdvance = selectedArtists.length >= MIN_ARTISTS;
+
+  const displayedArtists = [
+    ...selectedArtists,
+    ...results.filter((r) => !selectedArtists.some((sa) => sa.id === r.id))
+  ];
+
+  return (
+    <View style={styles.root}>
+      {/* ── Background gradients ─────────────────────────────────────── */}
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        {[
+          { id: "top-grad", left: -446, top: -468 },
+          { id: "bottom-grad", left: 34, bottom: -271 }
+        ].map((pos) => (
+          <Image
+            key={pos.id}
+            source={require("../assets/gradient-glow.svg")}
+            style={{
+              position: "absolute",
+              width: 894 * scale,
+              height: 894 * scale,
+              left: pos.left * scale,
+              ...(pos.top !== undefined && { top: pos.top * scale }),
+              ...(pos.bottom !== undefined && { bottom: pos.bottom * scale })
+            }}
+          />
+        ))}
+      </View>
+
+      <SafeAreaView style={styles.safeArea}>
+        {/* ── Top Header ──────────────────────────────────────────────── */}
+        <View style={styles.topHeader}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              }
+            }}
+            testID="onboarding-artists-back-button"
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
+            <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.topHeaderTitle}>Artistas</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        {/* ── Stepper ─────────────────────────────────────────────────── */}
+        <View style={styles.stepperRow}>
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            <View
+              key={i}
+              style={[styles.stepperBar, i === 0 && { backgroundColor: COLORS.primary }]}
+            />
+          ))}
+        </View>
+
+        {/* ── Body ────────────────────────────────────────────────────── */}
+        <View style={styles.body}>
+          {/* Header */}
+          <View style={styles.headerSection}>
+            <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
+            <Text style={styles.title}>Quem faz parte da sua história?</Text>
+            <Text style={styles.subtitle}>
+              Escolha pelo menos 3 artistas para personalizar suas recordações.
+            </Text>
+          </View>
+
+          {/* Search bar */}
+          <View style={styles.searchBar}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar artistas"
+              placeholderTextColor={COLORS.textSecondary}
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+              selectionColor={COLORS.primary}
+            />
+            {isFetching ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Ionicons name="search" size={20} color={COLORS.textSecondary} />
+            )}
+          </View>
+
+          {/* Results */}
+          <ScrollView
+            contentContainerStyle={styles.chipsContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            <>
+              {displayedArtists.map((artist) => {
+                const isSelected = selectedArtists.some((a) => a.id === artist.id);
+                return (
+                  <ArtistChip
+                    key={artist.id}
+                    artist={artist}
+                    selected={isSelected}
+                    onPress={() => toggleArtist(artist)}
+                  />
+                );
+              })}
+              {isError ? (
+                <Text style={styles.errorText}>
+                  Não foi possível buscar artistas. Verifique sua conexão.
+                </Text>
+              ) : hasSearched && displayedArtists.length === 0 && !isFetching ? (
+                <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
+              ) : null}
+            </>
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            {selectedArtists.length > 0 ? (
+              <Text style={styles.selectionCount}>
+                {selectedArtists.length} artista{selectedArtists.length !== 1 ? "s" : ""}{" "}
+                selecionado{selectedArtists.length !== 1 ? "s" : ""}
+              </Text>
+            ) : null}
+            <TouchableOpacity
+              style={[styles.button, !canAdvance && styles.buttonDisabled]}
+              disabled={!canAdvance}
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.navigate("OnboardingGenres", {
+                  artists: selectedArtists.map((a) => ({ id: Number(a.id), name: a.name }))
+                });
+              }}
+              testID="onboarding-artists-next-button"
+              accessibilityRole="button"
+              accessibilityLabel="Próximo"
+            >
+              <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
+                Próximo
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color={!canAdvance ? COLORS.neutral400 : COLORS.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: COLORS.background
+  },
+  safeArea: {
+    flex: 1,
+    zIndex: 1
+  },
+
+  // Top Header
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 12
+  },
+  backButton: {
+    padding: 8,
+    width: 40
+  },
+  topHeaderTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.textPrimary
+  },
+
+  // Stepper
+  stepperRow: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 8
+  },
+  stepperBar: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.stepperInactive
+  },
+
+  // Body
+  body: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    gap: 16
+  },
+
+  // Header
+  headerSection: {
+    gap: 8,
+    marginTop: 16
+  },
+  etapaLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COLORS.primary,
+    letterSpacing: 0.5
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "600",
+    color: COLORS.textPrimary,
+    lineHeight: 37
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: "400",
+    color: COLORS.textSecondary,
+    lineHeight: 22
+  },
+
+  // Search
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    height: 56,
+    gap: 8
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "400",
+    color: COLORS.textPrimary
+  },
+
+  // Chips area
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  loader: {
+    marginTop: 24,
+    alignSelf: "center"
+  },
+  emptyText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 24,
+    flex: 1
+  },
+  errorText: {
+    color: "#FF6B6B",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 24,
+    flex: 1
+  },
+
+  // Footer
+  footer: {
+    gap: 8,
+    marginTop: "auto"
+  },
+  selectionCount: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: COLORS.primary,
+    textAlign: "center"
+  },
+  button: {
+    height: 58,
+    borderRadius: 100,
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8
+  },
+  buttonDisabled: {
+    borderColor: COLORS.neutral400
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 26,
+    letterSpacing: 0.46,
+    color: COLORS.primary
+  },
+  buttonLabelDisabled: {
+    color: COLORS.neutral400
+  }
+});

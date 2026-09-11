@@ -6,6 +6,6 @@ export function isLoaded() {
   return true;
 }
 
-export function loadAsync() {
+export async function loadAsync() {
   return Promise.resolve();
 }

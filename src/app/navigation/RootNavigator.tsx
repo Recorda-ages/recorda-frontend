@@ -11,6 +11,8 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
+import { OnboardingProvider } from "@/features/onboarding/providers/OnboardingContext";
+import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
@@ -27,6 +29,8 @@ export type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Onboarding: undefined;
+  OnboardingArtists: undefined;
+  OnboardingGenres: { artists: MusicSelection[] } | undefined;
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
   OnboardingMusicPreview: undefined;
   PasswordRecovery: undefined;
@@ -58,6 +62,19 @@ function LoginPlaceholderScreen({ navigation }: LoginPlaceholderScreenProps) {
           {t("auth.login.forgotPassword")}
         </AppText>
       </Pressable>
+      {__DEV__ ? (
+        <Pressable
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={() => navigation.navigate("OnboardingArtists")}
+          style={styles.forgotPasswordLink}
+          testID="dev-onboarding-artists-link"
+        >
+          <AppText color="primary" variant="body2">
+            Ir para Onboarding Artistas (Dev)
+          </AppText>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -70,10 +87,24 @@ function AdminPlaceholderScreen() {
   );
 }
 
-function OnboardingPlaceholderScreen() {
+type OnboardingGenresPlaceholderScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  "OnboardingGenres"
+>;
+
+function OnboardingGenresPlaceholderScreen({ navigation }: OnboardingGenresPlaceholderScreenProps) {
   return (
-    <View style={styles.placeholder} testID="onboarding-screen">
-      <AppText variant="headline3">Onboarding</AppText>
+    <View style={styles.placeholder} testID="onboarding-genres-screen">
+      <AppText variant="headline3">Gêneros</AppText>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => navigation.goBack()}
+        style={styles.forgotPasswordLink}
+      >
+        <AppText color="primary" variant="body2">
+          Voltar
+        </AppText>
+      </Pressable>
     </View>
   );
 }
@@ -88,26 +119,30 @@ function ProfilePlaceholderScreen() {
 
 export function RootNavigator() {
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
-        <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
-        <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
-        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
-        <Stack.Screen name="Feed" component={HomeScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Camera" component={CameraScreen} />
-        <Stack.Screen name="Preview" component={PreviewScreen} />
-        <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
-        {__DEV__ ? (
-          <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
-        ) : null}
-        <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <OnboardingProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+          <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
+          <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
+          <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
+          <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
+          <Stack.Screen name="OnboardingGenres" component={OnboardingGenresPlaceholderScreen} />
+          <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+          <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
+          <Stack.Screen name="Feed" component={HomeScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Camera" component={CameraScreen} />
+          <Stack.Screen name="Preview" component={PreviewScreen} />
+          <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
+          {__DEV__ ? (
+            <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
+          ) : null}
+          <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </OnboardingProvider>
   );
 }
 

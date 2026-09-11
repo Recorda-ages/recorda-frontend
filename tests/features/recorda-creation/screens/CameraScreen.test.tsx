@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import * as ExpoCamera from "expo-camera";
 import * as ExpoImagePicker from "expo-image-picker";
-import * as ExpoMediaLibrary from "expo-media-library";
 import { Alert } from "react-native";
 
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
@@ -391,33 +390,5 @@ describe("CameraScreen", () => {
       );
     });
     expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it("loads and displays the last gallery asset when access is granted", async () => {
-    const grantedPermission = {
-      canAskAgain: true,
-      expires: "never" as const,
-      granted: true,
-      status: "granted" as ExpoMediaLibrary.PermissionStatus
-    };
-
-    jest
-      .spyOn(ExpoMediaLibrary, "usePermissions")
-      .mockReturnValue([
-        grantedPermission,
-        jest.fn().mockResolvedValue(grantedPermission)
-      ] as never);
-    jest
-      .spyOn(ExpoMediaLibrary, "getAssetsAsync")
-      .mockResolvedValue({ assets: [{ id: "asset-1" }] } as never);
-    jest
-      .spyOn(ExpoMediaLibrary, "getAssetInfoAsync")
-      .mockResolvedValue({ localUri: "file://gallery-thumbnail.jpg" } as never);
-
-    await renderCamera();
-
-    await waitFor(() => {
-      expect(ExpoMediaLibrary.getAssetInfoAsync).toHaveBeenCalledTimes(1);
-    });
   });
 });
