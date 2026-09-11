@@ -5,8 +5,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AppText } from "@/components/ui";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
-import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
-import { OnboardingProvider } from "@/features/onboarding/providers/OnboardingContext";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
 import type { MusicSelection } from "@/features/onboarding";
@@ -22,7 +20,6 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Profile: undefined;
   SignUp: undefined;
-  OnboardingArtists: undefined;
   Camera: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
@@ -58,29 +55,23 @@ function ProfilePlaceholderScreen() {
 
 export function RootNavigator() {
   return (
-    <OnboardingProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <Stack.Navigator
-          initialRouteName="OnboardingArtists"
-          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }}
-        >
-          <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
-          <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
-          <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
-          <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
-          <Stack.Screen name="Feed" component={HomeScreen} />
-          <Stack.Screen name="Camera" component={CameraScreen} />
-          <Stack.Screen name="Preview" component={PreviewScreen} />
-          <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
-          {__DEV__ ? (
-            <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
-          ) : null}
-          <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </OnboardingProvider>
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator initialRouteName="SignUp" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
+        <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+        <Stack.Screen name="Feed" component={HomeScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Camera" component={CameraScreen} />
+        <Stack.Screen name="Preview" component={PreviewScreen} />
+        <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
+        {__DEV__ ? (
+          <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
+        ) : null}
+        <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

@@ -13,7 +13,7 @@ const mockSearchTracks = musicService.searchTracks as jest.Mock;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } }
+    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
   });
   return React.createElement(QueryClientProvider, { client }, children);
 }
