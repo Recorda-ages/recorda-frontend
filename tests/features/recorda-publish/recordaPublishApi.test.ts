@@ -1,4 +1,5 @@
 import { apiClient } from "@/services/api";
+import { secureStorage } from "@/services/storage";
 import {
   createRecorda,
   uploadRecordaMedia
@@ -11,11 +12,20 @@ jest.mock("@/services/api", () => ({
   }
 }));
 
+jest.mock("@/services/storage", () => ({
+  secureStorage: {
+    getItem: jest.fn(async () => "token-123")
+  }
+}));
+
 const mockedPost = apiClient.post as jest.Mock;
+const mockedGetItem = secureStorage.getItem as jest.Mock;
 
 describe("recordaPublishApi", () => {
   beforeEach(() => {
     mockedPost.mockReset();
+    mockedGetItem.mockReset();
+    mockedGetItem.mockResolvedValue("token-123");
   });
 
   describe("uploadRecordaMedia", () => {
@@ -45,6 +55,29 @@ describe("recordaPublishApi", () => {
       });
 
       appendSpy.mockRestore();
+    });
+
+    it("attaches the Bearer token from secure storage", async () => {
+      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
+
+      await uploadRecordaMedia(media);
+
+      const [, , options] = mockedPost.mock.calls[0] as [
+        string,
+        FormData,
+        { headers: Record<string, string> }
+      ];
+      expect(options.headers).toEqual({ Authorization: "Bearer token-123" });
+    });
+
+    it("omits the Authorization header when there is no stored token", async () => {
+      mockedGetItem.mockResolvedValueOnce(null);
+      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
+
+      await uploadRecordaMedia(media);
+
+      const [, , options] = mockedPost.mock.calls[0] as [string, FormData, undefined];
+      expect(options).toBeUndefined();
     });
 
     it("maps the upload url response to { mediaUrl } without assuming a mediaId", async () => {
@@ -85,21 +118,32 @@ describe("recordaPublishApi", () => {
       }
     };
 
-    it("posts the media link, media type, song snapshot and description to /recordas", async () => {
+    it("adapts the payload to the legacy Recorda schema (midia/music/description)", async () => {
+      // Schema legado da Recorda: sem colunas para snapshot musical (ver ADR 0001).
+      // song.artistName/coverUrl/previewUrl/deezerTrackId não são enviados nesta etapa.
       mockedPost.mockResolvedValueOnce({});
 
       await createRecorda({ ...payload, description: "legenda opcional" });
 
-      expect(mockedPost).toHaveBeenCalledWith("/recordas", {
-        deezer_track_id: "12345",
-        description: "legenda opcional",
-        media_type: "PHOTO",
-        media_url: "https://cdn.example.com/recorda.jpg",
-        song_artist_name: "Artist",
-        song_cover_url: "https://cdn.example.com/cover.jpg",
-        song_preview_url: "https://cdn.example.com/preview.mp3",
-        song_title: "Song Title"
-      });
+      expect(mockedPost).toHaveBeenCalledWith(
+        "/recordas",
+        {
+          description: "legenda opcional",
+          midia: "https://cdn.example.com/recorda.jpg",
+          music: "Song Title"
+        },
+        { headers: { Authorization: "Bearer token-123" } }
+      );
+    });
+
+    it("omits the Authorization header when there is no stored token", async () => {
+      mockedGetItem.mockResolvedValueOnce(null);
+      mockedPost.mockResolvedValueOnce({});
+
+      await createRecorda(payload);
+
+      const [, , options] = mockedPost.mock.calls[0] as [string, unknown, undefined];
+      expect(options).toBeUndefined();
     });
 
     it("leaves description undefined when it is not provided", async () => {
