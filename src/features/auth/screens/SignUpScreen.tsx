@@ -313,7 +313,7 @@ export function SignUpScreen() {
               accessibilityLabel={t("auth.signUp.loginAction")}
               accessibilityRole="button"
               hitSlop={8}
-              onPress={() => navigation.navigate("Login")}
+              onPress={() => navigation.navigate("SignIn")}
               testID="login-link"
             >
               <AppText style={styles.footerLink} variant="body2">
