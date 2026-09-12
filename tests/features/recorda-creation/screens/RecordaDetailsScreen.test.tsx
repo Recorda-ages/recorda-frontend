@@ -253,7 +253,7 @@ describe("RecordaDetailsScreen", () => {
     });
   });
 
-  it("shows confirmation and redirects to profile on successful publish", async () => {
+  it("shows confirmation and redirects to the Feed on successful publish", async () => {
     mockedUsePublishRecorda.mockReturnValue({
       error: null,
       publish: mockPublish,
@@ -270,7 +270,7 @@ describe("RecordaDetailsScreen", () => {
       );
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: "Profile" }]
+        routes: [{ name: "Feed" }]
       });
     });
   });
