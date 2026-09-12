@@ -5,29 +5,26 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { apiClient } from "@/services/api/client";
+import { queryClient } from "@/app/providers/queryClient";
+import {
+  AUTH_ME_QUERY_KEY,
+  getCurrentUser,
+  type CurrentUser
+} from "@/features/auth/api/getCurrentUser";
+import { ApiError } from "@/services/api/errors";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { baseColors, colors } from "@/theme/colors";
 import { fontFamily } from "@/theme/typography";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Splash">;
 
-type UserResponse = {
-  account_type?: string;
-  role?: string;
-  isAdmin?: boolean;
-};
-
 type SplashDestination = "Admin" | "Feed" | "Login";
 
 export const AUTH_TOKEN_KEY = "auth_token";
 export const SPLASH_TIMEOUT_MS = 3000;
 
-function getSessionDestination(user: UserResponse): SplashDestination {
-  const accountType = user.account_type?.toLowerCase();
-  const role = user.role?.toLowerCase();
-
-  return accountType === "admin" || role === "admin" || user.isAdmin === true ? "Admin" : "Feed";
+function getSessionDestination(user: CurrentUser): SplashDestination {
+  return user.account_type === "admin" ? "Admin" : "Feed";
 }
 
 export function SplashScreen() {
@@ -78,27 +75,27 @@ export function SplashScreen() {
           return;
         }
 
-        const user = await apiClient.get<UserResponse>("/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          signal: controller.signal
-        });
+        const user = await getCurrentUser(token, controller.signal);
 
         if (!isActive) {
           return;
         }
 
+        queryClient.setQueryData(AUTH_ME_QUERY_KEY, user);
         finish(getSessionDestination(user));
-      } catch {
+      } catch (error) {
         if (!isActive) {
           return;
         }
 
-        try {
-          await secureStorage.removeItem(AUTH_TOKEN_KEY);
-        } catch {
-          // The user still needs to leave the splash even if local cleanup fails.
+        if (error instanceof ApiError && error.status === 401) {
+          queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
+
+          try {
+            await secureStorage.removeItem(AUTH_TOKEN_KEY);
+          } catch {
+            // The user still needs to leave the splash even if local cleanup fails.
+          }
         }
 
         finish("Login");
