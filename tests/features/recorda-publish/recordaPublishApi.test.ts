@@ -62,7 +62,11 @@ describe("recordaPublishApi", () => {
 
       await uploadRecordaMedia(media);
 
-      const [, , options] = mockedPost.mock.calls[0] as [string, FormData, { headers: Record<string, string> }];
+      const [, , options] = mockedPost.mock.calls[0] as [
+        string,
+        FormData,
+        { headers: Record<string, string> }
+      ];
       expect(options.headers).toEqual({ Authorization: "Bearer token-123" });
     });
 
