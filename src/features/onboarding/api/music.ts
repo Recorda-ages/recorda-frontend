@@ -1,9 +1,6 @@
-import { apiClient } from "@/services/api";
-import { secureStorage } from "@/services/storage";
+import { apiClient, authApiClient } from "@/services/api";
 
 import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
-
-const AUTH_TOKEN_KEY = "auth_token";
 
 type TrackResponse = {
   id: number;
@@ -30,17 +27,11 @@ export async function searchTracks(query: string, signal: AbortSignal): Promise<
 }
 
 export async function saveMusicPreferences(preferences: MusicPreferences): Promise<void> {
-  const token = await secureStorage.getItem(AUTH_TOKEN_KEY);
-
-  await apiClient.post(
-    "/users/me/music-preferences",
-    {
-      genres: preferences.genres.map(toMusicItem),
-      artists: preferences.artists.map(toMusicItem),
-      favorite_track: { deezer_id: preferences.track.id, name: preferences.track.title }
-    },
-    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
-  );
+  await authApiClient.post("/users/me/music-preferences", {
+    genres: preferences.genres.map(toMusicItem),
+    artists: preferences.artists.map(toMusicItem),
+    favorite_track: { deezer_id: preferences.track.id, name: preferences.track.title }
+  });
 }
 
 function toMusicItem(selection: MusicSelection) {
