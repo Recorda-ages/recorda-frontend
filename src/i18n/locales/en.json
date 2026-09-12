@@ -14,6 +14,20 @@
       "subtitle": "Create your account and transform moments into trails.",
       "title": "Save the moment",
       "username": "Username"
+    },
+    "signIn": {
+      "forgotPassword": "Forgot your password?",
+      "hidePassword": "Hide password",
+      "logo": "recorda.",
+      "networkError": "Unable to connect to the server. Please try again.",
+      "noAccount": "Don't have an account?",
+      "password": "Password",
+      "showPassword": "Show password",
+      "signUpAction": "Sign up",
+      "submit": "Log in",
+      "subtitle": "Log in to relive moments that keep playing.",
+      "title": "Welcome back",
+      "username": "Username"
     }
   },
   "home": {

@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { AppText } from "@/components/ui";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
+import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -16,7 +17,8 @@ import { baseColors, navigationTheme } from "@/theme";
 export type RootStackParamList = {
   Feed: undefined;
   Home: undefined;
-  Login: undefined;
+  SignIn: undefined;
+  Admin: undefined;
   Onboarding: undefined;
   Profile: undefined;
   SignUp: undefined;
@@ -29,10 +31,18 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function LoginPlaceholderScreen() {
+function AdminPlaceholderScreen() {
   return (
-    <View style={styles.placeholder} testID="login-screen">
-      <AppText variant="headline3">Login</AppText>
+    <View style={styles.placeholder} testID="admin-screen">
+      <AppText variant="headline3">Área administrativa</AppText>
+    </View>
+  );
+}
+
+function ForgotPasswordPlaceholderScreen() {
+  return (
+    <View style={styles.placeholder} testID="forgot-password-screen">
+      <AppText variant="headline3">Recuperação de senha</AppText>
     </View>
   );
 }
@@ -58,7 +68,8 @@ export function RootNavigator() {
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator initialRouteName="SignUp" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
+        <Stack.Screen name="SignIn" component={SignInScreen} />
+        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Feed" component={HomeScreen} />

@@ -14,6 +14,20 @@
       "subtitle": "Crea tu cuenta y transforma momentos en huellas.",
       "title": "Guarda el momento",
       "username": "Usuario"
+    },
+    "signIn": {
+      "forgotPassword": "Olvidé mi contraseña",
+      "hidePassword": "Ocultar contraseña",
+      "logo": "recorda.",
+      "networkError": "No se pudo conectar al servidor. Inténtalo de nuevo.",
+      "noAccount": "¿Aún no tienes una cuenta?",
+      "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "signUpAction": "Regístrate",
+      "submit": "Iniciar sesión",
+      "subtitle": "Inicia sesión para revivir momentos que siguen sonando.",
+      "title": "Bienvenido de nuevo",
+      "username": "Usuario"
     }
   },
   "home": {
