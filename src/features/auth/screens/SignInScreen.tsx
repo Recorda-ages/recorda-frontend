@@ -21,114 +21,63 @@ import { AppText, Input } from "@/components/ui";
 import { ApiError } from "@/services/api/errors";
 import { baseColors, colors, fontWeight, spacing } from "@/theme";
 
-import { useSignUpMutation } from "../hooks/useSignUpMutation";
-import { signUpSchema, type SignUpFormValues } from "../validation/signUpSchema";
+import { useSignInMutation } from "../hooks/useSignInMutation";
+import { signInSchema, type SignInFormValues } from "../validation/signInSchema";
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SignUp">;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SignIn">;
 
-export function SignUpScreen() {
+const GENERIC_ERROR_MESSAGE = "Usuário ou senha inválidos.";
+
+export function SignInScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const signUpMutation = useSignUpMutation();
+  const signInMutation = useSignInMutation();
 
   const {
     control,
     handleSubmit,
-    setError,
     formState: { errors }
-  } = useForm<SignUpFormValues>({
+  } = useForm<SignInFormValues>({
     defaultValues: {
-      email: "",
-      name: "",
       password: "",
       username: ""
     },
     mode: "onBlur",
-    resolver: zodResolver(signUpSchema)
+    resolver: zodResolver(signInSchema)
   });
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
 
     try {
-      await signUpMutation.mutateAsync({
-        email: values.email.trim(),
-        name: values.name.trim(),
+      const response = await signInMutation.mutateAsync({
         password: values.password,
         username: values.username.trim()
       });
 
+      const destination = response.user.account_type === "admin" ? "Admin" : "Home";
+
       navigation.reset({
         index: 0,
-        routes: [{ name: "Onboarding" }]
+        routes: [{ name: destination }]
       });
     } catch (error) {
       if (error instanceof ApiError) {
-        if (error.status === 409 || error.code === "CONFLICT") {
-          const details = error.details as {
-            fields?: { field?: string; message?: string }[];
-          } | null;
-          let mapped = false;
-
-          if (details?.fields && Array.isArray(details.fields)) {
-            for (const item of details.fields) {
-              if (item.field === "username" || item.field === "email") {
-                setError(item.field, { message: item.message ?? "Valor já cadastrado." });
-                mapped = true;
-              }
-            }
-          }
-
-          if (!mapped) {
-            const msg = error.message.toLowerCase();
-            if (msg.includes("usuário") || msg.includes("username")) {
-              setError("username", { message: "Este usuário já está cadastrado." });
-            } else if (msg.includes("email") || msg.includes("e-mail")) {
-              setError("email", { message: "Este email já está cadastrado." });
-            } else {
-              setFormError(error.message);
-            }
-          }
-          return;
-        }
-
-        if (error.status === 422) {
-          const details = error.details as {
-            fields?: { field?: string; message?: string }[];
-          } | null;
-          if (details?.fields && Array.isArray(details.fields)) {
-            for (const item of details.fields) {
-              if (
-                item.field === "name" ||
-                item.field === "username" ||
-                item.field === "email" ||
-                item.field === "password"
-              ) {
-                setError(item.field, { message: item.message ?? "Campo inválido." });
-              }
-            }
-            return;
-          }
-        }
-
         if (error.code === "NETWORK_ERROR" || error.status === 0) {
-          setFormError(t("auth.signUp.networkError"));
+          setFormError(t("auth.signIn.networkError"));
           return;
         }
-
-        setFormError(error.message || t("auth.signUp.networkError"));
-        return;
       }
 
-      setFormError(t("auth.signUp.networkError"));
+      setFormError(GENERIC_ERROR_MESSAGE);
     }
   });
 
   return (
-    <View style={styles.screen} testID="sign-up-screen">
+    <View style={styles.screen} testID="sign-in-screen">
       <StatusBar style="light" />
       <Image
         accessibilityElementsHidden
@@ -157,76 +106,38 @@ export function SignUpScreen() {
         >
           <View style={styles.header}>
             <AppText style={styles.logo} variant="title">
-              {t("auth.signUp.logo")}
+              {t("auth.signIn.logo")}
             </AppText>
             <AppText style={styles.title} variant="headline1">
-              {t("auth.signUp.title")}
+              {t("auth.signIn.title")}
             </AppText>
             <AppText style={styles.subtitle} variant="body1">
-              {t("auth.signUp.subtitle")}
+              {t("auth.signIn.subtitle")}
             </AppText>
           </View>
 
           <View style={styles.form}>
             <Controller
               control={control}
-              name="name"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <Input
-                  accessibilityHint={errors.name?.message}
-                  accessibilityLabel={t("auth.signUp.name")}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  error={errors.name?.message}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  placeholder={t("auth.signUp.name")}
-                  testID="input-name"
-                  textContentType="name"
-                  value={value}
-                  variant="dark"
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
               name="username"
               render={({ field: { onBlur, onChange, value } }) => (
                 <Input
                   accessibilityHint={errors.username?.message}
-                  accessibilityLabel={t("auth.signUp.username")}
+                  accessibilityLabel={t("auth.signIn.username")}
                   autoCapitalize="none"
                   autoCorrect={false}
                   error={errors.username?.message}
+                  leftAccessory={
+                    <View style={styles.personIconContainer}>
+                      <View style={styles.personHead} />
+                      <View style={styles.personBody} />
+                    </View>
+                  }
                   onBlur={onBlur}
                   onChangeText={onChange}
-                  placeholder={t("auth.signUp.username")}
+                  placeholder={t("auth.signIn.username")}
                   testID="input-username"
                   textContentType="username"
-                  value={value}
-                  variant="dark"
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <Input
-                  accessibilityHint={errors.email?.message}
-                  accessibilityLabel={t("auth.signUp.email")}
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoCorrect={false}
-                  error={errors.email?.message}
-                  keyboardType="email-address"
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  placeholder={t("auth.signUp.email")}
-                  testID="input-email"
-                  textContentType="emailAddress"
                   value={value}
                   variant="dark"
                 />
@@ -239,17 +150,17 @@ export function SignUpScreen() {
               render={({ field: { onBlur, onChange, value } }) => (
                 <Input
                   accessibilityHint={errors.password?.message}
-                  accessibilityLabel={t("auth.signUp.password")}
+                  accessibilityLabel={t("auth.signIn.password")}
                   autoCapitalize="none"
                   autoCorrect={false}
                   error={errors.password?.message}
                   onBlur={onBlur}
                   onChangeText={onChange}
-                  placeholder={t("auth.signUp.password")}
+                  placeholder={t("auth.signIn.password")}
                   rightAccessory={
                     <Pressable
                       accessibilityLabel={
-                        showPassword ? t("auth.signUp.hidePassword") : t("auth.signUp.showPassword")
+                        showPassword ? t("auth.signIn.hidePassword") : t("auth.signIn.showPassword")
                       }
                       accessibilityRole="button"
                       hitSlop={12}
@@ -267,12 +178,25 @@ export function SignUpScreen() {
                   }
                   secureTextEntry={!showPassword}
                   testID="input-password"
-                  textContentType="newPassword"
+                  textContentType="password"
                   value={value}
                   variant="dark"
                 />
               )}
             />
+
+            <Pressable
+              accessibilityLabel={t("auth.signIn.forgotPassword")}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => navigation.navigate("ForgotPassword")}
+              style={styles.forgotPasswordLink}
+              testID="forgot-password-link"
+            >
+              <AppText style={styles.forgotPasswordText} variant="body2">
+                {t("auth.signIn.forgotPassword")}
+              </AppText>
+            </Pressable>
 
             {formError ? (
               <AppText accessibilityLiveRegion="polite" style={styles.formError} variant="body2">
@@ -281,25 +205,25 @@ export function SignUpScreen() {
             ) : null}
 
             <Pressable
-              accessibilityLabel={t("auth.signUp.submit")}
+              accessibilityLabel={t("auth.signIn.submit")}
               accessibilityRole="button"
               accessibilityState={{
-                busy: signUpMutation.isPending,
-                disabled: signUpMutation.isPending
+                busy: signInMutation.isPending,
+                disabled: signInMutation.isPending
               }}
-              disabled={signUpMutation.isPending}
+              disabled={signInMutation.isPending}
               onPress={onSubmit}
               style={[
                 styles.submitButton,
-                signUpMutation.isPending ? styles.submitButtonDisabled : undefined
+                signInMutation.isPending ? styles.submitButtonDisabled : undefined
               ]}
               testID="submit-button"
             >
-              {signUpMutation.isPending ? (
+              {signInMutation.isPending ? (
                 <ActivityIndicator color={colors.neutrals[900]} size="small" />
               ) : (
                 <AppText style={styles.submitButtonText} variant="buttonLarge">
-                  {t("auth.signUp.submit")}
+                  {t("auth.signIn.submit")}
                 </AppText>
               )}
             </Pressable>
@@ -307,17 +231,17 @@ export function SignUpScreen() {
 
           <View style={styles.footer}>
             <AppText style={styles.footerText} variant="body2">
-              {t("auth.signUp.hasAccount")}{" "}
+              {t("auth.signIn.noAccount")}{" "}
             </AppText>
             <Pressable
-              accessibilityLabel={t("auth.signUp.loginAction")}
+              accessibilityLabel={t("auth.signIn.signUpAction")}
               accessibilityRole="button"
               hitSlop={8}
-              onPress={() => navigation.navigate("SignIn")}
-              testID="login-link"
+              onPress={() => navigation.navigate("SignUp")}
+              testID="sign-up-link"
             >
               <AppText style={styles.footerLink} variant="body2">
-                {t("auth.signUp.loginAction")}
+                {t("auth.signIn.signUpAction")}
               </AppText>
             </Pressable>
           </View>
@@ -376,6 +300,13 @@ const styles = StyleSheet.create({
   footerText: {
     color: colors.neutrals[100]
   },
+  forgotPasswordLink: {
+    alignSelf: "flex-end"
+  },
+  forgotPasswordText: {
+    color: colors.primary[500],
+    fontWeight: fontWeight.bold
+  },
   form: {
     gap: spacing[4],
     width: "100%"
@@ -397,6 +328,26 @@ const styles = StyleSheet.create({
     fontSize: 38,
     fontStyle: "italic",
     letterSpacing: -1
+  },
+  personBody: {
+    backgroundColor: colors.neutrals[400],
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    height: 8,
+    width: 16
+  },
+  personHead: {
+    backgroundColor: colors.neutrals[400],
+    borderRadius: 5,
+    height: 10,
+    marginBottom: 2,
+    width: 10
+  },
+  personIconContainer: {
+    alignItems: "center",
+    height: 22,
+    justifyContent: "flex-end",
+    width: 20
   },
   radialGlowBottom: {
     bottom: -150,

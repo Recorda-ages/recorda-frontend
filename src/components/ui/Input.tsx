@@ -13,6 +13,7 @@ export type InputProps = TextInputProps & {
   error?: string;
   inputContainerStyle?: StyleProp<ViewStyle>;
   label?: string;
+  leftAccessory?: ReactNode;
   rightAccessory?: ReactNode;
   variant?: InputVariant;
 };
@@ -22,6 +23,7 @@ export function Input({
   error,
   inputContainerStyle,
   label,
+  leftAccessory,
   rightAccessory,
   style,
   variant = "default",
@@ -50,6 +52,7 @@ export function Input({
           inputContainerStyle
         ]}
       >
+        {leftAccessory ? <View style={styles.accessoryLeft}>{leftAccessory}</View> : null}
         <TextInput
           accessibilityHint={error}
           accessibilityLabel={props.accessibilityLabel ?? label}
@@ -57,7 +60,7 @@ export function Input({
           style={[styles.input, isDark ? styles.darkInput : styles.defaultInput, style]}
           {...props}
         />
-        {rightAccessory ? <View style={styles.accessory}>{rightAccessory}</View> : null}
+        {rightAccessory ? <View style={styles.accessoryRight}>{rightAccessory}</View> : null}
       </View>
 
       {error ? (
@@ -74,11 +77,16 @@ export function Input({
 }
 
 const styles = StyleSheet.create({
-  accessory: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: spacing[2]
-  },
+  accessoryLeft: {
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: spacing[2]
+},
+accessoryRight: {
+  alignItems: "center",
+  justifyContent: "center",
+  marginLeft: spacing[2]
+},
   container: {
     gap: spacing[1]
   },

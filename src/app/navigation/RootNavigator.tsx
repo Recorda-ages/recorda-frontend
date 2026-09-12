@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "@/components/ui";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
+import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
@@ -25,7 +26,8 @@ export type RootStackParamList = {
   Camera: undefined;
   Feed: undefined;
   Home: undefined;
-  Login: undefined;
+  SignIn: undefined;
+  Admin: undefined;
   Onboarding: undefined;
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
   OnboardingMusicPreview: undefined;
@@ -38,34 +40,10 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type LoginPlaceholderScreenProps = NativeStackScreenProps<RootStackParamList, "Login">;
-
-function LoginPlaceholderScreen({ navigation }: LoginPlaceholderScreenProps) {
-  const { t } = useTranslation();
-
-  return (
-    <View style={styles.placeholder} testID="login-screen">
-      <AppText variant="headline3">Login</AppText>
-      <Pressable
-        accessibilityLabel={t("auth.login.forgotPassword")}
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={() => navigation.navigate("PasswordRecovery")}
-        style={styles.forgotPasswordLink}
-        testID="forgot-password-link"
-      >
-        <AppText color="primary" variant="body2">
-          {t("auth.login.forgotPassword")}
-        </AppText>
-      </Pressable>
-    </View>
-  );
-}
-
 function AdminPlaceholderScreen() {
   return (
     <View style={styles.placeholder} testID="admin-screen">
-      <AppText variant="headline3">Admin</AppText>
+      <AppText variant="headline3">Área administrativa</AppText>
     </View>
   );
 }
@@ -92,7 +70,8 @@ export function RootNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
+        <Stack.Screen name="SignIn" component={SignInScreen} />
+        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />

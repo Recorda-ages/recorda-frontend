@@ -30,6 +30,20 @@
       "subtitle": "Crie sua conta e transforme momentos em trilhas.",
       "title": "Guarde o momento",
       "username": "Usuário"
+    },
+    "signIn": {
+      "forgotPassword": "Esqueci minha senha",
+      "hidePassword": "Ocultar senha",
+      "logo": "recorda.",
+      "networkError": "Não foi possível conectar ao servidor. Tente novamente.",
+      "noAccount": "Ainda não tem uma conta?",
+      "password": "Senha",
+      "showPassword": "Mostrar senha",
+      "signUpAction": "Cadastre-se",
+      "submit": "Entrar",
+      "subtitle": "Entre para reviver momentos que continuam tocando.",
+      "title": "Bem-vindo de volta",
+      "username": "Usuário"
     }
   },
   "home": {
