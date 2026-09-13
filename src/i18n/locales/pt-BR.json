@@ -57,6 +57,16 @@
       "preview": "Prévia: música favorita",
       "demo": "Demonstração concluída. Nenhum dado foi enviado.",
       "close": "Voltar"
+    },
+    "genres": {
+      "back": "Voltar",
+      "continue": "Próximo",
+      "header": "Gêneros",
+      "loadError": "Não foi possível carregar os gêneros.",
+      "loading": "Carregando gêneros...",
+      "step": "ETAPA 2 DE 3",
+      "subtitle": "Escolha pelo menos 3 gêneros. Você poderá mudar isso depois.",
+      "title": "Que sons combinam com você?"
     }
   },
   "recordaDetails": {
