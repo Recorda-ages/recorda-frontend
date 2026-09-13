@@ -12,9 +12,9 @@ import { ApiError } from "@/services/api/errors";
 import { colors, fontWeight } from "@/theme";
 
 import { AuthFormError } from "../components/AuthFormError";
+import { AuthPasswordInput } from "../components/AuthPasswordInput";
 import { AuthScreenLayout } from "../components/AuthScreenLayout";
 import { AuthSubmitButton } from "../components/AuthSubmitButton";
-import { PasswordVisibilityToggle } from "../components/PasswordVisibilityToggle";
 import { useSignInMutation } from "../hooks/useSignInMutation";
 import { signInSchema, type SignInFormValues } from "../validation/signInSchema";
 
@@ -106,28 +106,17 @@ export function SignInScreen() {
         control={control}
         name="password"
         render={({ field: { onBlur, onChange, value } }) => (
-          <Input
-            accessibilityHint={errors.password?.message}
-            accessibilityLabel={t("auth.signIn.password")}
-            autoCapitalize="none"
-            autoCorrect={false}
+          <AuthPasswordInput
             error={errors.password?.message}
+            hideLabel={t("auth.signIn.hidePassword")}
+            label={t("auth.signIn.password")}
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder={t("auth.signIn.password")}
-            rightAccessory={
-              <PasswordVisibilityToggle
-                hideLabel={t("auth.signIn.hidePassword")}
-                onToggle={() => setShowPassword((prev) => !prev)}
-                showLabel={t("auth.signIn.showPassword")}
-                visible={showPassword}
-              />
-            }
-            secureTextEntry={!showPassword}
-            testID="input-password"
+            onToggleVisibility={() => setShowPassword((prev) => !prev)}
+            showLabel={t("auth.signIn.showPassword")}
             textContentType="password"
             value={value}
-            variant="dark"
+            visible={showPassword}
           />
         )}
       />
