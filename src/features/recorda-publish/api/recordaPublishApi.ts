@@ -1,17 +1,20 @@
 import { apiClient } from "@/services/api";
+import { secureStorage } from "@/services/storage";
 
 import type {
   CreateRecordaPayload,
   CreateRecordaResult,
-  MediaType,
   RecordaMediaDraft,
   UploadRecordaMediaResult
 } from "../types";
 
-// Contrato ainda não publicado por BE.02/BE.01/BE.03; formatos concretos ficam
-// isolados aqui para que uma mudança no backend afete só este arquivo.
-// user_id (autor) não entra no payload: assume-se que o backend o infere da
-// autenticação da requisição — pendência de integração futura, sem contrato confirmado.
+// Adaptação para o Schema legado da Recorda (midia/music/description) enquanto o
+// Modelo v3 não é integrado ao backend — ver docs/adr/0001-integracao-publicacao-schema-legado.md.
+// O snapshot musical completo (RecordaSongSnapshot) continua trafegando internamente
+// em CreateRecordaPayload; só o título vai para a API nesta etapa. user_id (autor)
+// não entra no payload: o backend o infere do Bearer token.
+
+const AUTH_TOKEN_KEY = "auth_token";
 
 type UploadRecordaMediaApiResponse = {
   media_url?: string;
@@ -19,15 +22,15 @@ type UploadRecordaMediaApiResponse = {
 };
 
 type CreateRecordaApiPayload = {
-  deezer_track_id: string;
   description?: string;
-  media_type: MediaType;
-  media_url: string;
-  song_artist_name: string;
-  song_cover_url: string;
-  song_preview_url?: string;
-  song_title: string;
+  midia: string;
+  music: string;
 };
+
+async function authHeaders(): Promise<Record<string, string> | undefined> {
+  const token = await secureStorage.getItem(AUTH_TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+}
 
 export async function uploadRecordaMedia(
   media: RecordaMediaDraft
@@ -42,7 +45,12 @@ export async function uploadRecordaMedia(
   // lib.dom.d.ts (via "lib": ["DOM"]) types append as string | Blob; RN's FormData accepts { uri, name, type } at runtime.
   formData.append("file", filePart as unknown as Blob);
 
-  const response = await apiClient.post<UploadRecordaMediaApiResponse>("/recordas/media", formData);
+  const headers = await authHeaders();
+  const response = await apiClient.post<UploadRecordaMediaApiResponse>(
+    "/recordas/media",
+    formData,
+    headers && { headers }
+  );
 
   const mediaUrl = response.url ?? response.media_url;
 
@@ -53,17 +61,13 @@ export async function uploadRecordaMedia(
   return { mediaUrl };
 }
 
-export function createRecorda(payload: CreateRecordaPayload): Promise<CreateRecordaResult> {
+export async function createRecorda(payload: CreateRecordaPayload): Promise<CreateRecordaResult> {
   const body: CreateRecordaApiPayload = {
-    deezer_track_id: payload.song.deezerTrackId,
     description: payload.description,
-    media_type: payload.mediaType,
-    media_url: payload.mediaUrl,
-    song_artist_name: payload.song.artistName,
-    song_cover_url: payload.song.coverUrl,
-    song_preview_url: payload.song.previewUrl,
-    song_title: payload.song.title
+    midia: payload.mediaUrl,
+    music: payload.song.title
   };
 
-  return apiClient.post<CreateRecordaResult>("/recordas", body);
+  const headers = await authHeaders();
+  return apiClient.post<CreateRecordaResult>("/recordas", body, headers && { headers });
 }

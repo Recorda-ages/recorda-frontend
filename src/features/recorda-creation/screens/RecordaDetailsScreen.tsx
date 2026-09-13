@@ -70,7 +70,7 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
     Alert.alert(t("recordaDetails.publishSuccessTitle"), t("recordaDetails.publishSuccessMessage"));
     navigation.reset({
       index: 0,
-      routes: [{ name: "Profile" }]
+      routes: [{ name: "Feed" }]
     });
   }, [clearMedia, navigation, onPublish, publishFlow.status, t]);
 
