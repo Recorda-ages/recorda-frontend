@@ -25,6 +25,14 @@ describe("Input", () => {
     expect(screen.getByTestId("test-accessory")).toBeTruthy();
   });
 
+  it("renders left accessory when provided", () => {
+    render(
+      <Input placeholder="Usuario" leftAccessory={<Text testID="test-left-accessory">Icon</Text>} />
+    );
+
+    expect(screen.getByTestId("test-left-accessory")).toBeTruthy();
+  });
+
   it("renders in dark variant without crashing", () => {
     render(
       <Input label="Usuario" placeholder="username" variant="dark" error="Usuario invalido" />

@@ -1,13 +1,10 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import {
-  createNativeStackNavigator,
-  type NativeStackScreenProps
-} from "@react-navigation/native-stack";
-import { useTranslation } from "react-i18next";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { AppText } from "@/components/ui";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
+import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
@@ -42,34 +39,10 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type LoginPlaceholderScreenProps = NativeStackScreenProps<RootStackParamList, "Login">;
-
-function LoginPlaceholderScreen({ navigation }: LoginPlaceholderScreenProps) {
-  const { t } = useTranslation();
-
-  return (
-    <View style={styles.placeholder} testID="login-screen">
-      <AppText variant="headline3">Login</AppText>
-      <Pressable
-        accessibilityLabel={t("auth.login.forgotPassword")}
-        accessibilityRole="button"
-        hitSlop={8}
-        onPress={() => navigation.navigate("PasswordRecovery")}
-        style={styles.forgotPasswordLink}
-        testID="forgot-password-link"
-      >
-        <AppText color="primary" variant="body2">
-          {t("auth.login.forgotPassword")}
-        </AppText>
-      </Pressable>
-    </View>
-  );
-}
-
 function AdminPlaceholderScreen() {
   return (
     <View style={styles.placeholder} testID="admin-screen">
-      <AppText variant="headline3">Admin</AppText>
+      <AppText variant="headline3">Area administrativa</AppText>
     </View>
   );
 }
@@ -88,7 +61,7 @@ export function RootNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
+        <Stack.Screen name="Login" component={SignInScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
         <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
@@ -110,10 +83,6 @@ export function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  forgotPasswordLink: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2]
-  },
   placeholder: {
     alignItems: "center",
     backgroundColor: baseColors.black,
