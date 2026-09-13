@@ -43,9 +43,7 @@ export function ArtistChip({ artist, selected, onPress }: ArtistChipProps) {
       >
         {artist.name}
       </AppText>
-      {selected ? (
-        <Icon color={colors.primary[500]} size={16} source="check" />
-      ) : null}
+      {selected ? <Icon color={colors.primary[500]} size={16} source="check" /> : null}
     </Pressable>
   );
 }

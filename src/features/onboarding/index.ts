@@ -5,4 +5,3 @@ export { saveMusicPreferences, searchTracks } from "./api/music";
 export type { MusicPreferences, MusicSelection, MusicTrack } from "./types";
 export { OnboardingProvider, useOnboarding } from "./state/OnboardingContext";
 export type { OnboardingContextValue } from "./state/OnboardingContext";
-

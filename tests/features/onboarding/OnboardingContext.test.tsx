@@ -1,10 +1,7 @@
 import { act, renderHook } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 
-import {
-  OnboardingProvider,
-  useOnboarding
-} from "@/features/onboarding/state/OnboardingContext";
+import { OnboardingProvider, useOnboarding } from "@/features/onboarding/state/OnboardingContext";
 import type { MusicSelection } from "@/features/onboarding/types";
 
 const mockArtist1: MusicSelection = {

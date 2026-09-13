@@ -59,10 +59,7 @@ export function OnboardingArtistsScreen() {
 
   const displayedArtists = useMemo(() => {
     const selectedIds = new Set(selectedArtists.map((a) => a.id));
-    return [
-      ...selectedArtists,
-      ...results.filter((r) => !selectedIds.has(r.id))
-    ];
+    return [...selectedArtists, ...results.filter((r) => !selectedIds.has(r.id))];
   }, [selectedArtists, results]);
 
   return (
@@ -159,9 +156,7 @@ export function OnboardingArtistsScreen() {
               style={styles.searchInput}
               value={query}
             />
-            {isFetching ? (
-              <ActivityIndicator color={colors.primary[500]} size="small" />
-            ) : null}
+            {isFetching ? <ActivityIndicator color={colors.primary[500]} size="small" /> : null}
           </View>
 
           {/* Chips grid */}
@@ -206,20 +201,14 @@ export function OnboardingArtistsScreen() {
             onPress={() => navigation.navigate("OnboardingGenres")}
             style={({ pressed }) => [
               styles.continueButton,
-              !canAdvance
-                ? styles.continueButtonDisabled
-                : styles.continueButtonEnabled,
+              !canAdvance ? styles.continueButtonDisabled : styles.continueButtonEnabled,
               pressed ? styles.continueButtonPressed : undefined
             ]}
             testID="onboarding-artists-next-button"
           >
             <View style={styles.continueContent}>
               <AppText
-                style={
-                  !canAdvance
-                    ? styles.continueLabelDisabled
-                    : styles.continueLabelEnabled
-                }
+                style={!canAdvance ? styles.continueLabelDisabled : styles.continueLabelEnabled}
                 variant="buttonLarge"
               >
                 {t("onboarding.artists.continue")}
