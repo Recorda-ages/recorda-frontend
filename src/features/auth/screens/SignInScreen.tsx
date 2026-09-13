@@ -24,9 +24,7 @@ import { baseColors, colors, fontWeight, spacing } from "@/theme";
 import { useSignInMutation } from "../hooks/useSignInMutation";
 import { signInSchema, type SignInFormValues } from "../validation/signInSchema";
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SignIn">;
-
-const GENERIC_ERROR_MESSAGE = "Usuário ou senha inválidos.";
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
 
 export function SignInScreen() {
   const { t } = useTranslation();
@@ -39,15 +37,17 @@ export function SignInScreen() {
   const {
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors, isValid }
   } = useForm<SignInFormValues>({
     defaultValues: {
       password: "",
       username: ""
     },
-    mode: "onBlur",
+    mode: "onChange",
     resolver: zodResolver(signInSchema)
   });
+
+  const submitDisabled = !isValid || signInMutation.isPending;
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
@@ -58,7 +58,7 @@ export function SignInScreen() {
         username: values.username.trim()
       });
 
-      const destination = response.user.account_type === "admin" ? "Admin" : "Home";
+      const destination = response.user.account_type === "admin" ? "Admin" : "Feed";
 
       navigation.reset({
         index: 0,
@@ -72,181 +72,185 @@ export function SignInScreen() {
         }
       }
 
-      setFormError(GENERIC_ERROR_MESSAGE);
+      setFormError(t("auth.signIn.genericError"));
     }
   });
 
   return (
-    <View style={styles.screen} testID="sign-in-screen">
+    <View style={styles.screen} testID="login-screen">
       <StatusBar style="light" />
-      <Image
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        resizeMode="contain"
-        source={require("@/assets/images/glow.png")}
-        style={styles.radialGlowTop}
-      />
-      <Image
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        resizeMode="contain"
-        source={require("@/assets/images/glow.png")}
-        style={styles.radialGlowBottom}
-      />
+      <View style={styles.screenContent} testID="sign-in-screen">
+        <Image
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          resizeMode="contain"
+          source={require("@/assets/images/glow.png")}
+          style={styles.radialGlowTop}
+        />
+        <Image
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          resizeMode="contain"
+          source={require("@/assets/images/glow.png")}
+          style={styles.radialGlowBottom}
+        />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.keyboardAvoiding}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          contentInsetAdjustmentBehavior="automatic"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.keyboardAvoiding}
         >
-          <View style={styles.header}>
-            <AppText style={styles.logo} variant="title">
-              {t("auth.signIn.logo")}
-            </AppText>
-            <AppText style={styles.title} variant="headline1">
-              {t("auth.signIn.title")}
-            </AppText>
-            <AppText style={styles.subtitle} variant="body1">
-              {t("auth.signIn.subtitle")}
-            </AppText>
-          </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            contentInsetAdjustmentBehavior="automatic"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.header}>
+              <AppText style={styles.logo} variant="title">
+                {t("auth.signIn.logo")}
+              </AppText>
+              <AppText style={styles.title} variant="headline1">
+                {t("auth.signIn.title")}
+              </AppText>
+              <AppText style={styles.subtitle} variant="body1">
+                {t("auth.signIn.subtitle")}
+              </AppText>
+            </View>
 
-          <View style={styles.form}>
-            <Controller
-              control={control}
-              name="username"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <Input
-                  accessibilityHint={errors.username?.message}
-                  accessibilityLabel={t("auth.signIn.username")}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  error={errors.username?.message}
-                  leftAccessory={
-                    <View style={styles.personIconContainer}>
-                      <View style={styles.personHead} />
-                      <View style={styles.personBody} />
-                    </View>
-                  }
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  placeholder={t("auth.signIn.username")}
-                  testID="input-username"
-                  textContentType="username"
-                  value={value}
-                  variant="dark"
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onBlur, onChange, value } }) => (
-                <Input
-                  accessibilityHint={errors.password?.message}
-                  accessibilityLabel={t("auth.signIn.password")}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  error={errors.password?.message}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  placeholder={t("auth.signIn.password")}
-                  rightAccessory={
-                    <Pressable
-                      accessibilityLabel={
-                        showPassword ? t("auth.signIn.hidePassword") : t("auth.signIn.showPassword")
-                      }
-                      accessibilityRole="button"
-                      hitSlop={12}
-                      onPress={() => setShowPassword((prev) => !prev)}
-                      style={styles.eyeButton}
-                      testID="toggle-password-visibility"
-                    >
-                      <View style={styles.eyeIconContainer}>
-                        <View style={styles.eyeOuter}>
-                          <View style={styles.eyePupil} />
-                        </View>
-                        {!showPassword ? <View style={styles.eyeSlash} /> : null}
+            <View style={styles.form}>
+              <Controller
+                control={control}
+                name="username"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <Input
+                    accessibilityHint={errors.username?.message}
+                    accessibilityLabel={t("auth.signIn.username")}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    error={errors.username?.message}
+                    leftAccessory={
+                      <View style={styles.personIconContainer}>
+                        <View style={styles.personHead} />
+                        <View style={styles.personBody} />
                       </View>
-                    </Pressable>
-                  }
-                  secureTextEntry={!showPassword}
-                  testID="input-password"
-                  textContentType="password"
-                  value={value}
-                  variant="dark"
-                />
-              )}
-            />
+                    }
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    placeholder={t("auth.signIn.username")}
+                    testID="input-username"
+                    textContentType="username"
+                    value={value}
+                    variant="dark"
+                  />
+                )}
+              />
 
-            <Pressable
-              accessibilityLabel={t("auth.signIn.forgotPassword")}
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={() => navigation.navigate("ForgotPassword")}
-              style={styles.forgotPasswordLink}
-              testID="forgot-password-link"
-            >
-              <AppText style={styles.forgotPasswordText} variant="body2">
-                {t("auth.signIn.forgotPassword")}
-              </AppText>
-            </Pressable>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onBlur, onChange, value } }) => (
+                  <Input
+                    accessibilityHint={errors.password?.message}
+                    accessibilityLabel={t("auth.signIn.password")}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    error={errors.password?.message}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    placeholder={t("auth.signIn.password")}
+                    rightAccessory={
+                      <Pressable
+                        accessibilityLabel={
+                          showPassword
+                            ? t("auth.signIn.hidePassword")
+                            : t("auth.signIn.showPassword")
+                        }
+                        accessibilityRole="button"
+                        hitSlop={12}
+                        onPress={() => setShowPassword((prev) => !prev)}
+                        style={styles.eyeButton}
+                        testID="toggle-password-visibility"
+                      >
+                        <View style={styles.eyeIconContainer}>
+                          <View style={styles.eyeOuter}>
+                            <View style={styles.eyePupil} />
+                          </View>
+                          {!showPassword ? <View style={styles.eyeSlash} /> : null}
+                        </View>
+                      </Pressable>
+                    }
+                    secureTextEntry={!showPassword}
+                    testID="input-password"
+                    textContentType="password"
+                    value={value}
+                    variant="dark"
+                  />
+                )}
+              />
 
-            {formError ? (
-              <AppText accessibilityLiveRegion="polite" style={styles.formError} variant="body2">
-                {formError}
-              </AppText>
-            ) : null}
-
-            <Pressable
-              accessibilityLabel={t("auth.signIn.submit")}
-              accessibilityRole="button"
-              accessibilityState={{
-                busy: signInMutation.isPending,
-                disabled: signInMutation.isPending
-              }}
-              disabled={signInMutation.isPending}
-              onPress={onSubmit}
-              style={[
-                styles.submitButton,
-                signInMutation.isPending ? styles.submitButtonDisabled : undefined
-              ]}
-              testID="submit-button"
-            >
-              {signInMutation.isPending ? (
-                <ActivityIndicator color={colors.neutrals[900]} size="small" />
-              ) : (
-                <AppText style={styles.submitButtonText} variant="buttonLarge">
-                  {t("auth.signIn.submit")}
+              <Pressable
+                accessibilityLabel={t("auth.signIn.forgotPassword")}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() => navigation.navigate("PasswordRecovery")}
+                style={styles.forgotPasswordLink}
+                testID="forgot-password-link"
+              >
+                <AppText style={styles.forgotPasswordText} variant="body2">
+                  {t("auth.signIn.forgotPassword")}
                 </AppText>
-              )}
-            </Pressable>
-          </View>
+              </Pressable>
 
-          <View style={styles.footer}>
-            <AppText style={styles.footerText} variant="body2">
-              {t("auth.signIn.noAccount")}{" "}
-            </AppText>
-            <Pressable
-              accessibilityLabel={t("auth.signIn.signUpAction")}
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={() => navigation.navigate("SignUp")}
-              testID="sign-up-link"
-            >
-              <AppText style={styles.footerLink} variant="body2">
-                {t("auth.signIn.signUpAction")}
+              {formError ? (
+                <AppText accessibilityLiveRegion="polite" style={styles.formError} variant="body2">
+                  {formError}
+                </AppText>
+              ) : null}
+
+              <Pressable
+                accessibilityLabel={t("auth.signIn.submit")}
+                accessibilityRole="button"
+                accessibilityState={{
+                  busy: signInMutation.isPending,
+                  disabled: submitDisabled
+                }}
+                disabled={submitDisabled}
+                onPress={onSubmit}
+                style={[
+                  styles.submitButton,
+                  submitDisabled ? styles.submitButtonDisabled : undefined
+                ]}
+                testID="submit-button"
+              >
+                {signInMutation.isPending ? (
+                  <ActivityIndicator color={colors.neutrals[900]} size="small" />
+                ) : (
+                  <AppText style={styles.submitButtonText} variant="buttonLarge">
+                    {t("auth.signIn.submit")}
+                  </AppText>
+                )}
+              </Pressable>
+            </View>
+
+            <View style={styles.footer}>
+              <AppText style={styles.footerText} variant="body2">
+                {t("auth.signIn.noAccount")}{" "}
               </AppText>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <Pressable
+                accessibilityLabel={t("auth.signIn.signUpAction")}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() => navigation.navigate("SignUp")}
+                testID="sign-up-link"
+              >
+                <AppText style={styles.footerLink} variant="body2">
+                  {t("auth.signIn.signUpAction")}
+                </AppText>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }
@@ -369,6 +373,9 @@ const styles = StyleSheet.create({
   },
   screen: {
     backgroundColor: baseColors.black,
+    flex: 1
+  },
+  screenContent: {
     flex: 1
   },
   scrollContent: {

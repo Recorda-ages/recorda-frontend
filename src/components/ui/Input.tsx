@@ -78,15 +78,15 @@ export function Input({
 
 const styles = StyleSheet.create({
   accessoryLeft: {
-  alignItems: "center",
-  justifyContent: "center",
-  marginRight: spacing[2]
-},
-accessoryRight: {
-  alignItems: "center",
-  justifyContent: "center",
-  marginLeft: spacing[2]
-},
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing[2]
+  },
+  accessoryRight: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: spacing[2]
+  },
   container: {
     gap: spacing[1]
   },

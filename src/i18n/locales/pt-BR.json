@@ -33,6 +33,7 @@
     },
     "signIn": {
       "forgotPassword": "Esqueci minha senha",
+      "genericError": "Usuário ou senha inválidos.",
       "hidePassword": "Ocultar senha",
       "logo": "recorda.",
       "networkError": "Não foi possível conectar ao servidor. Tente novamente.",

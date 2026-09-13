@@ -1,15 +1,11 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import {
-  createNativeStackNavigator,
-  type NativeStackScreenProps
-} from "@react-navigation/native-stack";
-import { useTranslation } from "react-i18next";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { AppText } from "@/components/ui";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
-import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
+import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
@@ -28,8 +24,7 @@ export type RootStackParamList = {
   Camera: undefined;
   Feed: undefined;
   Home: undefined;
-  SignIn: undefined;
-  Admin: undefined;
+  Login: undefined;
   Onboarding: undefined;
   OnboardingArtists: undefined;
   OnboardingGenres: undefined;
@@ -47,7 +42,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function AdminPlaceholderScreen() {
   return (
     <View style={styles.placeholder} testID="admin-screen">
-      <AppText variant="headline3">Área administrativa</AppText>
+      <AppText variant="headline3">Area administrativa</AppText>
     </View>
   );
 }
@@ -66,8 +61,7 @@ export function RootNavigator() {
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="SignIn" component={SignInScreen} />
-        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
+        <Stack.Screen name="Login" component={SignInScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
         <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
@@ -89,10 +83,6 @@ export function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  forgotPasswordLink: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2]
-  },
   placeholder: {
     alignItems: "center",
     backgroundColor: baseColors.black,
