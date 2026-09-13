@@ -11,6 +11,7 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
+import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
@@ -70,14 +71,6 @@ function AdminPlaceholderScreen() {
   );
 }
 
-function OnboardingPlaceholderScreen() {
-  return (
-    <View style={styles.placeholder} testID="onboarding-screen">
-      <AppText variant="headline3">Onboarding</AppText>
-    </View>
-  );
-}
-
 function ProfilePlaceholderScreen() {
   return (
     <View style={styles.placeholder} testID="profile-screen">
@@ -94,7 +87,7 @@ export function RootNavigator() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingGenresRoute} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Feed" component={HomeScreen} />

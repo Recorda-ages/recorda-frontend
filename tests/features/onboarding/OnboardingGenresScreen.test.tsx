@@ -1,63 +1,61 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { useState } from "react";
 import { I18nextProvider } from "react-i18next";
 
-import { getGenres } from "@/features/onboarding/api/getGenres";
+import { useGenres } from "@/features/music/hooks/useGenres";
 import { OnboardingGenresScreen } from "@/features/onboarding/screens/OnboardingGenresScreen";
+import type { MusicSelection } from "@/features/onboarding";
 import { i18n } from "@/i18n";
 
-jest.mock("@/features/onboarding/api/getGenres", () => ({
-  getGenres: jest.fn()
+jest.mock("@/features/music/hooks/useGenres", () => ({
+  useGenres: jest.fn()
 }));
 
 const genres = [
-  { id: 1, imagem: "https://example.com/pop.jpg", nome: "Pop" },
-  { id: 2, imagem: "https://example.com/rock.jpg", nome: "Rock" },
-  { id: 3, imagem: "https://example.com/jazz.jpg", nome: "Jazz" },
-  { id: 4, imagem: "https://example.com/soul.jpg", nome: "Soul" }
+  { id: 1, name: "Pop", picture_url: "https://example.com/pop.jpg" },
+  { id: 2, name: "Rock", picture_url: "https://example.com/rock.jpg" },
+  { id: 3, name: "Jazz", picture_url: "https://example.com/jazz.jpg" },
+  { id: 4, name: "Soul", picture_url: "https://example.com/soul.jpg" }
 ];
 
-const mockedGetGenres = jest.mocked(getGenres);
+const mockedUseGenres = jest.mocked(useGenres);
 
 function renderScreen(onContinue = jest.fn()) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
-  });
-
   function ControlledScreen() {
-    const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+    const [selectedGenres, setSelectedGenres] = useState<MusicSelection[]>([]);
 
     return (
       <OnboardingGenresScreen
         onBack={jest.fn()}
         onContinue={onContinue}
-        onSelectedGenreIdsChange={setSelectedGenreIds}
-        selectedGenreIds={selectedGenreIds}
+        onSelectedGenresChange={setSelectedGenres}
+        selectedGenres={selectedGenres}
       />
     );
   }
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <I18nextProvider i18n={i18n}>
-        <ControlledScreen />
-      </I18nextProvider>
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <ControlledScreen />
+    </I18nextProvider>
   );
 }
 
 describe("OnboardingGenresScreen", () => {
   beforeEach(() => {
-    mockedGetGenres.mockReset();
-    mockedGetGenres.mockResolvedValue(genres);
+    mockedUseGenres.mockReset();
+    mockedUseGenres.mockReturnValue({
+      data: genres,
+      isError: false,
+      isPending: false
+    } as ReturnType<typeof useGenres>);
   });
 
-  it("loads the genre grid without a search field", async () => {
+  it("loads the genre grid without a search field", () => {
     renderScreen();
 
     expect(screen.getByText("ETAPA 2 DE 3")).toBeTruthy();
-    expect(await screen.findByText("Pop")).toBeTruthy();
+    expect(screen.getByText("Pop")).toBeTruthy();
     expect(screen.getByText("Rock")).toBeTruthy();
     expect(screen.queryByPlaceholderText(/pesquisar/i)).toBeNull();
   });
@@ -66,7 +64,6 @@ describe("OnboardingGenresScreen", () => {
     const onContinue = jest.fn();
     renderScreen(onContinue);
 
-    await screen.findByText("Pop");
     const continueButton = screen.getByRole("button", { name: "Próximo" });
 
     expect(continueButton).toBeDisabled();
@@ -79,5 +76,17 @@ describe("OnboardingGenresScreen", () => {
     fireEvent.press(continueButton);
 
     expect(onContinue).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps multiple selected genres checked", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByRole("checkbox", { name: "Pop" }));
+    fireEvent.press(screen.getByRole("checkbox", { name: "Rock" }));
+    fireEvent.press(screen.getByRole("checkbox", { name: "Jazz" }));
+
+    expect(screen.getByRole("checkbox", { name: "Pop" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Rock" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Jazz" })).toBeChecked();
   });
 });

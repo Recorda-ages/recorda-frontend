@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
@@ -7,27 +6,35 @@ import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText, ErrorState, Loading } from "@/components/ui";
+import type { Genre } from "@/features/music/services/musicService";
+import { useGenres } from "@/features/music/hooks/useGenres";
 import { colors, fontFamily, spacing } from "@/theme";
 
-import { getGenres } from "../api/getGenres";
+import type { MusicSelection } from "../types";
 
 type OnboardingGenresScreenProps = {
   onBack: () => void;
   onContinue: () => void;
-  onSelectedGenreIdsChange: (genreIds: number[]) => void;
-  selectedGenreIds: number[];
+  onSelectedGenresChange: (genres: MusicSelection[]) => void;
+  selectedGenres: MusicSelection[];
 };
 
 export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
-  const { onBack, onContinue, onSelectedGenreIdsChange, selectedGenreIds } = props;
+  const { onBack, onContinue, onSelectedGenresChange, selectedGenres } = props;
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const backgroundScale = width / 393;
+  const genresQuery = useGenres();
+  const selectedGenreIds = selectedGenres.map((genre) => genre.id);
 
-  const genresQuery = useQuery({
-    queryFn: getGenres,
-    queryKey: ["music", "genres"]
-  });
+  const toggleGenre = (genre: Genre) => {
+    const alreadySelected = selectedGenreIds.includes(genre.id);
+    const nextGenres = alreadySelected
+      ? selectedGenres.filter((selectedGenre) => selectedGenre.id !== genre.id)
+      : [...selectedGenres, { id: genre.id, name: genre.name }];
+
+    onSelectedGenresChange(nextGenres);
+  };
 
   return (
     <SafeAreaView style={styles.screen} testID="onboarding-genres-screen">
@@ -104,30 +111,31 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
             <View style={styles.grid}>
               {genresQuery.data.map((genre) => (
                 <Pressable
-                  accessibilityLabel={genre.nome}
+                  accessibilityLabel={genre.name}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: selectedGenreIds.includes(genre.id) }}
                   key={genre.id}
-                  onPress={() => {
-                    const nextSelection = selectedGenreIds.includes(genre.id)
-                      ? selectedGenreIds.filter((genreId) => genreId !== genre.id)
-                      : [...selectedGenreIds, genre.id];
-                    onSelectedGenreIdsChange(nextSelection);
-                  }}
+                  onPress={() => toggleGenre(genre)}
                   style={[
                     styles.chip,
                     selectedGenreIds.includes(genre.id) ? styles.chipSelected : undefined
                   ]}
                 >
-                  <Image
-                    cachePolicy="memory-disk"
-                    contentFit="cover"
-                    source={genre.imagem}
-                    style={styles.chipImage}
-                    transition={150}
-                  />
+                  {genre.picture_url ? (
+                    <Image
+                      cachePolicy="memory-disk"
+                      contentFit="cover"
+                      source={genre.picture_url}
+                      style={styles.chipImage}
+                      transition={150}
+                    />
+                  ) : (
+                    <View style={styles.chipImageFallback}>
+                      <Icon color={colors.neutrals[100]} size={18} source="music-note" />
+                    </View>
+                  )}
                   <AppText style={styles.chipLabel} variant="buttonSmall">
-                    {genre.nome}
+                    {genre.name}
                   </AppText>
                 </Pressable>
               ))}
@@ -139,12 +147,12 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
           <Pressable
             accessibilityLabel={t("onboarding.genres.continue")}
             accessibilityRole="button"
-            accessibilityState={{ disabled: selectedGenreIds.length < 3 }}
-            disabled={selectedGenreIds.length < 3}
+            accessibilityState={{ disabled: selectedGenres.length < 3 }}
+            disabled={selectedGenres.length < 3}
             onPress={onContinue}
             style={({ pressed }) => [
               styles.continueButton,
-              selectedGenreIds.length < 3
+              selectedGenres.length < 3
                 ? styles.continueButtonDisabled
                 : styles.continueButtonEnabled,
               pressed ? styles.continueButtonPressed : undefined
@@ -153,7 +161,7 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
             <View style={styles.continueContent}>
               <AppText
                 style={
-                  selectedGenreIds.length < 3
+                  selectedGenres.length < 3
                     ? styles.continueLabelDisabled
                     : styles.continueLabelEnabled
                 }
@@ -162,7 +170,7 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
                 {t("onboarding.genres.continue")}
               </AppText>
               <Icon
-                color={selectedGenreIds.length < 3 ? colors.neutrals[400] : colors.primary[500]}
+                color={selectedGenres.length < 3 ? colors.neutrals[400] : colors.primary[500]}
                 size={24}
                 source="chevron-right"
               />
@@ -188,6 +196,14 @@ const styles = StyleSheet.create({
   chipImage: {
     borderRadius: 16,
     height: 32,
+    width: 32
+  },
+  chipImageFallback: {
+    alignItems: "center",
+    backgroundColor: colors.neutrals[700],
+    borderRadius: 16,
+    height: 32,
+    justifyContent: "center",
     width: 32
   },
   chipLabel: {

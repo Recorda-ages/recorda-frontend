@@ -6,7 +6,7 @@ import { OnboardingProvider, useOnboarding } from "@/features/onboarding/state/O
 
 function OnboardingFlowHarness() {
   const [step, setStep] = useState<1 | 2>(1);
-  const { selectedArtistIds, selectedGenreIds, setSelectedArtistIds, setSelectedGenreIds } =
+  const { selectedArtists, selectedGenres, setSelectedArtists, setSelectedGenres } =
     useOnboarding();
 
   if (step === 1) {
@@ -15,8 +15,8 @@ function OnboardingFlowHarness() {
         <Pressable
           accessibilityLabel="Artista 10"
           accessibilityRole="checkbox"
-          accessibilityState={{ checked: selectedArtistIds.includes(10) }}
-          onPress={() => setSelectedArtistIds([10])}
+          accessibilityState={{ checked: selectedArtists.some((artist) => artist.id === 10) }}
+          onPress={() => setSelectedArtists([{ id: 10, name: "Artista 10" }])}
         >
           <Text>Artista 10</Text>
         </Pressable>
@@ -32,8 +32,8 @@ function OnboardingFlowHarness() {
       <Pressable
         accessibilityLabel="Gênero 20"
         accessibilityRole="checkbox"
-        accessibilityState={{ checked: selectedGenreIds.includes(20) }}
-        onPress={() => setSelectedGenreIds([20])}
+        accessibilityState={{ checked: selectedGenres.some((genre) => genre.id === 20) }}
+        onPress={() => setSelectedGenres([{ id: 20, name: "Gênero 20" }])}
       >
         <Text>Gênero 20</Text>
       </Pressable>

@@ -7,14 +7,14 @@ type OnboardingGenresStepProps = {
 };
 
 export function OnboardingGenresStep({ onBack, onContinue }: OnboardingGenresStepProps) {
-  const { selectedGenreIds, setSelectedGenreIds } = useOnboarding();
+  const { selectedGenres, setSelectedGenres } = useOnboarding();
 
   return (
     <OnboardingGenresScreen
       onBack={onBack}
       onContinue={onContinue}
-      onSelectedGenreIdsChange={setSelectedGenreIds}
-      selectedGenreIds={selectedGenreIds}
+      onSelectedGenresChange={setSelectedGenres}
+      selectedGenres={selectedGenres}
     />
   );
 }

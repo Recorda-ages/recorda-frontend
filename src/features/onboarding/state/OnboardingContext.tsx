@@ -8,27 +8,29 @@ import {
   useState
 } from "react";
 
+import type { MusicSelection } from "../types";
+
 type OnboardingContextValue = {
-  selectedArtistIds: number[];
-  selectedGenreIds: number[];
-  setSelectedArtistIds: Dispatch<SetStateAction<number[]>>;
-  setSelectedGenreIds: Dispatch<SetStateAction<number[]>>;
+  selectedArtists: MusicSelection[];
+  selectedGenres: MusicSelection[];
+  setSelectedArtists: Dispatch<SetStateAction<MusicSelection[]>>;
+  setSelectedGenres: Dispatch<SetStateAction<MusicSelection[]>>;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
 export function OnboardingProvider({ children }: PropsWithChildren) {
-  const [selectedArtistIds, setSelectedArtistIds] = useState<number[]>([]);
-  const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+  const [selectedArtists, setSelectedArtists] = useState<MusicSelection[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<MusicSelection[]>([]);
 
   const value = useMemo(
     () => ({
-      selectedArtistIds,
-      selectedGenreIds,
-      setSelectedArtistIds,
-      setSelectedGenreIds
+      selectedArtists,
+      selectedGenres,
+      setSelectedArtists,
+      setSelectedGenres
     }),
-    [selectedArtistIds, selectedGenreIds]
+    [selectedArtists, selectedGenres]
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
