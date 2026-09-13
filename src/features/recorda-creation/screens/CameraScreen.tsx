@@ -1,16 +1,38 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { CameraMode } from "expo-camera";
+import type { CameraMode, PermissionResponse } from "expo-camera";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-import * as MediaLibrary from "expo-media-library";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Image, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, Screen } from "@/components/ui";
+
+let MediaLibrary: typeof import("expo-media-library") | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  MediaLibrary = require("expo-media-library");
+} catch {
+  // Native module ExpoMediaLibraryNext is not available in Expo Go on SDK 57
+}
+
+function useFallbackMediaPermissions(): [PermissionResponse, () => Promise<PermissionResponse>] {
+  const fallback: PermissionResponse = {
+    canAskAgain: false,
+    expires: "never",
+    granted: false,
+    status: "denied" as PermissionResponse["status"]
+  };
+  return [fallback, async () => fallback];
+}
+
+function useMediaLibraryPermissions() {
+  const hook = MediaLibrary?.usePermissions ?? useFallbackMediaPermissions;
+  return hook();
+}
 
 const HOLD_THRESHOLD_MS = 300;
 const MAX_VIDEO_DURATION_SECONDS = 60;
@@ -19,7 +41,7 @@ const MAX_VIDEO_DURATION_MS = MAX_VIDEO_DURATION_SECONDS * 1000;
 export function CameraScreen() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
-  const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
+  const [mediaLibraryPermission, requestMediaLibraryPermission] = useMediaLibraryPermissions();
   const [facing, setFacing] = useState<"back" | "front">("back");
   const [cameraMode, setCameraMode] = useState<CameraMode>("picture");
   const [isRecording, setIsRecording] = useState(false);
@@ -51,7 +73,7 @@ export function CameraScreen() {
           permission = await requestMediaLibraryPermission();
         }
 
-        if (!permission?.granted) {
+        if (!permission?.granted || !MediaLibrary) {
           return;
         }
 

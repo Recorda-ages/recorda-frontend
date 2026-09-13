@@ -104,6 +104,9 @@ describe("PasswordRecoveryScreen", () => {
     expect(await screen.findByText("As senhas devem ser idênticas.")).toBeTruthy();
     expect(submitButton).toBeDisabled();
 
+    fireEvent.press(submitButton);
+    expect(passwordRecoveryApi.requestPasswordRecovery).not.toHaveBeenCalled();
+
     fireEvent.changeText(screen.getByLabelText("Confirmar Senha"), "senha-segura");
 
     await waitFor(() => {
@@ -152,10 +155,12 @@ describe("PasswordRecoveryScreen", () => {
     );
   });
 
-  it("shows a generic error when the mocked recovery request fails", async () => {
-    jest
-      .spyOn(passwordRecoveryApi, "requestPasswordRecovery")
-      .mockRejectedValueOnce(new Error("Mock password recovery failed."));
+  it.each([
+    ["email inexistente", new Error("Email não encontrado.")],
+    ["erro de rede", new TypeError("Network request failed.")],
+    ["erro inesperado", new Error("Internal server error.")]
+  ])("shows the same generic error for %s", async (_, requestError) => {
+    jest.spyOn(passwordRecoveryApi, "requestPasswordRecovery").mockRejectedValueOnce(requestError);
 
     renderPasswordRecoveryScreen();
 
@@ -172,7 +177,51 @@ describe("PasswordRecoveryScreen", () => {
     expect(
       await screen.findByText("Não foi possível redefinir sua senha. Tente novamente.")
     ).toBeTruthy();
-    expect(screen.queryByText("Mock password recovery failed.")).toBeNull();
+    expect(screen.queryByText(requestError.message)).toBeNull();
     expect(screen.queryByTestId("login-screen")).toBeNull();
+  });
+
+  it("blocks duplicate submissions while pending and allows retry after an error", async () => {
+    let rejectFirstRequest: ((reason?: unknown) => void) | undefined;
+    const firstRequest = new Promise<passwordRecoveryApi.PasswordRecoveryResponse>((_, reject) => {
+      rejectFirstRequest = reject;
+    });
+    const requestSpy = jest
+      .spyOn(passwordRecoveryApi, "requestPasswordRecovery")
+      .mockReturnValueOnce(firstRequest)
+      .mockResolvedValueOnce({ message: "Senha redefinida com sucesso" });
+
+    renderPasswordRecoveryScreen();
+
+    fireEvent.changeText(screen.getByLabelText("Email"), "ana@example.com");
+    fireEvent.changeText(screen.getByLabelText("Nova Senha"), "senha-segura");
+    fireEvent.changeText(screen.getByLabelText("Confirmar Senha"), "senha-segura");
+
+    const submitButton = screen.getByRole("button", { name: "Redefinir Senha" });
+    await waitFor(() => expect(submitButton).not.toBeDisabled());
+
+    fireEvent.press(submitButton);
+
+    await waitFor(() => {
+      expect(requestSpy).toHaveBeenCalledTimes(1);
+      expect(submitButton).toBeDisabled();
+      expect(submitButton.props.accessibilityState).toEqual({ busy: true, disabled: true });
+    });
+
+    fireEvent.press(submitButton);
+    expect(requestSpy).toHaveBeenCalledTimes(1);
+
+    rejectFirstRequest?.(new Error("Email não encontrado."));
+
+    expect(
+      await screen.findByText("Não foi possível redefinir sua senha. Tente novamente.")
+    ).toBeTruthy();
+    await waitFor(() => expect(submitButton).not.toBeDisabled());
+
+    fireEvent.press(submitButton);
+
+    await waitFor(() => expect(requestSpy).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText("Sua senha foi redefinida com sucesso.")).toBeTruthy();
+    expect(screen.queryByText("Não foi possível redefinir sua senha. Tente novamente.")).toBeNull();
   });
 });

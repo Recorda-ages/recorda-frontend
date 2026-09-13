@@ -30,6 +30,21 @@
       "subtitle": "Crea tu cuenta y transforma momentos en huellas.",
       "title": "Guarda el momento",
       "username": "Usuario"
+    },
+    "signIn": {
+      "forgotPassword": "Olvidé mi contraseña",
+      "genericError": "Usuario o contraseña inválidos.",
+      "hidePassword": "Ocultar contraseña",
+      "logo": "recorda.",
+      "networkError": "No se pudo conectar al servidor. Inténtalo de nuevo.",
+      "noAccount": "¿Aún no tienes una cuenta?",
+      "password": "Contraseña",
+      "showPassword": "Mostrar contraseña",
+      "signUpAction": "Regístrate",
+      "submit": "Iniciar sesión",
+      "subtitle": "Inicia sesión para revivir momentos que siguen sonando.",
+      "title": "Bienvenido de nuevo",
+      "username": "Usuario"
     }
   },
   "home": {
@@ -57,6 +72,16 @@
       "preview": "Vista previa: canción favorita",
       "demo": "Demostración completada. No se enviaron datos.",
       "close": "Volver"
+    },
+    "genres": {
+      "back": "Volver",
+      "continue": "Siguiente",
+      "header": "Géneros",
+      "loadError": "No fue posible cargar los géneros.",
+      "loading": "Cargando géneros...",
+      "step": "PASO 2 DE 3",
+      "subtitle": "Elige al menos 3 géneros. Podrás cambiarlo después.",
+      "title": "¿Qué sonidos combinan contigo?"
     }
   },
   "recordaDetails": {

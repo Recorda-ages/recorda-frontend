@@ -30,6 +30,21 @@
       "subtitle": "Crie sua conta e transforme momentos em trilhas.",
       "title": "Guarde o momento",
       "username": "Usuário"
+    },
+    "signIn": {
+      "forgotPassword": "Esqueci minha senha",
+      "genericError": "Usuário ou senha inválidos.",
+      "hidePassword": "Ocultar senha",
+      "logo": "recorda.",
+      "networkError": "Não foi possível conectar ao servidor. Tente novamente.",
+      "noAccount": "Ainda não tem uma conta?",
+      "password": "Senha",
+      "showPassword": "Mostrar senha",
+      "signUpAction": "Cadastre-se",
+      "submit": "Entrar",
+      "subtitle": "Entre para reviver momentos que continuam tocando.",
+      "title": "Bem-vindo de volta",
+      "username": "Usuário"
     }
   },
   "home": {
@@ -57,6 +72,16 @@
       "preview": "Prévia: música favorita",
       "demo": "Demonstração concluída. Nenhum dado foi enviado.",
       "close": "Voltar"
+    },
+    "genres": {
+      "back": "Voltar",
+      "continue": "Próximo",
+      "header": "Gêneros",
+      "loadError": "Não foi possível carregar os gêneros.",
+      "loading": "Carregando gêneros...",
+      "step": "ETAPA 2 DE 3",
+      "subtitle": "Escolha pelo menos 3 gêneros. Você poderá mudar isso depois.",
+      "title": "Que sons combinam com você?"
     }
   },
   "recordaDetails": {
