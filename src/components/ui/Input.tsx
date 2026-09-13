@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import type { StyleProp, TextInputProps, ViewStyle } from "react-native";
+import type { ComponentProps, ReactNode } from "react";
+import type { StyleProp, TextInputProps, TextStyle, ViewStyle } from "react-native";
 import { StyleSheet, TextInput, View } from "react-native";
 
 import { baseColors, colors, radius, semanticColors, spacing, typography } from "@/theme";
@@ -13,8 +13,37 @@ export type InputProps = TextInputProps & {
   error?: string;
   inputContainerStyle?: StyleProp<ViewStyle>;
   label?: string;
+  leftAccessory?: ReactNode;
   rightAccessory?: ReactNode;
   variant?: InputVariant;
+};
+
+type AppTextColor = ComponentProps<typeof AppText>["color"];
+
+type InputVariantStyle = {
+  error: TextStyle;
+  frame: ViewStyle;
+  frameError: ViewStyle;
+  input: TextStyle;
+  label?: TextStyle;
+  labelColor: AppTextColor;
+  placeholderColor: string;
+};
+
+type InputLabelProps = {
+  color: AppTextColor;
+  label?: string;
+  style?: StyleProp<TextStyle>;
+};
+
+type InputAccessoryProps = {
+  children?: ReactNode;
+  style: StyleProp<ViewStyle>;
+};
+
+type InputErrorProps = {
+  error?: string;
+  style: StyleProp<TextStyle>;
 };
 
 export function Input({
@@ -22,59 +51,87 @@ export function Input({
   error,
   inputContainerStyle,
   label,
+  leftAccessory,
   rightAccessory,
   style,
   variant = "default",
   ...props
 }: InputProps) {
-  const isDark = variant === "dark";
-  const defaultPlaceholderColor = isDark ? colors.neutrals[400] : semanticColors.textDisabled;
+  const variantStyle = inputVariantStyles[variant];
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label ? (
-        <AppText
-          color={isDark ? "muted" : "default"}
-          style={isDark ? styles.darkLabel : undefined}
-          variant="body2"
-        >
-          {label}
-        </AppText>
-      ) : null}
+      <InputLabel color={variantStyle.labelColor} label={label} style={variantStyle.label} />
 
-      <View
-        style={[
-          styles.inputFrame,
-          isDark ? styles.darkFrame : styles.defaultFrame,
-          error ? (isDark ? styles.darkFrameError : styles.defaultFrameError) : undefined,
-          inputContainerStyle
-        ]}
-      >
+      <View style={getInputFrameStyle(variantStyle, Boolean(error), inputContainerStyle)}>
+        <InputAccessory style={styles.accessoryLeft}>{leftAccessory}</InputAccessory>
         <TextInput
           accessibilityHint={error}
           accessibilityLabel={props.accessibilityLabel ?? label}
-          placeholderTextColor={props.placeholderTextColor ?? defaultPlaceholderColor}
-          style={[styles.input, isDark ? styles.darkInput : styles.defaultInput, style]}
+          placeholderTextColor={props.placeholderTextColor ?? variantStyle.placeholderColor}
+          style={[styles.input, variantStyle.input, style]}
           {...props}
         />
-        {rightAccessory ? <View style={styles.accessory}>{rightAccessory}</View> : null}
+        <InputAccessory style={styles.accessoryRight}>{rightAccessory}</InputAccessory>
       </View>
 
-      {error ? (
-        <AppText
-          accessibilityLiveRegion="polite"
-          style={isDark ? styles.darkError : styles.defaultError}
-          variant="caption"
-        >
-          {error}
-        </AppText>
-      ) : null}
+      <InputError error={error} style={variantStyle.error} />
     </View>
   );
 }
 
+function InputLabel({ color, label, style }: InputLabelProps) {
+  if (!label) {
+    return null;
+  }
+
+  return (
+    <AppText color={color} style={style} variant="body2">
+      {label}
+    </AppText>
+  );
+}
+
+function InputAccessory({ children, style }: InputAccessoryProps) {
+  if (!children) {
+    return null;
+  }
+
+  return <View style={style}>{children}</View>;
+}
+
+function InputError({ error, style }: InputErrorProps) {
+  if (!error) {
+    return null;
+  }
+
+  return (
+    <AppText accessibilityLiveRegion="polite" style={style} variant="caption">
+      {error}
+    </AppText>
+  );
+}
+
+function getInputFrameStyle(
+  variantStyle: InputVariantStyle,
+  hasError: boolean,
+  inputContainerStyle: StyleProp<ViewStyle>
+) {
+  return [
+    styles.inputFrame,
+    variantStyle.frame,
+    hasError ? variantStyle.frameError : undefined,
+    inputContainerStyle
+  ];
+}
+
 const styles = StyleSheet.create({
-  accessory: {
+  accessoryLeft: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing[2]
+  },
+  accessoryRight: {
     alignItems: "center",
     justifyContent: "center",
     marginLeft: spacing[2]
@@ -129,3 +186,23 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   }
 });
+
+const inputVariantStyles: Record<InputVariant, InputVariantStyle> = {
+  dark: {
+    error: styles.darkError,
+    frame: styles.darkFrame,
+    frameError: styles.darkFrameError,
+    input: styles.darkInput,
+    label: styles.darkLabel,
+    labelColor: "muted",
+    placeholderColor: colors.neutrals[400]
+  },
+  default: {
+    error: styles.defaultError,
+    frame: styles.defaultFrame,
+    frameError: styles.defaultFrameError,
+    input: styles.defaultInput,
+    labelColor: "default",
+    placeholderColor: semanticColors.textDisabled
+  }
+};
