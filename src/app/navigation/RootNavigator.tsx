@@ -12,6 +12,8 @@ import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
+import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
+import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
@@ -29,6 +31,8 @@ export type RootStackParamList = {
   SignIn: undefined;
   Admin: undefined;
   Onboarding: undefined;
+  OnboardingArtists: undefined;
+  OnboardingGenres: undefined;
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
   OnboardingMusicPreview: undefined;
   PasswordRecovery: undefined;
@@ -44,14 +48,6 @@ function AdminPlaceholderScreen() {
   return (
     <View style={styles.placeholder} testID="admin-screen">
       <AppText variant="headline3">Área administrativa</AppText>
-    </View>
-  );
-}
-
-function OnboardingPlaceholderScreen() {
-  return (
-    <View style={styles.placeholder} testID="onboarding-screen">
-      <AppText variant="headline3">Onboarding</AppText>
     </View>
   );
 }
@@ -73,7 +69,9 @@ export function RootNavigator() {
         <Stack.Screen name="SignIn" component={SignInScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingPlaceholderScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Feed" component={HomeScreen} />
