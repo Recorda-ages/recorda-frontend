@@ -11,6 +11,7 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
+import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -28,6 +29,8 @@ export type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Onboarding: undefined;
+  OnboardingArtists: undefined;
+  OnboardingGenres: undefined;
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
   OnboardingMusicPreview: undefined;
   PasswordRecovery: undefined;
@@ -87,7 +90,9 @@ export function RootNavigator() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingGenresRoute} />
+        <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Feed" component={HomeScreen} />
