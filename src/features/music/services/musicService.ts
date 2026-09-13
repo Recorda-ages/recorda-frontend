@@ -29,9 +29,9 @@ function buildMusicSearchPath(path: string, q: string) {
 export const musicService = {
   getGenres: () => apiClient.get<Genre[]>("/music/genres"),
 
-  searchArtists: (q: string) =>
-    apiClient.get<Artist[]>(buildMusicSearchPath("/music/artists/search", q)),
+  searchArtists: (q: string, signal?: AbortSignal) =>
+    apiClient.get<Artist[]>(buildMusicSearchPath("/music/artists/search", q), { signal }),
 
-  searchTracks: (q: string) =>
-    apiClient.get<Track[]>(buildMusicSearchPath("/music/tracks/search", q))
+  searchTracks: (q: string, signal?: AbortSignal) =>
+    apiClient.get<Track[]>(buildMusicSearchPath("/music/tracks/search", q), { signal })
 };

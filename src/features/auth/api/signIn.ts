@@ -1,22 +1,15 @@
 import { apiClient } from "@/services/api/client";
 
+import type { AuthSessionResponse } from "./types";
+
+export type { UserBasicResponse } from "./types";
+
 export type SignInRequest = {
   password: string;
   username: string;
 };
 
-export type UserBasicResponse = {
-  account_type: string;
-  id: number;
-  onboarding_completed?: boolean;
-  username: string;
-};
-
-export type SignInResponse = {
-  access_token: string;
-  token_type: string;
-  user: UserBasicResponse;
-};
+export type SignInResponse = AuthSessionResponse;
 
 export async function signInUser(payload: SignInRequest): Promise<SignInResponse> {
   return apiClient.post<SignInResponse>("/auth/login", payload);

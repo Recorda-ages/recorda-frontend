@@ -1,4 +1,4 @@
-import type { RecordaDraft } from "../types";
+import type { RecordaDraft } from "@/features/recorda-creation/types";
 
 export const mockRecordaDraft: RecordaDraft = {
   media: {

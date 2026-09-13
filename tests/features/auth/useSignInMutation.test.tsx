@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react-native";
 import type { PropsWithChildren } from "react";
 
+import { queryClient as appQueryClient } from "@/app/providers/queryClient";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import * as signInApi from "@/features/auth/api/signIn";
 import { useSignInMutation } from "@/features/auth/hooks/useSignInMutation";
 import { secureStorage } from "@/services/storage";
@@ -42,6 +44,8 @@ describe("useSignInMutation", () => {
       user: {
         account_type: "admin",
         id: 1,
+        name: "Admin",
+        onboarding_completed: false,
         username: "admin"
       }
     });
@@ -59,6 +63,9 @@ describe("useSignInMutation", () => {
 
     expect(secureStorage.setItem).toHaveBeenCalledWith("auth_token", "jwt_login_token");
     expect(secureStorage.setItem).toHaveBeenCalledWith("account_type", "admin");
+    expect(appQueryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(
+      expect.objectContaining({ account_type: "admin", username: "admin" })
+    );
   });
 
   it("does not store session data when login fails", async () => {

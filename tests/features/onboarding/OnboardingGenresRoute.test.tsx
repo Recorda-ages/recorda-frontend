@@ -58,14 +58,8 @@ it("navigates to favorite music with selected genres", () => {
   fireEvent.press(screen.getByRole("checkbox", { name: "Jazz" }));
   fireEvent.press(screen.getByRole("button", { name: "Próximo" }));
 
-  expect(mockNavigate).toHaveBeenCalledWith("OnboardingMusic", {
-    artists: [],
-    genres: [
-      { id: 1, name: "Pop" },
-      { id: 2, name: "Rock" },
-      { id: 3, name: "Jazz" }
-    ]
-  });
+  expect(mockNavigate).toHaveBeenCalledWith("OnboardingMusic");
+  expect(screen.getByText("3 selecionados")).toBeTruthy();
 });
 
 it("goes back to the previous onboarding step when one exists", () => {

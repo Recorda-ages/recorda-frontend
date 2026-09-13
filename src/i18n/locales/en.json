@@ -29,11 +29,12 @@
       "submit": "Sign Up",
       "subtitle": "Create your account and transform moments into trails.",
       "title": "Save the moment",
-      "username": "Username"
+      "username": "Username",
+      "invalidField": "Invalid field."
     },
     "signIn": {
       "forgotPassword": "Forgot your password?",
-      "genericError": "Invalid username or password.",
+      "genericError": "Unable to sign in. Please try again.",
       "hidePassword": "Hide password",
       "logo": "recorda.",
       "networkError": "Unable to connect to the server. Please try again.",
@@ -44,15 +45,10 @@
       "submit": "Log in",
       "subtitle": "Log in to relive moments that keep playing.",
       "title": "Welcome back",
-      "username": "Username"
-    }
-  },
-  "home": {
-    "primaryAction": "Start",
-    "recordaDetailsShortcut": "Recorda details screen",
-    "secondaryAction": "View structure",
-    "subtitle": "Memories with a soundtrack.",
-    "title": "Recorda"
+      "username": "Username",
+      "invalidCredentials": "Invalid username or password."
+    },
+    "signOut": "Sign out"
   },
   "onboarding": {
     "music": {
@@ -68,10 +64,7 @@
       "searchError": "Could not search songs.",
       "retry": "Try again",
       "empty": "No songs found. Try another title or artist.",
-      "saveError": "Could not save. Your selections are safe. Try again.",
-      "preview": "Preview: favorite song",
-      "demo": "Demo completed. No data was sent.",
-      "close": "Go back"
+      "saveError": "Could not save. Your selections are safe. Try again."
     },
     "genres": {
       "back": "Back",
@@ -82,7 +75,9 @@
       "step": "STEP 2 OF 3",
       "subtitle": "Choose at least 3 genres. You can change this later.",
       "title": "What sounds feel like you?"
-    }
+    },
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected"
   },
   "recordaDetails": {
     "back": "Back",
@@ -97,6 +92,49 @@
     "publishSuccessTitle": "Recorda published",
     "publishUploading": "Uploading media...",
     "share": "Share",
-    "songCover": "Song cover"
+    "songCover": "Song cover",
+    "publishError": {
+      "upload": "Unable to upload the media. Please try again.",
+      "create": "Unable to publish the Recorda. Please try again."
+    }
+  },
+  "admin": {
+    "title": "Admin area"
+  },
+  "profile": {
+    "title": "Profile"
+  },
+  "recordaMusic": {
+    "back": "Back",
+    "header": "Music",
+    "search": "What sound represents you?",
+    "next": "Next",
+    "loading": "Searching songs",
+    "hint": "Search by song, artist or album to add to your Recorda.",
+    "searchError": "Unable to search songs.",
+    "retry": "Try again",
+    "empty": "No songs found. Try another name or artist.",
+    "noMedia": "No media selected."
+  },
+  "feed": {
+    "logo": "recorda.",
+    "notifications": "Notifications",
+    "search": "Search users",
+    "more": "More options",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share",
+    "likedByPrefix": "Liked by",
+    "likedBySuffix_one": "and {{count}} other",
+    "likedBySuffix_other": "and {{count}} others",
+    "tabs": {
+      "following": "Following",
+      "forYou": "For You"
+    },
+    "tabBar": {
+      "camera": "Create Recorda",
+      "feed": "Feed",
+      "profile": "Profile"
+    }
   }
 }

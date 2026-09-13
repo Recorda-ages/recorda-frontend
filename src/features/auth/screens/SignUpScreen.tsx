@@ -14,7 +14,30 @@ import { AuthPasswordInput } from "../components/AuthPasswordInput";
 import { AuthScreenLayout } from "../components/AuthScreenLayout";
 import { AuthSubmitButton } from "../components/AuthSubmitButton";
 import { useSignUpMutation } from "../hooks/useSignUpMutation";
+import { getPostAuthDestination } from "../session";
 import { signUpSchema, type SignUpFormValues } from "../validation/signUpSchema";
+
+type SignUpField = keyof SignUpFormValues;
+
+const SIGN_UP_FIELDS: SignUpField[] = ["email", "name", "password", "username"];
+
+function getFieldErrors(details: unknown): { field: SignUpField; message?: string }[] {
+  if (typeof details !== "object" || details === null || !("fields" in details)) {
+    return [];
+  }
+
+  const { fields } = details as { fields?: unknown };
+
+  if (!Array.isArray(fields)) {
+    return [];
+  }
+
+  return fields.flatMap((item: { field?: string; message?: string }) =>
+    SIGN_UP_FIELDS.includes(item.field as SignUpField)
+      ? [{ field: item.field as SignUpField, message: item.message }]
+      : []
+  );
+}
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "SignUp">;
 
@@ -46,7 +69,7 @@ export function SignUpScreen() {
     setFormError(null);
 
     try {
-      await signUpMutation.mutateAsync({
+      const response = await signUpMutation.mutateAsync({
         email: values.email.trim(),
         name: values.name.trim(),
         password: values.password,
@@ -55,67 +78,32 @@ export function SignUpScreen() {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: "Onboarding" }]
+        routes: [{ name: getPostAuthDestination(response.user) }]
       });
     } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.status === 409 || error.code === "CONFLICT") {
-          const details = error.details as {
-            fields?: { field?: string; message?: string }[];
-          } | null;
-          let mapped = false;
-
-          if (details?.fields && Array.isArray(details.fields)) {
-            for (const item of details.fields) {
-              if (item.field === "username" || item.field === "email") {
-                setError(item.field, { message: item.message ?? "Valor já cadastrado." });
-                mapped = true;
-              }
-            }
-          }
-
-          if (!mapped) {
-            const msg = error.message.toLowerCase();
-            if (msg.includes("usuário") || msg.includes("username")) {
-              setError("username", { message: "Este usuário já está cadastrado." });
-            } else if (msg.includes("email") || msg.includes("e-mail")) {
-              setError("email", { message: "Este email já está cadastrado." });
-            } else {
-              setFormError(error.message);
-            }
-          }
-          return;
-        }
-
-        if (error.status === 422) {
-          const details = error.details as {
-            fields?: { field?: string; message?: string }[];
-          } | null;
-          if (details?.fields && Array.isArray(details.fields)) {
-            for (const item of details.fields) {
-              if (
-                item.field === "name" ||
-                item.field === "username" ||
-                item.field === "email" ||
-                item.field === "password"
-              ) {
-                setError(item.field, { message: item.message ?? "Campo inválido." });
-              }
-            }
-            return;
-          }
-        }
-
-        if (error.code === "NETWORK_ERROR" || error.status === 0) {
-          setFormError(t("auth.signUp.networkError"));
-          return;
-        }
-
-        setFormError(error.message || t("auth.signUp.networkError"));
+      if (!(error instanceof ApiError)) {
+        setFormError(t("auth.signUp.networkError"));
         return;
       }
 
-      setFormError(t("auth.signUp.networkError"));
+      if (error.code === "NETWORK_ERROR" || error.status === 0) {
+        setFormError(t("auth.signUp.networkError"));
+        return;
+      }
+
+      if (error.status === 409 || error.status === 422) {
+        const mappedFields = getFieldErrors(error.details);
+
+        mappedFields.forEach(({ field, message }) => {
+          setError(field, { message: message ?? t("auth.signUp.invalidField") });
+        });
+
+        if (mappedFields.length > 0) {
+          return;
+        }
+      }
+
+      setFormError(error.message || t("auth.signUp.networkError"));
     }
   });
 

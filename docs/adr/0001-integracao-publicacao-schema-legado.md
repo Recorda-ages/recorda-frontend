@@ -5,3 +5,7 @@ O frontend já implementa o Fluxo de Publicação (US9) contra o payload rico do
 ## Consequências
 
 Recordas criadas durante a Sprint 1 sob o Schema legado ficam **permanentemente** sem snapshot musical completo, mesmo depois da migração para o Modelo v3 na Sprint 2: como `deezer_track_id` não é persistido, não há como reidratar essas linhas de forma confiável mais tarde — o título isolado não é um identificador suficiente (mesma música pode ter múltiplos artistas, remixes, etc.). Essa perda de dado é conhecida e aceita; nenhuma estratégia de backfill/reprocessamento está planejada como parte desta decisão. Se o time futuramente quiser enriquecer essas Recordas, isso deve ser tratado como uma atividade separada de migração, sem garantia de recuperação perfeita.
+
+## Atualização — snapshot musical persistido na tabela legada
+
+A tabela `recordas` foi estendida com colunas aditivas e anuláveis (`user_id`, `media_type`, `deezer_track_id`, `song_artist_name`, `song_cover_url`), sem adotar ainda o Modelo v3. A partir desta mudança, `POST /recordas` exige `media_type`, `deezer_track_id` e `song_artist_name`, aceita `song_cover_url` opcional e preenche `user_id` a partir do Bearer token. `music` continua guardando o título da faixa e a URL de preview segue sem ser persistida. Recordas criadas antes dessa extensão permanecem com as colunas novas vazias.

@@ -16,6 +16,7 @@ import { AuthPasswordInput } from "../components/AuthPasswordInput";
 import { AuthScreenLayout } from "../components/AuthScreenLayout";
 import { AuthSubmitButton } from "../components/AuthSubmitButton";
 import { useSignInMutation } from "../hooks/useSignInMutation";
+import { getPostAuthDestination } from "../session";
 import { signInSchema, type SignInFormValues } from "../validation/signInSchema";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
@@ -52,20 +53,18 @@ export function SignInScreen() {
         username: values.username.trim()
       });
 
-      const destination =
-        response.user.account_type === "admin"
-          ? "Admin"
-          : response.user.onboarding_completed
-            ? "Feed"
-            : "Onboarding";
-
       navigation.reset({
         index: 0,
-        routes: [{ name: destination }]
+        routes: [{ name: getPostAuthDestination(response.user) }]
       });
     } catch (error) {
       if (isNetworkError(error)) {
         setFormError(t("auth.signIn.networkError"));
+        return;
+      }
+
+      if (error instanceof ApiError && error.status === 401) {
+        setFormError(t("auth.signIn.invalidCredentials"));
         return;
       }
 

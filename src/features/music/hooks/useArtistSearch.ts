@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
 import { musicService } from "../services/musicService";
 
 export function useArtistSearch(q: string) {
@@ -6,7 +7,8 @@ export function useArtistSearch(q: string) {
 
   return useQuery({
     enabled: query.length > 0,
-    queryFn: () => musicService.searchArtists(query),
+    placeholderData: keepPreviousData,
+    queryFn: ({ signal }) => musicService.searchArtists(query, signal),
     queryKey: ["music", "artists", query],
     staleTime: 0
   });

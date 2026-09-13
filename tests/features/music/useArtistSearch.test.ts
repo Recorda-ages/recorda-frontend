@@ -37,7 +37,7 @@ describe("useArtistSearch", () => {
     const { result } = renderHook(() => useArtistSearch("  Eminem  "), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockSearchArtists).toHaveBeenCalledWith("Eminem");
+    expect(mockSearchArtists).toHaveBeenCalledWith("Eminem", expect.any(AbortSignal));
   });
 
   it("does not fetch when query is empty", () => {

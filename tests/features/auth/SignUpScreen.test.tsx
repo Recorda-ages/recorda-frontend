@@ -182,6 +182,8 @@ describe("SignUpScreen", () => {
       user: {
         account_type: "common",
         id: 1,
+        name: "Eduardo de Bastiani",
+        onboarding_completed: false,
         username: "eduardobastiani"
       }
     });
@@ -206,9 +208,10 @@ describe("SignUpScreen", () => {
 
     await waitFor(() => {
       expect(secureStorage.setItem).toHaveBeenCalledWith("auth_token", "jwt_token_12345");
+      expect(secureStorage.setItem).toHaveBeenCalledWith("account_type", "common");
       expect(navigation.reset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: "Onboarding" }]
+        routes: [{ name: "OnboardingArtists" }]
       });
     });
   });
@@ -300,42 +303,6 @@ describe("SignUpScreen", () => {
     expect(await screen.findByText("Usuário reservado.")).toBeTruthy();
     expect(await screen.findByText("Domínio não permitido.")).toBeTruthy();
     expect(await screen.findByText("Senha fraca.")).toBeTruthy();
-  });
-
-  it("handles 409 conflict by message content when details are missing", async () => {
-    jest
-      .spyOn(registerApi, "registerUser")
-      .mockRejectedValueOnce(new ApiError("CONFLICT", "Este nome de usuário já existe", 409, null));
-
-    renderSignUpScreen();
-
-    fireEvent.changeText(screen.getByTestId("input-name"), "Eduardo");
-    fireEvent.changeText(screen.getByTestId("input-username"), "eduardo");
-    fireEvent.changeText(screen.getByTestId("input-email"), "eduardo@example.com");
-    fireEvent.changeText(screen.getByTestId("input-password"), "senhaForte123");
-
-    fireEvent.press(screen.getByTestId("submit-button"));
-
-    expect(await screen.findByText("Este usuário já está cadastrado.")).toBeTruthy();
-  });
-
-  it("handles 409 conflict for email by message content when details are missing", async () => {
-    jest
-      .spyOn(registerApi, "registerUser")
-      .mockRejectedValueOnce(
-        new ApiError("CONFLICT", "Este email já existe no sistema", 409, null)
-      );
-
-    renderSignUpScreen();
-
-    fireEvent.changeText(screen.getByTestId("input-name"), "Eduardo");
-    fireEvent.changeText(screen.getByTestId("input-username"), "eduardo");
-    fireEvent.changeText(screen.getByTestId("input-email"), "eduardo@example.com");
-    fireEvent.changeText(screen.getByTestId("input-password"), "senhaForte123");
-
-    fireEvent.press(screen.getByTestId("submit-button"));
-
-    expect(await screen.findByText("Este email já está cadastrado.")).toBeTruthy();
   });
 
   it("handles generic 409 conflict message as form error when fields are not recognized", async () => {

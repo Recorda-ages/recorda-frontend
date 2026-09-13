@@ -11,6 +11,7 @@ import {
   type StyleProp,
   useWindowDimensions
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -29,6 +30,7 @@ type OnboardingStepLayoutProps = {
   keyboardShouldPersistTaps?: ScrollViewProps["keyboardShouldPersistTaps"];
   onBack: () => void;
   onContinue: () => void;
+  selectionCount?: number;
   stepLabel: string;
   subtitle: string;
   testID: string;
@@ -49,11 +51,13 @@ export function OnboardingStepLayout({
   keyboardShouldPersistTaps,
   onBack,
   onContinue,
+  selectionCount = 0,
   stepLabel,
   subtitle,
   testID,
   title
 }: OnboardingStepLayoutProps) {
+  const { t } = useTranslation();
   const scale = useWindowDimensions().width / 393;
 
   return (
@@ -120,6 +124,17 @@ export function OnboardingStepLayout({
         </ScrollView>
 
         <View style={styles.footer}>
+          {selectionCount > 0 ? (
+            <AppText
+              accessibilityLiveRegion="polite"
+              color="muted"
+              style={styles.selectionCount}
+              testID="onboarding-selection-count"
+              variant="body2"
+            >
+              {t("onboarding.selectedCount", { count: selectionCount })}
+            </AppText>
+          ) : null}
           <Pressable
             accessibilityLabel={continueLabel}
             accessibilityRole="button"
@@ -216,6 +231,7 @@ const styles = StyleSheet.create({
     gap: spacing[2]
   },
   footer: {
+    gap: spacing[3],
     justifyContent: "flex-end",
     paddingTop: spacing[4]
   },
@@ -249,6 +265,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: spacing[4]
+  },
+  selectionCount: {
+    letterSpacing: 0.15,
+    textAlign: "center"
   },
   step: {
     letterSpacing: 0.15,

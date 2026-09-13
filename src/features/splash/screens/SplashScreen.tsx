@@ -6,11 +6,13 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/app/providers/queryClient";
+import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
 import {
-  AUTH_ME_QUERY_KEY,
-  getCurrentUser,
-  type CurrentUser
-} from "@/features/auth/api/getCurrentUser";
+  clearSession,
+  getPostAuthDestination,
+  type PostAuthDestination
+} from "@/features/auth/session";
+import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { ApiError } from "@/services/api/errors";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { baseColors, colors } from "@/theme/colors";
@@ -18,17 +20,9 @@ import { fontFamily } from "@/theme/typography";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Splash">;
 
-type SplashDestination = "Admin" | "Feed" | "Login" | "Onboarding";
+type SplashDestination = PostAuthDestination | "Login";
 
-export const AUTH_TOKEN_KEY = "auth_token";
 export const SPLASH_TIMEOUT_MS = 3000;
-
-function getSessionDestination(user: CurrentUser): SplashDestination {
-  if (user.account_type === "admin") {
-    return "Admin";
-  }
-  return user.onboarding_completed ? "Feed" : "Onboarding";
-}
 
 export function SplashScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -85,20 +79,14 @@ export function SplashScreen() {
         }
 
         queryClient.setQueryData(AUTH_ME_QUERY_KEY, user);
-        finish(getSessionDestination(user));
+        finish(getPostAuthDestination(user));
       } catch (error) {
         if (!isActive) {
           return;
         }
 
         if (error instanceof ApiError && error.status === 401) {
-          queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
-
-          try {
-            await secureStorage.removeItem(AUTH_TOKEN_KEY);
-          } catch {
-            // The user still needs to leave the splash even if local cleanup fails.
-          }
+          await clearSession();
         }
 
         finish("Login");

@@ -1,6 +1,5 @@
 export type MediaType = "PHOTO" | "VIDEO";
 
-// Campos mínimos que o upload precisa; a forma final depende do que a US6 entregar.
 export type RecordaMediaDraft = {
   fileName: string;
   mimeType: string;
@@ -33,5 +32,15 @@ export type CreateRecordaPayload = {
   song: RecordaSongSnapshot;
 };
 
-// Formato de BE.03 ainda indefinido; mantido opaco até o contrato existir.
-export type CreateRecordaResult = unknown;
+export type CreateRecordaResult = {
+  data: string | null;
+  deezer_track_id: string | null;
+  description: string | null;
+  id: number;
+  media_type: string | null;
+  midia: string | null;
+  music: string | null;
+  song_artist_name: string | null;
+  song_cover_url: string | null;
+  user_id: number | null;
+};

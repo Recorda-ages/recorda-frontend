@@ -1,6 +1,6 @@
 import { apiClient } from "@/services/api/client";
 
-import type { UserBasicResponse } from "./register";
+import type { UserBasicResponse } from "./types";
 
 export const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
 

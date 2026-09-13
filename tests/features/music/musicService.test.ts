@@ -40,7 +40,7 @@ describe("musicService.searchArtists", () => {
 
     const result = await musicService.searchArtists("Eminem");
 
-    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=Eminem");
+    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=Eminem", { signal: undefined });
     expect(result).toEqual(ARTISTS);
   });
 
@@ -49,7 +49,7 @@ describe("musicService.searchArtists", () => {
 
     await musicService.searchArtists("AC/DC");
 
-    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=AC%2FDC");
+    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=AC%2FDC", { signal: undefined });
   });
 
   it("trims the query before requesting artists", async () => {
@@ -57,7 +57,7 @@ describe("musicService.searchArtists", () => {
 
     await musicService.searchArtists("  Eminem  ");
 
-    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=Eminem");
+    expect(mockGet).toHaveBeenCalledWith("/music/artists/search?q=Eminem", { signal: undefined });
   });
 });
 
@@ -67,7 +67,9 @@ describe("musicService.searchTracks", () => {
 
     const result = await musicService.searchTracks("Lose Yourself");
 
-    expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself");
+    expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself", {
+      signal: undefined
+    });
     expect(result).toEqual(TRACKS);
   });
 
@@ -76,6 +78,8 @@ describe("musicService.searchTracks", () => {
 
     await musicService.searchTracks("  Lose Yourself  ");
 
-    expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself");
+    expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself", {
+      signal: undefined
+    });
   });
 });

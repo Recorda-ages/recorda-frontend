@@ -109,6 +109,7 @@ describe("SignInScreen", () => {
       user: {
         account_type: "common",
         id: 1,
+        name: "Eduardo",
         onboarding_completed: true,
         username: "eduardo"
       }
@@ -147,6 +148,7 @@ describe("SignInScreen", () => {
       user: {
         account_type: "common",
         id: 1,
+        name: "Eduardo",
         onboarding_completed: false,
         username: "eduardo"
       }
@@ -166,7 +168,7 @@ describe("SignInScreen", () => {
     await waitFor(() => {
       expect(navigation.reset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: "Onboarding" }]
+        routes: [{ name: "OnboardingArtists" }]
       });
     });
   });
@@ -178,6 +180,8 @@ describe("SignInScreen", () => {
       user: {
         account_type: "admin",
         id: 2,
+        name: "Admin",
+        onboarding_completed: false,
         username: "admin"
       }
     });
@@ -220,6 +224,26 @@ describe("SignInScreen", () => {
     expect(await screen.findByText("Usuário ou senha inválidos.")).toBeTruthy();
     expect(screen.queryByText("Senha incorreta")).toBeNull();
     expect(mockNavigation.reset).not.toHaveBeenCalled();
+  });
+
+  it("shows a retry message instead of invalid credentials when the server fails", async () => {
+    jest
+      .spyOn(signInApi, "signInUser")
+      .mockRejectedValueOnce(new ApiError("INTERNAL_SERVER_ERROR", "Erro interno", 500, null));
+
+    renderSignInScreen();
+
+    fireEvent.changeText(screen.getByTestId("input-username"), "eduardo");
+    fireEvent.changeText(screen.getByTestId("input-password"), "senha123");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("submit-button")).toBeEnabled();
+    });
+
+    fireEvent.press(screen.getByTestId("submit-button"));
+
+    expect(await screen.findByText("Não foi possível entrar. Tente novamente.")).toBeTruthy();
+    expect(screen.queryByText("Usuário ou senha inválidos.")).toBeNull();
   });
 
   it("preserves fields and shows network error when the request cannot reach the API", async () => {

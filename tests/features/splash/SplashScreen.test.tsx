@@ -4,7 +4,9 @@ import { useNavigation } from "@react-navigation/native";
 
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
-import { AUTH_TOKEN_KEY, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
+import { ACCOUNT_TYPE_KEY } from "@/features/auth/session";
+import { SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
+import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { ApiError } from "@/services/api/errors";
 import { secureStorage } from "@/services/storage/secureStorage";
 
@@ -84,15 +86,20 @@ describe("SplashScreen", () => {
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
   });
 
-  it("navigates to Onboarding when user is regular account without completed onboarding", async () => {
+  it("navigates to the first onboarding step when user has not completed onboarding", async () => {
     mockGetItem.mockResolvedValueOnce("valid-token");
-    const user = { account_type: "common", id: 1, username: "gabriel", onboarding_completed: false };
+    const user = {
+      account_type: "common",
+      id: 1,
+      username: "gabriel",
+      onboarding_completed: false
+    };
     mockGetCurrentUser.mockResolvedValueOnce(user);
 
     render(<SplashScreen />);
 
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("Onboarding");
+      expect(mockReplace).toHaveBeenCalledWith("OnboardingArtists");
     });
     expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
@@ -124,6 +131,7 @@ describe("SplashScreen", () => {
 
     await waitFor(() => {
       expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
+      expect(secureStorage.removeItem).toHaveBeenCalledWith(ACCOUNT_TYPE_KEY);
       expect(mockReplace).toHaveBeenCalledWith("Login");
     });
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();

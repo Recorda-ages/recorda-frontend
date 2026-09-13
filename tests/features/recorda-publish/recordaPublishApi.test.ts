@@ -1,31 +1,24 @@
-import { apiClient } from "@/services/api";
-import { secureStorage } from "@/services/storage";
+import { File } from "expo-file-system";
+
+import { authApiClient } from "@/services/api";
 import {
   createRecorda,
+  MEDIA_UPLOAD_TIMEOUT_MS,
   uploadRecordaMedia
 } from "@/features/recorda-publish/api/recordaPublishApi";
 import type { CreateRecordaPayload, RecordaMediaDraft } from "@/features/recorda-publish/types";
 
 jest.mock("@/services/api", () => ({
-  apiClient: {
+  authApiClient: {
     post: jest.fn()
   }
 }));
 
-jest.mock("@/services/storage", () => ({
-  secureStorage: {
-    getItem: jest.fn(async () => "token-123")
-  }
-}));
-
-const mockedPost = apiClient.post as jest.Mock;
-const mockedGetItem = secureStorage.getItem as jest.Mock;
+const mockedPost = authApiClient.post as jest.Mock;
 
 describe("recordaPublishApi", () => {
   beforeEach(() => {
     mockedPost.mockReset();
-    mockedGetItem.mockReset();
-    mockedGetItem.mockResolvedValue("token-123");
   });
 
   describe("uploadRecordaMedia", () => {
@@ -36,64 +29,44 @@ describe("recordaPublishApi", () => {
       uri: "file:///tmp/recorda.jpg"
     };
 
-    it("posts the media as multipart form data to /recordas/media", async () => {
-      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
+    it("sends the media as a file part supported by expo/fetch", async () => {
+      mockedPost.mockResolvedValueOnce({ url: "/api/v1/recordas/media/abc.jpg" });
       const appendSpy = jest.spyOn(FormData.prototype, "append");
 
       await uploadRecordaMedia(media);
 
       expect(mockedPost).toHaveBeenCalledTimes(1);
-      const [path, body] = mockedPost.mock.calls[0] as [string, FormData];
+      const [path, body, options] = mockedPost.mock.calls[0] as [
+        string,
+        FormData,
+        { timeoutMs: number }
+      ];
       expect(path).toBe("/recordas/media");
       expect(body).toBeInstanceOf(FormData);
-      // FormData.getParts() only exists on RN's native polyfill, not in this
-      // test environment's FormData, so the append call itself is asserted.
-      expect(appendSpy).toHaveBeenCalledWith("file", {
-        name: media.fileName,
-        type: media.mimeType,
-        uri: media.uri
-      });
+      expect(options).toEqual({ timeoutMs: MEDIA_UPLOAD_TIMEOUT_MS });
+      const [field, filePart, fileName] = appendSpy.mock.calls[0] as [string, File, string];
+      expect(field).toBe("file");
+      expect(filePart).toBeInstanceOf(File);
+      expect(filePart.uri).toBe(media.uri);
+      expect(fileName).toBe(media.fileName);
 
       appendSpy.mockRestore();
     });
 
-    it("attaches the Bearer token from secure storage", async () => {
-      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
+    it("maps the upload url response to { mediaUrl }", async () => {
+      mockedPost.mockResolvedValueOnce({ url: "/api/v1/recordas/media/abc.jpg" });
 
-      await uploadRecordaMedia(media);
-
-      const [, , options] = mockedPost.mock.calls[0] as [
-        string,
-        FormData,
-        { headers: Record<string, string> }
-      ];
-      expect(options.headers).toEqual({ Authorization: "Bearer token-123" });
-    });
-
-    it("omits the Authorization header when there is no stored token", async () => {
-      mockedGetItem.mockResolvedValueOnce(null);
-      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
-
-      await uploadRecordaMedia(media);
-
-      const [, , options] = mockedPost.mock.calls[0] as [string, FormData, undefined];
-      expect(options).toBeUndefined();
-    });
-
-    it("maps the upload url response to { mediaUrl } without assuming a mediaId", async () => {
-      mockedPost.mockResolvedValueOnce({ url: "https://cdn.example.com/recorda.jpg" });
-
-      const result = await uploadRecordaMedia(media);
-
-      expect(result).toEqual({ mediaUrl: "https://cdn.example.com/recorda.jpg" });
+      await expect(uploadRecordaMedia(media)).resolves.toEqual({
+        mediaUrl: "/api/v1/recordas/media/abc.jpg"
+      });
     });
 
     it("keeps compatibility with media_url upload responses", async () => {
       mockedPost.mockResolvedValueOnce({ media_url: "https://cdn.example.com/recorda.jpg" });
 
-      const result = await uploadRecordaMedia(media);
-
-      expect(result).toEqual({ mediaUrl: "https://cdn.example.com/recorda.jpg" });
+      await expect(uploadRecordaMedia(media)).resolves.toEqual({
+        mediaUrl: "https://cdn.example.com/recorda.jpg"
+      });
     });
 
     it("fails clearly when upload response does not include a media link", async () => {
@@ -108,7 +81,7 @@ describe("recordaPublishApi", () => {
   describe("createRecorda", () => {
     const payload: CreateRecordaPayload = {
       mediaType: "PHOTO",
-      mediaUrl: "https://cdn.example.com/recorda.jpg",
+      mediaUrl: "/api/v1/recordas/media/abc.jpg",
       song: {
         artistName: "Artist",
         coverUrl: "https://cdn.example.com/cover.jpg",
@@ -118,51 +91,54 @@ describe("recordaPublishApi", () => {
       }
     };
 
-    it("adapts the payload to the legacy Recorda schema (midia/music/description)", async () => {
-      // Schema legado da Recorda: sem colunas para snapshot musical (ver ADR 0001).
-      // song.artistName/coverUrl/previewUrl/deezerTrackId não são enviados nesta etapa.
-      mockedPost.mockResolvedValueOnce({});
+    it("sends the media link, media type and song snapshot", async () => {
+      mockedPost.mockResolvedValueOnce({ id: 1 });
 
       await createRecorda({ ...payload, description: "legenda opcional" });
 
-      expect(mockedPost).toHaveBeenCalledWith(
-        "/recordas",
-        {
-          description: "legenda opcional",
-          midia: "https://cdn.example.com/recorda.jpg",
-          music: "Song Title"
-        },
-        { headers: { Authorization: "Bearer token-123" } }
-      );
+      expect(mockedPost).toHaveBeenCalledWith("/recordas", {
+        deezer_track_id: "12345",
+        description: "legenda opcional",
+        media_type: "PHOTO",
+        midia: "/api/v1/recordas/media/abc.jpg",
+        music: "Song Title",
+        song_artist_name: "Artist",
+        song_cover_url: "https://cdn.example.com/cover.jpg"
+      });
     });
 
-    it("omits the Authorization header when there is no stored token", async () => {
-      mockedGetItem.mockResolvedValueOnce(null);
-      mockedPost.mockResolvedValueOnce({});
+    it("never sends the temporary preview url", async () => {
+      mockedPost.mockResolvedValueOnce({ id: 1 });
 
       await createRecorda(payload);
 
-      const [, , options] = mockedPost.mock.calls[0] as [string, unknown, undefined];
-      expect(options).toBeUndefined();
+      const [, body] = mockedPost.mock.calls[0] as [string, Record<string, unknown>];
+      expect(JSON.stringify(body)).not.toContain("preview");
+    });
+
+    it("sends a null cover when the song has none", async () => {
+      mockedPost.mockResolvedValueOnce({ id: 1 });
+
+      await createRecorda({ ...payload, song: { ...payload.song, coverUrl: "" } });
+
+      const [, body] = mockedPost.mock.calls[0] as [string, { song_cover_url: string | null }];
+      expect(body.song_cover_url).toBeNull();
     });
 
     it("leaves description undefined when it is not provided", async () => {
-      mockedPost.mockResolvedValueOnce({});
+      mockedPost.mockResolvedValueOnce({ id: 1 });
 
       await createRecorda(payload);
 
-      // apiClient serializes with JSON.stringify, which drops undefined keys.
       const [, body] = mockedPost.mock.calls[0] as [string, { description?: string }];
       expect(body.description).toBeUndefined();
     });
 
-    it("resolves with whatever the backend returns, without assuming its shape", async () => {
-      const backendResponse = { anything: "the real shape is still undefined" };
+    it("resolves with the created recorda", async () => {
+      const backendResponse = { id: 7, user_id: 1 };
       mockedPost.mockResolvedValueOnce(backendResponse);
 
-      const result = await createRecorda(payload);
-
-      expect(result).toBe(backendResponse);
+      await expect(createRecorda(payload)).resolves.toBe(backendResponse);
     });
   });
 });

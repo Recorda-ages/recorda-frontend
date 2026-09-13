@@ -51,7 +51,7 @@ describe("useTrackSearch", () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockSearchTracks).toHaveBeenCalledWith("Lose Yourself");
+    expect(mockSearchTracks).toHaveBeenCalledWith("Lose Yourself", expect.any(AbortSignal));
   });
 
   it("does not fetch when query is empty", () => {

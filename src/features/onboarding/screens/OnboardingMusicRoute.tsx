@@ -1,26 +1,34 @@
 import { useState } from "react";
-import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import { markOnboardingCompleted } from "@/features/auth/session";
 
 import { saveMusicPreferences, searchTracks } from "../api/music";
-import { OnboardingMusicScreen } from "./OnboardingMusicScreen";
+import { useOnboarding } from "../state/OnboardingContext";
 import type { MusicTrack } from "../types";
+import { OnboardingMusicScreen } from "./OnboardingMusicScreen";
 
 export function OnboardingMusicRoute() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { artists, genres } = useRoute<RouteProp<RootStackParamList, "OnboardingMusic">>().params;
+  const { reset, selectedArtists, selectedGenres } = useOnboarding();
   const [selectedTrack, setSelectedTrack] = useState<MusicTrack | null>(null);
+
+  const completeOnboarding = () => {
+    markOnboardingCompleted();
+    reset();
+    navigation.reset({ index: 0, routes: [{ name: "Feed" }] });
+  };
 
   return (
     <OnboardingMusicScreen
       selectedTrack={selectedTrack}
-      selectedArtists={artists}
-      selectedGenres={genres}
+      selectedArtists={selectedArtists}
+      selectedGenres={selectedGenres}
       onSelectTrack={setSelectedTrack}
       onBack={() => navigation.goBack()}
-      onComplete={() => navigation.reset({ index: 0, routes: [{ name: "Feed" }] })}
+      onComplete={completeOnboarding}
       searchTracks={searchTracks}
       savePreferences={saveMusicPreferences}
     />

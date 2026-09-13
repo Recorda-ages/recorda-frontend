@@ -87,7 +87,7 @@ describe("PreviewScreen", () => {
     });
     expect(imageManipulatorMock.mockContextRelease).toHaveBeenCalledTimes(1);
     expect(imageManipulatorMock.mockImageRelease).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith("Home");
+    expect(mockNavigate).toHaveBeenCalledWith("RecordaMusic");
   });
 
   it("does not confirm twice while a photo is still being compressed", async () => {

@@ -42,6 +42,7 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
       headerTitle={t("onboarding.genres.header")}
       onBack={onBack}
       onContinue={onContinue}
+      selectionCount={selectedGenres.length}
       stepLabel={t("onboarding.genres.step")}
       subtitle={t("onboarding.genres.subtitle")}
       testID="onboarding-genres-screen"

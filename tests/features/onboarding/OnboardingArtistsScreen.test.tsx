@@ -1,21 +1,30 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { I18nextProvider } from "react-i18next";
 
+import { clearSession } from "@/features/auth/session";
 import { musicService } from "@/features/music/services/musicService";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
+import { i18n } from "@/i18n";
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
   useNavigation: () => ({
     canGoBack: mockCanGoBack,
     goBack: mockGoBack,
-    navigate: mockNavigate
+    navigate: mockNavigate,
+    reset: mockReset
   })
+}));
+
+jest.mock("@/features/auth/session", () => ({
+  clearSession: jest.fn(async () => undefined)
 }));
 
 jest.mock("@/features/music/services/musicService", () => ({
@@ -32,11 +41,13 @@ function renderScreen() {
   });
 
   return render(
-    <QueryClientProvider client={client}>
-      <OnboardingProvider>
-        <OnboardingArtistsScreen />
-      </OnboardingProvider>
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={client}>
+        <OnboardingProvider>
+          <OnboardingArtistsScreen />
+        </OnboardingProvider>
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
 
@@ -73,7 +84,7 @@ describe("OnboardingArtistsScreen", () => {
     fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "legiao");
 
     await waitFor(() => expect(screen.getByText("Legião Urbana")).toBeTruthy());
-    expect(mockSearchArtists).toHaveBeenCalledWith("legiao");
+    expect(mockSearchArtists).toHaveBeenCalledWith("legiao", expect.anything());
 
     fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
     fireEvent.press(screen.getByRole("checkbox", { name: "Tribalistas" }));
@@ -111,13 +122,32 @@ describe("OnboardingArtistsScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("does not go back when the screen has no previous route", () => {
+  it("signs out and returns to login when the screen has no previous route", async () => {
     mockCanGoBack.mockReturnValueOnce(false);
     renderScreen();
 
     fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
 
     expect(mockGoBack).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(clearSession).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
+    });
+  });
+
+  it("shows how many artists are selected", async () => {
+    renderScreen();
+
+    expect(screen.queryByTestId("onboarding-selection-count")).toBeNull();
+
+    fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "legiao");
+    await waitFor(() => expect(screen.getByText("Legião Urbana")).toBeTruthy());
+
+    fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
+    expect(screen.getByText("1 selecionado")).toBeTruthy();
+
+    fireEvent.press(screen.getByRole("checkbox", { name: "Tribalistas" }));
+    expect(screen.getByText("2 selecionados")).toBeTruthy();
   });
 
   it("shows empty state when no artists are found", async () => {
@@ -140,7 +170,7 @@ describe("OnboardingArtistsScreen", () => {
     ).toBeTruthy();
   });
 
-  it("clears search input text when an artist card is selected", async () => {
+  it("keeps the search text and results when an artist is selected", async () => {
     renderScreen();
 
     const searchInput = screen.getByLabelText("Buscar artistas");
@@ -150,7 +180,9 @@ describe("OnboardingArtistsScreen", () => {
 
     fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
 
-    expect(searchInput.props.value).toBe("");
+    expect(searchInput.props.value).toBe("legiao");
+    expect(screen.getByRole("checkbox", { name: "Tribalistas" })).toBeTruthy();
+    expect(mockSearchArtists).toHaveBeenCalledTimes(1);
   });
 
   it("clears search input when clear button is pressed", async () => {

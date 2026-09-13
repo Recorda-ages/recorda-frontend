@@ -1,58 +1,86 @@
 import { StyleSheet, View } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationProp
+} from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 
-import { AppText } from "@/components/ui";
+import { AppText, Button } from "@/components/ui";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
-import { HomeScreen } from "@/features/home/screens/HomeScreen";
-import type { MusicSelection } from "@/features/onboarding";
+import { clearSession } from "@/features/auth/session";
+import { FeedScreen } from "@/features/feed";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
-import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
+import { useOnboarding } from "@/features/onboarding/state/OnboardingContext";
+import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
+import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { SplashScreen } from "@/features/splash";
-import { baseColors, navigationTheme, spacing } from "@/theme";
+import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 
 export type RootStackParamList = {
   Splash: undefined;
   Admin: undefined;
   Camera: undefined;
   Feed: undefined;
-  Home: undefined;
   Login: undefined;
-  Onboarding: undefined;
   OnboardingArtists: undefined;
   OnboardingGenres: undefined;
-  OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
-  OnboardingMusicPreview: undefined;
+  OnboardingMusic: undefined;
   PasswordRecovery: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   Profile: undefined;
   RecordaDetails: undefined;
+  RecordaMusic: undefined;
   SignUp: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function AdminPlaceholderScreen() {
+type SessionPlaceholderScreenProps = {
+  testID: string;
+  title: string;
+};
+
+function SessionPlaceholderScreen({ testID, title }: SessionPlaceholderScreenProps) {
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const onboarding = useOnboarding();
+  const recordaDraft = useRecordaDraft();
+
+  const signOut = async () => {
+    await clearSession();
+    onboarding.reset();
+    recordaDraft.reset();
+    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+  };
+
   return (
-    <View style={styles.placeholder} testID="admin-screen">
-      <AppText variant="headline3">Area administrativa</AppText>
+    <View style={styles.placeholder} testID={testID}>
+      <AppText style={styles.placeholderTitle} variant="headline3">
+        {title}
+      </AppText>
+      <Button label={t("auth.signOut")} onPress={() => void signOut()} testID="sign-out-button" />
     </View>
   );
 }
 
+function AdminPlaceholderScreen() {
+  const { t } = useTranslation();
+
+  return <SessionPlaceholderScreen testID="admin-screen" title={t("admin.title")} />;
+}
+
 function ProfilePlaceholderScreen() {
-  return (
-    <View style={styles.placeholder} testID="profile-screen">
-      <AppText variant="headline3">Perfil</AppText>
-    </View>
-  );
+  const { t } = useTranslation();
+
+  return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
 }
 
 export function RootNavigator() {
@@ -63,19 +91,15 @@ export function RootNavigator() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={SignInScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
         <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
         <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
+        <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
+        <Stack.Screen name="Feed" component={FeedScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
-        <Stack.Screen name="Feed" component={HomeScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Preview" component={PreviewScreen} />
-        <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
-        {__DEV__ ? (
-          <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
-        ) : null}
+        <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />
         <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -87,7 +111,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: baseColors.black,
     flex: 1,
-    gap: spacing[4],
-    justifyContent: "center"
+    gap: spacing[6],
+    justifyContent: "center",
+    paddingHorizontal: spacing[6]
+  },
+  placeholderTitle: {
+    color: colors.neutrals[100]
   }
 });

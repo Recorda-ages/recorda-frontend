@@ -32,7 +32,6 @@ import {
 } from "@/theme";
 
 import { useRecordaDraft } from "../context/RecordaDraftContext";
-import { mockRecordaDraft } from "../mocks/recordaDraft";
 import type { RecordaDraft, RecordaDraftMedia } from "../types";
 
 const DESCRIPTION_MAX_LENGTH = 2200;
@@ -46,16 +45,23 @@ type RecordaDetailsScreenProps = {
 export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetailsScreenProps) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { clearMedia, media: storedMedia } = useRecordaDraft();
+  const storedDraft = useRecordaDraft();
   const publishFlow = usePublishRecorda();
   const handledSuccessRef = useRef(false);
   const currentDraft = useMemo<RecordaDraft>(
-    () => draft ?? { ...mockRecordaDraft, media: storedMedia ?? mockRecordaDraft.media },
-    [draft, storedMedia]
+    () =>
+      draft ?? {
+        description: storedDraft.description,
+        media: storedDraft.media,
+        song: storedDraft.song
+      },
+    [draft, storedDraft.description, storedDraft.media, storedDraft.song]
   );
   const [description, setDescription] = useState(currentDraft.description);
   const [coverLoadFailed, setCoverLoadFailed] = useState(false);
-  const videoPlayer = useVideoPlayer(currentDraft.media?.uri ?? "");
+  const videoPlayer = useVideoPlayer(
+    currentDraft.media?.type === "video" ? currentDraft.media.uri : null
+  );
   const isPublishing = publishFlow.status === "uploading" || publishFlow.status === "creating";
   const canPublish = Boolean(currentDraft.media && currentDraft.song);
 
@@ -65,14 +71,22 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
     }
 
     handledSuccessRef.current = true;
-    clearMedia();
-    setDescription("");
+    storedDraft.reset();
     Alert.alert(t("recordaDetails.publishSuccessTitle"), t("recordaDetails.publishSuccessMessage"));
     navigation.reset({
       index: 0,
       routes: [{ name: "Feed" }]
     });
-  }, [clearMedia, navigation, onPublish, publishFlow.status, t]);
+  }, [navigation, onPublish, publishFlow.status, storedDraft, t]);
+
+  function handleDescriptionChange(text: string) {
+    const limitedText = text.slice(0, DESCRIPTION_MAX_LENGTH);
+    setDescription(limitedText);
+
+    if (!draft) {
+      storedDraft.setDescription(limitedText);
+    }
+  }
 
   function getCurrentDraft(): RecordaDraft {
     return { ...currentDraft, description };
@@ -217,7 +231,7 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
                 cursorColor={semanticColors.actionPrimary}
                 maxLength={DESCRIPTION_MAX_LENGTH}
                 multiline
-                onChangeText={(text) => setDescription(text.slice(0, DESCRIPTION_MAX_LENGTH))}
+                onChangeText={handleDescriptionChange}
                 placeholder={t("recordaDetails.descriptionPlaceholder")}
                 placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 selectionColor={semanticColors.actionPrimary}
@@ -260,7 +274,7 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
                   testID="recorda-publish-error"
                   variant="bodySmall"
                 >
-                  {publishFlow.error.message}
+                  {t(`recordaDetails.publishError.${publishFlow.error.step}`)}
                 </Text>
               ) : null}
             </View>

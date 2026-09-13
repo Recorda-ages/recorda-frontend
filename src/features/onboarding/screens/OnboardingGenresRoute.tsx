@@ -8,7 +8,7 @@ import { OnboardingGenresScreen } from "./OnboardingGenresScreen";
 
 export function OnboardingGenresRoute() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { selectedArtists, selectedGenres, setSelectedGenres } = useOnboarding();
+  const { selectedGenres, setSelectedGenres } = useOnboarding();
 
   return (
     <OnboardingGenresScreen
@@ -17,12 +17,7 @@ export function OnboardingGenresRoute() {
           navigation.goBack();
         }
       }}
-      onContinue={() =>
-        navigation.navigate("OnboardingMusic", {
-          artists: selectedArtists,
-          genres: selectedGenres
-        })
-      }
+      onContinue={() => navigation.navigate("OnboardingMusic")}
       onSelectedGenresChange={setSelectedGenres}
       selectedGenres={selectedGenres}
     />

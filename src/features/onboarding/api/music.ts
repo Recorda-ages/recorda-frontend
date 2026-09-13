@@ -1,22 +1,10 @@
-import { apiClient, authApiClient } from "@/services/api";
+import { musicService } from "@/features/music/services/musicService";
+import { authApiClient } from "@/services/api";
 
 import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
 
-type TrackResponse = {
-  id: number;
-  title: string;
-  artist: string;
-  album: string;
-  cover_url: string | null;
-  preview_url: string | null;
-  genre_id: number | null;
-};
-
 export async function searchTracks(query: string, signal: AbortSignal): Promise<MusicTrack[]> {
-  const tracks = await apiClient.get<TrackResponse[]>(
-    `/music/tracks/search?q=${encodeURIComponent(query)}`,
-    { signal }
-  );
+  const tracks = await musicService.searchTracks(query, signal);
 
   return tracks.map((track) => ({
     id: track.id,

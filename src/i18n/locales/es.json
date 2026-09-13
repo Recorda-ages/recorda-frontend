@@ -29,11 +29,12 @@
       "submit": "Registrarse",
       "subtitle": "Crea tu cuenta y transforma momentos en huellas.",
       "title": "Guarda el momento",
-      "username": "Usuario"
+      "username": "Usuario",
+      "invalidField": "Campo inválido."
     },
     "signIn": {
       "forgotPassword": "Olvidé mi contraseña",
-      "genericError": "Usuario o contraseña inválidos.",
+      "genericError": "No fue posible iniciar sesión. Inténtalo de nuevo.",
       "hidePassword": "Ocultar contraseña",
       "logo": "recorda.",
       "networkError": "No se pudo conectar al servidor. Inténtalo de nuevo.",
@@ -44,15 +45,10 @@
       "submit": "Iniciar sesión",
       "subtitle": "Inicia sesión para revivir momentos que siguen sonando.",
       "title": "Bienvenido de nuevo",
-      "username": "Usuario"
-    }
-  },
-  "home": {
-    "primaryAction": "Comenzar",
-    "recordaDetailsShortcut": "Pantalla de detalles de Recorda",
-    "secondaryAction": "Ver estructura",
-    "subtitle": "Memorias con banda sonora.",
-    "title": "Recorda"
+      "username": "Usuario",
+      "invalidCredentials": "Usuario o contraseña inválidos."
+    },
+    "signOut": "Cerrar sesión"
   },
   "onboarding": {
     "music": {
@@ -68,10 +64,7 @@
       "searchError": "No se pudieron buscar canciones.",
       "retry": "Intentar de nuevo",
       "empty": "No se encontraron canciones. Prueba otro título o artista.",
-      "saveError": "No se pudo guardar. Tus selecciones se conservaron. Inténtalo de nuevo.",
-      "preview": "Vista previa: canción favorita",
-      "demo": "Demostración completada. No se enviaron datos.",
-      "close": "Volver"
+      "saveError": "No se pudo guardar. Tus selecciones se conservaron. Inténtalo de nuevo."
     },
     "genres": {
       "back": "Volver",
@@ -82,7 +75,9 @@
       "step": "PASO 2 DE 3",
       "subtitle": "Elige al menos 3 géneros. Podrás cambiarlo después.",
       "title": "¿Qué sonidos combinan contigo?"
-    }
+    },
+    "selectedCount_one": "{{count}} seleccionado",
+    "selectedCount_other": "{{count}} seleccionados"
   },
   "recordaDetails": {
     "back": "Volver",
@@ -97,6 +92,49 @@
     "publishSuccessTitle": "Recorda publicada",
     "publishUploading": "Enviando medio...",
     "share": "Compartir",
-    "songCover": "Portada de la canción"
+    "songCover": "Portada de la canción",
+    "publishError": {
+      "upload": "No fue posible enviar el medio. Inténtalo de nuevo.",
+      "create": "No fue posible publicar la Recorda. Inténtalo de nuevo."
+    }
+  },
+  "admin": {
+    "title": "Área administrativa"
+  },
+  "profile": {
+    "title": "Perfil"
+  },
+  "recordaMusic": {
+    "back": "Volver",
+    "header": "Música",
+    "search": "¿Qué sonido te representa?",
+    "next": "Siguiente",
+    "loading": "Buscando canciones",
+    "hint": "Busca por canción, artista o álbum para asociar a tu Recorda.",
+    "searchError": "No fue posible buscar canciones.",
+    "retry": "Intentar de nuevo",
+    "empty": "No se encontraron canciones. Prueba otro nombre o artista.",
+    "noMedia": "Ningún medio seleccionado."
+  },
+  "feed": {
+    "logo": "recorda.",
+    "notifications": "Notificaciones",
+    "search": "Buscar usuarios",
+    "more": "Más opciones",
+    "like": "Me gusta",
+    "comment": "Comentar",
+    "share": "Compartir",
+    "likedByPrefix": "Le gusta a",
+    "likedBySuffix_one": "y {{count}} más",
+    "likedBySuffix_other": "y {{count}} más",
+    "tabs": {
+      "following": "Siguiendo",
+      "forYou": "Para ti"
+    },
+    "tabBar": {
+      "camera": "Crear Recorda",
+      "feed": "Feed",
+      "profile": "Perfil"
+    }
   }
 }

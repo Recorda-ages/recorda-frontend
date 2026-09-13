@@ -3,6 +3,7 @@ import {
   type Dispatch,
   type PropsWithChildren,
   type SetStateAction,
+  useCallback,
   useContext,
   useMemo,
   useState
@@ -11,6 +12,7 @@ import {
 import type { MusicSelection } from "../types";
 
 type OnboardingContextValue = {
+  reset: () => void;
   selectedArtists: MusicSelection[];
   selectedGenres: MusicSelection[];
   setSelectedArtists: Dispatch<SetStateAction<MusicSelection[]>>;
@@ -23,14 +25,20 @@ export function OnboardingProvider({ children }: PropsWithChildren) {
   const [selectedArtists, setSelectedArtists] = useState<MusicSelection[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<MusicSelection[]>([]);
 
+  const reset = useCallback(() => {
+    setSelectedArtists([]);
+    setSelectedGenres([]);
+  }, []);
+
   const value = useMemo(
     () => ({
+      reset,
       selectedArtists,
       selectedGenres,
       setSelectedArtists,
       setSelectedGenres
     }),
-    [selectedArtists, selectedGenres]
+    [reset, selectedArtists, selectedGenres]
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;

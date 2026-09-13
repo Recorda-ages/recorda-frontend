@@ -62,7 +62,7 @@ export function PreviewScreen() {
       }
 
       setMedia({ type, uri: finalUri });
-      navigation.navigate("Home");
+      navigation.navigate("RecordaMusic");
     } finally {
       isConfirmingRef.current = false;
 

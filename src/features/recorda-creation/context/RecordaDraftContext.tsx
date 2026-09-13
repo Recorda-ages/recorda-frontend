@@ -1,29 +1,50 @@
 import type { PropsWithChildren } from "react";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-export type DraftMedia = {
-  type: "photo" | "video";
-  uri: string;
-};
+import type { RecordaDraft, RecordaDraftMedia, RecordaDraftSong } from "../types";
 
-type RecordaDraftContextValue = {
+export type DraftMedia = RecordaDraftMedia;
+
+type RecordaDraftContextValue = RecordaDraft & {
   clearMedia: () => void;
-  media: DraftMedia | null;
-  setMedia: (media: DraftMedia) => void;
+  reset: () => void;
+  setDescription: (description: string) => void;
+  setMedia: (media: RecordaDraftMedia) => void;
+  setSong: (song: RecordaDraftSong | null) => void;
 };
+
+const EMPTY_DRAFT: RecordaDraft = { description: "", media: null, song: null };
 
 const RecordaDraftContext = createContext<RecordaDraftContextValue | undefined>(undefined);
 
 export function RecordaDraftProvider({ children }: PropsWithChildren) {
-  const [media, setMediaState] = useState<DraftMedia | null>(null);
+  const [draft, setDraft] = useState<RecordaDraft>(EMPTY_DRAFT);
+
+  const setMedia = useCallback((media: RecordaDraftMedia) => {
+    setDraft((current) =>
+      current.media?.uri === media.uri && current.media.type === media.type
+        ? current
+        : { ...current, media, song: null }
+    );
+  }, []);
+
+  const clearMedia = useCallback(() => {
+    setDraft((current) => ({ ...current, media: null, song: null }));
+  }, []);
+
+  const setSong = useCallback((song: RecordaDraftSong | null) => {
+    setDraft((current) => ({ ...current, song }));
+  }, []);
+
+  const setDescription = useCallback((description: string) => {
+    setDraft((current) => ({ ...current, description }));
+  }, []);
+
+  const reset = useCallback(() => setDraft(EMPTY_DRAFT), []);
 
   const value = useMemo<RecordaDraftContextValue>(
-    () => ({
-      clearMedia: () => setMediaState(null),
-      media,
-      setMedia: (newMedia: DraftMedia) => setMediaState(newMedia)
-    }),
-    [media]
+    () => ({ ...draft, clearMedia, reset, setDescription, setMedia, setSong }),
+    [clearMedia, draft, reset, setDescription, setMedia, setSong]
   );
 
   return <RecordaDraftContext.Provider value={value}>{children}</RecordaDraftContext.Provider>;

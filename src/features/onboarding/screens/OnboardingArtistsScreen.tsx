@@ -6,6 +6,7 @@ import { Icon } from "react-native-paper";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
+import { clearSession } from "@/features/auth/session";
 import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
 import { colors, fontFamily, spacing } from "@/theme";
 
@@ -52,18 +53,18 @@ export function OnboardingArtistsScreen() {
     setSelectedArtists((currentArtists) =>
       currentArtists.some((selectedArtist) => selectedArtist.id === artist.id)
         ? currentArtists.filter((selectedArtist) => selectedArtist.id !== artist.id)
-        : [
-            ...currentArtists,
-            { id: artist.id, name: artist.name, pictureUrl: artist.pictureUrl }
-          ]
+        : [...currentArtists, { id: artist.id, name: artist.name, pictureUrl: artist.pictureUrl }]
     );
-    setQuery("");
   };
 
-  const goBack = () => {
+  const goBack = async () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
+      return;
     }
+
+    await clearSession();
+    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   };
 
   return (
@@ -76,8 +77,9 @@ export function OnboardingArtistsScreen() {
       continueTestID="onboarding-artists-next-button"
       headerTitle="Artistas"
       keyboardShouldPersistTaps="handled"
-      onBack={goBack}
+      onBack={() => void goBack()}
       onContinue={() => navigation.navigate("OnboardingGenres")}
+      selectionCount={selectedArtists.length}
       stepLabel="ETAPA 1 DE 3"
       subtitle="Escolha pelo menos 3 artistas para personalizar suas recordações."
       testID="onboarding-artists-screen"

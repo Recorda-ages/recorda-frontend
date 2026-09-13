@@ -1,12 +1,14 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import type { ReactElement } from "react";
+import { type ReactElement, useEffect } from "react";
 import { Alert, Share } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
+import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import type { RecordaDraft } from "@/features/recorda-creation/types";
-import { mockRecordaDraft } from "@/features/recorda-creation/mocks/recordaDraft";
 import { usePublishRecorda } from "@/features/recorda-publish";
+
+import { mockRecordaDraft } from "../../../mocks/recordaDraft";
 
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
@@ -34,6 +36,20 @@ function renderScreen(ui: ReactElement) {
 
 function createDraft(overrides: Partial<RecordaDraft> = {}): RecordaDraft {
   return { ...mockRecordaDraft, ...overrides };
+}
+
+function DraftSeeder({ draft }: { draft: RecordaDraft }) {
+  const { setDescription, setMedia, setSong } = useRecordaDraft();
+
+  useEffect(() => {
+    if (draft.media) {
+      setMedia(draft.media);
+    }
+    setSong(draft.song);
+    setDescription(draft.description);
+  }, [draft, setDescription, setMedia, setSong]);
+
+  return null;
 }
 
 describe("RecordaDetailsScreen", () => {
@@ -239,7 +255,8 @@ describe("RecordaDetailsScreen", () => {
     expect(screen.getByTestId("recorda-details-media")).toBeTruthy();
     expect(screen.getByText(mockRecordaDraft.song!.title)).toBeTruthy();
     expect(screen.getByLabelText("Descrição")).toHaveProp("value", "Descrição preservada");
-    expect(screen.getByText("Falha ao publicar.")).toBeTruthy();
+    expect(screen.getByText("Não foi possível publicar a Recorda. Tente novamente.")).toBeTruthy();
+    expect(screen.queryByText("Falha ao publicar.")).toBeNull();
 
     fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
 
@@ -301,6 +318,28 @@ describe("RecordaDetailsScreen", () => {
     });
 
     share.mockRestore();
+  });
+
+  it("reads media and song from the draft stored during the creation flow", async () => {
+    renderScreen(
+      <>
+        <DraftSeeder
+          draft={createDraft({ song: { ...mockRecordaDraft.song!, title: "Evidências" } })}
+        />
+        <RecordaDetailsScreen />
+      </>
+    );
+
+    expect(await screen.findByText("Evidências")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Publicar" })).toBeEnabled();
+  });
+
+  it("does not fall back to mocked content when the draft is empty", () => {
+    renderScreen(<RecordaDetailsScreen />);
+
+    expect(screen.getByText("Mídia indisponível")).toBeTruthy();
+    expect(screen.queryByText(mockRecordaDraft.song!.title)).toBeNull();
+    expect(screen.getByRole("button", { name: "Publicar" })).toBeDisabled();
   });
 
   it("renders without failing when media is absent", () => {
