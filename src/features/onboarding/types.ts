@@ -5,10 +5,10 @@ export type MusicTrack = {
   artworkUrl?: string;
 };
 
-// A genre or artist chosen in steps 1 and 2. `id` is the Deezer id the backend stores.
 export type MusicSelection = {
   id: number;
   name: string;
+  imageUrl?: string;
 };
 
 export type MusicPreferences = {

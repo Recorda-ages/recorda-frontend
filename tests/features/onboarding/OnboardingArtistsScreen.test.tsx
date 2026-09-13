@@ -1,10 +1,13 @@
-import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { I18nextProvider } from "react-i18next";
+import { PaperProvider } from "react-native-paper";
 
-import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
-import { OnboardingProvider } from "@/features/onboarding/providers/OnboardingContext";
 import { musicService } from "@/features/music/services/musicService";
+import { OnboardingProvider } from "@/features/onboarding";
+import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
+import { i18n } from "@/i18n";
+import { paperTheme } from "@/theme";
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -36,11 +39,15 @@ function renderScreen() {
   });
 
   return render(
-    <QueryClientProvider client={client}>
-      <OnboardingProvider>
-        <OnboardingArtistsScreen />
-      </OnboardingProvider>
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={client}>
+        <PaperProvider theme={paperTheme}>
+          <OnboardingProvider>
+            <OnboardingArtistsScreen />
+          </OnboardingProvider>
+        </PaperProvider>
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
 
@@ -94,13 +101,7 @@ describe("OnboardingArtistsScreen", () => {
 
     fireEvent.press(nextButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith("OnboardingGenres", {
-      artists: [
-        { id: 1, name: "Legião Urbana" },
-        { id: 2, name: "Tribalistas" },
-        { id: 3, name: "Toquinho" }
-      ]
-    });
+    expect(mockNavigate).toHaveBeenCalledWith("OnboardingGenres");
   });
 
   it("navigates back when back button is pressed", () => {

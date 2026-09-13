@@ -40,6 +40,20 @@
     "title": "Recorda"
   },
   "onboarding": {
+    "artists": {
+      "back": "Volver",
+      "header": "Artistas",
+      "step": "PASO 1 DE 3",
+      "title": "¿Quién forma parte de tu historia?",
+      "subtitle": "Elige al menos 3 artistas para personalizar tus recuerdos.",
+      "searchPlaceholder": "Buscar artistas",
+      "loading": "Buscando artistas...",
+      "loadError": "No fue posible buscar artistas. Comprueba tu conexión.",
+      "empty": "No se encontraron artistas.",
+      "selectionCount_one": "1 artista seleccionado",
+      "selectionCount_other": "{{count}} artistas seleccionados",
+      "continue": "Siguiente"
+    },
     "music": {
       "header": "Canción favorita",
       "back": "Volver a géneros",

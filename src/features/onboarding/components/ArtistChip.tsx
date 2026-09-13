@@ -1,81 +1,90 @@
-import React from "react";
-import { StyleSheet, Image, Text, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Artist } from "@/types/artist";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 
-// Design tokens extraídos do Figma (node 562:5932)
-// Chip selecionado: fill #002D22, radius 20, padding L:4 R:14, gap 10
-// Imagem: 32x32, circular
-// Texto: fontSize 12, fontWeight 500, color #F4FFFC
-// Chip não selecionado: borda #3E3E3E, texto #A9A9A9
+import { AppText } from "@/components/ui";
+import { colors, spacing } from "@/theme";
 
-const COLORS = {
-  chipSelected: "#002D22",
-  chipUnselected: "transparent",
-  chipBorderUnselected: "#3E3E3E",
-  chipBorderSelected: "#00E2A9",
-  chipTextSelected: "#F4FFFC",
-  chipTextUnselected: "#A9A9A9"
-};
+import type { MusicSelection } from "../types";
 
-interface ArtistChipProps {
-  artist: Artist;
+type ArtistChipProps = {
+  artist: MusicSelection;
   selected: boolean;
   onPress: () => void;
-}
+};
 
 export function ArtistChip({ artist, selected, onPress }: ArtistChipProps) {
   return (
-    <TouchableOpacity
+    <Pressable
+      accessibilityLabel={artist.name}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
       onPress={onPress}
-      activeOpacity={0.75}
-      style={[styles.chip, selected ? styles.chipSelected : styles.chipUnselected]}
+      style={({ pressed }) => [
+        styles.chip,
+        selected ? styles.chipSelected : styles.chipUnselected,
+        pressed ? styles.chipPressed : undefined
+      ]}
+      testID={`artist-chip-${artist.id}`}
     >
-      {artist.imageUrl && <Image source={{ uri: artist.imageUrl }} style={styles.avatar} />}
-      <Text
-        style={[styles.label, selected ? styles.labelSelected : styles.labelUnselected]}
+      {artist.imageUrl ? (
+        <Image
+          cachePolicy="memory-disk"
+          contentFit="cover"
+          source={{ uri: artist.imageUrl }}
+          style={styles.avatar}
+          transition={150}
+        />
+      ) : null}
+      <AppText
         numberOfLines={1}
+        style={[styles.label, selected ? styles.labelSelected : styles.labelUnselected]}
+        variant="buttonSmall"
       >
         {artist.name}
-      </Text>
-      {selected && <Ionicons name="checkmark" size={16} color={COLORS.chipBorderSelected} />}
-    </TouchableOpacity>
+      </AppText>
+      {selected ? (
+        <Icon color={colors.primary[500]} size={16} source="check" />
+      ) : null}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  avatar: {
+    borderRadius: 16,
+    height: 32,
+    width: 32
+  },
   chip: {
-    flexDirection: "row",
     alignItems: "center",
-    height: 40,
     borderRadius: 20,
-    paddingLeft: 4,
-    paddingRight: 14,
-    gap: 10
+    flexDirection: "row",
+    gap: spacing[2],
+    height: 40,
+    paddingLeft: spacing[1],
+    paddingRight: spacing[3]
+  },
+  chipPressed: {
+    opacity: 0.8
   },
   chipSelected: {
-    backgroundColor: COLORS.chipSelected,
-    borderWidth: 1,
-    borderColor: COLORS.chipBorderSelected
+    backgroundColor: colors.primary[900],
+    borderColor: colors.primary[500],
+    borderWidth: 1.5
   },
   chipUnselected: {
-    backgroundColor: COLORS.chipUnselected,
-    borderWidth: 1,
-    borderColor: COLORS.chipBorderUnselected
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16
+    backgroundColor: colors.secondary[900],
+    borderColor: colors.secondary[800],
+    borderWidth: 1
   },
   label: {
-    fontSize: 12,
-    fontWeight: "500"
+    letterSpacing: 0.46
   },
   labelSelected: {
-    color: COLORS.chipTextSelected
+    color: colors.primary[100]
   },
   labelUnselected: {
-    color: COLORS.chipTextUnselected
+    color: colors.secondary[100]
   }
 });

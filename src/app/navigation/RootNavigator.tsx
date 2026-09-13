@@ -11,7 +11,6 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { MusicSelection } from "@/features/onboarding";
-import { OnboardingProvider } from "@/features/onboarding/providers/OnboardingContext";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingMusicPreview } from "@/features/onboarding/screens/OnboardingMusicPreview";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -30,7 +29,7 @@ export type RootStackParamList = {
   Login: undefined;
   Onboarding: undefined;
   OnboardingArtists: undefined;
-  OnboardingGenres: { artists: MusicSelection[] } | undefined;
+  OnboardingGenres: undefined;
   OnboardingMusic: { artists: MusicSelection[]; genres: MusicSelection[] };
   OnboardingMusicPreview: undefined;
   PasswordRecovery: undefined;
@@ -119,30 +118,28 @@ function ProfilePlaceholderScreen() {
 
 export function RootNavigator() {
   return (
-    <OnboardingProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
-          <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
-          <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-          <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
-          <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
-          <Stack.Screen name="OnboardingGenres" component={OnboardingGenresPlaceholderScreen} />
-          <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
-          <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
-          <Stack.Screen name="Feed" component={HomeScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Camera" component={CameraScreen} />
-          <Stack.Screen name="Preview" component={PreviewScreen} />
-          <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
-          {__DEV__ ? (
-            <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
-          ) : null}
-          <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </OnboardingProvider>
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="Login" component={LoginPlaceholderScreen} />
+        <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingGenres" component={OnboardingGenresPlaceholderScreen} />
+        <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
+        <Stack.Screen name="Feed" component={HomeScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Camera" component={CameraScreen} />
+        <Stack.Screen name="Preview" component={PreviewScreen} />
+        <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
+        {__DEV__ ? (
+          <Stack.Screen name="OnboardingMusicPreview" component={OnboardingMusicPreview} />
+        ) : null}
+        <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

@@ -40,6 +40,20 @@
     "title": "Recorda"
   },
   "onboarding": {
+    "artists": {
+      "back": "Back",
+      "header": "Artists",
+      "step": "STEP 1 OF 3",
+      "title": "Who is part of your story?",
+      "subtitle": "Choose at least 3 artists to personalize your memories.",
+      "searchPlaceholder": "Search artists",
+      "loading": "Searching artists...",
+      "loadError": "Could not search artists. Check your connection.",
+      "empty": "No artists found.",
+      "selectionCount_one": "1 artist selected",
+      "selectionCount_other": "{{count}} artists selected",
+      "continue": "Next"
+    },
     "music": {
       "header": "Favorite song",
       "back": "Back to genres",

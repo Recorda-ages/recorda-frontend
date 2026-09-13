@@ -1,49 +1,42 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Image } from "expo-image";
+import { StatusBar } from "expo-status-bar";
 import {
-  StyleSheet,
-  ScrollView,
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
   ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
   useWindowDimensions
 } from "react-native";
-import { Image } from "expo-image";
+import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useOnboarding } from "../providers/OnboardingContext";
-import { ArtistChip } from "../components/ArtistChip";
-import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
-import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import type { Artist } from "@/types/artist";
+import { useTranslation } from "react-i18next";
 
-const COLORS = {
-  background: "#151515",
-  surface: "#292929",
-  primary: "#00E2A9",
-  primaryDeep: "#002D22",
-  textPrimary: "#EAEAEA",
-  textSecondary: "#BFBFBF",
-  textOnChip: "#F4FFFC",
-  stepperInactive: "#3E3E3E",
-  neutral400: "#7F7F7F"
-};
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import { AppText } from "@/components/ui";
+import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
+import { colors, fontFamily, spacing } from "@/theme";
+
+import { ArtistChip } from "../components/ArtistChip";
+import { useOnboarding } from "../state/OnboardingContext";
+import type { MusicSelection } from "../types";
 
 const MIN_ARTISTS = 3;
-const TOTAL_STEPS = 3;
 
 export function OnboardingArtistsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { selectedArtists, toggleArtist } = useOnboarding();
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
-  const scale = width / 393;
+  const backgroundScale = width / 393;
+
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  // Debounce de 350 ms — mesmo padrão da OnboardingMusicScreen
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350);
     return () => clearTimeout(timer);
@@ -51,316 +44,338 @@ export function OnboardingArtistsScreen() {
 
   const { data, isFetching, isError } = useArtistSearch(debouncedQuery);
 
-  // Mapeia id: number (musicService) → id: string (tipo Artist do contexto)
-  const results: Artist[] = (data ?? []).map((a) => ({
-    id: String(a.id),
-    name: a.name,
-    imageUrl: a.picture_url ?? undefined
-  }));
+  const results: MusicSelection[] = useMemo(
+    () =>
+      (data ?? []).map((a) => ({
+        id: a.id,
+        name: a.name,
+        imageUrl: a.picture_url ?? undefined
+      })),
+    [data]
+  );
 
   const hasSearched = debouncedQuery.length > 0;
   const canAdvance = selectedArtists.length >= MIN_ARTISTS;
 
-  const displayedArtists = [
-    ...selectedArtists,
-    ...results.filter((r) => !selectedArtists.some((sa) => sa.id === r.id))
-  ];
+  const displayedArtists = useMemo(() => {
+    const selectedIds = new Set(selectedArtists.map((a) => a.id));
+    return [
+      ...selectedArtists,
+      ...results.filter((r) => !selectedIds.has(r.id))
+    ];
+  }, [selectedArtists, results]);
 
   return (
-    <View style={styles.root}>
-      {/* ── Background gradients ─────────────────────────────────────── */}
+    <SafeAreaView style={styles.screen} testID="onboarding-artists-screen">
+      <StatusBar style="light" />
+
+      {/* ── Background Glow ─────────────────────────────────────── */}
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        {[
-          { id: "top-grad", left: -446, top: -468 },
-          { id: "bottom-grad", left: 34, bottom: -271 }
-        ].map((pos) => (
-          <Image
-            key={pos.id}
-            source={require("../assets/gradient-glow.svg")}
-            style={{
-              position: "absolute",
-              width: 894 * scale,
-              height: 894 * scale,
-              left: pos.left * scale,
-              ...(pos.top !== undefined && { top: pos.top * scale }),
-              ...(pos.bottom !== undefined && { bottom: pos.bottom * scale })
-            }}
-          />
-        ))}
+        <Image
+          contentFit="contain"
+          source={require("../assets/gradient-glow.svg")}
+          style={{
+            position: "absolute",
+            width: 894 * backgroundScale,
+            height: 894 * backgroundScale,
+            left: -446 * backgroundScale,
+            top: -468 * backgroundScale
+          }}
+        />
+        <Image
+          contentFit="contain"
+          source={require("../assets/gradient-glow.svg")}
+          style={{
+            position: "absolute",
+            width: 894 * backgroundScale,
+            height: 894 * backgroundScale,
+            right: -535 * backgroundScale,
+            bottom: -271 * backgroundScale
+          }}
+        />
       </View>
 
-      <SafeAreaView style={styles.safeArea}>
-        {/* ── Top Header ──────────────────────────────────────────────── */}
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => {
-              if (navigation.canGoBack()) {
-                navigation.goBack();
-              }
-            }}
-            testID="onboarding-artists-back-button"
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-          >
-            <Ionicons name="chevron-back" size={28} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.topHeaderTitle}>Artistas</Text>
-          <View style={{ width: 40 }} />
+      {/* ── Top Bar ────────────────────────────────────────────── */}
+      <View style={styles.topBar}>
+        <Pressable
+          accessibilityLabel={t("onboarding.artists.back")}
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            }
+          }}
+          style={styles.backButton}
+          testID="onboarding-artists-back-button"
+        >
+          <Icon color={colors.neutrals[100]} size={32} source="chevron-left" />
+        </Pressable>
+        <AppText style={styles.topBarTitle} variant="headline4">
+          {t("onboarding.artists.header")}
+        </AppText>
+        <View style={styles.topBarSpacer} />
+      </View>
+
+      {/* ── Main Content ────────────────────────────────────────── */}
+      <View style={styles.content}>
+        {/* Stepper: Etapa 1 de 3 */}
+        <View style={styles.progress}>
+          <View style={styles.progressActive} />
+          <View style={styles.progressInactive} />
+          <View style={styles.progressInactive} />
         </View>
 
-        {/* ── Stepper ─────────────────────────────────────────────────── */}
-        <View style={styles.stepperRow}>
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <View
-              key={i}
-              style={[styles.stepperBar, i === 0 && { backgroundColor: COLORS.primary }]}
-            />
-          ))}
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={styles.scroll}
+        >
+          <AppText color="primary" style={styles.step} variant="body2">
+            {t("onboarding.artists.step")}
+          </AppText>
 
-        {/* ── Body ────────────────────────────────────────────────────── */}
-        <View style={styles.body}>
-          {/* Header */}
-          <View style={styles.headerSection}>
-            <Text style={styles.etapaLabel}>ETAPA 1 DE 3</Text>
-            <Text style={styles.title}>Quem faz parte da sua história?</Text>
-            <Text style={styles.subtitle}>
-              Escolha pelo menos 3 artistas para personalizar suas recordações.
-            </Text>
+          <View style={styles.description}>
+            <AppText style={styles.title} variant="headline2">
+              {t("onboarding.artists.title")}
+            </AppText>
+            <AppText color="muted" style={styles.subtitle}>
+              {t("onboarding.artists.subtitle")}
+            </AppText>
           </View>
 
           {/* Search bar */}
           <View style={styles.searchBar}>
+            <Icon color={colors.neutrals[400]} size={20} source="magnify" />
             <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar artistas"
-              placeholderTextColor={COLORS.textSecondary}
-              value={query}
+              autoCapitalize="none"
+              autoCorrect={false}
               onChangeText={setQuery}
+              placeholder={t("onboarding.artists.searchPlaceholder")}
+              placeholderTextColor={colors.neutrals[400]}
               returnKeyType="search"
-              selectionColor={COLORS.primary}
+              selectionColor={colors.primary[500]}
+              style={styles.searchInput}
+              value={query}
             />
             {isFetching ? (
-              <ActivityIndicator size="small" color={COLORS.primary} />
-            ) : (
-              <Ionicons name="search" size={20} color={COLORS.textSecondary} />
-            )}
-          </View>
-
-          {/* Results */}
-          <ScrollView
-            contentContainerStyle={styles.chipsContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            <>
-              {displayedArtists.map((artist) => {
-                const isSelected = selectedArtists.some((a) => a.id === artist.id);
-                return (
-                  <ArtistChip
-                    key={artist.id}
-                    artist={artist}
-                    selected={isSelected}
-                    onPress={() => toggleArtist(artist)}
-                  />
-                );
-              })}
-              {isError ? (
-                <Text style={styles.errorText}>
-                  Não foi possível buscar artistas. Verifique sua conexão.
-                </Text>
-              ) : hasSearched && displayedArtists.length === 0 && !isFetching ? (
-                <Text style={styles.emptyText}>Nenhum artista encontrado.</Text>
-              ) : null}
-            </>
-          </ScrollView>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            {selectedArtists.length > 0 ? (
-              <Text style={styles.selectionCount}>
-                {selectedArtists.length} artista{selectedArtists.length !== 1 ? "s" : ""}{" "}
-                selecionado{selectedArtists.length !== 1 ? "s" : ""}
-              </Text>
+              <ActivityIndicator color={colors.primary[500]} size="small" />
             ) : null}
-            <TouchableOpacity
-              style={[styles.button, !canAdvance && styles.buttonDisabled]}
-              disabled={!canAdvance}
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.navigate("OnboardingGenres", {
-                  artists: selectedArtists.map((a) => ({ id: Number(a.id), name: a.name }))
-                });
-              }}
-              testID="onboarding-artists-next-button"
-              accessibilityRole="button"
-              accessibilityLabel="Próximo"
-            >
-              <Text style={[styles.buttonLabel, !canAdvance && styles.buttonLabelDisabled]}>
-                Próximo
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color={!canAdvance ? COLORS.neutral400 : COLORS.primary}
-              />
-            </TouchableOpacity>
           </View>
+
+          {/* Chips grid */}
+          <View style={styles.grid}>
+            {displayedArtists.map((artist) => {
+              const isSelected = selectedArtists.some((a) => a.id === artist.id);
+              return (
+                <ArtistChip
+                  artist={artist}
+                  key={artist.id}
+                  onPress={() => toggleArtist(artist)}
+                  selected={isSelected}
+                />
+              );
+            })}
+          </View>
+
+          {isError ? (
+            <AppText style={[styles.statusMessage, styles.errorMessage]} variant="body2">
+              {t("onboarding.artists.loadError")}
+            </AppText>
+          ) : hasSearched && displayedArtists.length === 0 && !isFetching ? (
+            <AppText color="muted" style={styles.statusMessage} variant="body2">
+              {t("onboarding.artists.empty")}
+            </AppText>
+          ) : null}
+        </ScrollView>
+
+        {/* ── Footer ────────────────────────────────────────────── */}
+        <View style={styles.footer}>
+          {selectedArtists.length > 0 ? (
+            <AppText color="muted" style={styles.selectionCount} variant="body2">
+              {t("onboarding.artists.selectionCount", { count: selectedArtists.length })}
+            </AppText>
+          ) : null}
+
+          <Pressable
+            accessibilityLabel={t("onboarding.artists.continue")}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canAdvance }}
+            disabled={!canAdvance}
+            onPress={() => navigation.navigate("OnboardingGenres")}
+            style={({ pressed }) => [
+              styles.continueButton,
+              !canAdvance
+                ? styles.continueButtonDisabled
+                : styles.continueButtonEnabled,
+              pressed ? styles.continueButtonPressed : undefined
+            ]}
+            testID="onboarding-artists-next-button"
+          >
+            <View style={styles.continueContent}>
+              <AppText
+                style={
+                  !canAdvance
+                    ? styles.continueLabelDisabled
+                    : styles.continueLabelEnabled
+                }
+                variant="buttonLarge"
+              >
+                {t("onboarding.artists.continue")}
+              </AppText>
+              <Icon
+                color={!canAdvance ? colors.neutrals[400] : colors.primary[500]}
+                size={24}
+                source="chevron-right"
+              />
+            </View>
+          </Pressable>
         </View>
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: COLORS.background
-  },
-  safeArea: {
-    flex: 1,
-    zIndex: 1
-  },
-
-  // Top Header
-  topHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingVertical: 12
-  },
   backButton: {
-    padding: 8,
-    width: 40
+    alignItems: "flex-start",
+    justifyContent: "center",
+    width: 48
   },
-  topHeaderTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.textPrimary
-  },
-
-  // Stepper
-  stepperRow: {
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 8
-  },
-  stepperBar: {
+  content: {
     flex: 1,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.stepperInactive
+    paddingBottom: spacing[6],
+    paddingHorizontal: spacing[4]
   },
-
-  // Body
-  body: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    gap: 16
-  },
-
-  // Header
-  headerSection: {
-    gap: 8,
-    marginTop: 16
-  },
-  etapaLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.primary,
-    letterSpacing: 0.5
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "600",
-    color: COLORS.textPrimary,
-    lineHeight: 37
-  },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: "400",
-    color: COLORS.textSecondary,
-    lineHeight: 22
-  },
-
-  // Search
-  searchBar: {
-    flexDirection: "row",
+  continueButton: {
     alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    height: 56,
-    gap: 8
+    backgroundColor: "rgba(0, 226, 169, 0.05)",
+    borderRadius: 100,
+    borderWidth: 1.5,
+    justifyContent: "center",
+    minHeight: 58,
+    width: "100%"
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "400",
-    color: COLORS.textPrimary
+  continueButtonDisabled: {
+    borderColor: colors.neutrals[400]
   },
-
-  // Chips area
-  chipsContainer: {
+  continueButtonEnabled: {
+    borderColor: colors.primary[500]
+  },
+  continueButtonPressed: {
+    opacity: 0.82
+  },
+  continueContent: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[2]
+  },
+  continueLabelDisabled: {
+    color: colors.neutrals[400],
+    lineHeight: 26
+  },
+  continueLabelEnabled: {
+    color: colors.primary[500],
+    lineHeight: 26
+  },
+  description: {
+    gap: spacing[2]
+  },
+  footer: {
+    gap: spacing[2],
+    justifyContent: "flex-end",
+    paddingTop: spacing[4]
+  },
+  grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8
+    gap: spacing[2],
+    marginTop: spacing[4]
   },
-  loader: {
-    marginTop: 24,
-    alignSelf: "center"
+  progress: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: spacing[4]
   },
-  emptyText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 24,
+  progressActive: {
+    backgroundColor: colors.primary[500],
+    borderRadius: 2,
+    flex: 1,
+    height: 4
+  },
+  progressInactive: {
+    backgroundColor: colors.primary[800],
+    borderRadius: 2,
+    flex: 1,
+    height: 4
+  },
+  screen: {
+    backgroundColor: colors.neutrals[900],
+    flex: 1,
+    overflow: "hidden"
+  },
+  scroll: {
     flex: 1
   },
-  errorText: {
-    color: "#FF6B6B",
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 24,
-    flex: 1
+  scrollContent: {
+    paddingBottom: spacing[4]
   },
-
-  // Footer
-  footer: {
-    gap: 8,
-    marginTop: "auto"
+  searchBar: {
+    alignItems: "center",
+    backgroundColor: colors.neutrals[800],
+    borderColor: colors.neutrals[700],
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing[2],
+    height: 48,
+    marginTop: spacing[4],
+    paddingHorizontal: spacing[3]
+  },
+  searchInput: {
+    color: colors.neutrals[100],
+    flex: 1,
+    fontFamily: fontFamily.primary.regular,
+    fontSize: 14,
+    height: "100%"
   },
   selectionCount: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.primary,
     textAlign: "center"
   },
-  button: {
-    height: 58,
-    borderRadius: 100,
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    flexDirection: "row",
+  errorMessage: {
+    color: colors.error[300]
+  },
+  statusMessage: {
+    marginTop: spacing[4],
+    textAlign: "center"
+  },
+  step: {
+    letterSpacing: 0.15,
+    lineHeight: 18,
+    marginBottom: spacing[4]
+  },
+  subtitle: {
+    letterSpacing: 0.15,
+    lineHeight: 21
+  },
+  title: {
+    color: colors.neutrals[100],
+    fontFamily: fontFamily.primary.semiBold,
+    lineHeight: 37
+  },
+  topBar: {
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8
+    flexDirection: "row",
+    height: 64,
+    justifyContent: "space-between",
+    paddingHorizontal: spacing[4]
   },
-  buttonDisabled: {
-    borderColor: COLORS.neutral400
+  topBarSpacer: {
+    width: 48
   },
-  buttonLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    lineHeight: 26,
-    letterSpacing: 0.46,
-    color: COLORS.primary
-  },
-  buttonLabelDisabled: {
-    color: COLORS.neutral400
+  topBarTitle: {
+    color: colors.neutrals[100],
+    fontWeight: "600"
   }
 });
