@@ -52,7 +52,12 @@ export function SignInScreen() {
         username: values.username.trim()
       });
 
-      const destination = response.user.account_type === "admin" ? "Admin" : "Feed";
+      const destination =
+        response.user.account_type === "admin"
+          ? "Admin"
+          : response.user.onboarding_completed
+            ? "Feed"
+            : "Onboarding";
 
       navigation.reset({
         index: 0,

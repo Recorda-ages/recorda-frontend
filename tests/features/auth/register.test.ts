@@ -42,26 +42,11 @@ describe("registerUser API", () => {
     expect(result).toEqual(mockResponse);
   });
 
-  it("falls back to mock response in development when API returns 404", async () => {
-    (apiClient.post as jest.Mock).mockRejectedValueOnce(
-      new ApiError("NOT_FOUND", "Endpoint not found", 404, null)
-    );
-
-    const result = await registerUser({
-      email: "test@example.com",
-      name: "Test User",
-      password: "password123",
-      username: "testuser"
+  it("propagates ApiError when registration fails", async () => {
+    const error = new ApiError("CONFLICT", "O nome de usuário já está em uso.", 409, {
+      fields: [{ field: "username", message: "Este usuário já está cadastrado." }]
     });
-
-    expect(result.access_token).toContain("mock_jwt_token_");
-    expect(result.user.username).toBe("testuser");
-  });
-
-  it("throws conflict error in dev mock when username is 'duplicado'", async () => {
-    (apiClient.post as jest.Mock).mockRejectedValueOnce(
-      new ApiError("NOT_FOUND", "Endpoint not found", 404, null)
-    );
+    (apiClient.post as jest.Mock).mockRejectedValueOnce(error);
 
     await expect(
       registerUser({
@@ -70,40 +55,10 @@ describe("registerUser API", () => {
         password: "password123",
         username: "duplicado"
       })
-    ).rejects.toThrow(ApiError);
+    ).rejects.toThrow(error);
   });
 
-  it("throws conflict error in dev mock when email is 'duplicado@example.com'", async () => {
-    (apiClient.post as jest.Mock).mockRejectedValueOnce(
-      new ApiError("NOT_FOUND", "Endpoint not found", 404, null)
-    );
-
-    await expect(
-      registerUser({
-        email: "duplicado@example.com",
-        name: "Test User",
-        password: "password123",
-        username: "testuser"
-      })
-    ).rejects.toThrow(ApiError);
-  });
-
-  it("throws 500 error in dev mock when email is 'erro@example.com'", async () => {
-    (apiClient.post as jest.Mock).mockRejectedValueOnce(
-      new ApiError("NOT_FOUND", "Endpoint not found", 404, null)
-    );
-
-    await expect(
-      registerUser({
-        email: "erro@example.com",
-        name: "Test User",
-        password: "password123",
-        username: "testuser"
-      })
-    ).rejects.toThrow(ApiError);
-  });
-
-  it("rethrows unhandled errors if not dev fallback", async () => {
+  it("rethrows unhandled errors", async () => {
     (apiClient.post as jest.Mock).mockRejectedValueOnce(new Error("Unexpected error"));
 
     await expect(

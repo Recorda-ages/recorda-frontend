@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
@@ -52,8 +52,12 @@ export function OnboardingArtistsScreen() {
     setSelectedArtists((currentArtists) =>
       currentArtists.some((selectedArtist) => selectedArtist.id === artist.id)
         ? currentArtists.filter((selectedArtist) => selectedArtist.id !== artist.id)
-        : [...currentArtists, { id: artist.id, name: artist.name }]
+        : [
+            ...currentArtists,
+            { id: artist.id, name: artist.name, pictureUrl: artist.pictureUrl }
+          ]
     );
+    setQuery("");
   };
 
   const goBack = () => {
@@ -93,6 +97,18 @@ export function OnboardingArtistsScreen() {
         />
         {search.isFetching ? (
           <ActivityIndicator color={colors.primary[500]} size="small" />
+        ) : query.length > 0 ? (
+          <Pressable
+            accessibilityLabel="Limpar busca"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => {
+              setQuery("");
+              setDebouncedQuery("");
+            }}
+          >
+            <Icon color={colors.neutrals[200]} size={20} source="close-circle" />
+          </Pressable>
         ) : (
           <Icon color={colors.neutrals[200]} size={24} source="magnify" />
         )}

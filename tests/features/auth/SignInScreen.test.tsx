@@ -109,6 +109,7 @@ describe("SignInScreen", () => {
       user: {
         account_type: "common",
         id: 1,
+        onboarding_completed: true,
         username: "eduardo"
       }
     });
@@ -136,6 +137,37 @@ describe("SignInScreen", () => {
     expect(navigation.reset).toHaveBeenCalledWith({
       index: 0,
       routes: [{ name: "Feed" }]
+    });
+  });
+
+  it("logs in a common account without completed onboarding and redirects to Onboarding", async () => {
+    jest.spyOn(signInApi, "signInUser").mockResolvedValueOnce({
+      access_token: "jwt_common",
+      token_type: "bearer",
+      user: {
+        account_type: "common",
+        id: 1,
+        onboarding_completed: false,
+        username: "eduardo"
+      }
+    });
+
+    const navigation = renderSignInScreen();
+
+    fireEvent.changeText(screen.getByTestId("input-username"), "eduardo");
+    fireEvent.changeText(screen.getByTestId("input-password"), "senha123");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("submit-button")).toBeEnabled();
+    });
+
+    fireEvent.press(screen.getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(navigation.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: "Onboarding" }]
+      });
     });
   });
 

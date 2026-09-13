@@ -8,6 +8,7 @@ export type SignInRequest = {
 export type UserBasicResponse = {
   account_type: string;
   id: number;
+  onboarding_completed?: boolean;
   username: string;
 };
 

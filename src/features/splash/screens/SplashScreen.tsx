@@ -18,13 +18,16 @@ import { fontFamily } from "@/theme/typography";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Splash">;
 
-type SplashDestination = "Admin" | "Feed" | "Login";
+type SplashDestination = "Admin" | "Feed" | "Login" | "Onboarding";
 
 export const AUTH_TOKEN_KEY = "auth_token";
 export const SPLASH_TIMEOUT_MS = 3000;
 
 function getSessionDestination(user: CurrentUser): SplashDestination {
-  return user.account_type === "admin" ? "Admin" : "Feed";
+  if (user.account_type === "admin") {
+    return "Admin";
+  }
+  return user.onboarding_completed ? "Feed" : "Onboarding";
 }
 
 export function SplashScreen() {

@@ -9,6 +9,7 @@ export type MusicTrack = {
 export type MusicSelection = {
   id: number;
   name: string;
+  pictureUrl?: string;
 };
 
 export type MusicPreferences = {

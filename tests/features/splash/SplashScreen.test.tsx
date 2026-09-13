@@ -70,15 +70,29 @@ describe("SplashScreen", () => {
     expect(getCurrentUser).not.toHaveBeenCalled();
   });
 
-  it("navigates to Feed when user is regular account", async () => {
+  it("navigates to Feed when user is regular account with completed onboarding", async () => {
     mockGetItem.mockResolvedValueOnce("valid-token");
-    const user = { account_type: "common", id: 1, username: "gabriel" };
+    const user = { account_type: "common", id: 1, username: "gabriel", onboarding_completed: true };
     mockGetCurrentUser.mockResolvedValueOnce(user);
 
     render(<SplashScreen />);
 
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith("Feed");
+    });
+    expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
+    expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
+  });
+
+  it("navigates to Onboarding when user is regular account without completed onboarding", async () => {
+    mockGetItem.mockResolvedValueOnce("valid-token");
+    const user = { account_type: "common", id: 1, username: "gabriel", onboarding_completed: false };
+    mockGetCurrentUser.mockResolvedValueOnce(user);
+
+    render(<SplashScreen />);
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("Onboarding");
     });
     expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);

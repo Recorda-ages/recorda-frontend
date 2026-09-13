@@ -139,4 +139,29 @@ describe("OnboardingArtistsScreen", () => {
       await screen.findByText("Não foi possível buscar artistas. Verifique sua conexão.")
     ).toBeTruthy();
   });
+
+  it("clears search input text when an artist card is selected", async () => {
+    renderScreen();
+
+    const searchInput = screen.getByLabelText("Buscar artistas");
+    fireEvent.changeText(searchInput, "legiao");
+
+    await waitFor(() => expect(screen.getByText("Legião Urbana")).toBeTruthy());
+
+    fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
+
+    expect(searchInput.props.value).toBe("");
+  });
+
+  it("clears search input when clear button is pressed", async () => {
+    renderScreen();
+
+    const searchInput = screen.getByLabelText("Buscar artistas");
+    fireEvent.changeText(searchInput, "anitta");
+
+    const clearButton = await screen.findByLabelText("Limpar busca");
+    fireEvent.press(clearButton);
+
+    expect(searchInput.props.value).toBe("");
+  });
 });
