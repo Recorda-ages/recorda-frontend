@@ -1,8 +1,10 @@
+export type UserRole = "ADMIN" | "USER";
+
 export type UserBasicResponse = {
-  account_type: string;
-  id: number;
   name: string;
   onboarding_completed: boolean;
+  role: UserRole;
+  user_id: string;
   username: string;
 };
 

@@ -107,8 +107,8 @@ describe("SignInScreen", () => {
       access_token: "jwt_common",
       token_type: "bearer",
       user: {
-        account_type: "common",
-        id: 1,
+        role: "USER",
+        user_id: "user-1",
         name: "Eduardo",
         onboarding_completed: true,
         username: "eduardo"
@@ -134,7 +134,7 @@ describe("SignInScreen", () => {
     });
 
     expect(secureStorage.setItem).toHaveBeenCalledWith("auth_token", "jwt_common");
-    expect(secureStorage.setItem).toHaveBeenCalledWith("account_type", "common");
+    expect(secureStorage.setItem).toHaveBeenCalledWith("role", "USER");
     expect(navigation.reset).toHaveBeenCalledWith({
       index: 0,
       routes: [{ name: "Feed" }]
@@ -146,8 +146,8 @@ describe("SignInScreen", () => {
       access_token: "jwt_common",
       token_type: "bearer",
       user: {
-        account_type: "common",
-        id: 1,
+        role: "USER",
+        user_id: "user-1",
         name: "Eduardo",
         onboarding_completed: false,
         username: "eduardo"
@@ -178,8 +178,8 @@ describe("SignInScreen", () => {
       access_token: "jwt_admin",
       token_type: "bearer",
       user: {
-        account_type: "admin",
-        id: 2,
+        role: "ADMIN",
+        user_id: "user-2",
         name: "Admin",
         onboarding_completed: false,
         username: "admin"

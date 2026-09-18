@@ -149,15 +149,16 @@ describe("RecordaMusicScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("maps a track without keeping the temporary preview url", () => {
+  it("maps a track keeping its preview url", () => {
     expect(toDraftSong(tracks[0])).toEqual({
       artistName: "Legião Urbana",
       coverUrl: "https://cdn/dois.jpg",
       deezerTrackId: "916424",
-      previewUrl: null,
+      previewUrl: "https://cdn/preview.mp3",
       title: "Tempo Perdido"
     });
     expect(toDraftSong(tracks[1]).coverUrl).toBe("");
+    expect(toDraftSong(tracks[1]).previewUrl).toBeNull();
   });
 
   it("renders the preview card even before the media is available", async () => {

@@ -28,7 +28,10 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
   const toggleGenre = (genre: Genre) => {
     const nextGenres = selectedGenreIds.includes(genre.id)
       ? selectedGenres.filter((selectedGenre) => selectedGenre.id !== genre.id)
-      : [...selectedGenres, { id: genre.id, name: genre.name }];
+      : [
+          ...selectedGenres,
+          { id: genre.id, name: genre.name, pictureUrl: genre.picture_url ?? undefined }
+        ];
 
     onSelectedGenresChange(nextGenres);
   };

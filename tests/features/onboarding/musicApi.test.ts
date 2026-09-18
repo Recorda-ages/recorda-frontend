@@ -67,7 +67,7 @@ it("sends the three steps as the backend music preferences payload", async () =>
 
   await saveMusicPreferences({
     artists: [
-      { id: 10, name: "Legião Urbana" },
+      { id: 10, name: "Legião Urbana", pictureUrl: "https://cdn/legiao.jpg" },
       { id: 20, name: "Tribalistas" },
       { id: 30, name: "Toquinho" }
     ],
@@ -76,7 +76,13 @@ it("sends the three steps as the backend music preferences payload", async () =>
       { id: 116, name: "Rap" },
       { id: 132, name: "Pop" }
     ],
-    track: { id: 916424, title: "Tempo Perdido", artist: "Legião Urbana" }
+    track: {
+      id: 916424,
+      title: "Tempo Perdido",
+      artist: "Legião Urbana",
+      artworkUrl: "https://cdn/cover.jpg",
+      previewUrl: "https://cdn/preview.mp3"
+    }
   });
 
   const [url, init] = fetchMock.mock.calls[0] ?? [];
@@ -85,15 +91,41 @@ it("sends the three steps as the backend music preferences payload", async () =>
   expect(init.headers.Authorization).toBe("Bearer token-123");
   expect(JSON.parse(init.body)).toEqual({
     artists: [
-      { deezer_id: 10, name: "Legião Urbana" },
-      { deezer_id: 20, name: "Tribalistas" },
-      { deezer_id: 30, name: "Toquinho" }
+      { deezer_id: 10, name: "Legião Urbana", picture_url: "https://cdn/legiao.jpg" },
+      { deezer_id: 20, name: "Tribalistas", picture_url: null },
+      { deezer_id: 30, name: "Toquinho", picture_url: null }
     ],
     genres: [
-      { deezer_id: 152, name: "Rock" },
-      { deezer_id: 116, name: "Rap" },
-      { deezer_id: 132, name: "Pop" }
+      { deezer_id: 152, name: "Rock", picture_url: null },
+      { deezer_id: 116, name: "Rap", picture_url: null },
+      { deezer_id: 132, name: "Pop", picture_url: null }
     ],
-    favorite_track: { deezer_id: 916424, name: "Tempo Perdido" }
+    favorite_track: {
+      deezer_id: 916424,
+      title: "Tempo Perdido",
+      artist_name: "Legião Urbana",
+      cover_url: "https://cdn/cover.jpg",
+      preview_url: "https://cdn/preview.mp3"
+    }
+  });
+});
+
+it("sends an empty cover and null preview when the favorite track has none", async () => {
+  fetchMock.mockResolvedValue(jsonResponse({ onboarding_completed: true }));
+  const selection = { id: 1, name: "X" };
+
+  await saveMusicPreferences({
+    artists: [selection],
+    genres: [selection],
+    track: { id: 1, title: "Evidências", artist: "Chitãozinho & Xororó" }
+  });
+
+  const [, init] = fetchMock.mock.calls[0] ?? [];
+  expect(JSON.parse(init.body).favorite_track).toEqual({
+    deezer_id: 1,
+    title: "Evidências",
+    artist_name: "Chitãozinho & Xororó",
+    cover_url: "",
+    preview_url: null
   });
 });

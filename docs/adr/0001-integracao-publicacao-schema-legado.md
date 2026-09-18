@@ -1,5 +1,7 @@
 # Integração da publicação de Recorda contra o schema legado (Sprint 1)
 
+> **Status:** substituído pelo [ADR 0002](./0002-contrato-do-diagrama-do-banco.md).
+
 O frontend já implementa o Fluxo de Publicação (US9) contra o payload rico do Modelo v3 (`deezer_track_id`, `song_title`, `song_artist_name`, `song_cover_url`, `song_preview_url`), mas o backend em `dev`/`main` só tem o Schema legado da Recorda (`midia`, `music`, `description`, `data`) — o Modelo v3 só existe implementado na branch `feat/008-recorda-table`, ainda não mergeada. Para fechar a US9 na Sprint 1 sem esperar a migração do banco (planejada para a Sprint 2), decidimos adaptar o payload rico para o Schema legado na borda da API (`recordaPublishApi.ts`), preservando a estrutura rica internamente no frontend: `midia` recebe a URL retornada pelo upload de mídia, `music` recebe somente o `song_title`. Os demais campos do snapshot musical (`deezer_track_id`, artista, capa, preview) não são enviados nem persistidos nesta etapa — decidimos não concatená-los em `music` para manter o campo limpo.
 
 ## Consequências

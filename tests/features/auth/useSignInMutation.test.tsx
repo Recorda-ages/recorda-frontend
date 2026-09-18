@@ -42,8 +42,8 @@ describe("useSignInMutation", () => {
       access_token: "jwt_login_token",
       token_type: "bearer",
       user: {
-        account_type: "admin",
-        id: 1,
+        role: "ADMIN",
+        user_id: "user-1",
         name: "Admin",
         onboarding_completed: false,
         username: "admin"
@@ -62,9 +62,9 @@ describe("useSignInMutation", () => {
     });
 
     expect(secureStorage.setItem).toHaveBeenCalledWith("auth_token", "jwt_login_token");
-    expect(secureStorage.setItem).toHaveBeenCalledWith("account_type", "admin");
+    expect(secureStorage.setItem).toHaveBeenCalledWith("role", "ADMIN");
     expect(appQueryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(
-      expect.objectContaining({ account_type: "admin", username: "admin" })
+      expect.objectContaining({ role: "ADMIN", username: "admin" })
     );
   });
 

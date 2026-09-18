@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
-import { ACCOUNT_TYPE_KEY } from "@/features/auth/session";
+import { ROLE_KEY } from "@/features/auth/session";
 import { SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { ApiError } from "@/services/api/errors";
@@ -74,7 +74,12 @@ describe("SplashScreen", () => {
 
   it("navigates to Feed when user is regular account with completed onboarding", async () => {
     mockGetItem.mockResolvedValueOnce("valid-token");
-    const user = { account_type: "common", id: 1, username: "gabriel", onboarding_completed: true };
+    const user = {
+      role: "USER",
+      user_id: "user-1",
+      username: "gabriel",
+      onboarding_completed: true
+    };
     mockGetCurrentUser.mockResolvedValueOnce(user);
 
     render(<SplashScreen />);
@@ -89,8 +94,8 @@ describe("SplashScreen", () => {
   it("navigates to the first onboarding step when user has not completed onboarding", async () => {
     mockGetItem.mockResolvedValueOnce("valid-token");
     const user = {
-      account_type: "common",
-      id: 1,
+      role: "USER",
+      user_id: "user-1",
       username: "gabriel",
       onboarding_completed: false
     };
@@ -107,7 +112,11 @@ describe("SplashScreen", () => {
 
   it("navigates to Admin when user has admin account type", async () => {
     mockGetItem.mockResolvedValueOnce("valid-token");
-    mockGetCurrentUser.mockResolvedValueOnce({ account_type: "admin", id: 2, username: "admin" });
+    mockGetCurrentUser.mockResolvedValueOnce({
+      role: "ADMIN",
+      user_id: "user-2",
+      username: "admin"
+    });
 
     render(<SplashScreen />);
 
@@ -119,8 +128,8 @@ describe("SplashScreen", () => {
   it("clears session and navigates to Login when token is invalid", async () => {
     mockGetItem.mockResolvedValueOnce("bad-token");
     queryClient.setQueryData(AUTH_ME_QUERY_KEY, {
-      account_type: "common",
-      id: 1,
+      role: "USER",
+      user_id: "user-1",
       username: "gabriel"
     });
     mockGetCurrentUser.mockRejectedValueOnce(
@@ -131,14 +140,14 @@ describe("SplashScreen", () => {
 
     await waitFor(() => {
       expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
-      expect(secureStorage.removeItem).toHaveBeenCalledWith(ACCOUNT_TYPE_KEY);
+      expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
       expect(mockReplace).toHaveBeenCalledWith("Login");
     });
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
   });
 
   it("navigates to Login on 3-second timeout and ignores subsequent backend responses", async () => {
-    const delayedUser = createDeferred<{ account_type: string; id: number; username: string }>();
+    const delayedUser = createDeferred<{ role: string; user_id: string; username: string }>();
     mockGetItem.mockResolvedValueOnce("valid-token");
     mockGetCurrentUser.mockReturnValueOnce(delayedUser.promise);
 
@@ -156,7 +165,7 @@ describe("SplashScreen", () => {
     );
     expect(mockReplace).toHaveBeenCalledTimes(1);
 
-    delayedUser.resolve({ account_type: "admin", id: 2, username: "admin" });
+    delayedUser.resolve({ role: "ADMIN", user_id: "user-2", username: "admin" });
     await Promise.resolve();
     await Promise.resolve();
 

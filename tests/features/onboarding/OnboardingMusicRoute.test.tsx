@@ -70,8 +70,8 @@ beforeEach(() => {
 
 it("submits the selections kept in the onboarding state and lands on the feed", async () => {
   appQueryClient.setQueryData(AUTH_ME_QUERY_KEY, {
-    account_type: "common",
-    id: 1,
+    role: "USER",
+    user_id: "user-1",
     name: "Gabriel",
     onboarding_completed: false,
     username: "gabriel"

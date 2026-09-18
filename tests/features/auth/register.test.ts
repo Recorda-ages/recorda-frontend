@@ -18,8 +18,8 @@ describe("registerUser API", () => {
       access_token: "mock-token",
       token_type: "bearer",
       user: {
-        account_type: "common",
-        id: 1,
+        role: "USER",
+        user_id: "user-1",
         username: "eduardo"
       }
     };

@@ -2,7 +2,8 @@ import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import type { UserBasicResponse } from "@/features/auth/api/types";
 import {
-  ACCOUNT_TYPE_KEY,
+  LEGACY_ACCOUNT_TYPE_KEY,
+  ROLE_KEY,
   clearSession,
   getPostAuthDestination,
   markOnboardingCompleted,
@@ -21,8 +22,8 @@ jest.mock("@/services/storage", () => ({
 
 function buildUser(overrides: Partial<UserBasicResponse> = {}): UserBasicResponse {
   return {
-    account_type: "common",
-    id: 1,
+    role: "USER",
+    user_id: "user-1",
     name: "Gabriel",
     onboarding_completed: false,
     username: "gabriel",
@@ -42,7 +43,7 @@ describe("auth session", () => {
     await saveSession({ access_token: "jwt", token_type: "bearer", user });
 
     expect(secureStorage.setItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY, "jwt");
-    expect(secureStorage.setItem).toHaveBeenCalledWith(ACCOUNT_TYPE_KEY, "common");
+    expect(secureStorage.setItem).toHaveBeenCalledWith(ROLE_KEY, "USER");
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
   });
 
@@ -53,12 +54,13 @@ describe("auth session", () => {
     await expect(clearSession()).resolves.toBeUndefined();
 
     expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
-    expect(secureStorage.removeItem).toHaveBeenCalledWith(ACCOUNT_TYPE_KEY);
+    expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
+    expect(secureStorage.removeItem).toHaveBeenCalledWith(LEGACY_ACCOUNT_TYPE_KEY);
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
   });
 
   it.each([
-    [buildUser({ account_type: "admin" }), "Admin"],
+    [buildUser({ role: "ADMIN" }), "Admin"],
     [buildUser({ onboarding_completed: true }), "Feed"],
     [buildUser({ onboarding_completed: false }), "OnboardingArtists"]
   ])("routes %o to %s", (user, destination) => {
