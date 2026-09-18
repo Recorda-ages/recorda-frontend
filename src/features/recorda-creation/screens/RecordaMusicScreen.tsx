@@ -34,7 +34,7 @@ export function toDraftSong(track: Track): RecordaDraftSong {
     artistName: track.artist,
     coverUrl: track.cover_url ?? "",
     deezerTrackId: String(track.id),
-    previewUrl: null,
+    previewUrl: track.preview_url,
     title: track.title
   };
 }

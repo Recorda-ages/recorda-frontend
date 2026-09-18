@@ -40,8 +40,8 @@ describe("useSignUpMutation", () => {
       access_token: "jwt_token_abc",
       token_type: "bearer",
       user: {
-        account_type: "common",
-        id: 1,
+        role: "USER",
+        user_id: "user-1",
         name: "Eduardo",
         onboarding_completed: false,
         username: "eduardo"
@@ -62,7 +62,7 @@ describe("useSignUpMutation", () => {
     });
 
     expect(secureStorage.setItem).toHaveBeenCalledWith("auth_token", "jwt_token_abc");
-    expect(secureStorage.setItem).toHaveBeenCalledWith("account_type", "common");
+    expect(secureStorage.setItem).toHaveBeenCalledWith("role", "USER");
   });
 
   it("does not store token if mutation fails", async () => {

@@ -33,14 +33,15 @@ export type CreateRecordaPayload = {
 };
 
 export type CreateRecordaResult = {
-  data: string | null;
-  deezer_track_id: string | null;
+  created_at: string;
+  deezer_track_id: string;
   description: string | null;
-  id: number;
-  media_type: string | null;
-  midia: string | null;
-  music: string | null;
-  song_artist_name: string | null;
-  song_cover_url: string | null;
-  user_id: number | null;
+  media_type: MediaType;
+  media_url: string;
+  recorda_id: string;
+  song_artist_name: string;
+  song_cover_url: string;
+  song_preview_url: string | null;
+  song_title: string;
+  user_id: string;
 };

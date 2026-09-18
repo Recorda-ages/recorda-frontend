@@ -3,6 +3,7 @@ export type MusicTrack = {
   title: string;
   artist: string;
   artworkUrl?: string;
+  previewUrl?: string;
 };
 
 // A genre or artist chosen in steps 1 and 2. `id` is the Deezer id the backend stores.

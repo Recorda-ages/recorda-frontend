@@ -20,10 +20,11 @@ type CreateRecordaApiPayload = {
   deezer_track_id: string;
   description?: string;
   media_type: CreateRecordaPayload["mediaType"];
-  midia: string;
-  music: string;
+  media_url: string;
   song_artist_name: string;
-  song_cover_url: string | null;
+  song_cover_url: string;
+  song_preview_url: string | null;
+  song_title: string;
 };
 
 export async function uploadRecordaMedia(
@@ -52,10 +53,11 @@ export async function createRecorda(payload: CreateRecordaPayload): Promise<Crea
     deezer_track_id: payload.song.deezerTrackId,
     description: payload.description,
     media_type: payload.mediaType,
-    midia: payload.mediaUrl,
-    music: payload.song.title,
+    media_url: payload.mediaUrl,
     song_artist_name: payload.song.artistName,
-    song_cover_url: payload.song.coverUrl || null
+    song_cover_url: payload.song.coverUrl,
+    song_preview_url: payload.song.previewUrl ?? null,
+    song_title: payload.song.title
   };
 
   return authApiClient.post<CreateRecordaResult>("/recordas", body);

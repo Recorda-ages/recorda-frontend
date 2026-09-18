@@ -92,7 +92,7 @@ describe("recordaPublishApi", () => {
     };
 
     it("sends the media link, media type and song snapshot", async () => {
-      mockedPost.mockResolvedValueOnce({ id: 1 });
+      mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
 
       await createRecorda({ ...payload, description: "legenda opcional" });
 
@@ -100,33 +100,44 @@ describe("recordaPublishApi", () => {
         deezer_track_id: "12345",
         description: "legenda opcional",
         media_type: "PHOTO",
-        midia: "/api/v1/recordas/media/abc.jpg",
-        music: "Song Title",
+        media_url: "/api/v1/recordas/media/abc.jpg",
         song_artist_name: "Artist",
-        song_cover_url: "https://cdn.example.com/cover.jpg"
+        song_cover_url: "https://cdn.example.com/cover.jpg",
+        song_preview_url: "https://cdn.example.com/preview.mp3",
+        song_title: "Song Title"
       });
     });
 
-    it("never sends the temporary preview url", async () => {
-      mockedPost.mockResolvedValueOnce({ id: 1 });
+    it("never sends the legacy midia and music fields", async () => {
+      mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
 
       await createRecorda(payload);
 
       const [, body] = mockedPost.mock.calls[0] as [string, Record<string, unknown>];
-      expect(JSON.stringify(body)).not.toContain("preview");
+      expect(body).not.toHaveProperty("midia");
+      expect(body).not.toHaveProperty("music");
     });
 
-    it("sends a null cover when the song has none", async () => {
-      mockedPost.mockResolvedValueOnce({ id: 1 });
+    it("sends a null preview when the song has none", async () => {
+      mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
+
+      await createRecorda({ ...payload, song: { ...payload.song, previewUrl: undefined } });
+
+      const [, body] = mockedPost.mock.calls[0] as [string, { song_preview_url: string | null }];
+      expect(body.song_preview_url).toBeNull();
+    });
+
+    it("sends an empty cover when the song has none", async () => {
+      mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
 
       await createRecorda({ ...payload, song: { ...payload.song, coverUrl: "" } });
 
-      const [, body] = mockedPost.mock.calls[0] as [string, { song_cover_url: string | null }];
-      expect(body.song_cover_url).toBeNull();
+      const [, body] = mockedPost.mock.calls[0] as [string, { song_cover_url: string }];
+      expect(body.song_cover_url).toBe("");
     });
 
     it("leaves description undefined when it is not provided", async () => {
-      mockedPost.mockResolvedValueOnce({ id: 1 });
+      mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
 
       await createRecorda(payload);
 
@@ -135,7 +146,7 @@ describe("recordaPublishApi", () => {
     });
 
     it("resolves with the created recorda", async () => {
-      const backendResponse = { id: 7, user_id: 1 };
+      const backendResponse = { recorda_id: "recorda-7", user_id: "user-1" };
       mockedPost.mockResolvedValueOnce(backendResponse);
 
       await expect(createRecorda(payload)).resolves.toBe(backendResponse);

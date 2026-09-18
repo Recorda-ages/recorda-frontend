@@ -10,7 +10,8 @@ export async function searchTracks(query: string, signal: AbortSignal): Promise<
     id: track.id,
     title: track.title,
     artist: track.artist,
-    artworkUrl: track.cover_url ?? undefined
+    artworkUrl: track.cover_url ?? undefined,
+    previewUrl: track.preview_url ?? undefined
   }));
 }
 
@@ -18,10 +19,24 @@ export async function saveMusicPreferences(preferences: MusicPreferences): Promi
   await authApiClient.post("/users/me/music-preferences", {
     genres: preferences.genres.map(toMusicItem),
     artists: preferences.artists.map(toMusicItem),
-    favorite_track: { deezer_id: preferences.track.id, name: preferences.track.title }
+    favorite_track: toFavoriteTrack(preferences.track)
   });
 }
 
 function toMusicItem(selection: MusicSelection) {
-  return { deezer_id: selection.id, name: selection.name };
+  return {
+    deezer_id: selection.id,
+    name: selection.name,
+    picture_url: selection.pictureUrl ?? null
+  };
+}
+
+function toFavoriteTrack(track: MusicTrack) {
+  return {
+    deezer_id: track.id,
+    title: track.title,
+    artist_name: track.artist,
+    cover_url: track.artworkUrl ?? "",
+    preview_url: track.previewUrl ?? null
+  };
 }

@@ -180,8 +180,8 @@ describe("SignUpScreen", () => {
       access_token: "jwt_token_12345",
       token_type: "bearer",
       user: {
-        account_type: "common",
-        id: 1,
+        role: "USER",
+        user_id: "user-1",
         name: "Eduardo de Bastiani",
         onboarding_completed: false,
         username: "eduardobastiani"
@@ -208,7 +208,7 @@ describe("SignUpScreen", () => {
 
     await waitFor(() => {
       expect(secureStorage.setItem).toHaveBeenCalledWith("auth_token", "jwt_token_12345");
-      expect(secureStorage.setItem).toHaveBeenCalledWith("account_type", "common");
+      expect(secureStorage.setItem).toHaveBeenCalledWith("role", "USER");
       expect(navigation.reset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: "OnboardingArtists" }]
