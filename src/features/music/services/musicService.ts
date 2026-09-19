@@ -32,6 +32,12 @@ export const musicService = {
   searchArtists: (q: string, signal?: AbortSignal) =>
     apiClient.get<Artist[]>(buildMusicSearchPath("/music/artists/search", q), { signal }),
 
+  getPopularArtists: (signal?: AbortSignal) =>
+    apiClient.get<Artist[]>("/music/artists/popular", { signal }),
+
   searchTracks: (q: string, signal?: AbortSignal) =>
-    apiClient.get<Track[]>(buildMusicSearchPath("/music/tracks/search", q), { signal })
+    apiClient.get<Track[]>(buildMusicSearchPath("/music/tracks/search", q), { signal }),
+
+  getPopularTracks: (signal?: AbortSignal) =>
+    apiClient.get<Track[]>("/music/tracks/popular", { signal })
 };

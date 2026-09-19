@@ -5,9 +5,10 @@ import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react
 import { Icon } from "react-native-paper";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { AppText } from "@/components/ui";
+import { AppText, ErrorState, Loading } from "@/components/ui";
 import { clearSession } from "@/features/auth/session";
 import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
+import { usePopularArtists } from "@/features/music/hooks/usePopularArtists";
 import { colors, fontFamily, spacing } from "@/theme";
 
 import { ArtistChip, type ArtistOption } from "../components/ArtistChip";
@@ -28,16 +29,20 @@ export function OnboardingArtistsScreen() {
   }, [query]);
 
   const search = useArtistSearch(debouncedQuery);
+  const popular = usePopularArtists();
   const selectedArtistIds = useMemo(
     () => selectedArtists.map((artist) => artist.id),
     [selectedArtists]
   );
   const canAdvance = selectedArtists.length >= MIN_ARTISTS;
   const hasSearched = debouncedQuery.length > 0;
+  const showPopularLoading = !hasSearched && popular.isPending;
+  const showPopularError = !hasSearched && popular.isError;
 
   const artistOptions = useMemo<ArtistOption[]>(() => {
+    const source = hasSearched ? search.data : popular.data;
     const results =
-      search.data?.map((artist) => ({
+      source?.map((artist) => ({
         id: artist.id,
         name: artist.name,
         pictureUrl: artist.picture_url ?? undefined
@@ -47,7 +52,7 @@ export function OnboardingArtistsScreen() {
       ...selectedArtists,
       ...results.filter((artist) => !selectedArtistIds.includes(artist.id))
     ];
-  }, [search.data, selectedArtistIds, selectedArtists]);
+  }, [hasSearched, popular.data, search.data, selectedArtistIds, selectedArtists]);
 
   const toggleArtist = (artist: ArtistOption) => {
     setSelectedArtists((currentArtists) =>
@@ -116,16 +121,24 @@ export function OnboardingArtistsScreen() {
         )}
       </View>
 
-      <View style={styles.grid}>
-        {artistOptions.map((artist) => (
-          <ArtistChip
-            artist={artist}
-            key={artist.id}
-            onPress={() => toggleArtist(artist)}
-            selected={selectedArtistIds.includes(artist.id)}
-          />
-        ))}
-      </View>
+      {showPopularLoading ? <Loading label="Carregando artistas populares" /> : null}
+
+      {showPopularError ? (
+        <ErrorState message="Não foi possível carregar artistas populares." />
+      ) : null}
+
+      {showPopularLoading || showPopularError ? null : (
+        <View style={styles.grid}>
+          {artistOptions.map((artist) => (
+            <ArtistChip
+              artist={artist}
+              key={artist.id}
+              onPress={() => toggleArtist(artist)}
+              selected={selectedArtistIds.includes(artist.id)}
+            />
+          ))}
+        </View>
+      )}
 
       {search.isError ? (
         <AppText accessibilityRole="alert" style={styles.error}>

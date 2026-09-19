@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { markOnboardingCompleted } from "@/features/auth/session";
 
-import { saveMusicPreferences, searchTracks } from "../api/music";
+import { getPopularTracks, saveMusicPreferences, searchTracks } from "../api/music";
 import { useOnboarding } from "../state/OnboardingContext";
 import type { MusicTrack } from "../types";
 import { OnboardingMusicScreen } from "./OnboardingMusicScreen";
@@ -30,6 +30,7 @@ export function OnboardingMusicRoute() {
       onBack={() => navigation.goBack()}
       onComplete={completeOnboarding}
       searchTracks={searchTracks}
+      getPopularTracks={getPopularTracks}
       savePreferences={saveMusicPreferences}
     />
   );

@@ -29,6 +29,7 @@ export type OnboardingMusicScreenProps = {
   onBack: () => void;
   onComplete: () => void;
   searchTracks: (query: string, signal: AbortSignal) => Promise<MusicTrack[]>;
+  getPopularTracks: (signal: AbortSignal) => Promise<MusicTrack[]>;
   savePreferences: (preferences: MusicPreferences) => Promise<void>;
 };
 
@@ -40,6 +41,7 @@ export function OnboardingMusicScreen({
   onBack,
   onComplete,
   searchTracks,
+  getPopularTracks,
   savePreferences
 }: OnboardingMusicScreenProps) {
   const { t } = useTranslation();
@@ -57,8 +59,14 @@ export function OnboardingMusicScreen({
     enabled: debouncedQuery.length > 0,
     retry: false
   });
+  const popular = useQuery({
+    queryKey: ["music", "tracks", "popular"],
+    queryFn: ({ signal }) => getPopularTracks(signal),
+    retry: false
+  });
   const save = useMutation({ mutationFn: savePreferences, onSuccess: onComplete });
-  const waiting = query.trim() !== debouncedQuery;
+  const rawQuery = query.trim();
+  const waiting = rawQuery !== debouncedQuery;
   const disabled = !selectedTrack || save.isPending;
   const submit = async () => {
     if (!selectedTrack || submitting.current) return;
@@ -127,7 +135,13 @@ export function OnboardingMusicScreen({
             contentFit="fill"
           />
           <FlatList
-            data={!waiting && debouncedQuery ? (results.data ?? []) : []}
+            data={
+              rawQuery
+                ? !waiting && debouncedQuery
+                  ? (results.data ?? [])
+                  : []
+                : (popular.data ?? [])
+            }
             keyExtractor={(item) => String(item.id)}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.list}
@@ -153,23 +167,27 @@ export function OnboardingMusicScreen({
                   />
                   <Icon source="magnify" color={colors.neutrals[200]} size={24} />
                 </View>
-                {selectedTrack ? (
-                  <View style={styles.selection}>
-                    <Icon source="check-circle" color={colors.primary[500]} size={24} />
-                    <AppText style={styles.light}>
-                      {t("onboarding.music.selected", {
-                        title: selectedTrack.title,
-                        artist: selectedTrack.artist
-                      })}
-                    </AppText>
-                  </View>
-                ) : null}
-                {query.trim() && (waiting || results.isFetching) ? (
+                {rawQuery && (waiting || results.isFetching) ? (
                   <ActivityIndicator
                     accessibilityLabel={t("onboarding.music.loading")}
                     color={colors.primary[500]}
                     style={styles.feedback}
                   />
+                ) : null}
+                {!rawQuery && popular.isPending ? (
+                  <ActivityIndicator
+                    accessibilityLabel={t("onboarding.music.popularLoading")}
+                    color={colors.primary[500]}
+                    style={styles.feedback}
+                  />
+                ) : null}
+                {!rawQuery && popular.isError ? (
+                  <View style={styles.feedback}>
+                    <AppText style={styles.error}>{t("onboarding.music.popularError")}</AppText>
+                    <Pressable accessibilityRole="button" onPress={() => void popular.refetch()}>
+                      <AppText color="primary">{t("onboarding.music.retry")}</AppText>
+                    </Pressable>
+                  </View>
                 ) : null}
                 {!waiting && debouncedQuery && results.isError ? (
                   <View style={styles.feedback}>
@@ -293,14 +311,6 @@ const styles = StyleSheet.create({
     color: colors.neutrals[100],
     fontFamily: fontFamily.primary.regular,
     fontSize: 14
-  },
-  selection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[2],
-    padding: spacing[3],
-    marginBottom: spacing[2],
-    flexWrap: "wrap"
   },
   light: { color: colors.neutrals[100], flexShrink: 1 },
   artist: { color: colors.neutrals[200], marginTop: 4 },

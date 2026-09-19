@@ -29,11 +29,13 @@ jest.mock("@/features/auth/session", () => ({
 
 jest.mock("@/features/music/services/musicService", () => ({
   musicService: {
-    searchArtists: jest.fn()
+    searchArtists: jest.fn(),
+    getPopularArtists: jest.fn()
   }
 }));
 
 const mockSearchArtists = musicService.searchArtists as jest.Mock;
+const mockGetPopularArtists = musicService.getPopularArtists as jest.Mock;
 
 function renderScreen() {
   const client = new QueryClient({
@@ -60,6 +62,29 @@ describe("OnboardingArtistsScreen", () => {
       { id: 2, name: "Tribalistas", picture_url: null },
       { id: 3, name: "Toquinho", picture_url: null }
     ]);
+    mockGetPopularArtists.mockResolvedValue([
+      { id: 101, name: "Anitta", picture_url: null },
+      { id: 102, name: "Djavan", picture_url: null },
+      { id: 103, name: "Marisa Monte", picture_url: null }
+    ]);
+  });
+
+  it("shows popular artists by default before any search", async () => {
+    renderScreen();
+
+    expect(await screen.findByText("Anitta")).toBeTruthy();
+    expect(screen.getByText("Djavan")).toBeTruthy();
+    expect(screen.getByText("Marisa Monte")).toBeTruthy();
+    expect(mockSearchArtists).not.toHaveBeenCalled();
+  });
+
+  it("shows an error state when popular artists fail to load", async () => {
+    mockGetPopularArtists.mockRejectedValueOnce(new Error("Network error"));
+    renderScreen();
+
+    expect(
+      await screen.findByText("Não foi possível carregar artistas populares.")
+    ).toBeTruthy();
   });
 
   it("renders the artist search step", () => {

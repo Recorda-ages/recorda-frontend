@@ -6,13 +6,29 @@ import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
 export async function searchTracks(query: string, signal: AbortSignal): Promise<MusicTrack[]> {
   const tracks = await musicService.searchTracks(query, signal);
 
-  return tracks.map((track) => ({
+  return tracks.map(toMusicTrack);
+}
+
+export async function getPopularTracks(signal: AbortSignal): Promise<MusicTrack[]> {
+  const tracks = await musicService.getPopularTracks(signal);
+
+  return tracks.map(toMusicTrack);
+}
+
+function toMusicTrack(track: {
+  id: number;
+  title: string;
+  artist: string;
+  cover_url: string | null;
+  preview_url: string | null;
+}): MusicTrack {
+  return {
     id: track.id,
     title: track.title,
     artist: track.artist,
     artworkUrl: track.cover_url ?? undefined,
     previewUrl: track.preview_url ?? undefined
-  }));
+  };
 }
 
 export async function saveMusicPreferences(preferences: MusicPreferences): Promise<void> {

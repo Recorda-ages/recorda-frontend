@@ -61,6 +61,17 @@ describe("musicService.searchArtists", () => {
   });
 });
 
+describe("musicService.getPopularArtists", () => {
+  it("calls the correct endpoint and returns popular artists", async () => {
+    mockGet.mockResolvedValueOnce(ARTISTS);
+
+    const result = await musicService.getPopularArtists();
+
+    expect(mockGet).toHaveBeenCalledWith("/music/artists/popular", { signal: undefined });
+    expect(result).toEqual(ARTISTS);
+  });
+});
+
 describe("musicService.searchTracks", () => {
   it("calls the correct endpoint with the encoded query", async () => {
     mockGet.mockResolvedValueOnce(TRACKS);
@@ -81,5 +92,16 @@ describe("musicService.searchTracks", () => {
     expect(mockGet).toHaveBeenCalledWith("/music/tracks/search?q=Lose%20Yourself", {
       signal: undefined
     });
+  });
+});
+
+describe("musicService.getPopularTracks", () => {
+  it("calls the correct endpoint and returns popular tracks", async () => {
+    mockGet.mockResolvedValueOnce(TRACKS);
+
+    const result = await musicService.getPopularTracks();
+
+    expect(mockGet).toHaveBeenCalledWith("/music/tracks/popular", { signal: undefined });
+    expect(result).toEqual(TRACKS);
   });
 });

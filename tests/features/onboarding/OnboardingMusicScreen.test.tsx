@@ -22,8 +22,15 @@ const genres: MusicSelection[] = [
   { id: 50, name: "Pop" }
 ];
 
-function setup(options: { save?: () => Promise<void>; search?: () => Promise<MusicTrack[]> } = {}) {
+function setup(
+  options: {
+    save?: () => Promise<void>;
+    search?: () => Promise<MusicTrack[]>;
+    popular?: () => Promise<MusicTrack[]>;
+  } = {}
+) {
   const search = jest.fn(options.search ?? (async () => tracks));
+  const popular = jest.fn(options.popular ?? (async () => []));
   const save = jest.fn(async (_preferences: unknown) => {
     await options.save?.();
   });
@@ -43,6 +50,7 @@ function setup(options: { save?: () => Promise<void>; search?: () => Promise<Mus
         onBack={back}
         onComplete={complete}
         searchTracks={search}
+        getPopularTracks={popular}
         savePreferences={save}
       />
     );
@@ -54,8 +62,28 @@ function setup(options: { save?: () => Promise<void>; search?: () => Promise<Mus
       </QueryClientProvider>
     </I18nextProvider>
   );
-  return { search, save, complete, back };
+  return { search, popular, save, complete, back };
 }
+
+it("shows popular songs by default before any search", async () => {
+  const { search } = setup({ popular: async () => tracks });
+
+  expect(
+    await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" })
+  ).toBeTruthy();
+  expect(screen.getByRole("radio", { name: "Evidências, Chitãozinho & Xororó" })).toBeTruthy();
+  expect(search).not.toHaveBeenCalled();
+});
+
+it("shows an error state when popular songs fail to load", async () => {
+  setup({
+    popular: () => Promise.reject(new Error("offline"))
+  });
+
+  expect(
+    await screen.findByText("Não foi possível carregar músicas populares.")
+  ).toBeTruthy();
+});
 
 it("starts disabled, debounces search and replaces the single selection before submitting all preferences", async () => {
   const { search, save, complete } = setup();

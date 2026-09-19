@@ -22,6 +22,7 @@ jest.mock("@react-navigation/native", () => ({
 
 jest.mock("@/features/onboarding/api/music", () => ({
   searchTracks: jest.fn(async () => [{ id: 1, title: "Tempo Perdido", artist: "Legião Urbana" }]),
+  getPopularTracks: jest.fn(async () => []),
   saveMusicPreferences: jest.fn(async () => undefined)
 }));
 

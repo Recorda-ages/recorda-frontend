@@ -1,4 +1,4 @@
-import { saveMusicPreferences, searchTracks } from "@/features/onboarding";
+import { getPopularTracks, saveMusicPreferences, searchTracks } from "@/features/onboarding";
 
 jest.mock("@/services/storage", () => ({
   secureStorage: {
@@ -59,6 +59,34 @@ it("maps the track search response to the screen model", async () => {
       artworkUrl: "https://cdn/cover.jpg"
     },
     { id: 3135556, title: "Evidências", artist: "Chitãozinho & Xororó", artworkUrl: undefined }
+  ]);
+});
+
+it("maps the popular tracks response to the screen model", async () => {
+  fetchMock.mockResolvedValue(
+    jsonResponse([
+      {
+        id: 916424,
+        title: "Tempo Perdido",
+        artist: "Legião Urbana",
+        album: "Dois",
+        cover_url: "https://cdn/cover.jpg",
+        preview_url: null,
+        genre_id: 152
+      }
+    ])
+  );
+
+  const tracks = await getPopularTracks(new AbortController().signal);
+
+  expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:8000/api/v1/music/tracks/popular");
+  expect(tracks).toEqual([
+    {
+      id: 916424,
+      title: "Tempo Perdido",
+      artist: "Legião Urbana",
+      artworkUrl: "https://cdn/cover.jpg"
+    }
   ]);
 });
 
