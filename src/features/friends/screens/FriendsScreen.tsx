@@ -1,43 +1,43 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import type { CurrentUser } from "@/features/auth/api/getCurrentUser";
 import { AppText } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
 import { FriendCard } from "../components/FriendCard";
 import { FriendsSearchBar } from "../components/FriendsSearchBar";
 import { FriendsTabBar } from "../components/FriendsTabBar";
-import { mockFollowers, mockFollowing } from "../mocks/friendsMocks";
+import { useFollowers } from "../hooks/useFollowers";
+import { useFollowing } from "../hooks/useFollowing";
+import { useRemoveFollower } from "../hooks/useRemoveFollower";
 import type { FriendProfile, FriendsTab } from "../types";
 
 export function FriendsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [activeTab, setActiveTab] = useState<FriendsTab>("seguidores");
   const [search, setSearch] = useState("");
-  const [followers, setFollowers] = useState(mockFollowers);
-  const [following, setFollowing] = useState(mockFollowing);
 
-  const source = activeTab === "seguidores" ? followers : following;
+  const { data: currentUser } = useQuery<CurrentUser>({ queryKey: AUTH_ME_QUERY_KEY });
+  const userId = currentUser?.user_id ?? "";
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return source;
-    return source.filter(
-      (p) =>
-        p.displayName.toLowerCase().includes(q) || p.username.toLowerCase().includes(q)
-    );
-  }, [source, search]);
+  const followersQuery = useFollowers(userId, search);
+  const followingQuery = useFollowing(userId, search);
+  const removeFollowerMutation = useRemoveFollower(userId);
+
+  const activeQuery = activeTab === "seguidores" ? followersQuery : followingQuery;
+  const data = activeQuery.data ?? [];
 
   const handleRemove = (profile: FriendProfile) => {
     if (activeTab === "seguidores") {
-      setFollowers((prev) => prev.filter((p) => p.id !== profile.id));
-    } else {
-      setFollowing((prev) => prev.filter((p) => p.id !== profile.id));
+      removeFollowerMutation.mutate(profile.id);
     }
   };
 
@@ -62,18 +62,22 @@ export function FriendsScreen() {
 
         <View style={styles.content}>
           <FriendsSearchBar value={search} onChangeText={setSearch} />
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <FriendCard
-                profile={item}
-                onPress={handleProfilePress}
-                onRemove={handleRemove}
-              />
-            )}
-            showsVerticalScrollIndicator={false}
-          />
+          {activeQuery.isLoading ? (
+            <ActivityIndicator color={colors.neutrals[100]} style={styles.loader} />
+          ) : (
+            <FlatList
+              data={data}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <FriendCard
+                  profile={item}
+                  onPress={handleProfilePress}
+                  onRemove={handleRemove}
+                />
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
         </View>
       </SafeAreaView>
     </View>
@@ -107,6 +111,9 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.neutrals[900],
     flex: 1
+  },
+  loader: {
+    marginTop: spacing[8]
   },
   title: {
     color: colors.neutrals[100],

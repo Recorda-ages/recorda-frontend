@@ -21,6 +21,7 @@ import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
+import { FriendsScreen } from "@/features/friends";
 import { SplashScreen } from "@/features/splash";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 
@@ -36,6 +37,7 @@ export type RootStackParamList = {
   PasswordRecovery: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   Profile: undefined;
+  Friends: undefined;
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   SignUp: undefined;
@@ -96,6 +98,7 @@ export function RootNavigator() {
         <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
         <Stack.Screen name="Feed" component={FeedScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+        <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Preview" component={PreviewScreen} />
