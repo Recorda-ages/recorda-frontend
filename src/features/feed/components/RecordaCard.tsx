@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
-import { AppText } from "@/components/ui";
+import { AppText, LikeButton } from "@/components/ui";
 import { resolveApiAssetUrl } from "@/services/api";
 import { colors, fontFamily, radius, spacing } from "@/theme";
 
@@ -58,13 +58,11 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
 
       <View style={styles.actions}>
         <View style={styles.actionGroup}>
-          <View accessibilityLabel={t("feed.like")}>
-            <Icon
-              color={colors.primary[500]}
-              size={26}
-              source={item.is_liked ? "heart" : "heart-outline"}
-            />
-          </View>
+          <LikeButton
+            accessibilityLabel={t("feed.like")}
+            count={item.likes_count}
+            initialLiked={item.is_liked}
+          />
           <View accessibilityLabel={t("feed.comment")}>
             <Icon color={colors.primary[500]} size={26} source="message-text-outline" />
           </View>

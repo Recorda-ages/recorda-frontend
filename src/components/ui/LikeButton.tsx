@@ -3,11 +3,13 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "./Text";
+import { colors } from "@/theme";
 
 type LikeButtonProps = {
   accessibilityLabel: string;
   count: number;
   initialLiked?: boolean;
+  onChange?: (state: { count: number; liked: boolean }) => void;
   onToggle?: (liked: boolean) => Promise<void> | void;
 };
 
@@ -15,6 +17,7 @@ export function LikeButton({
   accessibilityLabel,
   count,
   initialLiked = false,
+  onChange,
   onToggle
 }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
@@ -30,6 +33,7 @@ export function LikeButton({
     requestId.current = currentRequestId;
     setLiked(nextLiked);
     setLikeCount(previousCount + (nextLiked ? 1 : -1));
+    onChange?.({ count: previousCount + (nextLiked ? 1 : -1), liked: nextLiked });
 
     try {
       await onToggle?.(nextLiked);
@@ -37,6 +41,7 @@ export function LikeButton({
       if (requestId.current === currentRequestId) {
         setLiked(previousLiked);
         setLikeCount(previousCount);
+        onChange?.({ count: previousCount, liked: previousLiked });
       }
     }
   }
@@ -50,7 +55,7 @@ export function LikeButton({
         hitSlop={8}
         onPress={() => void handlePress()}
       >
-        <Icon color="#FFFFFF" size={26} source={liked ? "heart" : "heart-outline"} />
+        <Icon color={colors.primary[500]} size={26} source={liked ? "heart" : "heart-outline"} />
       </Pressable>
       <AppText>{likeCount}</AppText>
     </View>
