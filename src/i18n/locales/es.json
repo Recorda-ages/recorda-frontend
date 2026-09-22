@@ -125,17 +125,26 @@
     "like": "Me gusta",
     "comment": "Comentar",
     "share": "Compartir",
-    "likedByPrefix": "Le gusta a",
-    "likedBySuffix_one": "y {{count}} más",
-    "likedBySuffix_other": "y {{count}} más",
+    "likesCount_one": "{{count}} me gusta",
+    "likesCount_other": "{{count}} me gusta",
+    "loading": "Cargando feed...",
+    "loadError": "No fue posible cargar el feed. Inténtalo de nuevo.",
+    "emptyState": {
+      "title": "Todavía está todo en silencio por aquí",
+      "message": "¡Sigue a nuevas personas y descubre los Recordas que compartan!"
+    },
     "tabs": {
-      "following": "Siguiendo",
-      "forYou": "Para ti"
+      "geral": "Para ti",
+      "following": "Siguiendo"
     },
     "tabBar": {
       "camera": "Crear Recorda",
       "feed": "Feed",
       "profile": "Perfil"
     }
+  },
+  "recordaView": {
+    "title": "Recorda",
+    "back": "Volver"
   }
 }

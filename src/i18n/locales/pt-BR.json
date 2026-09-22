@@ -125,17 +125,26 @@
     "like": "Curtir",
     "comment": "Comentar",
     "share": "Compartilhar",
-    "likedByPrefix": "Curtido por",
-    "likedBySuffix_one": "e {{count}} outro",
-    "likedBySuffix_other": "e {{count}} outros",
+    "likesCount_one": "{{count}} curtida",
+    "likesCount_other": "{{count}} curtidas",
+    "loading": "Carregando feed...",
+    "loadError": "Não foi possível carregar o feed. Tente novamente.",
+    "emptyState": {
+      "title": "Ainda está tudo em silêncio por aqui",
+      "message": "Siga novas pessoas e acompanhe os Recordas que elas compartilharem."
+    },
     "tabs": {
-      "following": "Seguindo",
-      "forYou": "Para Você"
+      "geral": "Para Você",
+      "following": "Seguindo"
     },
     "tabBar": {
       "camera": "Criar Recorda",
       "feed": "Feed",
       "profile": "Perfil"
     }
+  },
+  "recordaView": {
+    "title": "Recorda",
+    "back": "Voltar"
   }
 }

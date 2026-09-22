@@ -11,7 +11,7 @@ type FeedTabsProps = {
   onChange: (tab: FeedTab) => void;
 };
 
-const TABS: FeedTab[] = ["following", "forYou"];
+const TABS: FeedTab[] = ["geral", "following"];
 
 export function FeedTabs({ activeTab, onChange }: FeedTabsProps) {
   const { t } = useTranslation();

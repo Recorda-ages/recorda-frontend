@@ -1,5 +1,10 @@
 import { StyleSheet, View } from "react-native";
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  type RouteProp,
+  useNavigation,
+  useRoute
+} from "@react-navigation/native";
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp
@@ -38,6 +43,7 @@ export type RootStackParamList = {
   Profile: undefined;
   RecordaDetails: undefined;
   RecordaMusic: undefined;
+  RecordaView: { recordaId: string };
   SignUp: undefined;
 };
 
@@ -83,6 +89,22 @@ function ProfilePlaceholderScreen() {
   return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
 }
 
+function RecordaViewPlaceholderScreen() {
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, "RecordaView">>();
+
+  return (
+    <View style={styles.placeholder} testID="recorda-view-screen">
+      <AppText style={styles.placeholderTitle} variant="headline3">
+        {t("recordaView.title")}
+      </AppText>
+      <AppText style={styles.placeholderTitle}>{route.params.recordaId}</AppText>
+      <Button label={t("recordaView.back")} onPress={() => navigation.goBack()} />
+    </View>
+  );
+}
+
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -101,6 +123,7 @@ export function RootNavigator() {
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />
         <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
+        <Stack.Screen name="RecordaView" component={RecordaViewPlaceholderScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

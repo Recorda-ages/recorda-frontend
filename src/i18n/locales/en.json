@@ -125,17 +125,26 @@
     "like": "Like",
     "comment": "Comment",
     "share": "Share",
-    "likedByPrefix": "Liked by",
-    "likedBySuffix_one": "and {{count}} other",
-    "likedBySuffix_other": "and {{count}} others",
+    "likesCount_one": "{{count}} like",
+    "likesCount_other": "{{count}} likes",
+    "loading": "Loading feed...",
+    "loadError": "We couldn't load the feed. Please try again.",
+    "emptyState": {
+      "title": "It's still quiet around here",
+      "message": "Follow new people and keep up with the Recordas they share!"
+    },
     "tabs": {
-      "following": "Following",
-      "forYou": "For You"
+      "geral": "For You",
+      "following": "Following"
     },
     "tabBar": {
       "camera": "Create Recorda",
       "feed": "Feed",
       "profile": "Profile"
     }
+  },
+  "recordaView": {
+    "title": "Recorda",
+    "back": "Back"
   }
 }
