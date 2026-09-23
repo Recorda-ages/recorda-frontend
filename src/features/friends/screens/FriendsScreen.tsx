@@ -74,6 +74,7 @@ export function FriendsScreen() {
               renderItem={({ item }) => (
                 <FriendCard
                   profile={item}
+                  showRemove={activeTab === "seguidores"}
                   onPress={handleProfilePress}
                   onRemove={handleRemove}
                 />

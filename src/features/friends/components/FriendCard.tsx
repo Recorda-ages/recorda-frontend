@@ -6,11 +6,12 @@ import type { FriendProfile } from "../types";
 
 type FriendCardProps = {
   profile: FriendProfile;
+  showRemove?: boolean;
   onPress: (profile: FriendProfile) => void;
   onRemove: (profile: FriendProfile) => void;
 };
 
-export function FriendCard({ profile, onPress, onRemove }: FriendCardProps) {
+export function FriendCard({ profile, showRemove = false, onPress, onRemove }: FriendCardProps) {
   return (
     <Pressable onPress={() => onPress(profile)} style={styles.container}>
       {profile.avatarUrl ? (
@@ -23,18 +24,20 @@ export function FriendCard({ profile, onPress, onRemove }: FriendCardProps) {
         {profile.displayName}
       </AppText>
 
-      <Pressable
-        hitSlop={8}
-        onPress={(e) => {
-          e.stopPropagation();
-          onRemove(profile);
-        }}
-        style={styles.removeButton}
-      >
-        <AppText style={styles.removeLabel} variant="buttonSmall">
-          Remover
-        </AppText>
-      </Pressable>
+      {showRemove && (
+        <Pressable
+          hitSlop={8}
+          onPress={(e) => {
+            e.stopPropagation();
+            onRemove(profile);
+          }}
+          style={styles.removeButton}
+        >
+          <AppText style={styles.removeLabel} variant="buttonSmall">
+            Remover
+          </AppText>
+        </Pressable>
+      )}
     </Pressable>
   );
 }
