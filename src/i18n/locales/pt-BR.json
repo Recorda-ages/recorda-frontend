@@ -155,5 +155,27 @@
   "recordaView": {
     "title": "Recorda",
     "back": "Voltar"
+  },
+  "userSearch": {
+    "back": "Voltar",
+    "header": "Pesquisar",
+    "search": "Buscar",
+    "loading": "Buscando usuários",
+    "hint": "Busque por um nome de usuário para encontrar pessoas.",
+    "searchError": "Não foi possível buscar usuários.",
+    "retry": "Tentar novamente",
+    "empty": "Nenhum usuário encontrado. Tente outro nome de usuário."
+  },
+  "follow": {
+    "follow": "Seguir",
+    "requested": "Solicitado",
+    "following": "Seguindo",
+    "followA11y": "Seguir {{username}}",
+    "requestedA11y": "Cancelar solicitação para seguir {{username}}",
+    "followingA11y": "Deixar de seguir {{username}}",
+    "unfollowTitle": "Deixar de seguir",
+    "unfollowMessage": "Tem certeza que deseja deixar de seguir {{username}}?",
+    "unfollowCancel": "Cancelar",
+    "unfollowConfirm": "Deixar de seguir"
   }
 }
