@@ -22,7 +22,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
 import { useTrackSearch } from "@/features/music/hooks/useTrackSearch";
 import type { Track } from "@/features/music/services/musicService";
-import { baseColors, colors, fontFamily, radius, spacing } from "@/theme";
+import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 import { useRecordaDraft } from "../context/RecordaDraftContext";
 import type { RecordaDraftSong } from "../types";
@@ -75,83 +75,61 @@ export function RecordaMusicScreen() {
   return (
     <SafeAreaView style={styles.screen} testID="recorda-music-screen">
       <StatusBar style="light" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.flex}
-      >
-        <View style={styles.topBar}>
-          <Pressable
-            accessibilityLabel={t("recordaMusic.back")}
-            accessibilityRole="button"
-            hitSlop={12}
-            onPress={() => navigation.goBack()}
-            style={styles.topBarAction}
-          >
-            <Icon color={colors.neutrals[100]} size={32} source="chevron-left" />
-          </Pressable>
-          <AppText style={styles.topBarTitle} variant="headline4">
-            {t("recordaMusic.header")}
-          </AppText>
-          <View style={styles.topBarAction} />
+      <View style={styles.topBar}>
+        <Pressable
+          accessibilityLabel={t("recordaMusic.back")}
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={() => navigation.goBack()}
+          style={styles.topBarAction}
+        >
+          <Icon color={colors.neutrals[100]} size={32} source="chevron-left" />
+        </Pressable>
+        <AppText style={styles.topBarTitle} variant="headline4">
+          {t("recordaMusic.header")}
+        </AppText>
+        <View style={styles.topBarAction} />
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.search}>
+          <TextInput
+            accessibilityLabel={t("recordaMusic.search")}
+            autoCorrect={false}
+            onChangeText={setQuery}
+            placeholder={t("recordaMusic.search")}
+            placeholderTextColor={colors.neutrals[200]}
+            returnKeyType="search"
+            style={styles.input}
+            value={query}
+          />
+          {query.trim() && (isWaitingDebounce || search.isFetching) ? (
+            <ActivityIndicator
+              accessibilityLabel={t("recordaMusic.loading")}
+              color={colors.primary[500]}
+              size="small"
+            />
+          ) : (
+            <Icon color={colors.neutrals[200]} size={24} source="magnify" />
+          )}
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.search}>
-            <TextInput
-              accessibilityLabel={t("recordaMusic.search")}
-              autoCorrect={false}
-              onChangeText={setQuery}
-              placeholder={t("recordaMusic.search")}
-              placeholderTextColor={colors.neutrals[200]}
-              returnKeyType="search"
-              style={styles.input}
-              value={query}
+        <View style={styles.stage} testID="recorda-music-preview">
+          {media?.type === "video" ? (
+            <VideoView
+              contentFit="cover"
+              nativeControls={false}
+              player={player}
+              style={StyleSheet.absoluteFill}
             />
-            {query.trim() && (isWaitingDebounce || search.isFetching) ? (
-              <ActivityIndicator
-                accessibilityLabel={t("recordaMusic.loading")}
-                color={colors.primary[500]}
-                size="small"
-              />
-            ) : (
-              <Icon color={colors.neutrals[200]} size={24} source="magnify" />
-            )}
-          </View>
-
-          <View style={styles.previewCard} testID="recorda-music-preview">
-            {media?.type === "video" ? (
-              <VideoView
-                contentFit="cover"
-                nativeControls={false}
-                player={player}
-                style={StyleSheet.absoluteFill}
-              />
-            ) : media ? (
-              <Image contentFit="cover" source={media.uri} style={StyleSheet.absoluteFill} />
-            ) : (
-              <View style={styles.previewEmpty}>
-                <AppText style={styles.muted}>{t("recordaMusic.noMedia")}</AppText>
-              </View>
-            )}
-            <View style={styles.previewOverlay} />
-            {selectedSong ? (
-              <View style={styles.previewSong} testID="recorda-music-selected">
-                {selectedSong.coverUrl ? (
-                  <Image source={selectedSong.coverUrl} style={styles.previewCover} />
-                ) : (
-                  <View style={[styles.previewCover, styles.coverFallback]}>
-                    <Icon color={colors.neutrals[100]} size={32} source="music-note" />
-                  </View>
-                )}
-                <AppText numberOfLines={1} style={styles.previewTitle}>
-                  {selectedSong.title}
-                </AppText>
-                <AppText numberOfLines={1} style={styles.previewArtist}>
-                  {selectedSong.artistName}
-                </AppText>
-              </View>
-            ) : null}
-          </View>
+          ) : media ? (
+            <Image contentFit="cover" source={media.uri} style={StyleSheet.absoluteFill} />
+          ) : (
+            <View style={styles.previewEmpty}>
+              <AppText style={styles.muted}>{t("recordaMusic.noMedia")}</AppText>
+            </View>
+          )}
+          <View style={styles.stageOverlay} />
 
           <FlatList
             contentContainerStyle={styles.list}
@@ -200,26 +178,33 @@ export function RecordaMusicScreen() {
                 </Pressable>
               );
             }}
-            style={styles.flex}
+            style={styles.resultsOverlay}
           />
-
-          <Pressable
-            accessibilityLabel={t("recordaMusic.next")}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !selectedSong }}
-            disabled={!selectedSong}
-            onPress={handleNext}
-            style={[styles.nextButton, !selectedSong ? styles.nextButtonDisabled : undefined]}
-            testID="recorda-music-next-button"
-          >
-            <AppText
-              style={selectedSong ? styles.nextLabel : styles.nextLabelDisabled}
-              variant="buttonLarge"
-            >
-              {t("recordaMusic.next")}
-            </AppText>
-          </Pressable>
         </View>
+
+        <View style={styles.nextButtonSpacer} />
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.nextButtonWrap}
+      >
+        <Pressable
+          accessibilityLabel={t("recordaMusic.next")}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !selectedSong }}
+          disabled={!selectedSong}
+          onPress={handleNext}
+          style={[styles.nextButton, !selectedSong ? styles.nextButtonDisabled : undefined]}
+          testID="recorda-music-next-button"
+        >
+          <AppText
+            style={selectedSong ? styles.nextLabel : styles.nextLabelDisabled}
+            variant="buttonLarge"
+          >
+            {t("recordaMusic.next")}
+          </AppText>
+        </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -261,10 +246,7 @@ function SearchFeedback({ hasQuery, isError, isSuccess, onRetry }: SearchFeedbac
 
 const styles = StyleSheet.create({
   content: {
-    flex: 1,
-    gap: spacing[4],
-    paddingBottom: spacing[6],
-    paddingHorizontal: spacing[4]
+    flex: 1
   },
   coverFallback: {
     alignItems: "center",
@@ -297,7 +279,9 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: spacing[2],
-    paddingBottom: spacing[2]
+    paddingBottom: spacing[3],
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[2]
   },
   muted: {
     color: colors.neutrals[200]
@@ -307,10 +291,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[500],
     borderRadius: radius.full,
     justifyContent: "center",
+    marginBottom: spacing[6],
+    marginHorizontal: spacing[4],
     minHeight: 58
   },
   nextButtonDisabled: {
     backgroundColor: colors.neutrals[700]
+  },
+  nextButtonSpacer: {
+    height: 58,
+    marginTop: spacing[4]
+  },
+  nextButtonWrap: {
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0
   },
   nextLabel: {
     color: colors.neutrals[900]
@@ -318,42 +314,17 @@ const styles = StyleSheet.create({
   nextLabelDisabled: {
     color: colors.neutrals[400]
   },
-  previewArtist: {
-    color: colors.neutrals[100],
-    fontSize: 12
-  },
-  previewCard: {
-    alignItems: "center",
-    backgroundColor: colors.neutrals[800],
-    borderRadius: radius.lg,
-    height: 220,
-    justifyContent: "center",
-    overflow: "hidden"
-  },
-  previewCover: {
-    borderRadius: radius.md,
-    height: 72,
-    marginBottom: spacing[2],
-    width: 72
-  },
   previewEmpty: {
     ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center"
   },
-  previewOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: baseColors.black,
-    opacity: 0.35
-  },
-  previewSong: {
-    alignItems: "center",
-    paddingHorizontal: spacing[6]
-  },
-  previewTitle: {
-    color: colors.neutrals[100],
-    fontFamily: fontFamily.display.semiBold,
-    fontSize: 18
+  resultsOverlay: {
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
   },
   screen: {
     backgroundColor: colors.neutrals[900],
@@ -364,8 +335,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutrals[800],
     borderRadius: radius.md,
     flexDirection: "row",
+    marginBottom: spacing[4],
+    marginHorizontal: spacing[4],
     minHeight: 56,
     paddingHorizontal: spacing[6]
+  },
+  stage: {
+    borderRadius: 28,
+    flex: 1,
+    justifyContent: "center",
+    marginHorizontal: spacing[4],
+    overflow: "hidden",
+    position: "relative"
+  },
+  stageOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: baseColors.black,
+    opacity: 0.35
   },
   topBar: {
     alignItems: "center",
@@ -384,8 +370,8 @@ const styles = StyleSheet.create({
   },
   track: {
     alignItems: "center",
-    backgroundColor: colors.neutrals[800],
-    borderColor: colors.neutrals[700],
+    backgroundColor: withOpacity(colors.neutrals[900], 0.55),
+    borderColor: withOpacity(baseColors.white, 0.12),
     borderRadius: radius.lg,
     borderWidth: 1,
     flexDirection: "row",
@@ -398,7 +384,7 @@ const styles = StyleSheet.create({
     width: 48
   },
   trackSelected: {
-    backgroundColor: colors.primary[900],
+    backgroundColor: withOpacity(colors.primary[500], 0.22),
     borderColor: colors.primary[500]
   },
   trackTitle: {

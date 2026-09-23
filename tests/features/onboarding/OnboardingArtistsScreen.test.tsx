@@ -82,9 +82,7 @@ describe("OnboardingArtistsScreen", () => {
     mockGetPopularArtists.mockRejectedValueOnce(new Error("Network error"));
     renderScreen();
 
-    expect(
-      await screen.findByText("Não foi possível carregar artistas populares.")
-    ).toBeTruthy();
+    expect(await screen.findByText("Não foi possível carregar artistas populares.")).toBeTruthy();
   });
 
   it("renders the artist search step", () => {

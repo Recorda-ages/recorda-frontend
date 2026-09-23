@@ -68,9 +68,7 @@ function setup(
 it("shows popular songs by default before any search", async () => {
   const { search } = setup({ popular: async () => tracks });
 
-  expect(
-    await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" })
-  ).toBeTruthy();
+  expect(await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" })).toBeTruthy();
   expect(screen.getByRole("radio", { name: "Evidências, Chitãozinho & Xororó" })).toBeTruthy();
   expect(search).not.toHaveBeenCalled();
 });
@@ -80,9 +78,7 @@ it("shows an error state when popular songs fail to load", async () => {
     popular: () => Promise.reject(new Error("offline"))
   });
 
-  expect(
-    await screen.findByText("Não foi possível carregar músicas populares.")
-  ).toBeTruthy();
+  expect(await screen.findByText("Não foi possível carregar músicas populares.")).toBeTruthy();
 });
 
 it("starts disabled, debounces search and replaces the single selection before submitting all preferences", async () => {

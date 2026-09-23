@@ -22,7 +22,10 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Splash">;
 
 type SplashDestination = PostAuthDestination | "Login";
 
-export const SPLASH_TIMEOUT_MS = 3000;
+export const SPLASH_TIMEOUT_MS = 5000;
+// Keeps the splash on screen for at least this long, even when the session
+// check resolves almost instantly (e.g. no saved token).
+export const SPLASH_MIN_DURATION_MS = 1500;
 
 export function SplashScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -42,8 +45,10 @@ export function SplashScreen() {
   useEffect(() => {
     let isActive = true;
     const controller = new AbortController();
+    const startedAt = Date.now();
 
     let timeoutId: ReturnType<typeof setTimeout>;
+    let minDurationTimeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const finish = (screen: SplashDestination) => {
       if (!isActive || hasNavigated.current) {
@@ -52,7 +57,14 @@ export function SplashScreen() {
       isActive = false;
       clearTimeout(timeoutId);
       controller.abort();
-      navigateOnce(screen);
+
+      const remaining = SPLASH_MIN_DURATION_MS - (Date.now() - startedAt);
+
+      if (remaining > 0) {
+        minDurationTimeoutId = setTimeout(() => navigateOnce(screen), remaining);
+      } else {
+        navigateOnce(screen);
+      }
     };
 
     timeoutId = setTimeout(() => {
@@ -98,6 +110,7 @@ export function SplashScreen() {
     return () => {
       isActive = false;
       clearTimeout(timeoutId);
+      clearTimeout(minDurationTimeoutId);
       controller.abort();
     };
   }, [navigateOnce]);
@@ -153,8 +166,7 @@ const styles = StyleSheet.create({
   logoText: {
     color: colors.primary[500],
     fontSize: 54,
-    fontFamily: fontFamily.primary.bold,
-    fontStyle: "italic",
+    fontFamily: fontFamily.display.boldItalic,
     letterSpacing: 0
   }
 });

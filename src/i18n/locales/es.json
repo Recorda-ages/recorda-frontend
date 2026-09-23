@@ -4,14 +4,16 @@
       "forgotPassword": "Olvidé mi contraseña"
     },
     "passwordRecovery": {
-      "appBarTitle": "Recuperar Contraseña",
-      "back": "Volver",
       "description": "Ingresa tu email para definir una nueva contraseña.",
       "email": "Email",
       "confirmPassword": "Confirmar Contraseña",
       "genericError": "No fue posible restablecer tu contraseña. Intenta nuevamente.",
+      "hidePassword": "Ocultar contraseña",
+      "loginAction": "Iniciar sesión",
       "logo": "recorda.",
       "newPassword": "Nueva Contraseña",
+      "rememberedPassword": "¿Recordaste tu contraseña?",
+      "showPassword": "Mostrar contraseña",
       "submit": "Restablecer Contraseña",
       "success": "Tu contraseña se restableció correctamente.",
       "title": "Vuelve a recordar"
@@ -125,17 +127,33 @@
     "like": "Me gusta",
     "comment": "Comentar",
     "share": "Compartir",
-    "likedByPrefix": "Le gusta a",
-    "likedBySuffix_one": "y {{count}} más",
-    "likedBySuffix_other": "y {{count}} más",
+    "likesCount_one": "{{count}} me gusta",
+    "likesCount_other": "{{count}} me gusta",
+    "loading": "Cargando feed...",
+    "loadingMore": "Cargando más Recordas...",
+    "loadError": "No fue posible cargar el feed. Inténtalo de nuevo.",
+    "loadMoreError": "No fue posible cargar más Recordas.",
+    "retry": "Intentar de nuevo",
+    "generalEmptyState": {
+      "title": "Todavía no hay Recordas aquí",
+      "message": "Abre Siguiendo para ver los Recordas de las personas que sigues."
+    },
+    "emptyState": {
+      "title": "Todavía está todo en silencio por aquí",
+      "message": "¡Sigue a nuevas personas y descubre los Recordas que compartan!"
+    },
     "tabs": {
-      "following": "Siguiendo",
-      "forYou": "Para ti"
+      "geral": "General",
+      "following": "Siguiendo"
     },
     "tabBar": {
       "camera": "Crear Recorda",
       "feed": "Feed",
       "profile": "Perfil"
     }
+  },
+  "recordaView": {
+    "title": "Recorda",
+    "back": "Volver"
   }
 }

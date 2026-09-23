@@ -99,10 +99,11 @@ describe("RecordaMusicScreen", () => {
     expect(screen.getByTestId("recorda-music-next-button")).toBeDisabled();
 
     fireEvent.changeText(screen.getByLabelText("Que som te representa?"), "tempo");
-    fireEvent.press(await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" }));
+    const track = await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" });
+    fireEvent.press(track);
 
     expect(screen.getByTestId("recorda-music-next-button")).toBeEnabled();
-    expect(screen.getByTestId("recorda-music-selected")).toBeTruthy();
+    expect(track).toBeChecked();
     expect(mockSearchTracks).toHaveBeenCalledWith("tempo", expect.anything());
   });
 
