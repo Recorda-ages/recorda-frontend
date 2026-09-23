@@ -119,6 +119,25 @@
     "empty": "No songs found. Try another name or artist.",
     "noMedia": "No media selected."
   },
+  "publishedRecorda": {
+    "back": "Back",
+    "open": "View Recorda details",
+    "likes_one": "{{count}} like",
+    "likes_other": "{{count}} likes",
+    "comments": "Comments",
+    "noComments": "No comments yet. Be the first to comment!",
+    "writeComment": "Add a comment...",
+    "send": "Send comment",
+    "delete": "Delete",
+    "report": "Report",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete Recorda?",
+    "deleteMessage": "This action cannot be undone.",
+    "confirmDelete": "Confirm deletion",
+    "unavailable": "This Recorda is no longer available.",
+    "sharePending": "Recorda sharing is not available in this version yet.",
+    "reportPending": "Reporting is not available in this version yet. No report has been sent."
+  },
   "feed": {
     "logo": "recorda.",
     "notifications": "Notifications",
