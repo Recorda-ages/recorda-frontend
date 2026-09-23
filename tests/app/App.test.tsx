@@ -27,13 +27,17 @@ describe("App", () => {
 
     expect(screen.getByTestId("splash-screen-container")).toBeTruthy();
     expect(screen.getByText("recorda.")).toBeTruthy();
-    expect(await screen.findByTestId("login-screen", {}, { timeout: LOGIN_WAIT_TIMEOUT })).toBeTruthy();
+    expect(
+      await screen.findByTestId("login-screen", {}, { timeout: LOGIN_WAIT_TIMEOUT })
+    ).toBeTruthy();
   });
 
   it("opens password recovery from the login forgot password link", async () => {
     render(<App />);
 
-    expect(await screen.findByTestId("login-screen", {}, { timeout: LOGIN_WAIT_TIMEOUT })).toBeTruthy();
+    expect(
+      await screen.findByTestId("login-screen", {}, { timeout: LOGIN_WAIT_TIMEOUT })
+    ).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("forgot-password-link"));
     expect(await screen.findByTestId("password-recovery-screen")).toBeTruthy();
