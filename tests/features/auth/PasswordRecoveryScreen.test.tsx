@@ -21,6 +21,7 @@ function renderPasswordRecoveryScreen() {
 
   const navigation = {
     goBack: jest.fn(),
+    navigate: jest.fn(),
     reset: jest.fn()
   };
 
@@ -60,7 +61,6 @@ describe("PasswordRecoveryScreen", () => {
     renderPasswordRecoveryScreen();
 
     expect(screen.getByTestId("password-recovery-screen")).toBeTruthy();
-    expect(screen.getByText("Recuperar Senha")).toBeTruthy();
     expect(screen.getByText("recorda.")).toBeTruthy();
     expect(screen.getByText("Volte a recordar")).toBeTruthy();
     expect(screen.getByText("Informe seu email para definir uma nova senha.")).toBeTruthy();
@@ -68,6 +68,8 @@ describe("PasswordRecoveryScreen", () => {
     expect(screen.getByLabelText("Nova Senha").props.secureTextEntry).toBe(true);
     expect(screen.getByLabelText("Confirmar Senha").props.secureTextEntry).toBe(true);
     expect(screen.getByRole("button", { name: "Redefinir Senha" })).toBeTruthy();
+    expect(screen.getByText("Lembrou sua senha?")).toBeTruthy();
+    expect(screen.getByTestId("login-link")).toBeTruthy();
   });
 
   it("requires a valid email and matching passwords before allowing submission", async () => {
@@ -116,12 +118,12 @@ describe("PasswordRecoveryScreen", () => {
     expect(passwordRecoveryApi.requestPasswordRecovery).not.toHaveBeenCalled();
   });
 
-  it("goes back from the app bar action", () => {
+  it("navigates to Login from the footer action", () => {
     const navigation = renderPasswordRecoveryScreen();
 
-    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+    fireEvent.press(screen.getByTestId("login-link"));
 
-    expect(navigation.goBack).toHaveBeenCalledTimes(1);
+    expect(navigation.navigate).toHaveBeenCalledWith("Login");
   });
 
   it("shows success feedback after submitting a valid form", async () => {

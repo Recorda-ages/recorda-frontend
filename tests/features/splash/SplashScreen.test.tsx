@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
 import { ROLE_KEY } from "@/features/auth/session";
-import { SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
+import { SPLASH_MIN_DURATION_MS, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { ApiError } from "@/services/api/errors";
 import { secureStorage } from "@/services/storage/secureStorage";
@@ -25,6 +25,8 @@ jest.mock("@/services/storage/secureStorage", () => ({
     removeItem: jest.fn()
   }
 }));
+
+const NAVIGATE_WAIT_TIMEOUT = SPLASH_MIN_DURATION_MS + 1000;
 
 function createDeferred<T>() {
   let resolve!: (value: T) => void;
@@ -66,9 +68,12 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("Login");
-    });
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Login");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
     expect(getCurrentUser).not.toHaveBeenCalled();
   });
 
@@ -84,9 +89,12 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("Feed");
-    });
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Feed");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
     expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
   });
@@ -103,9 +111,12 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("OnboardingArtists");
-    });
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("OnboardingArtists");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
     expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
   });
@@ -120,9 +131,12 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith("Admin");
-    });
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Admin");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
   });
 
   it("clears session and navigates to Login when token is invalid", async () => {
@@ -138,40 +152,47 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await waitFor(() => {
-      expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
-      expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
-      expect(mockReplace).toHaveBeenCalledWith("Login");
-    });
-    expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
-  });
-
-  it("navigates to Login on 3-second timeout and ignores subsequent backend responses", async () => {
-    const delayedUser = createDeferred<{ role: string; user_id: string; username: string }>();
-    mockGetItem.mockResolvedValueOnce("valid-token");
-    mockGetCurrentUser.mockReturnValueOnce(delayedUser.promise);
-
-    render(<SplashScreen />);
-
-    await waitFor(() => {
-      expect(getCurrentUser).toHaveBeenCalledTimes(1);
-    });
-
     await waitFor(
       () => {
+        expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
+        expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
         expect(mockReplace).toHaveBeenCalledWith("Login");
       },
-      { timeout: SPLASH_TIMEOUT_MS + 3000 }
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
     );
-    expect(mockReplace).toHaveBeenCalledTimes(1);
-
-    delayedUser.resolve({ role: "ADMIN", user_id: "user-2", username: "admin" });
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(mockReplace).toHaveBeenCalledWith("Login");
-    expect(mockReplace).toHaveBeenCalledTimes(1);
-    expect(secureStorage.removeItem).not.toHaveBeenCalled();
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
   });
+
+  it(
+    "navigates to Login on the hard timeout and ignores subsequent backend responses",
+    async () => {
+      const delayedUser = createDeferred<{ role: string; user_id: string; username: string }>();
+      mockGetItem.mockResolvedValueOnce("valid-token");
+      mockGetCurrentUser.mockReturnValueOnce(delayedUser.promise);
+
+      render(<SplashScreen />);
+
+      await waitFor(() => {
+        expect(getCurrentUser).toHaveBeenCalledTimes(1);
+      });
+
+      await waitFor(
+        () => {
+          expect(mockReplace).toHaveBeenCalledWith("Login");
+        },
+        { timeout: SPLASH_TIMEOUT_MS + 3000 }
+      );
+      expect(mockReplace).toHaveBeenCalledTimes(1);
+
+      delayedUser.resolve({ role: "ADMIN", user_id: "user-2", username: "admin" });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockReplace).toHaveBeenCalledWith("Login");
+      expect(mockReplace).toHaveBeenCalledTimes(1);
+      expect(secureStorage.removeItem).not.toHaveBeenCalled();
+      expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+    },
+    SPLASH_TIMEOUT_MS + 5000
+  );
 });

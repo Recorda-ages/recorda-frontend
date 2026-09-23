@@ -1,22 +1,13 @@
 import type { ReactNode } from "react";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-  type ImageStyle,
-  type ScrollViewProps,
-  type StyleProp,
-  useWindowDimensions
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View, type ScrollViewProps } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui";
-import { colors, fontFamily, spacing } from "@/theme";
+import { baseColors, colors, fontFamily, spacing } from "@/theme";
 
 type OnboardingStepLayoutProps = {
   activeStep: 1 | 2 | 3;
@@ -37,8 +28,6 @@ type OnboardingStepLayoutProps = {
   title: string;
 };
 
-const GLOW_SIZE = 894;
-
 export function OnboardingStepLayout({
   activeStep,
   backAccessibilityLabel,
@@ -58,21 +47,24 @@ export function OnboardingStepLayout({
   title
 }: OnboardingStepLayoutProps) {
   const { t } = useTranslation();
-  const scale = useWindowDimensions().width / 393;
 
   return (
     <SafeAreaView style={styles.screen} testID={testID}>
       <StatusBar style="light" />
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        {(["topStart", "bottomEnd"] as const).map((anchor) => (
-          <Image
-            contentFit="contain"
-            key={anchor}
-            source={require("../assets/gradient-glow.svg")}
-            style={getGlowStyle(anchor, scale)}
-          />
-        ))}
-      </View>
+      <Image
+        accessibilityElementsHidden
+        contentFit="contain"
+        importantForAccessibility="no-hide-descendants"
+        source={require("@/assets/images/glow.png")}
+        style={styles.radialGlowTop}
+      />
+      <Image
+        accessibilityElementsHidden
+        contentFit="contain"
+        importantForAccessibility="no-hide-descendants"
+        source={require("@/assets/images/glow.png")}
+        style={styles.radialGlowBottom}
+      />
 
       <View style={styles.topBar}>
         <Pressable
@@ -170,21 +162,6 @@ export function OnboardingStepLayout({
   );
 }
 
-function getGlowStyle(anchor: "topStart" | "bottomEnd", scale: number): StyleProp<ImageStyle> {
-  const dimensions = {
-    height: GLOW_SIZE * scale,
-    width: GLOW_SIZE * scale
-  };
-
-  return [
-    styles.glow,
-    dimensions,
-    anchor === "topStart"
-      ? { left: -446 * scale, top: -468 * scale }
-      : { bottom: -271 * scale, right: -535 * scale }
-  ];
-}
-
 const styles = StyleSheet.create({
   backButton: {
     alignItems: "flex-start",
@@ -235,9 +212,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingTop: spacing[4]
   },
-  glow: {
-    position: "absolute"
-  },
   progress: {
     flexDirection: "row",
     gap: 6,
@@ -255,8 +229,27 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 4
   },
+  radialGlowBottom: {
+    bottom: -190,
+    height: 520,
+    opacity: 0.42,
+    pointerEvents: "none",
+    position: "absolute",
+    right: -210,
+    transform: [{ rotate: "180deg" }],
+    width: 520
+  },
+  radialGlowTop: {
+    height: 520,
+    left: -210,
+    opacity: 0.48,
+    pointerEvents: "none",
+    position: "absolute",
+    top: -190,
+    width: 520
+  },
   screen: {
-    backgroundColor: colors.neutrals[900],
+    backgroundColor: baseColors.black,
     flex: 1,
     overflow: "hidden"
   },

@@ -41,8 +41,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     color: colors.primary[500],
-    fontFamily: fontFamily.primary.bold,
-    fontSize: 28,
-    fontStyle: "italic"
+    fontFamily: fontFamily.display.boldItalic,
+    fontSize: 28
   }
 });

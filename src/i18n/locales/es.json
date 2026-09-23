@@ -4,14 +4,16 @@
       "forgotPassword": "Olvidé mi contraseña"
     },
     "passwordRecovery": {
-      "appBarTitle": "Recuperar Contraseña",
-      "back": "Volver",
       "description": "Ingresa tu email para definir una nueva contraseña.",
       "email": "Email",
       "confirmPassword": "Confirmar Contraseña",
       "genericError": "No fue posible restablecer tu contraseña. Intenta nuevamente.",
+      "hidePassword": "Ocultar contraseña",
+      "loginAction": "Iniciar sesión",
       "logo": "recorda.",
       "newPassword": "Nueva Contraseña",
+      "rememberedPassword": "¿Recordaste tu contraseña?",
+      "showPassword": "Mostrar contraseña",
       "submit": "Restablecer Contraseña",
       "success": "Tu contraseña se restableció correctamente.",
       "title": "Vuelve a recordar"

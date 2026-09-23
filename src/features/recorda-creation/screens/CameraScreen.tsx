@@ -5,11 +5,20 @@ import type { CameraMode, PermissionResponse } from "expo-camera";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Image, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Animated,
+  Image,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, Screen } from "@/components/ui";
+import { baseColors, radius, spacing } from "@/theme";
 
 let MediaLibrary: typeof import("expo-media-library") | null = null;
 try {
@@ -62,6 +71,7 @@ export function CameraScreen() {
   const isStartingRecordingRef = useRef(false);
   const shouldStopRecordingWhenReadyRef = useRef(false);
   const skipPhotoOnPressOutRef = useRef(false);
+  const [captureButtonScale] = useState(() => new Animated.Value(1));
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
@@ -368,6 +378,23 @@ export function CameraScreen() {
     }
   }
 
+  function animateCaptureButtonPressIn() {
+    Animated.spring(captureButtonScale, {
+      speed: 50,
+      toValue: 0.86,
+      useNativeDriver: true
+    }).start();
+  }
+
+  function animateCaptureButtonPressOut() {
+    Animated.spring(captureButtonScale, {
+      bounciness: 10,
+      speed: 20,
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+  }
+
   function handlePressIn() {
     if (
       !isFocusedRef.current ||
@@ -466,30 +493,47 @@ export function CameraScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {isFocused ? (
-        <CameraView
-          ref={cameraRef}
-          active={isFocused}
-          facing={facing}
-          key={`${facing}-${cameraMode}`}
-          mode={cameraMode}
-          onCameraReady={handleCameraReady}
-          onMountError={markCameraNotReady}
-          style={StyleSheet.absoluteFill}
-        />
-      ) : null}
+    <SafeAreaView style={styles.screen} testID="camera-screen">
+      <Image
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        resizeMode="contain"
+        source={require("@/assets/images/glow.png")}
+        style={styles.radialGlowTop}
+      />
+      <Image
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        resizeMode="contain"
+        source={require("@/assets/images/glow.png")}
+        style={styles.radialGlowBottom}
+      />
 
-      <SafeAreaView style={styles.overlay}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-          testID="camera-back-button"
-        >
-          <Ionicons color="white" name="chevron-back" size={28} />
-        </TouchableOpacity>
+      <View style={styles.content}>
+        <View style={styles.stage}>
+          {isFocused ? (
+            <CameraView
+              ref={cameraRef}
+              active={isFocused}
+              facing={facing}
+              key={`${facing}-${cameraMode}`}
+              mode={cameraMode}
+              onCameraReady={handleCameraReady}
+              onMountError={markCameraNotReady}
+              style={StyleSheet.absoluteFill}
+            />
+          ) : null}
 
-        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            testID="camera-back-button"
+          >
+            <Ionicons color="white" name="chevron-back" size={28} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.controls}>
           <TouchableOpacity onPress={handleOpenGallery} testID="camera-gallery-button">
             {lastGalleryUri ? (
               <Image source={{ uri: lastGalleryUri }} style={styles.galleryThumb} />
@@ -499,15 +543,30 @@ export function CameraScreen() {
           </TouchableOpacity>
 
           <Pressable
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            style={[
-              styles.captureButton,
-              isRecording && styles.captureButtonRecording,
-              !isCameraReady && styles.captureButtonDisabled
-            ]}
+            accessibilityLabel="Tirar foto"
+            accessibilityRole="button"
+            onPressIn={() => {
+              animateCaptureButtonPressIn();
+              handlePressIn();
+            }}
+            onPressOut={() => {
+              animateCaptureButtonPressOut();
+              handlePressOut();
+            }}
+            style={!isCameraReady && styles.captureButtonDisabled}
             testID="camera-capture-button"
-          />
+          >
+            <Animated.View
+              style={[styles.captureButton, { transform: [{ scale: captureButtonScale }] }]}
+            >
+              <View
+                style={[
+                  styles.captureButtonInner,
+                  isRecording && styles.captureButtonInnerRecording
+                ]}
+              />
+            </Animated.View>
+          </Pressable>
 
           <TouchableOpacity
             disabled={isRecording}
@@ -518,41 +577,52 @@ export function CameraScreen() {
             <Ionicons color="white" name="camera-reverse-outline" size={28} />
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   backButton: {
-    left: 16,
+    left: spacing[4],
     position: "absolute",
-    top: 16
-  },
-  bottomBar: {
-    alignItems: "center",
-    bottom: 24,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    position: "absolute",
-    width: "100%"
+    top: spacing[4]
   },
   captureButton: {
-    backgroundColor: "white",
-    borderRadius: 36,
-    height: 72,
-    width: 72
+    alignItems: "center",
+    borderColor: "white",
+    borderRadius: 38,
+    borderWidth: 4,
+    height: 76,
+    justifyContent: "center",
+    width: 76
   },
   captureButtonDisabled: {
     opacity: 0.56
   },
-  captureButtonRecording: {
-    backgroundColor: "#ff3b30"
+  captureButtonInner: {
+    backgroundColor: "white",
+    borderRadius: 30,
+    height: 60,
+    width: 60
   },
-  container: {
-    backgroundColor: "black",
+  captureButtonInnerRecording: {
+    backgroundColor: "#ff3b30",
+    borderRadius: 12,
+    height: 32,
+    width: 32
+  },
+  content: {
     flex: 1
+  },
+  controls: {
+    alignItems: "center",
+    flexDirection: "row",
+    height: 58,
+    justifyContent: "space-between",
+    marginBottom: spacing[6],
+    marginHorizontal: spacing[4],
+    marginTop: spacing[4]
   },
   flipButton: {
     alignItems: "center",
@@ -569,7 +639,36 @@ const styles = StyleSheet.create({
     height: 44,
     width: 44
   },
-  overlay: {
+  screen: {
+    backgroundColor: baseColors.black,
     flex: 1
-  }
+  },
+  stage: {
+    backgroundColor: baseColors.black,
+    borderRadius: radius.xl,
+    flex: 1,
+    marginHorizontal: spacing[4],
+    marginTop: spacing[2],
+    overflow: "hidden",
+    position: "relative"
+  },
+  radialGlowBottom: {
+    bottom: -190,
+    height: 520,
+    opacity: 0.42,
+    pointerEvents: "none",
+    position: "absolute",
+    right: -210,
+    transform: [{ rotate: "180deg" }],
+    width: 520
+  },
+  radialGlowTop: {
+    height: 520,
+    left: -210,
+    opacity: 0.48,
+    pointerEvents: "none",
+    position: "absolute",
+    top: -190,
+    width: 520
+  },
 });

@@ -4,14 +4,16 @@
       "forgotPassword": "Forgot my password"
     },
     "passwordRecovery": {
-      "appBarTitle": "Recover Password",
-      "back": "Go back",
       "description": "Enter your email to define a new password.",
       "email": "Email",
       "confirmPassword": "Confirm Password",
       "genericError": "We could not reset your password. Try again.",
+      "hidePassword": "Hide password",
+      "loginAction": "Log in",
       "logo": "recorda.",
       "newPassword": "New Password",
+      "rememberedPassword": "Remembered your password?",
+      "showPassword": "Show password",
       "submit": "Reset Password",
       "success": "Your password was reset successfully.",
       "title": "Back to remembering"

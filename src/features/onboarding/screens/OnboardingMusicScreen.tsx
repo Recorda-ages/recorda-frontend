@@ -11,14 +11,13 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
-  View,
-  useWindowDimensions
+  View
 } from "react-native";
 import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui";
-import { colors, fontFamily, spacing } from "@/theme";
+import { baseColors, colors, fontFamily, spacing } from "@/theme";
 import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
 
 export type OnboardingMusicScreenProps = {
@@ -48,7 +47,6 @@ export function OnboardingMusicScreen({
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const submitting = useRef(false);
-  const scale = useWindowDimensions().width / 393;
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350);
     return () => clearTimeout(timer);
@@ -87,28 +85,20 @@ export function OnboardingMusicScreen({
   return (
     <SafeAreaView style={styles.screen} testID="onboarding-music-screen">
       <StatusBar style="light" />
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Image
-          source={require("../assets/gradient-glow.svg")}
-          style={{
-            position: "absolute",
-            width: 894 * scale,
-            height: 894 * scale,
-            left: -446 * scale,
-            top: -468 * scale
-          }}
-        />
-        <Image
-          source={require("../assets/gradient-glow.svg")}
-          style={{
-            position: "absolute",
-            width: 894 * scale,
-            height: 894 * scale,
-            left: 34 * scale,
-            bottom: -271 * scale
-          }}
-        />
-      </View>
+      <Image
+        accessibilityElementsHidden
+        contentFit="contain"
+        importantForAccessibility="no-hide-descendants"
+        source={require("@/assets/images/glow.png")}
+        style={styles.radialGlowTop}
+      />
+      <Image
+        accessibilityElementsHidden
+        contentFit="contain"
+        importantForAccessibility="no-hide-descendants"
+        source={require("@/assets/images/glow.png")}
+        style={styles.radialGlowBottom}
+      />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -268,8 +258,27 @@ export function OnboardingMusicScreen({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.neutrals[900], overflow: "hidden" },
+  screen: { flex: 1, backgroundColor: baseColors.black, overflow: "hidden" },
   flex: { flex: 1 },
+  radialGlowBottom: {
+    bottom: -190,
+    height: 520,
+    opacity: 0.42,
+    pointerEvents: "none",
+    position: "absolute",
+    right: -210,
+    transform: [{ rotate: "180deg" }],
+    width: 520
+  },
+  radialGlowTop: {
+    height: 520,
+    left: -210,
+    opacity: 0.48,
+    pointerEvents: "none",
+    position: "absolute",
+    top: -190,
+    width: 520
+  },
   topBar: {
     height: 64,
     flexDirection: "row",

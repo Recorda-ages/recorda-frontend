@@ -11,7 +11,7 @@ import {
 import { StatusBar } from "expo-status-bar";
 
 import { AppText } from "@/components/ui";
-import { baseColors, colors, fontWeight, spacing } from "@/theme";
+import { baseColors, colors, fontFamily, fontWeight, spacing } from "@/theme";
 
 type AuthScreenLayoutProps = {
   children: ReactNode;
@@ -135,27 +135,27 @@ const styles = StyleSheet.create({
   },
   logo: {
     color: colors.primary[500],
-    fontFamily: "Inter_700Bold",
+    fontFamily: fontFamily.display.boldItalic,
     fontSize: 38,
-    fontStyle: "italic",
     letterSpacing: 0
   },
   radialGlowBottom: {
-    bottom: -150,
-    height: 480,
-    left: -150,
-    opacity: 0.4,
+    bottom: -190,
+    height: 520,
+    opacity: 0.42,
     pointerEvents: "none",
     position: "absolute",
-    width: 480
+    right: -210,
+    transform: [{ rotate: "180deg" }],
+    width: 520
   },
   radialGlowTop: {
     height: 520,
-    opacity: 0.5,
+    left: -210,
+    opacity: 0.48,
     pointerEvents: "none",
     position: "absolute",
-    right: -150,
-    top: -150,
+    top: -190,
     width: 520
   },
   screen: {
@@ -179,8 +179,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: baseColors.white,
+    fontFamily: fontFamily.primary.bold,
     fontSize: 34,
-    fontWeight: fontWeight.bold,
     lineHeight: 40
   }
 });
