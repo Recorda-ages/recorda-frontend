@@ -189,6 +189,14 @@ describe("FeedScreen", () => {
     );
   });
 
+  it("opens the user search from the header", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByTestId("feed-search-button"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("UserSearch");
+  });
+
   it("opens the camera and the profile from the tab bar", () => {
     renderScreen();
 
