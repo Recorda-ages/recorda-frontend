@@ -44,13 +44,16 @@ continuidade de reprodução. As mídias dos exemplos atuais são imagens.
 ## Validação desta implementação
 
 - Lint e TypeScript: aprovados.
-- Suíte completa: 38 suítes, 218 testes aprovados. O Jest permaneceu aberto após
-  os resultados; o workflow existente usa `--forceExit` para finalizar o processo.
+- Suíte completa: 38 suítes, 218 testes aprovados, executados com cobertura e
+  `--forceExit`, como no workflow existente. Cobertura global de linhas: 91,09%.
 - Após o ajuste visual final: 14 testes de Feed/detalhes aprovados, com
   `--detectOpenHandles` e encerramento normal.
 - Cobertura de instruções dos novos arquivos: de 85% a 100%.
 - Exportação web aprovada; navegação, curtida, comentário e menu de autoria
   conferidos na prévia web. Validação em Android/iOS ainda pendente.
-- Prettier aprovado nos arquivos da tarefa. O check global acusa finais de linha
-  CRLF do checkout Windows e, mesmo com `--end-of-line auto`, formatação já
-  existente em `OnboardingArtistsScreen.test.tsx` e `OnboardingMusicScreen.test.tsx`.
+- Prettier global aprovado após normalizar o checkout local e corrigir somente a
+  formatação de duas asserções em `OnboardingMusicScreen.test.tsx` e uma em
+  `OnboardingArtistsScreen.test.tsx`.
+- Evidências web: [tela](evidence/170/details-web.png) e
+  [ações e comentários](evidence/170/details-comments-web.png).
+- Saída real da execução dos testes: [log](evidence/170/test-output.txt).

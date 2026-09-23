@@ -1,0 +1,194 @@
+
+> recorda-frontend@0.1.0 test
+> jest --watchAll=false --coverage --runInBand --forceExit
+
+PASS tests/features/feed/PublishedRecordaScreen.test.tsx (19.382 s)
+PASS tests/features/splash/SplashScreen.test.tsx
+PASS tests/features/onboarding/OnboardingArtistsScreen.test.tsx
+PASS tests/features/auth/PasswordRecoveryScreen.test.tsx
+PASS tests/features/onboarding/OnboardingMusicScreen.test.tsx
+PASS tests/features/recorda-creation/screens/CameraScreen.test.tsx
+PASS tests/app/App.test.tsx
+PASS tests/features/auth/SignUpScreen.test.tsx
+PASS tests/features/recorda-creation/screens/RecordaMusicScreen.test.tsx
+PASS tests/features/auth/SignInScreen.test.tsx
+PASS tests/features/recorda-creation/screens/RecordaDetailsScreen.test.tsx
+PASS tests/features/onboarding/OnboardingMusicRoute.test.tsx
+PASS tests/features/feed/FeedScreen.test.tsx
+PASS tests/features/onboarding/OnboardingGenresScreen.test.tsx
+PASS tests/features/onboarding/OnboardingGenresRoute.test.tsx
+PASS tests/features/recorda-creation/screens/PreviewScreen.test.tsx
+PASS tests/app/AppProviders.test.tsx
+PASS tests/features/onboarding/musicApi.test.ts
+PASS tests/features/recorda-creation/context/RecordaDraftContext.test.tsx
+PASS tests/features/music/useTrackSearch.test.ts
+PASS tests/components/Button.test.tsx
+PASS tests/components/Input.test.tsx
+PASS tests/features/auth/useSignUpMutation.test.tsx
+PASS tests/features/music/useArtistSearch.test.ts
+PASS tests/features/auth/useSignInMutation.test.tsx
+PASS tests/features/recorda-publish/usePublishRecorda.test.ts
+PASS tests/features/music/useGenres.test.ts
+PASS tests/features/music/usePopularArtists.test.ts
+PASS tests/features/onboarding/OnboardingProvider.test.tsx
+PASS tests/features/recorda-publish/recordaPublishApi.test.ts
+PASS tests/features/auth/passwordRecovery.test.ts
+PASS tests/features/auth/session.test.ts
+PASS tests/features/music/musicService.test.ts
+PASS tests/services/api/authClient.test.ts
+PASS tests/features/auth/signIn.test.ts
+PASS tests/features/auth/register.test.ts
+PASS tests/features/auth/getCurrentUser.test.ts
+PASS tests/services/api/client.test.ts
+--------------------------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------------
+File                                                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+--------------------------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------------
+All files                                               |   90.73 |    83.12 |   89.89 |   91.09 |
+ recorda-frontend                                       |     100 |      100 |     100 |     100 |
+  App.tsx                                               |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/app                               |   81.81 |       50 |     100 |   81.81 |
+  AppRoot.tsx                                           |      80 |       50 |     100 |      80 | 22,26
+  fonts.ts                                              |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/app/config                        |     100 |      100 |     100 |     100 |
+  env.ts                                                |     100 |      100 |     100 |     100 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/app/navigation                    |   16.66 |      100 |   16.66 |   16.66 |
+  RootNavigator.tsx                                     |   16.66 |      100 |   16.66 |   16.66 | 55-86
+ recorda-frontend/src/app/providers                     |     100 |      100 |     100 |     100 |
+  AppProviders.tsx                                      |     100 |      100 |     100 |     100 |
+  queryClient.ts                                        |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/assets/images                     |     100 |      100 |     100 |     100 |
+  glow.png                                              |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/components/ui                     |   96.77 |    81.39 |     100 |   96.77 |
+  Button.tsx                                            |     100 |    76.19 |     100 |     100 | 36-37,44-47
+  ErrorState.tsx                                        |     100 |       50 |     100 |     100 | 15
+  Input.tsx                                             |     100 |      100 |     100 |     100 |
+  Loading.tsx                                           |     100 |       50 |     100 |     100 | 15
+  Screen.tsx                                            |      75 |    66.66 |     100 |      75 | 23
+  Text.tsx                                              |     100 |      100 |     100 |     100 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/features/auth                     |     100 |      100 |     100 |     100 |
+  session.ts                                            |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/auth/api                 |     100 |      100 |     100 |     100 |
+  getCurrentUser.ts                                     |     100 |      100 |     100 |     100 |
+  passwordRecovery.ts                                   |     100 |      100 |     100 |     100 |
+  register.ts                                           |     100 |      100 |     100 |     100 |
+  signIn.ts                                             |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/auth/components          |     100 |    88.88 |     100 |     100 |
+  AuthFormError.tsx                                     |     100 |      100 |     100 |     100 |
+  AuthPasswordInput.tsx                                 |     100 |      100 |     100 |     100 |
+  AuthScreenLayout.tsx                                  |     100 |    83.33 |     100 |     100 | 64
+  AuthSubmitButton.tsx                                  |     100 |       80 |     100 |     100 | 35
+  PasswordVisibilityToggle.tsx                          |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/auth/hooks               |     100 |      100 |     100 |     100 |
+  usePasswordRecoveryMutation.ts                        |     100 |      100 |     100 |     100 |
+  useSignInMutation.ts                                  |     100 |      100 |     100 |     100 |
+  useSignUpMutation.ts                                  |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/auth/screens             |    96.8 |    94.02 |   93.54 |    97.8 |
+  PasswordRecoveryScreen.tsx                            |     100 |      100 |     100 |     100 |
+  SignInScreen.tsx                                      |    93.1 |      100 |      80 |   96.42 | 119
+  SignUpScreen.tsx                                      |    97.5 |       84 |     100 |   97.43 | 32
+ recorda-frontend/src/features/auth/validation          |     100 |      100 |     100 |     100 |
+  passwordRecoverySchema.ts                             |     100 |      100 |     100 |     100 |
+  signInSchema.ts                                       |     100 |      100 |     100 |     100 |
+  signUpSchema.ts                                       |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/feed                     |       0 |        0 |       0 |       0 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/features/feed/components          |   92.15 |    92.85 |   85.71 |   93.87 |
+  BottomTabBar.tsx                                      |     100 |      100 |     100 |     100 |
+  FeedHeader.tsx                                        |     100 |      100 |     100 |     100 |
+  FeedTabs.tsx                                          |     100 |      100 |     100 |     100 |
+  RecordaCard.tsx                                       |     100 |      100 |     100 |     100 |
+  RecordaDetailView.tsx                                 |   85.18 |    88.88 |      75 |      88 | 143,182-207
+ recorda-frontend/src/features/feed/mocks               |     100 |      100 |     100 |     100 |
+  feedPosts.ts                                          |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/feed/screens             |   93.47 |    71.42 |   95.23 |   95.34 |
+  FeedScreen.tsx                                        |     100 |      100 |     100 |     100 |
+  PublishedRecordaScreen.tsx                            |   85.71 |    33.33 |      90 |   89.47 | 47-48
+  RecordaIntegrationScreen.tsx                          |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/feed/state               |    92.3 |       80 |     100 |     100 |
+  FeedContext.tsx                                       |    92.3 |       80 |     100 |     100 | 31,61
+ recorda-frontend/src/features/music/hooks              |     100 |      100 |     100 |     100 |
+  useArtistSearch.ts                                    |     100 |      100 |     100 |     100 |
+  useGenres.ts                                          |     100 |      100 |     100 |     100 |
+  usePopularArtists.ts                                  |     100 |      100 |     100 |     100 |
+  useTrackSearch.ts                                     |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/music/services           |     100 |      100 |     100 |     100 |
+  musicService.ts                                       |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/onboarding               |       0 |        0 |       0 |       0 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/features/onboarding/api           |     100 |      100 |     100 |     100 |
+  music.ts                                              |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/onboarding/assets        |     100 |      100 |     100 |     100 |
+  gradient-glow.svg                                     |     100 |      100 |     100 |     100 |
+  music-stepper.svg                                     |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/onboarding/components    |   85.71 |    86.95 |   85.71 |   85.71 |
+  ArtistChip.tsx                                        |     100 |     87.5 |     100 |     100 | 29
+  OnboardingGenresStep.tsx                              |       0 |      100 |       0 |       0 | 10-12
+  OnboardingStepLayout.tsx                              |     100 |    86.66 |     100 |     100 | 54,147
+ recorda-frontend/src/features/onboarding/screens       |   97.19 |    91.42 |   93.33 |   96.93 |
+  OnboardingArtistsScreen.tsx                           |   97.72 |    96.96 |   94.73 |   97.43 | 60
+  OnboardingGenresRoute.tsx                             |     100 |       50 |     100 |     100 | 16
+  OnboardingGenresScreen.tsx                            |   92.85 |    71.42 |   83.33 |    92.3 | 30
+  OnboardingMusicRoute.tsx                              |     100 |      100 |     100 |     100 |
+  OnboardingMusicScreen.tsx                             |   97.05 |    94.64 |   92.85 |   96.77 | 187
+ recorda-frontend/src/features/onboarding/state         |    92.3 |       50 |     100 |    92.3 |
+  OnboardingContext.tsx                                 |    92.3 |       50 |     100 |    92.3 | 51
+ recorda-frontend/src/features/recorda-creation/context |     100 |      100 |     100 |     100 |
+  RecordaDraftContext.tsx                               |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/recorda-creation/screens |    90.3 |    81.68 |   96.92 |   90.47 |
+  CameraScreen.tsx                                      |   86.87 |    78.14 |   93.75 |   87.21 | 23-29,90,105-106,110-111,127-128,132-133,144,156-158,232,241,254,276,283,299,308,331,343,379,408,417,446
+  PreviewScreen.tsx                                     |   97.14 |    83.33 |     100 |   97.14 | 43
+  RecordaDetailsScreen.tsx                              |   93.65 |    83.07 |     100 |   93.65 | 87,106,432,472
+  RecordaMusicScreen.tsx                                |   97.61 |    91.11 |     100 |    97.5 | 68
+ recorda-frontend/src/features/recorda-publish          |       0 |        0 |       0 |       0 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/features/recorda-publish/api      |     100 |      100 |     100 |     100 |
+  recordaPublishApi.ts                                  |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/features/recorda-publish/hooks    |     100 |    93.33 |     100 |     100 |
+  usePublishRecorda.ts                                  |     100 |    93.33 |     100 |     100 | 94
+ recorda-frontend/src/features/splash                   |       0 |        0 |       0 |       0 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/features/splash/screens           |    90.9 |    72.22 |     100 |    90.9 |
+  SplashScreen.tsx                                      |    90.9 |    72.22 |     100 |    90.9 | 34,50,72,85
+ recorda-frontend/src/i18n                              |     100 |      100 |     100 |     100 |
+  config.ts                                             |     100 |      100 |     100 |     100 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/services/api                      |   81.01 |    56.86 |   88.88 |   79.16 |
+  authClient.ts                                         |     100 |      100 |     100 |     100 |
+  client.ts                                             |   84.31 |    68.42 |     100 |   83.67 | 59,87,93,104,113,122,130,145
+  errors.ts                                             |   41.66 |        0 |      25 |   41.66 | 24-40
+  index.ts                                              |       0 |        0 |       0 |       0 |
+ recorda-frontend/src/services/storage                  |      25 |      100 |       0 |      25 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+  secureStorage.ts                                      |      25 |      100 |       0 |      25 | 4-6
+ recorda-frontend/src/theme                             |     100 |      100 |     100 |     100 |
+  colors.ts                                             |     100 |      100 |     100 |     100 |
+  index.ts                                              |       0 |        0 |       0 |       0 |
+  paperTheme.ts                                         |     100 |      100 |     100 |     100 |
+  radius.ts                                             |     100 |      100 |     100 |     100 |
+  spacing.ts                                            |     100 |      100 |     100 |     100 |
+  typography.ts                                         |     100 |      100 |     100 |     100 |
+ recorda-frontend/src/utils                             |       0 |        0 |       0 |       0 |
+  validation.ts                                         |       0 |        0 |       0 |       0 |
+ recorda-frontend/tests/mocks                           |   85.93 |       50 |   66.66 |   87.09 |
+  expoCamera.tsx                                        |   81.81 |        0 |   69.23 |   85.36 | 58-66
+  expoFileSystem.ts                                     |   66.66 |        0 |      50 |   66.66 | 10
+  expoFont.ts                                           |   66.66 |      100 |   66.66 |   66.66 | 10
+  expoImageManipulator.ts                               |     100 |      100 |     100 |     100 |
+  expoImagePicker.ts                                    |     100 |      100 |     100 |     100 |
+  expoMediaLibrary.ts                                   |   66.66 |      100 |      50 |      60 | 9-13
+  expoSplashScreen.ts                                   |     100 |      100 |     100 |     100 |
+  expoVectorIcons.tsx                                   |     100 |      100 |     100 |     100 |
+  expoVideo.tsx                                         |   91.66 |      100 |   83.33 |   91.66 | 16
+  reactNativeScreens.tsx                                |   76.47 |      100 |      20 |   76.47 | 35-47
+  recordaDraft.ts                                       |     100 |      100 |     100 |     100 |
+  safeAreaContext.tsx                                   |   88.88 |      100 |      75 |   88.88 | 59
+--------------------------------------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------------------------------
+
+Test Suites: 38 passed, 38 total
+Tests:       218 passed, 218 total
+Snapshots:   0 total
+Time:        56.778 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
