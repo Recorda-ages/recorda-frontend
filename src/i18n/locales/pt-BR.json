@@ -125,17 +125,33 @@
     "like": "Curtir",
     "comment": "Comentar",
     "share": "Compartilhar",
-    "likedByPrefix": "Curtido por",
-    "likedBySuffix_one": "e {{count}} outro",
-    "likedBySuffix_other": "e {{count}} outros",
+    "likesCount_one": "{{count}} curtida",
+    "likesCount_other": "{{count}} curtidas",
+    "loading": "Carregando feed...",
+    "loadingMore": "Carregando mais Recordas...",
+    "loadError": "Não foi possível carregar o feed. Tente novamente.",
+    "loadMoreError": "Não foi possível carregar mais Recordas.",
+    "retry": "Tentar novamente",
+    "generalEmptyState": {
+      "title": "Nenhuma Recorda por aqui ainda",
+      "message": "Confira a aba Seguindo para acompanhar os Recordas de quem você segue."
+    },
+    "emptyState": {
+      "title": "Ainda está tudo em silêncio por aqui",
+      "message": "Siga novas pessoas e acompanhe os Recordas que elas compartilharem."
+    },
     "tabs": {
-      "following": "Seguindo",
-      "forYou": "Para Você"
+      "geral": "Geral",
+      "following": "Seguindo"
     },
     "tabBar": {
       "camera": "Criar Recorda",
       "feed": "Feed",
       "profile": "Perfil"
     }
+  },
+  "recordaView": {
+    "title": "Recorda",
+    "back": "Voltar"
   }
 }

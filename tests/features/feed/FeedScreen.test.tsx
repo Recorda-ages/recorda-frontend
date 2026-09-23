@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { FeedScreen } from "@/features/feed";
-import { mockFeedPosts } from "@/features/feed/mocks/feedPosts";
+import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
+import type { FeedPage } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 
 const mockNavigate = jest.fn();
@@ -11,6 +12,76 @@ jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
   useNavigation: () => ({ navigate: mockNavigate })
 }));
+
+jest.mock("@/features/feed/hooks/useFollowingFeed", () => ({
+  useFollowingFeed: jest.fn()
+}));
+
+const mockedUseFollowingFeed = jest.mocked(useFollowingFeed);
+const mockFetchNextPage = jest.fn();
+const mockRefetch = jest.fn();
+
+const FEED_PAGE: FeedPage = {
+  items: [
+    {
+      author: { profile_picture_url: null, user_id: "user-1", username: "lucas_almeida" },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Show I-N-C-R-I-V-E-L!",
+      is_liked: false,
+      likes_count: 12,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/media-1.jpg",
+      recorda_id: "recorda-1",
+      song_artist_name: "The American Dawn",
+      song_cover_url: "https://cdn.example.com/cover-1.jpg",
+      song_preview_url: null,
+      song_title: "The Edge"
+    }
+  ],
+  next_cursor: null
+};
+
+function pendingResult() {
+  return {
+    data: undefined,
+    fetchNextPage: mockFetchNextPage,
+    hasNextPage: false,
+    isError: false,
+    isFetchingNextPage: false,
+    isFetchNextPageError: false,
+    isPending: true,
+    isSuccess: false,
+    refetch: mockRefetch
+  };
+}
+
+function successResult(data: FeedPage, hasNextPage = false) {
+  return {
+    data: { pageParams: [null], pages: [data] },
+    fetchNextPage: mockFetchNextPage,
+    hasNextPage,
+    isError: false,
+    isFetchingNextPage: false,
+    isFetchNextPageError: false,
+    isPending: false,
+    isSuccess: true,
+    refetch: mockRefetch
+  };
+}
+
+function errorResult() {
+  return {
+    data: undefined,
+    fetchNextPage: mockFetchNextPage,
+    hasNextPage: false,
+    isError: true,
+    isFetchingNextPage: false,
+    isFetchNextPageError: false,
+    isPending: false,
+    isSuccess: false,
+    refetch: mockRefetch
+  };
+}
 
 function renderScreen() {
   return render(
@@ -23,45 +94,99 @@ function renderScreen() {
 describe("FeedScreen", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockFetchNextPage.mockReset();
+    mockRefetch.mockReset();
+    mockedUseFollowingFeed.mockReset();
+    mockedUseFollowingFeed.mockReturnValue(
+      pendingResult() as unknown as ReturnType<typeof useFollowingFeed>
+    );
   });
 
-  it("renders the header, tabs and the mocked posts of the following tab", () => {
+  it("selects Geral by default, guides the user and does not fetch the following feed", () => {
     renderScreen();
 
     expect(screen.getByTestId("feed-screen")).toBeTruthy();
-    expect(screen.getByText("recorda.")).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Geral" })).toBeSelected();
+    expect(screen.getByTestId("feed-general-empty-state")).toBeTruthy();
+    expect(mockedUseFollowingFeed).toHaveBeenCalledWith(false);
+    expect(screen.queryByTestId(/feed-post-/)).toBeNull();
+  });
+
+  it("shows a loading state while the following feed is pending", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+
     expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
-
-    const firstPost = within(screen.getByTestId("feed-post-post-1"));
-    expect(firstPost.getAllByText("lucas_almeida")).toHaveLength(2);
-    expect(firstPost.getByText("The Edge")).toBeTruthy();
-    expect(firstPost.getByText("01 de janeiro")).toBeTruthy();
-    expect(firstPost.getByText(/Estava d\+!/)).toBeTruthy();
-    expect(screen.getByTestId("feed-post-post-2")).toBeTruthy();
-    expect(screen.queryByTestId("feed-post-post-3")).toBeNull();
+    expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(true);
+    expect(screen.getByText("Carregando feed...")).toBeTruthy();
   });
 
-  it("switches the listed posts when the For You tab is selected", () => {
+  it("renders the fetched Recorda cards for the Seguindo tab", () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      successResult(FEED_PAGE) as unknown as ReturnType<typeof useFollowingFeed>
+    );
     renderScreen();
 
-    fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
 
-    expect(screen.getByRole("tab", { name: "Para Você" })).toBeSelected();
-    expect(screen.getByTestId("feed-post-post-3")).toBeTruthy();
-    expect(screen.queryByTestId("feed-post-post-2")).toBeNull();
+    const post = within(screen.getByTestId("feed-post-recorda-1"));
+    expect(post.getAllByText("lucas_almeida")).toHaveLength(2);
+    expect(post.getByText("The Edge")).toBeTruthy();
   });
 
-  it("toggles the like locally and updates the like count", () => {
+  it("shows the empty state when the following feed has no items", () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      successResult({ items: [], next_cursor: null }) as unknown as ReturnType<
+        typeof useFollowingFeed
+      >
+    );
     renderScreen();
 
-    const firstPost = within(screen.getByTestId("feed-post-post-1"));
-    const likes = mockFeedPosts[0].likesCount;
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
 
-    expect(firstPost.getByText(`e ${likes} outros`, { exact: false })).toBeTruthy();
+    expect(screen.getByTestId("feed-following-empty-state")).toBeTruthy();
+  });
 
-    fireEvent.press(firstPost.getByRole("button", { name: "Curtir" }));
+  it("shows an error state and retries when the following feed request fails", () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      errorResult() as unknown as ReturnType<typeof useFollowingFeed>
+    );
+    renderScreen();
 
-    expect(firstPost.getByText(`e ${likes + 1} outros`, { exact: false })).toBeTruthy();
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+
+    expect(screen.getByText("Não foi possível carregar o feed. Tente novamente.")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads the next page when the list reaches the end", () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      successResult({ ...FEED_PAGE, next_cursor: "next-page" }, true) as unknown as ReturnType<
+        typeof useFollowingFeed
+      >
+    );
+    renderScreen();
+
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+    fireEvent(screen.getByTestId("following-feed-list"), "endReached");
+
+    expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it("navigates to the Recorda viewer when a card is tapped", async () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      successResult(FEED_PAGE) as unknown as ReturnType<typeof useFollowingFeed>
+    );
+    renderScreen();
+
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+    fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith("RecordaView", { recordaId: "recorda-1" })
+    );
   });
 
   it("opens the camera and the profile from the tab bar", () => {

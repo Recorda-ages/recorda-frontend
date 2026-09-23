@@ -33,5 +33,6 @@ pnpm-debug.log*
 .agents/
 .claude/
 .codex/
+.reviews/
 .cursor/
 .windsurf/
