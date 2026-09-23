@@ -25,7 +25,10 @@ export function FriendsScreen() {
   const [activeTab, setActiveTab] = useState<FriendsTab>("seguidores");
   const [search, setSearch] = useState("");
 
-  const { data: currentUser } = useQuery<CurrentUser>({ queryKey: AUTH_ME_QUERY_KEY });
+  const { data: currentUser } = useQuery<CurrentUser>({
+    queryKey: AUTH_ME_QUERY_KEY,
+    enabled: false,
+  });
   const userId = currentUser?.user_id ?? "";
 
   const followersQuery = useFollowers(userId, search);
