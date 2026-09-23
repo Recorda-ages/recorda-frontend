@@ -128,13 +128,20 @@
     "likesCount_one": "{{count}} curtida",
     "likesCount_other": "{{count}} curtidas",
     "loading": "Carregando feed...",
+    "loadingMore": "Carregando mais Recordas...",
     "loadError": "Não foi possível carregar o feed. Tente novamente.",
+    "loadMoreError": "Não foi possível carregar mais Recordas.",
+    "retry": "Tentar novamente",
+    "generalEmptyState": {
+      "title": "Nenhuma Recorda por aqui ainda",
+      "message": "Confira a aba Seguindo para acompanhar os Recordas de quem você segue."
+    },
     "emptyState": {
       "title": "Ainda está tudo em silêncio por aqui",
       "message": "Siga novas pessoas e acompanhe os Recordas que elas compartilharem."
     },
     "tabs": {
-      "geral": "Para Você",
+      "geral": "Geral",
       "following": "Seguindo"
     },
     "tabBar": {

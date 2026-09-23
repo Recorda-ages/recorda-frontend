@@ -1,4 +1,4 @@
-import { apiClient } from "@/services/api/client";
+import { apiClient, resolveApiAssetUrl } from "@/services/api/client";
 import { ApiError } from "@/services/api/errors";
 
 const fetchMock = jest.fn();
@@ -53,5 +53,20 @@ describe("apiClient timeouts", () => {
     await expect(
       apiClient.get("/slow", { signal: controller.signal, timeoutMs: 10_000 })
     ).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+describe("resolveApiAssetUrl", () => {
+  it("resolves backend-relative asset paths against the configured API host", () => {
+    expect(resolveApiAssetUrl("/api/v1/recordas/media/photo.jpg")).toBe(
+      "http://localhost:8000/api/v1/recordas/media/photo.jpg"
+    );
+  });
+
+  it("keeps absolute and local asset URLs unchanged", () => {
+    expect(resolveApiAssetUrl("https://cdn.example.com/photo.jpg")).toBe(
+      "https://cdn.example.com/photo.jpg"
+    );
+    expect(resolveApiAssetUrl("file:///tmp/photo.jpg")).toBe("file:///tmp/photo.jpg");
   });
 });

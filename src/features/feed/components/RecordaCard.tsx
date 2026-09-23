@@ -5,18 +5,23 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
+import { resolveApiAssetUrl } from "@/services/api";
 import { colors, fontFamily, radius, spacing } from "@/theme";
 
 import type { FeedItem } from "../types";
 
-type RecordaCardProps = {
+type RecordaCardProps = Readonly<{
   item: FeedItem;
   onPress: () => void;
-};
+}>;
 
 export function RecordaCard({ item, onPress }: RecordaCardProps) {
   const { t, i18n } = useTranslation();
   const formattedDate = formatFeedDate(item.created_at, i18n.language);
+  const avatarUrl = item.author.profile_picture_url
+    ? resolveApiAssetUrl(item.author.profile_picture_url)
+    : null;
+  const mediaUrl = resolveApiAssetUrl(item.media_url);
 
   return (
     <Pressable
@@ -26,8 +31,8 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
       testID={`feed-post-${item.recorda_id}`}
     >
       <View style={styles.header}>
-        {item.author.profile_picture_url ? (
-          <Image source={item.author.profile_picture_url} style={styles.avatar} />
+        {avatarUrl ? (
+          <Image source={avatarUrl} style={styles.avatar} testID="recorda-author-avatar" />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
             <Icon color={colors.neutrals[400]} size={20} source="account" />
@@ -45,7 +50,11 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
         </Pressable>
       </View>
 
-      <RecordaCardMedia mediaType={item.media_type} mediaUrl={item.media_url} />
+      <RecordaCardMedia
+        accessibilityLabel={item.description ?? item.song_title}
+        mediaType={item.media_type}
+        mediaUrl={mediaUrl}
+      />
 
       <View style={styles.actions}>
         <View style={styles.actionGroup}>
@@ -79,26 +88,47 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
   );
 }
 
-type RecordaCardMediaProps = {
+type RecordaCardMediaProps = Readonly<{
+  accessibilityLabel: string;
   mediaType: FeedItem["media_type"];
   mediaUrl: string;
-};
+}>;
 
-function RecordaCardMedia({ mediaType, mediaUrl }: RecordaCardMediaProps) {
+function RecordaCardMedia({ accessibilityLabel, mediaType, mediaUrl }: RecordaCardMediaProps) {
   if (mediaType === "VIDEO") {
-    return <RecordaCardVideo uri={mediaUrl} />;
+    return <RecordaCardVideo accessibilityLabel={accessibilityLabel} uri={mediaUrl} />;
   }
 
-  return <Image contentFit="cover" source={mediaUrl} style={styles.media} transition={150} />;
+  return (
+    <Image
+      accessibilityLabel={accessibilityLabel}
+      contentFit="cover"
+      source={mediaUrl}
+      style={styles.media}
+      testID="recorda-media-image"
+      transition={150}
+    />
+  );
 }
 
-function RecordaCardVideo({ uri }: { uri: string }) {
+type RecordaCardVideoProps = Readonly<{
+  accessibilityLabel: string;
+  uri: string;
+}>;
+
+function RecordaCardVideo({ accessibilityLabel, uri }: RecordaCardVideoProps) {
   const player = useVideoPlayer(uri, (playerInstance) => {
     playerInstance.muted = true;
   });
 
   return (
-    <VideoView contentFit="cover" nativeControls={false} player={player} style={styles.media} />
+    <VideoView
+      accessibilityLabel={accessibilityLabel}
+      contentFit="cover"
+      nativeControls={false}
+      player={player}
+      style={styles.media}
+    />
   );
 }
 

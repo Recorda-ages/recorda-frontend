@@ -18,6 +18,8 @@ jest.mock("@/features/feed/hooks/useFollowingFeed", () => ({
 }));
 
 const mockedUseFollowingFeed = jest.mocked(useFollowingFeed);
+const mockFetchNextPage = jest.fn();
+const mockRefetch = jest.fn();
 
 const FEED_PAGE: FeedPage = {
   items: [
@@ -40,15 +42,45 @@ const FEED_PAGE: FeedPage = {
 };
 
 function pendingResult() {
-  return { data: undefined, isError: false, isPending: true, isSuccess: false };
+  return {
+    data: undefined,
+    fetchNextPage: mockFetchNextPage,
+    hasNextPage: false,
+    isError: false,
+    isFetchingNextPage: false,
+    isFetchNextPageError: false,
+    isPending: true,
+    isSuccess: false,
+    refetch: mockRefetch
+  };
 }
 
-function successResult(data: FeedPage) {
-  return { data, isError: false, isPending: false, isSuccess: true };
+function successResult(data: FeedPage, hasNextPage = false) {
+  return {
+    data: { pageParams: [null], pages: [data] },
+    fetchNextPage: mockFetchNextPage,
+    hasNextPage,
+    isError: false,
+    isFetchingNextPage: false,
+    isFetchNextPageError: false,
+    isPending: false,
+    isSuccess: true,
+    refetch: mockRefetch
+  };
 }
 
 function errorResult() {
-  return { data: undefined, isError: true, isPending: false, isSuccess: false };
+  return {
+    data: undefined,
+    fetchNextPage: mockFetchNextPage,
+    hasNextPage: false,
+    isError: true,
+    isFetchingNextPage: false,
+    isFetchNextPageError: false,
+    isPending: false,
+    isSuccess: false,
+    refetch: mockRefetch
+  };
 }
 
 function renderScreen() {
@@ -62,15 +94,20 @@ function renderScreen() {
 describe("FeedScreen", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockFetchNextPage.mockReset();
+    mockRefetch.mockReset();
     mockedUseFollowingFeed.mockReset();
-    mockedUseFollowingFeed.mockReturnValue(pendingResult() as ReturnType<typeof useFollowingFeed>);
+    mockedUseFollowingFeed.mockReturnValue(
+      pendingResult() as unknown as ReturnType<typeof useFollowingFeed>
+    );
   });
 
-  it("selects Para Você by default and does not fetch the following feed", () => {
+  it("selects Geral by default, guides the user and does not fetch the following feed", () => {
     renderScreen();
 
     expect(screen.getByTestId("feed-screen")).toBeTruthy();
-    expect(screen.getByRole("tab", { name: "Para Você" })).toBeSelected();
+    expect(screen.getByRole("tab", { name: "Geral" })).toBeSelected();
+    expect(screen.getByTestId("feed-general-empty-state")).toBeTruthy();
     expect(mockedUseFollowingFeed).toHaveBeenCalledWith(false);
     expect(screen.queryByTestId(/feed-post-/)).toBeNull();
   });
@@ -87,7 +124,7 @@ describe("FeedScreen", () => {
 
   it("renders the fetched Recorda cards for the Seguindo tab", () => {
     mockedUseFollowingFeed.mockReturnValue(
-      successResult(FEED_PAGE) as ReturnType<typeof useFollowingFeed>
+      successResult(FEED_PAGE) as unknown as ReturnType<typeof useFollowingFeed>
     );
     renderScreen();
 
@@ -100,27 +137,47 @@ describe("FeedScreen", () => {
 
   it("shows the empty state when the following feed has no items", () => {
     mockedUseFollowingFeed.mockReturnValue(
-      successResult({ items: [], next_cursor: null }) as ReturnType<typeof useFollowingFeed>
+      successResult({ items: [], next_cursor: null }) as unknown as ReturnType<
+        typeof useFollowingFeed
+      >
     );
     renderScreen();
 
     fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
 
-    expect(screen.getByTestId("feed-empty-state")).toBeTruthy();
+    expect(screen.getByTestId("feed-following-empty-state")).toBeTruthy();
   });
 
-  it("shows an error state when the following feed request fails", () => {
-    mockedUseFollowingFeed.mockReturnValue(errorResult() as ReturnType<typeof useFollowingFeed>);
+  it("shows an error state and retries when the following feed request fails", () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      errorResult() as unknown as ReturnType<typeof useFollowingFeed>
+    );
     renderScreen();
 
     fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
 
     expect(screen.getByText("Não foi possível carregar o feed. Tente novamente.")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads the next page when the list reaches the end", () => {
+    mockedUseFollowingFeed.mockReturnValue(
+      successResult({ ...FEED_PAGE, next_cursor: "next-page" }, true) as unknown as ReturnType<
+        typeof useFollowingFeed
+      >
+    );
+    renderScreen();
+
+    fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+    fireEvent(screen.getByTestId("following-feed-list"), "endReached");
+
+    expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
   });
 
   it("navigates to the Recorda viewer when a card is tapped", async () => {
     mockedUseFollowingFeed.mockReturnValue(
-      successResult(FEED_PAGE) as ReturnType<typeof useFollowingFeed>
+      successResult(FEED_PAGE) as unknown as ReturnType<typeof useFollowingFeed>
     );
     renderScreen();
 

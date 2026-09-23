@@ -62,6 +62,21 @@ export function buildApiUrl(path: string) {
   return `${baseUrl}${API_VERSION_PREFIX}${normalizedPath}`;
 }
 
+export function resolveApiAssetUrl(url: string) {
+  const normalizedUrl = url.trim();
+
+  if (
+    !normalizedUrl ||
+    /^[a-z][a-z\d+.-]*:/i.test(normalizedUrl) ||
+    normalizedUrl.startsWith("//")
+  ) {
+    return normalizedUrl;
+  }
+
+  const baseUrl = env.apiUrl.replace(/\/+$/, "");
+  return `${baseUrl}/${normalizedUrl.replace(/^\/+/, "")}`;
+}
+
 async function request<TResponse>(path: string, options: ApiRequestOptions = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);

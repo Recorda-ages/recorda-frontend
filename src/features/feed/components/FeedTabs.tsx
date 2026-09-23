@@ -29,7 +29,11 @@ export function FeedTabs({ activeTab, onChange }: FeedTabsProps) {
             onPress={() => onChange(tab)}
             style={styles.tab}
           >
-            <AppText style={[styles.label, isActive ? styles.labelActive : undefined]}>
+            <AppText
+              maxFontSizeMultiplier={1.2}
+              numberOfLines={1}
+              style={[styles.label, isActive ? styles.labelActive : undefined]}
+            >
               {t(`feed.tabs.${tab}`)}
             </AppText>
             <View style={[styles.indicator, isActive ? styles.indicatorActive : undefined]} />
@@ -52,7 +56,8 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.neutrals[200],
-    fontFamily: fontFamily.primary.semiBold
+    fontFamily: fontFamily.primary.semiBold,
+    textAlign: "center"
   },
   labelActive: {
     color: colors.neutrals[100]

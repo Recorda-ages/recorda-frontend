@@ -128,13 +128,20 @@
     "likesCount_one": "{{count}} like",
     "likesCount_other": "{{count}} likes",
     "loading": "Loading feed...",
+    "loadingMore": "Loading more Recordas...",
     "loadError": "We couldn't load the feed. Please try again.",
+    "loadMoreError": "We couldn't load more Recordas.",
+    "retry": "Try again",
+    "generalEmptyState": {
+      "title": "No Recordas here yet",
+      "message": "Open Following to keep up with the Recordas shared by people you follow."
+    },
     "emptyState": {
       "title": "It's still quiet around here",
       "message": "Follow new people and keep up with the Recordas they share!"
     },
     "tabs": {
-      "geral": "For You",
+      "geral": "General",
       "following": "Following"
     },
     "tabBar": {

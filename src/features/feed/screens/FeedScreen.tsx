@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { ErrorState, Loading } from "@/components/ui";
+import { Button, ErrorState, Loading } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -23,7 +23,7 @@ export function FeedScreen() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
-  const followingItems = followingFeedQuery.data?.items ?? [];
+  const followingItems = followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [];
 
   const handleTabBarPress = (tab: BottomTab) => {
     if (tab === "camera") {
@@ -39,16 +39,36 @@ export function FeedScreen() {
     navigation.navigate("RecordaView", { recordaId: item.recorda_id });
   };
 
+  const handleEndReached = () => {
+    if (
+      followingFeedQuery.hasNextPage &&
+      !followingFeedQuery.isFetchingNextPage &&
+      !followingFeedQuery.isFetchNextPageError
+    ) {
+      void followingFeedQuery.fetchNextPage();
+    }
+  };
+
   return (
     <View style={styles.screen} testID="feed-screen">
       <StatusBar style="light" />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <FeedHeader />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
+        {activeTab === "geral" ? <FeedEmptyState variant="general" /> : null}
         {activeTab === "following" ? (
           <>
             {followingFeedQuery.isPending ? <Loading label={t("feed.loading")} /> : null}
-            {followingFeedQuery.isError ? <ErrorState message={t("feed.loadError")} /> : null}
+            {followingFeedQuery.isError && followingItems.length === 0 ? (
+              <View style={styles.feedback}>
+                <ErrorState message={t("feed.loadError")} />
+                <Button
+                  label={t("feed.retry")}
+                  onPress={() => void followingFeedQuery.refetch()}
+                  variant="secondary"
+                />
+              </View>
+            ) : null}
             {followingFeedQuery.isSuccess && followingItems.length === 0 ? (
               <FeedEmptyState />
             ) : null}
@@ -57,10 +77,27 @@ export function FeedScreen() {
                 contentContainerStyle={styles.list}
                 data={followingItems}
                 keyExtractor={(item) => item.recorda_id}
+                ListFooterComponent={
+                  followingFeedQuery.isFetchingNextPage ? (
+                    <Loading label={t("feed.loadingMore")} />
+                  ) : followingFeedQuery.isFetchNextPageError ? (
+                    <View style={styles.paginationError}>
+                      <ErrorState message={t("feed.loadMoreError")} />
+                      <Button
+                        label={t("feed.retry")}
+                        onPress={() => void followingFeedQuery.fetchNextPage()}
+                        variant="secondary"
+                      />
+                    </View>
+                  ) : null
+                }
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.4}
                 renderItem={({ item }) => (
                   <RecordaCard item={item} onPress={() => handleCardPress(item)} />
                 )}
                 showsVerticalScrollIndicator={false}
+                testID="following-feed-list"
               />
             ) : null}
           </>
@@ -75,9 +112,18 @@ const styles = StyleSheet.create({
   content: {
     flex: 1
   },
+  feedback: {
+    gap: spacing[3],
+    padding: spacing[4]
+  },
   list: {
     gap: spacing[4],
+    paddingBottom: spacing[4],
     paddingTop: spacing[2]
+  },
+  paginationError: {
+    gap: spacing[3],
+    paddingHorizontal: spacing[4]
   },
   screen: {
     backgroundColor: colors.neutrals[900],

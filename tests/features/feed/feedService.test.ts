@@ -44,8 +44,18 @@ describe("feedService.getFollowingFeed", () => {
     mockGet.mockResolvedValueOnce(FEED_PAGE);
     const controller = new AbortController();
 
-    await feedService.getFollowingFeed(controller.signal);
+    await feedService.getFollowingFeed(null, controller.signal);
 
     expect(mockGet).toHaveBeenCalledWith("/feed/following", { signal: controller.signal });
+  });
+
+  it("encodes the cursor when requesting the next page", async () => {
+    mockGet.mockResolvedValueOnce(FEED_PAGE);
+
+    await feedService.getFollowingFeed("cursor/with+symbols=");
+
+    expect(mockGet).toHaveBeenCalledWith("/feed/following?cursor=cursor%2Fwith%2Bsymbols%3D", {
+      signal: undefined
+    });
   });
 });

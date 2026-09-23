@@ -5,16 +5,25 @@ import { Icon } from "react-native-paper";
 import { AppText } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
-export function FeedEmptyState() {
+type FeedEmptyStateProps = Readonly<{
+  variant?: "following" | "general";
+}>;
+
+export function FeedEmptyState({ variant = "following" }: FeedEmptyStateProps) {
   const { t } = useTranslation();
+  const translationKey = variant === "general" ? "feed.generalEmptyState" : "feed.emptyState";
 
   return (
-    <View style={styles.container} testID="feed-empty-state">
-      <Icon color={colors.neutrals[500]} size={40} source="account-group-outline" />
+    <View style={styles.container} testID={`feed-${variant}-empty-state`}>
+      <Icon
+        color={colors.neutrals[500]}
+        size={40}
+        source={variant === "general" ? "music-note-outline" : "account-group-outline"}
+      />
       <AppText style={styles.title} variant="headline4">
-        {t("feed.emptyState.title")}
+        {t(`${translationKey}.title`)}
       </AppText>
-      <AppText style={styles.message}>{t("feed.emptyState.message")}</AppText>
+      <AppText style={styles.message}>{t(`${translationKey}.message`)}</AppText>
     </View>
   );
 }
