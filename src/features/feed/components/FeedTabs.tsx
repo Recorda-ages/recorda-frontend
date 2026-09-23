@@ -11,6 +11,8 @@ type FeedTabsProps = {
   onChange: (tab: FeedTab) => void;
 };
 
+// Keep the user-facing label as "Para Você" per the approved Figma. The internal tab id
+// remains "geral" to match the domain/issue terminology.
 const TABS: FeedTab[] = ["geral", "following"];
 
 export function FeedTabs({ activeTab, onChange }: FeedTabsProps) {
