@@ -22,9 +22,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
   return React.createElement(QueryClientProvider, { client }, children);
 }
 
-const mockFollowers = [
-  { id: "1", username: "janedoe", displayName: "Jane Doe", avatarUrl: null }
-];
+const mockFollowers = [{ id: "1", username: "janedoe", displayName: "Jane Doe", avatarUrl: null }];
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -68,9 +66,7 @@ describe("useFollowers", () => {
 });
 
 describe("useFollowing", () => {
-  const mockFollowing = [
-    { id: "2", username: "bob", displayName: "Bob Smith", avatarUrl: null }
-  ];
+  const mockFollowing = [{ id: "2", username: "bob", displayName: "Bob Smith", avatarUrl: null }];
 
   it("fetches following for a given userId", async () => {
     mockListFollowing.mockResolvedValueOnce(mockFollowing);

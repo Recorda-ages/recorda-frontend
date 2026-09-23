@@ -27,7 +27,7 @@ export function FriendsScreen() {
 
   const { data: currentUser } = useQuery<CurrentUser>({
     queryKey: AUTH_ME_QUERY_KEY,
-    enabled: false,
+    enabled: false
   });
   const userId = currentUser?.user_id ?? "";
 

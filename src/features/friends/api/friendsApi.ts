@@ -30,13 +30,19 @@ function buildQuery(params: ListParams): string {
   return "?" + entries.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 }
 
-export async function listFollowers(userId: string, params: ListParams = {}): Promise<FriendProfile[]> {
+export async function listFollowers(
+  userId: string,
+  params: ListParams = {}
+): Promise<FriendProfile[]> {
   const qs = buildQuery(params);
   const data = await authApiClient.get<FollowUser[]>(`/users/${userId}/followers${qs}`);
   return data.map(toFriendProfile);
 }
 
-export async function listFollowing(userId: string, params: ListParams = {}): Promise<FriendProfile[]> {
+export async function listFollowing(
+  userId: string,
+  params: ListParams = {}
+): Promise<FriendProfile[]> {
   const qs = buildQuery(params);
   const data = await authApiClient.get<FollowUser[]>(`/users/${userId}/following${qs}`);
   return data.map(toFriendProfile);

@@ -15,7 +15,10 @@ const mockRemoveFollower = friendsApi.removeFollower as jest.Mock;
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({
-    defaultOptions: { mutations: { gcTime: Infinity, retry: false }, queries: { gcTime: Infinity, retry: false } }
+    defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
+      queries: { gcTime: Infinity, retry: false }
+    }
   });
   return React.createElement(QueryClientProvider, { client }, children);
 }

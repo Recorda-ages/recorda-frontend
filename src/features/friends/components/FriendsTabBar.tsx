@@ -20,15 +20,16 @@ export function FriendsTabBar({ activeTab, onChange }: FriendsTabBarProps) {
       {TABS.map((tab) => {
         const isActive = tab.key === activeTab;
         return (
-          <Pressable
-            key={tab.key}
-            onPress={() => onChange(tab.key)}
-            style={styles.tab}
-          >
+          <Pressable key={tab.key} onPress={() => onChange(tab.key)} style={styles.tab}>
             <AppText style={styles.label} variant="body1">
               {tab.label}
             </AppText>
-            <View style={[styles.indicator, isActive ? styles.indicatorActive : styles.indicatorInactive]} />
+            <View
+              style={[
+                styles.indicator,
+                isActive ? styles.indicatorActive : styles.indicatorInactive
+              ]}
+            />
           </Pressable>
         );
       })}
