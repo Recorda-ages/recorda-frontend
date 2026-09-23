@@ -1,14 +1,13 @@
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import {
-  FeedProvider,
-  PublishedRecordaScreen,
-  RecordaIntegrationScreen
-} from "@/features/feed";
+import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { useFeed } from "@/features/feed/state/FeedContext";
+import type { FeedItem } from "@/features/feed/types";
 import { i18n } from "@/i18n";
+
+import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -26,15 +25,27 @@ function FeedSnapshot() {
     <View>
       <Text testID="remaining-posts">{posts.map((post) => post.id).join(",")}</Text>
       <Text testID="liked-posts">{likedIds.join(",")}</Text>
-      <Text testID="shared-comments">{posts[0]?.comments.map((comment) => comment.text).join(",")}</Text>
+      <Text testID="shared-comments">
+        {posts[0]?.comments.map((comment) => comment.text).join(",")}
+      </Text>
     </View>
   );
 }
 
-function renderScreen() {
+function OpenFeedItem({ item }: { item: FeedItem }) {
+  const { openFeedItem } = useFeed();
+  return (
+    <Pressable onPress={() => openFeedItem(item)}>
+      <Text>Open API item</Text>
+    </Pressable>
+  );
+}
+
+function renderScreen(item?: FeedItem) {
   return render(
     <I18nextProvider i18n={i18n}>
       <FeedProvider>
+        {item ? <OpenFeedItem item={item} /> : null}
         <PublishedRecordaScreen />
         <FeedSnapshot />
       </FeedProvider>
@@ -45,6 +56,7 @@ function renderScreen() {
 describe("PublishedRecordaScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetVideoMock();
     mockRoute = { name: "PublishedRecorda", params: { postId: "post-1" } };
   });
 
@@ -54,7 +66,9 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByText("The Edge")).toBeTruthy();
     expect(screen.getByText(/The American Dawn/)).toBeTruthy();
     expect(screen.getByText("01 de janeiro")).toBeTruthy();
-    expect(screen.getByText(/Estava d\+!/)).toBeTruthy();
+    expect(
+      within(screen.getByTestId("recorda-detail-screen")).getByText(/Estava d\+!/)
+    ).toBeTruthy();
     expect(screen.getByText("Comentários")).toBeTruthy();
     expect(screen.queryByText(/Data da Memória|Local|Marcações/)).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
@@ -78,7 +92,7 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.changeText(input, "  Que lembrança boa!  ");
     fireEvent.press(details.getByRole("button", { name: "Enviar comentário" }));
     expect(details.getByText(/Que lembrança boa!/)).toBeTruthy();
-    expect(screen.getByTestId("shared-comments")).toHaveTextContent("Que lembrança boa!");
+    expect(screen.getByTestId("shared-comments").props.children).toContain("Que lembrança boa!");
     expect(input.props.value).toBe("");
   });
 
@@ -123,6 +137,32 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
     expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull();
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
+  });
+
+  it("opens an API video with its existing like count", () => {
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane_smith", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Show ao vivo",
+      is_liked: true,
+      likes_count: 12,
+      media_type: "VIDEO",
+      media_url: "https://cdn.example.com/live.mp4",
+      recorda_id: "recorda-video",
+      song_artist_name: "The American Dawn",
+      song_cover_url: "https://cdn.example.com/cover.jpg",
+      song_preview_url: null,
+      song_title: "The Edge"
+    };
+    mockRoute.params.postId = item.recorda_id;
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+
+    expect(screen.getByTestId("mock-video-view")).toBeTruthy();
+    expect(mockUseVideoPlayer).toHaveBeenCalledWith(item.media_url, expect.any(Function));
+    expect(screen.getByText("12 curtidas")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Curtir" }));
+    expect(screen.getByText("11 curtidas")).toBeTruthy();
   });
 
   it("handles missing or deleted posts without crashing", () => {

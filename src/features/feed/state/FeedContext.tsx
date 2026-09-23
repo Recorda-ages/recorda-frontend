@@ -1,11 +1,14 @@
 import { createContext, type PropsWithChildren, useContext, useRef, useState } from "react";
 
+import { queryClient } from "@/app/providers/queryClient";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import type { UserBasicResponse } from "@/features/auth/api/types";
 import { resolveApiAssetUrl } from "@/services/api";
 
 import { mockFeedPosts } from "../mocks/feedPosts";
 import type { FeedItem, FeedPost } from "../types";
 
-// This identity belongs to the demo feed, until the feed is connected to the API.
+// Fallback identity for the local preview without an authenticated session.
 export const demoFeedUser = { id: "demo-lucas", username: "lucas_almeida" };
 
 type FeedState = {
@@ -40,7 +43,7 @@ export function FeedProvider({ children }: PropsWithChildren) {
       description: item.description ?? "",
       id: item.recorda_id,
       likedBy: { avatarUrl: "", username: "" },
-      likesCount: item.likes_count,
+      likesCount: item.likes_count - (item.is_liked ? 1 : 0),
       mediaType: item.media_type,
       mediaUrl: resolveApiAssetUrl(item.media_url),
       publishedAt: new Date(item.created_at).toLocaleDateString(undefined, {
@@ -53,7 +56,7 @@ export function FeedProvider({ children }: PropsWithChildren) {
     setPosts((current) =>
       current.some((existing) => existing.id === post.id) ? current : [...current, post]
     );
-    if (item.is_liked) {
+    if (item.is_liked && !posts.some((existing) => existing.id === post.id)) {
       setLikedIds((current) => (current.includes(post.id) ? current : [...current, post.id]));
     }
   };
@@ -68,7 +71,9 @@ export function FeedProvider({ children }: PropsWithChildren) {
     const comment = {
       id: `local-comment-${++nextComment.current}`,
       text,
-      username: demoFeedUser.username
+      username:
+        queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY)?.username ??
+        demoFeedUser.username
     };
     setPosts((current) =>
       current.map((post) =>
@@ -84,7 +89,16 @@ export function FeedProvider({ children }: PropsWithChildren) {
 
   return (
     <FeedContext.Provider
-      value={{ posts, likedIds, deletedIds, currentUser: demoFeedUser, openFeedItem, toggleLike, addComment, deletePost }}
+      value={{
+        posts,
+        likedIds,
+        deletedIds,
+        currentUser: demoFeedUser,
+        openFeedItem,
+        toggleLike,
+        addComment,
+        deletePost
+      }}
     >
       {children}
     </FeedContext.Provider>
