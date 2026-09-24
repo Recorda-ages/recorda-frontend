@@ -1,18 +1,16 @@
 // =============================================================================
-// TEMP — RUNTIME SCAFFOLDING ONLY (T-E4.US15.FE.01 / #164)
+// TEMP — RUNTIME MOCK, REMOVE WHEN BACKEND ISSUE #39 IS AVAILABLE (#164)
 //
-// GET /feed/general does not exist in the backend yet. This file stands in for
-// it so the "Para Você" tab can be built and reviewed end to end. It is
-// consumed ONLY by feedService.getGeneralFeed; no component or hook knows it exists.
+// This file exists only because GET /feed/general is still pending in backend issue #39.
+// It stands in for the endpoint so the "Para Você" tab can be built and reviewed, and it is
+// consumed ONLY by feedService.getGeneralFeed.
 //
-// - Each page below represents an already-mixed server result. The real endpoint
-//   decides ordering/mixing; the frontend must never merge Following + Discovery.
-// - The cursor/pagination shape (`next_cursor`, opaque string, `?cursor=`) is COPIED
-//   from /feed/following as an ASSUMPTION. It MUST be validated against the real
-//   /feed/general contract before integration.
-//
-// REMOVAL: delete this file and replace the body of feedService.getGeneralFeed
-// with the real authenticated GET /feed/general call.
+// - REMOVE this file and replace the body of feedService.getGeneralFeed with the real
+//   authenticated GET /feed/general call once #39 is available.
+// - VALIDATE the real contract before replacing the mock, especially pagination: the cursor
+//   shape below (`next_cursor`, opaque string, `?cursor=`) is only ASSUMED from /feed/following.
+// - Each page is an already-mixed server result. The UI must keep consuming the server's
+//   response as-is and never mix Following + Discovery on the client.
 // =============================================================================
 import type { FeedPage } from "../types";
 

@@ -12,9 +12,11 @@ export const feedService = {
     return authApiClient.get<FeedPage>(path, { signal });
   },
 
-  // TEMP: GET /feed/general is not available yet, so this resolves mock pages from
-  // ./generalFeedMock. Replace the body with the real authenticated call (and delete the
-  // mock file) once the endpoint is merged. The signature is already the final one.
+  // TEMP (pending backend issue #39): GET /feed/general is not available yet, so this
+  // resolves mock pages from ./generalFeedMock. Remove the mock once #39 is available:
+  // replace this body with the real authenticated call, after validating the real contract
+  // (especially the pagination/cursor shape; the signature assumes /feed/following's style).
+  // The response is already mixed server-side: never mix Following + Discovery on the client.
   getGeneralFeed: async (cursor: string | null = null, signal?: AbortSignal) => {
     void signal;
 
