@@ -102,14 +102,13 @@ describe("FeedScreen", () => {
     );
   });
 
-  it("selects Geral by default, guides the user and does not fetch the following feed", () => {
+  it("selects Geral by default and renders the local Recorda preview", () => {
     renderScreen();
 
     expect(screen.getByTestId("feed-screen")).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Geral" })).toBeSelected();
-    expect(screen.getByTestId("feed-general-empty-state")).toBeTruthy();
+    expect(screen.getByTestId("feed-post-recorda-mock-1")).toBeTruthy();
     expect(mockedUseFollowingFeed).toHaveBeenCalledWith(false);
-    expect(screen.queryByTestId(/feed-post-/)).toBeNull();
   });
 
   it("shows a loading state while the following feed is pending", () => {

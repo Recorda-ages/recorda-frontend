@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
+import { generalFeedMock } from "@/mocks/recordaMock";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -55,7 +56,11 @@ export function FeedScreen() {
       <SafeAreaView edges={["top"]} style={styles.content}>
         <FeedHeader />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
-        {activeTab === "geral" ? <FeedEmptyState variant="general" /> : null}
+        {activeTab === "geral" ? (
+          <View style={styles.generalFeed}>
+            <RecordaCard item={generalFeedMock} onPress={() => handleCardPress(generalFeedMock)} />
+          </View>
+        ) : null}
         {activeTab === "following" ? (
           <>
             {followingFeedQuery.isPending ? <Loading label={t("feed.loading")} /> : null}
@@ -115,6 +120,9 @@ const styles = StyleSheet.create({
   feedback: {
     gap: spacing[3],
     padding: spacing[4]
+  },
+  generalFeed: {
+    paddingTop: spacing[2]
   },
   list: {
     gap: spacing[4],
