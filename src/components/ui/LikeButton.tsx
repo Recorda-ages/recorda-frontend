@@ -54,6 +54,7 @@ export function LikeButton({
         accessibilityState={{ selected: liked }}
         hitSlop={8}
         onPress={() => void handlePress()}
+        style={styles.button}
       >
         <Icon color={colors.primary[500]} size={26} source={liked ? "heart" : "heart-outline"} />
       </Pressable>
@@ -63,6 +64,9 @@ export function LikeButton({
 }
 
 const styles = StyleSheet.create({
+  button: {
+    marginLeft: 4
+  },
   container: {
     alignItems: "center",
     flexDirection: "row",
