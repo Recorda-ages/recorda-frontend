@@ -150,10 +150,35 @@
       "camera": "Crear Recorda",
       "feed": "Feed",
       "profile": "Perfil"
-    }
+    },
+    "notificationsUnread": "Notificaciones, {{count}} sin leer"
   },
   "recordaView": {
     "title": "Recorda",
     "back": "Volver"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "back": "Volver",
+    "loading": "Cargando notificaciones...",
+    "loadError": "No pudimos cargar tus notificaciones.",
+    "retry": "Intentar de nuevo",
+    "empty": "Todavía no tienes notificaciones.",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "types": {
+      "FOLLOW_REQUEST": "quiere seguirte",
+      "FOLLOW_ACCEPTED": "aceptó tu solicitud para seguir",
+      "NEW_FOLLOWER": "comenzó a seguirte",
+      "LIKE": "le gustó tu publicación",
+      "COMMENT": "comentó en tu publicación",
+      "MENTION": "te mencionó en una publicación"
+    },
+    "time": {
+      "now": "ahora",
+      "minutes": "{{count}} min",
+      "hours": "{{count}} h",
+      "days": "{{count}} d"
+    }
   }
 }

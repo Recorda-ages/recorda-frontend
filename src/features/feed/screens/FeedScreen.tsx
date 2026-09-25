@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
+import { useNotifications } from "@/features/notifications";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -24,6 +25,7 @@ export function FeedScreen() {
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
   const followingItems = followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const unreadCount = useNotifications().data?.unread_count ?? 0;
 
   const handleTabBarPress = (tab: BottomTab) => {
     if (tab === "camera") {
@@ -53,7 +55,10 @@ export function FeedScreen() {
     <View style={styles.screen} testID="feed-screen">
       <StatusBar style="light" />
       <SafeAreaView edges={["top"]} style={styles.content}>
-        <FeedHeader />
+        <FeedHeader
+          onNotificationsPress={() => navigation.navigate("Notifications")}
+          unreadCount={unreadCount}
+        />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
         {activeTab === "geral" ? <FeedEmptyState variant="general" /> : null}
         {activeTab === "following" ? (
