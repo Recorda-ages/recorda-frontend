@@ -85,4 +85,16 @@ describe("RecordaViewScreen", () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
+
+  it("opens the camera and profile from the bottom navigation", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByTestId("tab-bar-camera"));
+    fireEvent.press(screen.getByTestId("tab-bar-profile"));
+    fireEvent.press(screen.getByTestId("tab-bar-feed"));
+
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "Camera");
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, "Profile");
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+  });
 });

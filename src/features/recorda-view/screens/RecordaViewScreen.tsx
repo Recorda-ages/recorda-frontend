@@ -48,10 +48,6 @@ export function RecordaViewScreen({
   }, []);
 
   const handleConfirmDeletion = useCallback(() => {
-    if (!pendingDeletionCommentId) {
-      return;
-    }
-
     setComments((currentComments) =>
       currentComments.filter((comment) => comment.id !== pendingDeletionCommentId)
     );

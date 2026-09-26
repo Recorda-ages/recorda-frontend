@@ -111,6 +111,16 @@ describe("FeedScreen", () => {
     expect(mockedUseFollowingFeed).toHaveBeenCalledWith(false);
   });
 
+  it("navigates to the local Recorda preview from Geral", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByTestId("feed-post-recorda-mock-1"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("RecordaView", {
+      recordaId: "recorda-mock-1"
+    });
+  });
+
   it("shows a loading state while the following feed is pending", () => {
     renderScreen();
 
