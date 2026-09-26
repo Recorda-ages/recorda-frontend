@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
@@ -17,6 +18,16 @@ type RecordaCardProps = Readonly<{
 
 export function RecordaCard({ item, onPress }: RecordaCardProps) {
   const { t, i18n } = useTranslation();
+  const [prevItem, setPrevItem] = useState(item);
+  const [likesCount, setLikesCount] = useState(item.likes_count);
+  const [isLiked, setIsLiked] = useState(item.is_liked);
+
+  if (item !== prevItem) {
+    setPrevItem(item);
+    setLikesCount(item.likes_count);
+    setIsLiked(item.is_liked);
+  }
+
   const formattedDate = formatFeedDate(item.created_at, i18n.language);
   const avatarUrl = item.author.profile_picture_url
     ? resolveApiAssetUrl(item.author.profile_picture_url)
@@ -60,8 +71,14 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
         <View style={styles.actionGroup}>
           <LikeButton
             accessibilityLabel={t("feed.like")}
-            count={item.likes_count}
-            initialLiked={item.is_liked}
+            count={likesCount}
+            initialLiked={isLiked}
+            onChange={({ count, liked }) => {
+              setLikesCount(count);
+              setIsLiked(liked);
+            }}
+            showCount={false}
+            testID={`like-button-${item.recorda_id}`}
           />
           <View accessibilityLabel={t("feed.comment")}>
             <Icon color={colors.primary[500]} size={26} source="message-text-outline" />
@@ -73,8 +90,8 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
         <AppText style={styles.date}>{formattedDate}</AppText>
       </View>
 
-      {item.likes_count > 0 ? (
-        <AppText style={styles.text}>{t("feed.likesCount", { count: item.likes_count })}</AppText>
+      {likesCount > 0 ? (
+        <AppText style={styles.text}>{t("feed.likesCount", { count: likesCount })}</AppText>
       ) : null}
 
       {item.description ? (

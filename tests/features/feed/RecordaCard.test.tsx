@@ -120,4 +120,15 @@ describe("RecordaCard", () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it("toggles like and updates the likes count immediately", () => {
+    renderCard({ ...BASE_ITEM, is_liked: false, likes_count: 12 });
+
+    expect(screen.getByText("12 curtidas")).toBeTruthy();
+    const likeButton = screen.getByTestId("like-button-recorda-1");
+    fireEvent.press(likeButton);
+
+    expect(screen.getByText("13 curtidas")).toBeTruthy();
+    expect(likeButton).toBeSelected();
+  });
 });

@@ -11,6 +11,8 @@ type LikeButtonProps = {
   initialLiked?: boolean;
   onChange?: (state: { count: number; liked: boolean }) => void;
   onToggle?: (liked: boolean) => Promise<void> | void;
+  showCount?: boolean;
+  testID?: string;
 };
 
 export function LikeButton({
@@ -18,11 +20,25 @@ export function LikeButton({
   count,
   initialLiked = false,
   onChange,
-  onToggle
-}: LikeButtonProps) {
+  onToggle,
+  showCount = true,
+  testID
+}: Readonly<LikeButtonProps>) {
+  const [prevInitialLiked, setPrevInitialLiked] = useState(initialLiked);
+  const [prevCount, setPrevCount] = useState(count);
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(count);
   const requestId = useRef(0);
+
+  if (initialLiked !== prevInitialLiked) {
+    setPrevInitialLiked(initialLiked);
+    setLiked(initialLiked);
+  }
+
+  if (count !== prevCount) {
+    setPrevCount(count);
+    setLikeCount(count);
+  }
 
   async function handlePress() {
     const nextLiked = !liked;
@@ -55,17 +71,18 @@ export function LikeButton({
         hitSlop={8}
         onPress={() => void handlePress()}
         style={styles.button}
+        testID={testID}
       >
         <Icon color={colors.primary[500]} size={26} source={liked ? "heart" : "heart-outline"} />
       </Pressable>
-      <AppText>{likeCount}</AppText>
+      {showCount ? <AppText>{likeCount}</AppText> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    marginLeft: 4
+    marginLeft: 0
   },
   container: {
     alignItems: "center",
