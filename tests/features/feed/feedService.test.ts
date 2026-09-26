@@ -59,3 +59,87 @@ describe("feedService.getFollowingFeed", () => {
     });
   });
 });
+
+// TEMP: covers the mock that stands in for GET /feed/general. When the real endpoint lands,
+// replace this block with endpoint-path/cursor/signal tests like the ones above.
+describe("feedService.getGeneralFeed (temporary mock)", () => {
+  const FEED_ITEM_KEYS = [
+    "author",
+    "created_at",
+    "description",
+    "is_liked",
+    "likes_count",
+    "media_type",
+    "media_url",
+    "recorda_id",
+    "song_artist_name",
+    "song_cover_url",
+    "song_preview_url",
+    "song_title"
+  ];
+
+  async function fetchAllPages() {
+    const pages: FeedPage[] = [];
+    let cursor: string | null = null;
+
+    do {
+      const page: FeedPage = await feedService.getGeneralFeed(cursor);
+      pages.push(page);
+      cursor = page.next_cursor;
+    } while (cursor !== null);
+
+    return pages;
+  }
+
+  it("resolves a first page with a next cursor without calling the API", async () => {
+    const page = await feedService.getGeneralFeed();
+
+    expect(page.items.length).toBeGreaterThan(0);
+    expect(page.next_cursor).toEqual(expect.any(String));
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it("follows the cursor to a final page whose next_cursor is null", async () => {
+    const pages = await fetchAllPages();
+
+    expect(pages.length).toBeGreaterThanOrEqual(2);
+    expect(pages.slice(0, -1).every((page) => page.next_cursor !== null)).toBe(true);
+    expect(pages[pages.length - 1].next_cursor).toBeNull();
+  });
+
+  it("never repeats a Recorda across pages", async () => {
+    const ids = (await fetchAllPages()).flatMap((page) => page.items.map((i) => i.recorda_id));
+
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("returns plain feed items with no source/discovery fields and absolute asset URLs", async () => {
+    const items = (await fetchAllPages()).flatMap((page) => page.items);
+
+    for (const item of items) {
+      expect(Object.keys(item).sort()).toEqual(FEED_ITEM_KEYS);
+      expect(item.media_url).toMatch(/^https?:\/\//);
+      if (item.author.profile_picture_url) {
+        expect(item.author.profile_picture_url).toMatch(/^https?:\/\//);
+      }
+    }
+  });
+
+  it("covers photo/video, avatar/fallback, description/none and liked/unliked", async () => {
+    const items = (await fetchAllPages()).flatMap((page) => page.items);
+
+    expect(new Set(items.map((item) => item.media_type))).toEqual(new Set(["PHOTO", "VIDEO"]));
+    expect(items.some((item) => item.author.profile_picture_url === null)).toBe(true);
+    expect(items.some((item) => item.author.profile_picture_url !== null)).toBe(true);
+    expect(items.some((item) => item.description === null)).toBe(true);
+    expect(items.some((item) => item.description !== null)).toBe(true);
+    expect(items.some((item) => item.is_liked)).toBe(true);
+    expect(items.some((item) => !item.is_liked)).toBe(true);
+  });
+
+  it("rejects an unknown cursor", async () => {
+    await expect(feedService.getGeneralFeed("not-a-mock-cursor")).rejects.toThrow(
+      "Unknown mock general feed cursor"
+    );
+  });
+});

@@ -8,7 +8,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
-import { generalFeedMock } from "@/mocks/recordaMock";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -17,97 +16,18 @@ import { FeedHeader } from "../components/FeedHeader";
 import { FeedTabs } from "../components/FeedTabs";
 import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
+import { useGeneralFeed } from "../hooks/useGeneralFeed";
 import type { FeedItem, FeedTab } from "../types";
-
-type GeneralTabContentProps = {
-  onCardPress: (item: FeedItem) => void;
-};
-
-function GeneralTabContent({ onCardPress }: Readonly<GeneralTabContentProps>) {
-  return (
-    <View style={styles.generalFeed}>
-      <RecordaCard item={generalFeedMock} onPress={() => onCardPress(generalFeedMock)} />
-    </View>
-  );
-}
-
-type FollowingTabContentProps = {
-  items: FeedItem[];
-  onCardPress: (item: FeedItem) => void;
-  onEndReached: () => void;
-  query: ReturnType<typeof useFollowingFeed>;
-};
-
-function FollowingTabContent({
-  items,
-  onCardPress,
-  onEndReached,
-  query
-}: Readonly<FollowingTabContentProps>) {
-  const { t } = useTranslation();
-
-  if (query.isPending) {
-    return <Loading label={t("feed.loading")} />;
-  }
-
-  if (query.isError && items.length === 0) {
-    return (
-      <View style={styles.feedback}>
-        <ErrorState message={t("feed.loadError")} />
-        <Button label={t("feed.retry")} onPress={() => void query.refetch()} variant="secondary" />
-      </View>
-    );
-  }
-
-  if (query.isSuccess && items.length === 0) {
-    return <FeedEmptyState />;
-  }
-
-  if (items.length === 0) {
-    return null;
-  }
-
-  const renderFooter = () => {
-    if (query.isFetchingNextPage) {
-      return <Loading label={t("feed.loadingMore")} />;
-    }
-
-    if (query.isFetchNextPageError) {
-      return (
-        <View style={styles.paginationError}>
-          <ErrorState message={t("feed.loadMoreError")} />
-          <Button
-            label={t("feed.retry")}
-            onPress={() => void query.fetchNextPage()}
-            variant="secondary"
-          />
-        </View>
-      );
-    }
-
-    return null;
-  };
-
-  return (
-    <FlatList
-      contentContainerStyle={styles.list}
-      data={items}
-      keyExtractor={(item) => item.recorda_id}
-      ListFooterComponent={renderFooter()}
-      onEndReached={onEndReached}
-      onEndReachedThreshold={0.4}
-      renderItem={({ item }) => <RecordaCard item={item} onPress={() => onCardPress(item)} />}
-      showsVerticalScrollIndicator={false}
-      testID="following-feed-list"
-    />
-  );
-}
 
 export function FeedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
+  const generalFeedQuery = useGeneralFeed(activeTab === "geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
-  const followingItems = followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const activeQuery = activeTab === "geral" ? generalFeedQuery : followingFeedQuery;
+  const feedVariant = activeTab === "geral" ? "general" : "following";
+  const items = activeQuery.data?.pages.flatMap((page) => page.items) ?? [];
 
   const handleTabBarPress = (tab: BottomTab) => {
     if (tab === "camera") {
@@ -125,11 +45,11 @@ export function FeedScreen() {
 
   const handleEndReached = () => {
     if (
-      followingFeedQuery.hasNextPage &&
-      !followingFeedQuery.isFetchingNextPage &&
-      !followingFeedQuery.isFetchNextPageError
+      activeQuery.hasNextPage &&
+      !activeQuery.isFetchingNextPage &&
+      !activeQuery.isFetchNextPageError
     ) {
-      void followingFeedQuery.fetchNextPage();
+      void activeQuery.fetchNextPage();
     }
   };
 
@@ -139,13 +59,46 @@ export function FeedScreen() {
       <SafeAreaView edges={["top"]} style={styles.content}>
         <FeedHeader />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
-        {activeTab === "geral" ? <GeneralTabContent onCardPress={handleCardPress} /> : null}
-        {activeTab === "following" ? (
-          <FollowingTabContent
-            items={followingItems}
-            onCardPress={handleCardPress}
+        {activeQuery.isPending ? <Loading label={t("feed.loading")} /> : null}
+        {activeQuery.isError && items.length === 0 ? (
+          <View style={styles.feedback}>
+            <ErrorState message={t("feed.loadError")} />
+            <Button
+              label={t("feed.retry")}
+              onPress={() => void activeQuery.refetch()}
+              variant="secondary"
+            />
+          </View>
+        ) : null}
+        {activeQuery.isSuccess && items.length === 0 ? (
+          <FeedEmptyState variant={feedVariant} />
+        ) : null}
+        {items.length > 0 ? (
+          <FlatList
+            contentContainerStyle={styles.list}
+            data={items}
+            keyExtractor={(item) => item.recorda_id}
+            ListFooterComponent={
+              activeQuery.isFetchingNextPage ? (
+                <Loading label={t("feed.loadingMore")} />
+              ) : activeQuery.isFetchNextPageError ? (
+                <View style={styles.paginationError}>
+                  <ErrorState message={t("feed.loadMoreError")} />
+                  <Button
+                    label={t("feed.retry")}
+                    onPress={() => void activeQuery.fetchNextPage()}
+                    variant="secondary"
+                  />
+                </View>
+              ) : null
+            }
             onEndReached={handleEndReached}
-            query={followingFeedQuery}
+            onEndReachedThreshold={0.4}
+            renderItem={({ item }) => (
+              <RecordaCard item={item} onPress={() => handleCardPress(item)} />
+            )}
+            showsVerticalScrollIndicator={false}
+            testID={`${feedVariant}-feed-list`}
           />
         ) : null}
       </SafeAreaView>
@@ -161,9 +114,6 @@ const styles = StyleSheet.create({
   feedback: {
     gap: spacing[3],
     padding: spacing[4]
-  },
-  generalFeed: {
-    paddingTop: spacing[2]
   },
   list: {
     gap: spacing[4],
