@@ -107,6 +107,23 @@
   "profile": {
     "title": "Perfil"
   },
+  "friends": {
+    "title": "Amigos",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "search": "Buscar por usuario",
+    "remove": "Eliminar",
+    "removeTitle": "Eliminar seguidor",
+    "removeMessage": "¿Seguro que deseas eliminar a {{name}} de tus seguidores?",
+    "cancel": "Cancelar",
+    "empty": "No hay usuarios en esta lista.",
+    "searchEmpty": "No se encontraron usuarios.",
+    "privateError": "Esta cuenta es privada.",
+    "loadError": "No se pudo cargar esta lista.",
+    "loadMoreError": "No se pudieron cargar más usuarios.",
+    "removeError": "No se pudo eliminar este seguidor. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo"
+  },
   "recordaMusic": {
     "back": "Volver",
     "header": "Música",

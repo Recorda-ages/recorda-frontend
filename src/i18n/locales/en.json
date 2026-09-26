@@ -107,6 +107,23 @@
   "profile": {
     "title": "Profile"
   },
+  "friends": {
+    "title": "Friends",
+    "followers": "Followers",
+    "following": "Following",
+    "search": "Search by username",
+    "remove": "Remove",
+    "removeTitle": "Remove follower",
+    "removeMessage": "Are you sure you want to remove {{name}} from your followers?",
+    "cancel": "Cancel",
+    "empty": "There are no users in this list.",
+    "searchEmpty": "No users found.",
+    "privateError": "This account is private.",
+    "loadError": "We couldn't load this list.",
+    "loadMoreError": "We couldn't load more users.",
+    "removeError": "We couldn't remove this follower. Try again.",
+    "retry": "Try again"
+  },
   "recordaMusic": {
     "back": "Back",
     "header": "Music",
