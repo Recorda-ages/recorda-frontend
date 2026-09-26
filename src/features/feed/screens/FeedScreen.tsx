@@ -17,17 +17,22 @@ import { FeedTabs } from "../components/FeedTabs";
 import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
+import { useFeed } from "../state/FeedContext";
 import type { FeedItem, FeedTab } from "../types";
 
 export function FeedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
+  const { deletedIds, openFeedItem } = useFeed();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const generalFeedQuery = useGeneralFeed(activeTab === "geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
   const activeQuery = activeTab === "geral" ? generalFeedQuery : followingFeedQuery;
   const feedVariant = activeTab === "geral" ? "general" : "following";
-  const items = activeQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const items =
+    activeQuery.data?.pages
+      .flatMap((page) => page.items)
+      .filter((item) => !deletedIds.includes(item.recorda_id)) ?? [];
 
   const handleTabBarPress = (tab: BottomTab) => {
     if (tab === "camera") {
@@ -40,7 +45,8 @@ export function FeedScreen() {
   };
 
   const handleCardPress = (item: FeedItem) => {
-    navigation.navigate("RecordaView", { recordaId: item.recorda_id });
+    openFeedItem(item);
+    navigation.navigate("PublishedRecorda", { postId: item.recorda_id });
   };
 
   const handleEndReached = () => {
@@ -51,6 +57,27 @@ export function FeedScreen() {
     ) {
       void activeQuery.fetchNextPage();
     }
+  };
+
+  const renderFooter = () => {
+    if (activeQuery.isFetchingNextPage) {
+      return <Loading label={t("feed.loadingMore")} />;
+    }
+
+    if (activeQuery.isFetchNextPageError) {
+      return (
+        <View style={styles.paginationError}>
+          <ErrorState message={t("feed.loadMoreError")} />
+          <Button
+            label={t("feed.retry")}
+            onPress={() => void activeQuery.fetchNextPage()}
+            variant="secondary"
+          />
+        </View>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -78,20 +105,7 @@ export function FeedScreen() {
             contentContainerStyle={styles.list}
             data={items}
             keyExtractor={(item) => item.recorda_id}
-            ListFooterComponent={
-              activeQuery.isFetchingNextPage ? (
-                <Loading label={t("feed.loadingMore")} />
-              ) : activeQuery.isFetchNextPageError ? (
-                <View style={styles.paginationError}>
-                  <ErrorState message={t("feed.loadMoreError")} />
-                  <Button
-                    label={t("feed.retry")}
-                    onPress={() => void activeQuery.fetchNextPage()}
-                    variant="secondary"
-                  />
-                </View>
-              ) : null
-            }
+            ListFooterComponent={renderFooter()}
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.4}
             renderItem={({ item }) => (

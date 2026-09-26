@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
-import { FeedScreen } from "@/features/feed";
+import { FeedProvider, FeedScreen } from "@/features/feed";
 import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
 import { useGeneralFeed } from "@/features/feed/hooks/useGeneralFeed";
 import type { FeedItem, FeedPage } from "@/features/feed/types";
@@ -138,7 +138,9 @@ function mockGeneral(result: MockQueryResult) {
 function renderScreen() {
   return render(
     <I18nextProvider i18n={i18n}>
-      <FeedScreen />
+      <FeedProvider>
+        <FeedScreen />
+      </FeedProvider>
     </I18nextProvider>
   );
 }
@@ -232,14 +234,14 @@ describe("FeedScreen", () => {
       expect(mockFetchNextPage).not.toHaveBeenCalled();
     });
 
-    it("navigates to the Recorda viewer when a general card is tapped", async () => {
+    it("opens published Recorda details when a general card is tapped", async () => {
       mockGeneral(successResult(GENERAL_PAGE, false, generalHandlers));
       renderScreen();
 
       fireEvent.press(screen.getByTestId("feed-post-general-2"));
 
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith("RecordaView", { recordaId: "general-2" })
+        expect(mockNavigate).toHaveBeenCalledWith("PublishedRecorda", { postId: "general-2" })
       );
     });
   });
@@ -330,7 +332,7 @@ describe("FeedScreen", () => {
       expect(mockGeneralFetchNextPage).not.toHaveBeenCalled();
     });
 
-    it("navigates to the Recorda viewer when a card is tapped", async () => {
+    it("opens published Recorda details when a following card is tapped", async () => {
       mockFollowing(successResult(FEED_PAGE));
       renderScreen();
 
@@ -338,9 +340,17 @@ describe("FeedScreen", () => {
       fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
 
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith("RecordaView", { recordaId: "recorda-1" })
+        expect(mockNavigate).toHaveBeenCalledWith("PublishedRecorda", { postId: "recorda-1" })
       );
     });
+  });
+
+  it("opens the user search from the header", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByTestId("feed-search-button"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("UserSearch");
   });
 
   it("opens the camera and the profile from the tab bar", () => {

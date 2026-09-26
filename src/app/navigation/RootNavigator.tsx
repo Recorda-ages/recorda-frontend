@@ -1,5 +1,10 @@
 import { StyleSheet, View } from "react-native";
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  type RouteProp,
+  useNavigation,
+  useRoute
+} from "@react-navigation/native";
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp
@@ -11,7 +16,7 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { clearSession } from "@/features/auth/session";
-import { FeedScreen } from "@/features/feed";
+import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -21,8 +26,10 @@ import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
+import { FriendsScreen } from "@/features/friends";
 import { RecordaViewScreen } from "@/features/recorda-view";
 import { SplashScreen } from "@/features/splash";
+import { UserSearchScreen } from "@/features/user-search";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 
 export type RootStackParamList = {
@@ -37,10 +44,16 @@ export type RootStackParamList = {
   PasswordRecovery: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   Profile: undefined;
+  Friends: { userId?: string } | undefined;
+  PublishedRecorda: { postId: string };
+  RecordaShare: { postId: string };
+  RecordaReport: { postId: string };
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   RecordaView: { recordaId: string };
   SignUp: undefined;
+  UserProfile: { userId: string };
+  UserSearch: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -85,6 +98,22 @@ function ProfilePlaceholderScreen() {
   return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
 }
 
+function UserProfilePlaceholderScreen() {
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, "UserProfile">>();
+
+  return (
+    <View style={styles.placeholder} testID="user-profile-screen">
+      <AppText style={styles.placeholderTitle} variant="headline3">
+        {t("profile.title")}
+      </AppText>
+      <AppText style={styles.placeholderTitle}>{route.params.userId}</AppText>
+      <Button label={t("userSearch.back")} onPress={() => navigation.goBack()} />
+    </View>
+  );
+}
+
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -97,13 +126,19 @@ export function RootNavigator() {
         <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
         <Stack.Screen name="Feed" component={FeedScreen} />
+        <Stack.Screen name="PublishedRecorda" component={PublishedRecordaScreen} />
+        <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
+        <Stack.Screen name="RecordaReport" component={RecordaIntegrationScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+        <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />
         <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
         <Stack.Screen name="RecordaView" component={RecordaViewScreen} />
+        <Stack.Screen name="UserSearch" component={UserSearchScreen} />
+        <Stack.Screen name="UserProfile" component={UserProfilePlaceholderScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
