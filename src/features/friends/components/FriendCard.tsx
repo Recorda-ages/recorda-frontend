@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { colors, radius, spacing } from "@/theme";
 import { AppText } from "@/components/ui";
@@ -12,7 +13,13 @@ type FriendCardProps = {
   onRemove: (profile: FriendProfile) => void;
 };
 
-export function FriendCard({ profile, showRemove = false, onPress, onRemove }: FriendCardProps) {
+export function FriendCard({
+  profile,
+  showRemove = false,
+  onPress,
+  onRemove
+}: Readonly<FriendCardProps>) {
+  const { t } = useTranslation();
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   return (
@@ -24,9 +31,14 @@ export function FriendCard({ profile, showRemove = false, onPress, onRemove }: F
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}
 
-        <AppText style={styles.name} variant="body1">
-          {profile.displayName}
-        </AppText>
+        <View style={styles.identity}>
+          <AppText style={styles.name} variant="body1">
+            {profile.displayName}
+          </AppText>
+          <AppText style={styles.username} variant="caption">
+            @{profile.username}
+          </AppText>
+        </View>
 
         {showRemove && (
           <Pressable
@@ -38,7 +50,7 @@ export function FriendCard({ profile, showRemove = false, onPress, onRemove }: F
             style={styles.removeButton}
           >
             <AppText style={styles.removeLabel} variant="buttonSmall">
-              Remover
+              {t("friends.remove")}
             </AppText>
           </Pressable>
         )}
@@ -54,19 +66,15 @@ export function FriendCard({ profile, showRemove = false, onPress, onRemove }: F
         <Pressable onPress={() => setConfirmVisible(false)} style={styles.overlay}>
           <Pressable style={styles.card}>
             <AppText style={styles.cardTitle} variant="body1">
-              Remover seguidor
+              {t("friends.removeTitle")}
             </AppText>
             <AppText style={styles.cardBody} variant="body2">
-              Tem certeza que deseja remover{" "}
-              <AppText style={styles.cardBodyBold} variant="body2">
-                {profile.displayName}
-              </AppText>{" "}
-              dos seus seguidores?
+              {t("friends.removeMessage", { name: profile.displayName })}
             </AppText>
             <View style={styles.cardActions}>
               <Pressable onPress={() => setConfirmVisible(false)} style={styles.cancelButton}>
                 <AppText style={styles.cancelLabel} variant="buttonSmall">
-                  Cancelar
+                  {t("friends.cancel")}
                 </AppText>
               </Pressable>
               <Pressable
@@ -77,7 +85,7 @@ export function FriendCard({ profile, showRemove = false, onPress, onRemove }: F
                 style={styles.confirmButton}
               >
                 <AppText style={styles.confirmLabel} variant="buttonSmall">
-                  Remover
+                  {t("friends.remove")}
                 </AppText>
               </Pressable>
             </View>
@@ -148,9 +156,12 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     paddingVertical: spacing[3]
   },
+  identity: {
+    flex: 1
+  },
   name: {
     color: colors.neutrals[100],
-    flex: 1
+    fontWeight: "600"
   },
   overlay: {
     backgroundColor: "rgba(0,0,0,0.6)",
@@ -165,5 +176,8 @@ const styles = StyleSheet.create({
   },
   removeLabel: {
     color: colors.neutrals[100]
+  },
+  username: {
+    color: colors.neutrals[400]
   }
 });

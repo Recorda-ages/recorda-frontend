@@ -5,7 +5,8 @@ jest.mock("@/services/api", () => ({
   authApiClient: {
     get: jest.fn(),
     delete: jest.fn()
-  }
+  },
+  resolveApiAssetUrl: (url: string) => `resolved:${url}`
 }));
 
 const mockGet = authApiClient.get as jest.Mock;
@@ -41,7 +42,7 @@ describe("listFollowers", () => {
         id: "u1",
         username: "janedoe",
         displayName: "Jane Doe",
-        avatarUrl: "https://example.com/avatar.jpg"
+        avatarUrl: "resolved:https://example.com/avatar.jpg"
       }
     ]);
   });

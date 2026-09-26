@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import { I18nextProvider } from "react-i18next";
 
 import { FriendCard } from "@/features/friends/components/FriendCard";
 import type { FriendProfile } from "@/features/friends/types";
+import { i18n } from "@/i18n";
 
 const mockProfile: FriendProfile = {
   id: "1",
@@ -27,12 +29,14 @@ function renderCard(
   const onPress = props.onPress ?? jest.fn();
   const onRemove = props.onRemove ?? jest.fn();
   return render(
-    <FriendCard
-      profile={props.profile ?? mockProfile}
-      showRemove={props.showRemove}
-      onPress={onPress}
-      onRemove={onRemove}
-    />
+    <I18nextProvider i18n={i18n}>
+      <FriendCard
+        profile={props.profile ?? mockProfile}
+        showRemove={props.showRemove}
+        onPress={onPress}
+        onRemove={onRemove}
+      />
+    </I18nextProvider>
   );
 }
 
@@ -40,6 +44,7 @@ describe("FriendCard", () => {
   it("renders the display name", () => {
     renderCard();
     expect(screen.getByText("Jane Doe")).toBeTruthy();
+    expect(screen.getByText("@janedoe")).toBeTruthy();
   });
 
   it("renders the avatar image when avatarUrl is present", () => {

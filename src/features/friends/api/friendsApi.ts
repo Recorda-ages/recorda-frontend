@@ -1,4 +1,4 @@
-import { authApiClient } from "@/services/api";
+import { authApiClient, resolveApiAssetUrl } from "@/services/api";
 
 import type { FriendProfile } from "../types";
 
@@ -9,7 +9,7 @@ type FollowUser = {
   profile_picture_url: string | null;
 };
 
-type ListParams = {
+export type ListParams = {
   q?: string;
   limit?: number;
   offset?: number;
@@ -20,7 +20,7 @@ function toFriendProfile(u: FollowUser): FriendProfile {
     id: u.user_id,
     username: u.username,
     displayName: u.name,
-    avatarUrl: u.profile_picture_url
+    avatarUrl: u.profile_picture_url ? resolveApiAssetUrl(u.profile_picture_url) : null
   };
 }
 

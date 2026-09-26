@@ -1,10 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import {
-  NavigationContainer,
-  type RouteProp,
-  useNavigation,
-  useRoute
-} from "@react-navigation/native";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp
@@ -16,7 +11,7 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { clearSession } from "@/features/auth/session";
-import { FeedScreen } from "@/features/feed";
+import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -27,6 +22,7 @@ import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
+import { RecordaViewScreen } from "@/features/recorda-view";
 import { SplashScreen } from "@/features/splash";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 
@@ -42,7 +38,10 @@ export type RootStackParamList = {
   PasswordRecovery: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   Profile: undefined;
-  Friends: undefined;
+  Friends: { userId?: string } | undefined;
+  PublishedRecorda: { postId: string };
+  RecordaShare: { postId: string };
+  RecordaReport: { postId: string };
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   RecordaView: { recordaId: string };
@@ -91,22 +90,6 @@ function ProfilePlaceholderScreen() {
   return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
 }
 
-function RecordaViewPlaceholderScreen() {
-  const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, "RecordaView">>();
-
-  return (
-    <View style={styles.placeholder} testID="recorda-view-screen">
-      <AppText style={styles.placeholderTitle} variant="headline3">
-        {t("recordaView.title")}
-      </AppText>
-      <AppText style={styles.placeholderTitle}>{route.params.recordaId}</AppText>
-      <Button label={t("recordaView.back")} onPress={() => navigation.goBack()} />
-    </View>
-  );
-}
-
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -119,6 +102,9 @@ export function RootNavigator() {
         <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
         <Stack.Screen name="Feed" component={FeedScreen} />
+        <Stack.Screen name="PublishedRecorda" component={PublishedRecordaScreen} />
+        <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
+        <Stack.Screen name="RecordaReport" component={RecordaIntegrationScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
@@ -126,7 +112,7 @@ export function RootNavigator() {
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />
         <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
-        <Stack.Screen name="RecordaView" component={RecordaViewPlaceholderScreen} />
+        <Stack.Screen name="RecordaView" component={RecordaViewScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

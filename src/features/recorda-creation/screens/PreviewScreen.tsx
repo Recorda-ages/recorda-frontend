@@ -200,5 +200,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -190,
     width: 520
-  },
+  }
 });

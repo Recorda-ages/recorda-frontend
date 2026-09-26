@@ -1,5 +1,6 @@
 import { StyleSheet, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { colors, radius, spacing } from "@/theme";
 
@@ -8,11 +9,14 @@ type FriendsSearchBarProps = {
   onChangeText: (text: string) => void;
 };
 
-export function FriendsSearchBar({ value, onChangeText }: FriendsSearchBarProps) {
+export function FriendsSearchBar({ value, onChangeText }: Readonly<FriendsSearchBarProps>) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="Buscar"
+        accessibilityLabel={t("friends.search")}
+        placeholder={t("friends.search")}
         placeholderTextColor={colors.neutrals[500]}
         style={styles.input}
         value={value}

@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { colors, spacing } from "@/theme";
 import { AppText } from "@/components/ui";
@@ -9,20 +10,28 @@ type FriendsTabBarProps = {
   onChange: (tab: FriendsTab) => void;
 };
 
-const TABS: { key: FriendsTab; label: string }[] = [
-  { key: "seguidores", label: "Seguidores" },
-  { key: "seguindo", label: "Seguindo" }
+const TABS: { key: FriendsTab; labelKey: "friends.followers" | "friends.following" }[] = [
+  { key: "seguidores", labelKey: "friends.followers" },
+  { key: "seguindo", labelKey: "friends.following" }
 ];
 
-export function FriendsTabBar({ activeTab, onChange }: FriendsTabBarProps) {
+export function FriendsTabBar({ activeTab, onChange }: Readonly<FriendsTabBarProps>) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       {TABS.map((tab) => {
         const isActive = tab.key === activeTab;
         return (
-          <Pressable key={tab.key} onPress={() => onChange(tab.key)} style={styles.tab}>
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            key={tab.key}
+            onPress={() => onChange(tab.key)}
+            style={styles.tab}
+          >
             <AppText style={styles.label} variant="body1">
-              {tab.label}
+              {t(tab.labelKey)}
             </AppText>
             <View
               style={[

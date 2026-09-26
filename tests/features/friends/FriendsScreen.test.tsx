@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import React from "react";
+import { I18nextProvider } from "react-i18next";
 
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { FriendsScreen } from "@/features/friends/screens/FriendsScreen";
 import * as friendsApi from "@/features/friends/api/friendsApi";
 import { mockFollowers, mockFollowing } from "@/features/friends/mocks/friendsMocks";
+import { i18n } from "@/i18n";
+import { ApiError } from "@/services/api/errors";
 
 jest.mock("@/features/friends/api/friendsApi", () => ({
   listFollowers: jest.fn(),
@@ -15,10 +18,12 @@ jest.mock("@/features/friends/api/friendsApi", () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+let mockRoute = { params: undefined as { userId?: string } | undefined };
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate })
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useRoute: () => mockRoute
 }));
 
 const mockListFollowers = friendsApi.listFollowers as jest.Mock;
@@ -49,14 +54,17 @@ function renderScreen(userId = "user-1") {
   }
 
   return render(
-    <QueryClientProvider client={client}>
-      <FriendsScreen />
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={client}>
+        <FriendsScreen />
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockRoute = { params: undefined };
   mockListFollowers.mockResolvedValue(mockFollowers);
   mockListFollowing.mockResolvedValue(mockFollowing);
   mockRemoveFollower.mockResolvedValue(undefined);
@@ -142,5 +150,27 @@ describe("FriendsScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("Remover seguidor")).toBeTruthy();
     });
+  });
+
+  it("loads a route target and hides removal for another account", async () => {
+    mockRoute = { params: { userId: "other-user" } };
+    renderScreen();
+
+    await waitFor(() => expect(mockListFollowers).toHaveBeenCalled());
+    expect(mockListFollowers).toHaveBeenCalledWith(
+      "other-user",
+      expect.objectContaining({ limit: 20, offset: 0 })
+    );
+    expect(screen.queryByText("Remover")).toBeNull();
+  });
+
+  it("shows a friendly message for an inaccessible private account", async () => {
+    mockRoute = { params: { userId: "private-user" } };
+    mockListFollowers.mockRejectedValueOnce(
+      new ApiError("PRIVATE_ACCOUNT", "Esta conta é privada.", 403, null)
+    );
+    renderScreen();
+
+    await waitFor(() => expect(screen.getByText("Esta conta é privada.")).toBeTruthy());
   });
 });

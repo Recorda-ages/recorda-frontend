@@ -35,8 +35,8 @@ describe("useFollowers", () => {
     const { result } = renderHook(() => useFollowers("user-1", ""), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual(mockFollowers);
-    expect(mockListFollowers).toHaveBeenCalledWith("user-1", {});
+    expect(result.current.data?.pages).toEqual([mockFollowers]);
+    expect(mockListFollowers).toHaveBeenCalledWith("user-1", { limit: 20, offset: 0 });
   });
 
   it("passes the search string to the API when non-empty", async () => {
@@ -45,7 +45,11 @@ describe("useFollowers", () => {
     const { result } = renderHook(() => useFollowers("user-1", "jane"), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockListFollowers).toHaveBeenCalledWith("user-1", { q: "jane" });
+    expect(mockListFollowers).toHaveBeenCalledWith("user-1", {
+      limit: 20,
+      offset: 0,
+      q: "jane"
+    });
   });
 
   it("does not fetch when userId is empty", () => {
@@ -63,6 +67,31 @@ describe("useFollowers", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toEqual(new Error("Network error"));
   });
+
+  it("loads the next page using an offset", async () => {
+    const fullPage = Array.from({ length: 20 }, (_, index) => ({
+      ...mockFollowers[0],
+      id: String(index)
+    }));
+    mockListFollowers.mockResolvedValueOnce(fullPage).mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() => useFollowers("user-1", ""), { wrapper });
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+    await result.current.fetchNextPage();
+
+    expect(mockListFollowers).toHaveBeenLastCalledWith("user-1", {
+      limit: 20,
+      offset: 20
+    });
+    await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
+  });
+
+  it("stays idle when its tab is disabled", () => {
+    const { result } = renderHook(() => useFollowers("user-1", "", false), { wrapper });
+
+    expect(result.current.fetchStatus).toBe("idle");
+    expect(mockListFollowers).not.toHaveBeenCalled();
+  });
 });
 
 describe("useFollowing", () => {
@@ -74,8 +103,8 @@ describe("useFollowing", () => {
     const { result } = renderHook(() => useFollowing("user-2", ""), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual(mockFollowing);
-    expect(mockListFollowing).toHaveBeenCalledWith("user-2", {});
+    expect(result.current.data?.pages).toEqual([mockFollowing]);
+    expect(mockListFollowing).toHaveBeenCalledWith("user-2", { limit: 20, offset: 0 });
   });
 
   it("passes the search string to the API when non-empty", async () => {
@@ -84,7 +113,11 @@ describe("useFollowing", () => {
     const { result } = renderHook(() => useFollowing("user-2", "bob"), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockListFollowing).toHaveBeenCalledWith("user-2", { q: "bob" });
+    expect(mockListFollowing).toHaveBeenCalledWith("user-2", {
+      limit: 20,
+      offset: 0,
+      q: "bob"
+    });
   });
 
   it("does not fetch when userId is empty", () => {
