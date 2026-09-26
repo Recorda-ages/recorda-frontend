@@ -11,7 +11,11 @@ type DeleteCommentDialogProps = {
   visible: boolean;
 };
 
-export function DeleteCommentDialog({ onCancel, onConfirm, visible }: DeleteCommentDialogProps) {
+export function DeleteCommentDialog({
+  onCancel,
+  onConfirm,
+  visible
+}: Readonly<DeleteCommentDialogProps>) {
   const { t } = useTranslation();
 
   return (

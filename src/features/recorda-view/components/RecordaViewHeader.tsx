@@ -9,7 +9,7 @@ type RecordaViewHeaderProps = {
   onBack: () => void;
 };
 
-export function RecordaViewHeader({ onBack }: RecordaViewHeaderProps) {
+export function RecordaViewHeader({ onBack }: Readonly<RecordaViewHeaderProps>) {
   const { t } = useTranslation();
 
   return (

@@ -34,7 +34,7 @@ type RecordaViewScreenProps = {
 export function RecordaViewScreen({
   currentUserId = CURRENT_USER_ID,
   data = recordaViewMock
-}: RecordaViewScreenProps = {}) {
+}: Readonly<RecordaViewScreenProps> = {}) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [comments, setComments] = useState(data.comments);
   const [pendingDeletionCommentId, setPendingDeletionCommentId] = useState<string | null>(null);

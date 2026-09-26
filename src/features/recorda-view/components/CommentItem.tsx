@@ -20,7 +20,7 @@ export const CommentItem = memo(function CommentItem({
   onDeleteRequest,
   text,
   username
-}: CommentItemProps) {
+}: Readonly<CommentItemProps>) {
   const { t } = useTranslation();
 
   const handleDeleteRequest = () => {

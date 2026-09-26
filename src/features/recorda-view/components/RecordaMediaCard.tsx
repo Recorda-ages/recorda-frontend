@@ -21,7 +21,7 @@ export function RecordaMediaCard({
   mediaUrl,
   songTitle,
   username
-}: RecordaMediaCardProps) {
+}: Readonly<RecordaMediaCardProps>) {
   return (
     <View style={styles.card}>
       <Image cachePolicy="memory-disk" contentFit="cover" source={mediaUrl} style={styles.media} />
@@ -44,7 +44,10 @@ export function RecordaMediaCard({
       </View>
       <View style={styles.lyrics}>
         {lyrics.map((line, index) => (
-          <AppText key={line} style={index === 2 ? styles.lyricHighlight : styles.lyric}>
+          <AppText
+            key={`${index}-${line}`}
+            style={index === 2 ? styles.lyricHighlight : styles.lyric}
+          >
             {line}
           </AppText>
         ))}
