@@ -1,4 +1,9 @@
-import { notifyManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  notifyManager,
+  QueryClient,
+  QueryClientProvider
+} from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
@@ -93,7 +98,10 @@ describe("NotificationsScreen", () => {
 
     await waitFor(() => expect(markAllAsRead).toHaveBeenCalledTimes(1));
 
-    expect(queryClient.getQueryData<NotificationPage>(["notifications"])?.unread_count).toBe(0);
+    expect(
+      queryClient.getQueryData<InfiniteData<NotificationPage, number>>(["notifications"])?.pages[0]
+        .unread_count
+    ).toBe(0);
   });
 
   it("does not call read-all when nothing is unread", async () => {
@@ -145,7 +153,7 @@ describe("NotificationsScreen", () => {
     await waitFor(() => expect(screen.getByTestId("notification-n-request")).toBeTruthy());
   });
 
-  it("opens the Recorda from a like and the profile from a new follower", async () => {
+  it("opens the Recorda from a like and the sender profile from a new follower", async () => {
     renderScreen();
 
     await waitFor(() => expect(screen.getByTestId("notification-n-like")).toBeTruthy());
@@ -154,7 +162,45 @@ describe("NotificationsScreen", () => {
     fireEvent.press(screen.getByTestId("notification-n-follower"));
 
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "RecordaView", { recordaId: "recorda-1" });
-    expect(mockNavigate).toHaveBeenNthCalledWith(2, "Profile");
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, "UserProfile", { userId: "user-9" });
+  });
+
+  it("loads the next notification page at the end of the list", async () => {
+    const firstPage: NotificationPage = {
+      items: Array.from({ length: 20 }, (_, index) =>
+        notification({ notification_id: `first-${index}` })
+      ),
+      unread_count: 20
+    };
+    const secondPage: NotificationPage = {
+      items: [notification({ notification_id: "second-page" })],
+      unread_count: 20
+    };
+    list.mockImplementation((_limit: number, offset: number) =>
+      Promise.resolve(offset === 0 ? firstPage : secondPage)
+    );
+    renderScreen();
+
+    await waitFor(() => expect(screen.getByTestId("notification-first-0")).toBeTruthy());
+    fireEvent(screen.getByTestId("notifications-list"), "endReached");
+
+    await waitFor(() => expect(list).toHaveBeenNthCalledWith(2, 20, 20, expect.any(AbortSignal)));
+    expect(
+      queryClient
+        .getQueryData<InfiniteData<NotificationPage, number>>(["notifications"])
+        ?.pages.flatMap((page) => page.items)
+        .some((item) => item.notification_id === "second-page")
+    ).toBe(true);
+  });
+
+  it("offers a retry when marking notifications as read fails", async () => {
+    markAllAsRead.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce(undefined);
+    renderScreen();
+
+    await waitFor(() => expect(markAllAsRead).toHaveBeenCalledTimes(1));
+    fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+
+    await waitFor(() => expect(markAllAsRead).toHaveBeenCalledTimes(2));
   });
 
   it("shows an error with retry when the list fails", async () => {

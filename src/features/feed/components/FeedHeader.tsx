@@ -1,7 +1,10 @@
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
 import { baseColors, colors, fontFamily, spacing } from "@/theme";
 
@@ -14,6 +17,7 @@ type FeedHeaderProps = Readonly<{
 
 export function FeedHeader({ onNotificationsPress, unreadCount }: FeedHeaderProps) {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.header}>
@@ -39,7 +43,13 @@ export function FeedHeader({ onNotificationsPress, unreadCount }: FeedHeaderProp
             </View>
           ) : null}
         </Pressable>
-        <Pressable accessibilityLabel={t("feed.search")} accessibilityRole="button" hitSlop={8}>
+        <Pressable
+          accessibilityLabel={t("feed.search")}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={() => navigation.navigate("UserSearch")}
+          testID="feed-search-button"
+        >
           <Icon color={colors.primary[500]} size={26} source="magnify" />
         </Pressable>
       </View>

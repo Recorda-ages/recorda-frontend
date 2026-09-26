@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/ui";
+import { resolveApiAssetUrl } from "@/services/api";
 import { baseColors, colors, fontFamily, radius, spacing } from "@/theme";
 
 import type { FollowRequestDecision, NotificationItem } from "../types";
@@ -22,6 +23,9 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
   const { t } = useTranslation();
   const elapsed = elapsedSince(item.created_at);
   const username = item.sender?.username;
+  const avatarUrl = item.sender?.profile_picture_url
+    ? resolveApiAssetUrl(item.sender.profile_picture_url)
+    : null;
 
   return (
     <Pressable
@@ -31,13 +35,8 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
       testID={`notification-${item.notification_id}`}
     >
-      {item.sender?.profile_picture_url ? (
-        <Image
-          contentFit="cover"
-          source={item.sender.profile_picture_url}
-          style={styles.avatar}
-          transition={150}
-        />
+      {avatarUrl ? (
+        <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />
       ) : (
         <View style={[styles.avatar, styles.avatarFallback]}>
           <AppText style={styles.avatarInitial}>{username?.charAt(0).toUpperCase()}</AppText>
@@ -50,7 +49,7 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
           {t(`notifications.types.${item.type}`)}
         </AppText>
 
-        {item.type === "FOLLOW_REQUEST" ? (
+        {item.type === "FOLLOW_REQUEST" && item.follow_id ? (
           <View style={styles.actions}>
             <Pressable
               accessibilityRole="button"

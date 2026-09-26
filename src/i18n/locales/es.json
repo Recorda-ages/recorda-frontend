@@ -107,6 +107,23 @@
   "profile": {
     "title": "Perfil"
   },
+  "friends": {
+    "title": "Amigos",
+    "followers": "Seguidores",
+    "following": "Siguiendo",
+    "search": "Buscar por usuario",
+    "remove": "Eliminar",
+    "removeTitle": "Eliminar seguidor",
+    "removeMessage": "¿Seguro que deseas eliminar a {{name}} de tus seguidores?",
+    "cancel": "Cancelar",
+    "empty": "No hay usuarios en esta lista.",
+    "searchEmpty": "No se encontraron usuarios.",
+    "privateError": "Esta cuenta es privada.",
+    "loadError": "No se pudo cargar esta lista.",
+    "loadMoreError": "No se pudieron cargar más usuarios.",
+    "removeError": "No se pudo eliminar este seguidor. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo"
+  },
   "recordaMusic": {
     "back": "Volver",
     "header": "Música",
@@ -118,6 +135,25 @@
     "retry": "Intentar de nuevo",
     "empty": "No se encontraron canciones. Prueba otro nombre o artista.",
     "noMedia": "Ningún medio seleccionado."
+  },
+  "publishedRecorda": {
+    "back": "Volver",
+    "open": "Ver detalles de la Recorda",
+    "likes_one": "{{count}} me gusta",
+    "likes_other": "{{count}} me gusta",
+    "comments": "Comentarios",
+    "noComments": "Todavía no hay comentarios. ¡Sé el primero en comentar!",
+    "writeComment": "Añade un comentario...",
+    "send": "Enviar comentario",
+    "delete": "Eliminar",
+    "report": "Denunciar",
+    "cancel": "Cancelar",
+    "deleteTitle": "¿Eliminar Recorda?",
+    "deleteMessage": "Esta acción no se puede deshacer.",
+    "confirmDelete": "Confirmar eliminación",
+    "unavailable": "Esta Recorda ya no está disponible.",
+    "sharePending": "Compartir Recordas todavía no está disponible en esta versión.",
+    "reportPending": "El envío de denuncias todavía no está disponible en esta versión. No se ha enviado ninguna denuncia."
   },
   "feed": {
     "logo": "recorda.",
@@ -143,7 +179,7 @@
       "message": "¡Sigue a nuevas personas y descubre los Recordas que compartan!"
     },
     "tabs": {
-      "geral": "General",
+      "geral": "Para ti",
       "following": "Siguiendo"
     },
     "tabBar": {
@@ -154,8 +190,14 @@
     "notificationsUnread": "Notificaciones, {{count}} sin leer"
   },
   "recordaView": {
-    "title": "Recorda",
-    "back": "Volver"
+    "back": "Volver",
+    "deleteComment": "Eliminar comentario",
+    "deleteDialog": {
+      "cancel": "Cancelar",
+      "confirm": "Eliminar",
+      "message": "¿Seguro que deseas eliminar el comentario?\nEsta acción no se puede deshacer.",
+      "title": "¿Eliminar comentario?"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
@@ -180,5 +222,27 @@
       "hours": "{{count}} h",
       "days": "{{count}} d"
     }
+  },
+  "userSearch": {
+    "back": "Volver",
+    "header": "Buscar",
+    "search": "Buscar",
+    "loading": "Buscando usuarios",
+    "hint": "Busca por un nombre de usuario para encontrar personas.",
+    "searchError": "No fue posible buscar usuarios.",
+    "retry": "Intentar de nuevo",
+    "empty": "Ningún usuario encontrado. Prueba con otro nombre de usuario."
+  },
+  "follow": {
+    "follow": "Seguir",
+    "requested": "Solicitado",
+    "following": "Siguiendo",
+    "followA11y": "Seguir a {{username}}",
+    "requestedA11y": "Cancelar la solicitud para seguir a {{username}}",
+    "followingA11y": "Dejar de seguir a {{username}}",
+    "unfollowTitle": "Dejar de seguir",
+    "unfollowMessage": "¿Seguro que quieres dejar de seguir a {{username}}?",
+    "unfollowCancel": "Cancelar",
+    "unfollowConfirm": "Dejar de seguir"
   }
 }

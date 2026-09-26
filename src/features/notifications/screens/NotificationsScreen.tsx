@@ -26,10 +26,11 @@ export function NotificationsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const queryClient = useQueryClient();
   const notifications = useNotifications();
-  const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead();
+  const markAllAsRead = useMarkAllNotificationsAsRead();
+  const markAllAsReadMutation = markAllAsRead.mutate;
   const respond = useRespondFollowRequest();
   const markedRef = useRef(false);
-  const unreadCount = notifications.data?.unread_count ?? 0;
+  const unreadCount = notifications.data?.pages[0]?.unread_count ?? 0;
 
   useEffect(() => {
     if (markedRef.current || !notifications.isSuccess || unreadCount === 0) {
@@ -37,8 +38,8 @@ export function NotificationsScreen() {
     }
 
     markedRef.current = true;
-    markAllAsRead();
-  }, [markAllAsRead, notifications.isSuccess, unreadCount]);
+    markAllAsReadMutation();
+  }, [markAllAsReadMutation, notifications.isSuccess, unreadCount]);
 
   useEffect(
     () => () => {
@@ -55,13 +56,46 @@ export function NotificationsScreen() {
     }
 
     if (item.type === "NEW_FOLLOWER" || item.type === "FOLLOW_ACCEPTED") {
-      return () => navigation.navigate("Profile");
+      const userId = item.sender?.user_id;
+
+      return userId ? () => navigation.navigate("UserProfile", { userId }) : undefined;
     }
 
     return undefined;
   };
 
-  const items = notifications.data?.items ?? [];
+  const items = notifications.data?.pages.flatMap((page) => page.items) ?? [];
+
+  const handleEndReached = () => {
+    if (
+      notifications.hasNextPage &&
+      !notifications.isFetchingNextPage &&
+      !notifications.isFetchNextPageError
+    ) {
+      void notifications.fetchNextPage();
+    }
+  };
+
+  const renderFooter = () => {
+    if (notifications.isFetchingNextPage) {
+      return <Loading label={t("notifications.loading")} />;
+    }
+
+    if (notifications.isFetchNextPageError) {
+      return (
+        <View style={styles.feedback}>
+          <ErrorState message={t("notifications.loadError")} />
+          <Button
+            label={t("notifications.retry")}
+            onPress={() => void notifications.fetchNextPage()}
+            variant="secondary"
+          />
+        </View>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <View style={styles.screen} testID="notifications-screen">
@@ -94,10 +128,21 @@ export function NotificationsScreen() {
           </View>
         ) : null}
 
+        {markAllAsRead.isError ? (
+          <View style={styles.readError}>
+            <Button
+              label={t("notifications.retry")}
+              onPress={() => markAllAsRead.mutate()}
+              variant="secondary"
+            />
+          </View>
+        ) : null}
+
         {notifications.isSuccess ? (
           <FlatList
             data={items}
             keyExtractor={(item) => item.notification_id}
+            ListFooterComponent={renderFooter()}
             ListEmptyComponent={
               <AppText style={styles.empty} testID="notifications-empty">
                 {t("notifications.empty")}
@@ -108,13 +153,13 @@ export function NotificationsScreen() {
                 item={item}
                 onPress={pressHandlerFor(item)}
                 onRespond={(decision) => respond.mutate({ decision, notification: item })}
-                responding={
-                  respond.isPending &&
-                  respond.variables?.notification.notification_id === item.notification_id
-                }
+                responding={respond.isPending}
               />
             )}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.4}
             showsVerticalScrollIndicator={false}
+            testID="notifications-list"
           />
         ) : null}
       </SafeAreaView>
@@ -144,6 +189,9 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 28
+  },
+  readError: {
+    paddingHorizontal: spacing[4]
   },
   screen: {
     backgroundColor: colors.neutrals[900],
