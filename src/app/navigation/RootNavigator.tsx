@@ -11,7 +11,7 @@ import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecovery
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { clearSession } from "@/features/auth/session";
-import { FeedScreen } from "@/features/feed";
+import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -37,6 +37,9 @@ export type RootStackParamList = {
   PasswordRecovery: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   Profile: undefined;
+  PublishedRecorda: { postId: string };
+  RecordaShare: { postId: string };
+  RecordaReport: { postId: string };
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   RecordaView: { recordaId: string };
@@ -97,6 +100,9 @@ export function RootNavigator() {
         <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
         <Stack.Screen name="Feed" component={FeedScreen} />
+        <Stack.Screen name="PublishedRecorda" component={PublishedRecordaScreen} />
+        <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
+        <Stack.Screen name="RecordaReport" component={RecordaIntegrationScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />

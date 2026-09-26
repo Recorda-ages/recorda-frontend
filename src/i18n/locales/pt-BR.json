@@ -119,6 +119,25 @@
     "empty": "Nenhuma música encontrada. Tente outro nome ou artista.",
     "noMedia": "Nenhuma mídia selecionada."
   },
+  "publishedRecorda": {
+    "back": "Voltar",
+    "open": "Ver detalhes da Recorda",
+    "likes_one": "{{count}} curtida",
+    "likes_other": "{{count}} curtidas",
+    "comments": "Comentários",
+    "noComments": "Nenhum comentário ainda. Seja o primeiro a comentar!",
+    "writeComment": "Adicione um comentário...",
+    "send": "Enviar comentário",
+    "delete": "Excluir",
+    "report": "Denunciar",
+    "cancel": "Cancelar",
+    "deleteTitle": "Excluir Recorda?",
+    "deleteMessage": "Esta ação não pode ser desfeita.",
+    "confirmDelete": "Confirmar exclusão",
+    "unavailable": "Esta Recorda não está mais disponível.",
+    "sharePending": "O compartilhamento de Recordas ainda não está disponível nesta versão.",
+    "reportPending": "O envio de denúncias ainda não está disponível nesta versão. Nenhuma denúncia foi enviada."
+  },
   "feed": {
     "logo": "recorda.",
     "notifications": "Notificações",

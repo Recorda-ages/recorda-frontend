@@ -27,3 +27,19 @@ export type FeedPage = {
   items: FeedItem[];
   next_cursor: string | null;
 };
+
+export type FeedComment = { id: string; text: string; username: string };
+
+export type FeedPost = {
+  author: { id: string; avatarUrl: string; username: string };
+  comments: FeedComment[];
+  description: string;
+  id: string;
+  likedBy: { avatarUrl: string; username: string };
+  likesCount: number;
+  mediaType?: MediaType;
+  mediaUrl: string;
+  publishedAt: string;
+  song: { artistName: string; title: string };
+  tabs: ("following" | "forYou")[];
+};

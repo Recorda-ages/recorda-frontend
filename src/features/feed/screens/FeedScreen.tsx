@@ -17,6 +17,7 @@ import { FeedHeader } from "../components/FeedHeader";
 import { FeedTabs } from "../components/FeedTabs";
 import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
+import { useFeed } from "../state/FeedContext";
 import type { FeedItem, FeedTab } from "../types";
 
 type GeneralTabContentProps = {
@@ -105,9 +106,13 @@ function FollowingTabContent({
 
 export function FeedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { deletedIds, openFeedItem } = useFeed();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
-  const followingItems = followingFeedQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const followingItems =
+    followingFeedQuery.data?.pages
+      .flatMap((page) => page.items)
+      .filter((item) => !deletedIds.includes(item.recorda_id)) ?? [];
 
   const handleTabBarPress = (tab: BottomTab) => {
     if (tab === "camera") {
@@ -119,8 +124,13 @@ export function FeedScreen() {
     }
   };
 
-  const handleCardPress = (item: FeedItem) => {
+  const handleGeneralCardPress = (item: FeedItem) => {
     navigation.navigate("RecordaView", { recordaId: item.recorda_id });
+  };
+
+  const handlePublishedCardPress = (item: FeedItem) => {
+    openFeedItem(item);
+    navigation.navigate("PublishedRecorda", { postId: item.recorda_id });
   };
 
   const handleEndReached = () => {
@@ -139,11 +149,11 @@ export function FeedScreen() {
       <SafeAreaView edges={["top"]} style={styles.content}>
         <FeedHeader />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
-        {activeTab === "geral" ? <GeneralTabContent onCardPress={handleCardPress} /> : null}
+        {activeTab === "geral" ? <GeneralTabContent onCardPress={handleGeneralCardPress} /> : null}
         {activeTab === "following" ? (
           <FollowingTabContent
             items={followingItems}
-            onCardPress={handleCardPress}
+            onCardPress={handlePublishedCardPress}
             onEndReached={handleEndReached}
             query={followingFeedQuery}
           />
