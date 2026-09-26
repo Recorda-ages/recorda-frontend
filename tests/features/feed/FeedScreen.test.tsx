@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
-import { FeedScreen } from "@/features/feed";
+import { FeedProvider, FeedScreen } from "@/features/feed";
 import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
 import type { FeedPage } from "@/features/feed/types";
 import { i18n } from "@/i18n";
@@ -86,7 +86,9 @@ function errorResult() {
 function renderScreen() {
   return render(
     <I18nextProvider i18n={i18n}>
-      <FeedScreen />
+      <FeedProvider>
+        <FeedScreen />
+      </FeedProvider>
     </I18nextProvider>
   );
 }
@@ -102,14 +104,23 @@ describe("FeedScreen", () => {
     );
   });
 
-  it("selects Geral by default, guides the user and does not fetch the following feed", () => {
+  it("selects Geral by default and renders the local Recorda preview", () => {
     renderScreen();
 
     expect(screen.getByTestId("feed-screen")).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Geral" })).toBeSelected();
-    expect(screen.getByTestId("feed-general-empty-state")).toBeTruthy();
+    expect(screen.getByTestId("feed-post-recorda-mock-1")).toBeTruthy();
     expect(mockedUseFollowingFeed).toHaveBeenCalledWith(false);
-    expect(screen.queryByTestId(/feed-post-/)).toBeNull();
+  });
+
+  it("navigates to the local Recorda preview from Geral", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByTestId("feed-post-recorda-mock-1"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("RecordaView", {
+      recordaId: "recorda-mock-1"
+    });
   });
 
   it("shows a loading state while the following feed is pending", () => {
@@ -185,7 +196,7 @@ describe("FeedScreen", () => {
     fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
 
     await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith("RecordaView", { recordaId: "recorda-1" })
+      expect(mockNavigate).toHaveBeenCalledWith("PublishedRecorda", { postId: "recorda-1" })
     );
   });
 

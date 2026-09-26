@@ -101,12 +101,12 @@ export function UserSearchScreen() {
   );
 }
 
-type SearchFeedbackProps = {
+type SearchFeedbackProps = Readonly<{
   hasQuery: boolean;
   isError: boolean;
   isSuccess: boolean;
   onRetry: () => void;
-};
+}>;
 
 /**
  * Estados da lista quando ela está vazia.

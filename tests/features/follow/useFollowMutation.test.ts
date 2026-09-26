@@ -175,6 +175,33 @@ describe("useFollowMutation", () => {
     expect(cachedUser(client, "user-1")?.follow_status).toBe("seguindo");
   });
 
+  it("does not roll back another user's concurrent successful mutation", async () => {
+    const first = deferred<{ follow_status: FollowStatus }>();
+    const second = deferred<{ follow_status: FollowStatus }>();
+    mockFollow.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const { client, result } = setup("nenhuma");
+
+    act(() => {
+      result.current.mutate({ action: "follow", userId: "user-1" });
+      result.current.mutate({ action: "follow", userId: "user-2" });
+    });
+
+    await waitFor(() => {
+      expect(cachedUser(client, "user-1")?.follow_status).toBe("seguindo");
+      expect(cachedUser(client, "user-2")?.follow_status).toBe("seguindo");
+    });
+
+    await act(async () => {
+      second.resolve({ follow_status: "seguindo" });
+      await second.promise;
+      first.reject(new Error("404"));
+      await first.promise.catch(() => undefined);
+    });
+
+    await waitFor(() => expect(cachedUser(client, "user-1")?.follow_status).toBe("nenhuma"));
+    expect(cachedUser(client, "user-2")?.follow_status).toBe("seguindo");
+  });
+
   // O prefixo `["users"]` também alcança caches que não são lista (por exemplo
   // `["users","me"]`); eles não podem ser corrompidos pelo patch otimista.
   it("leaves non-list caches under the users prefix untouched", async () => {

@@ -9,10 +9,10 @@ import { colors, spacing } from "@/theme";
 
 import type { UserSearchResultItem } from "../types";
 
-type UserSearchResultRowProps = {
+type UserSearchResultRowProps = Readonly<{
   item: UserSearchResultItem;
   onPress: (userId: string) => void;
-};
+}>;
 
 export function UserSearchResultRow({ item, onPress }: UserSearchResultRowProps) {
   const avatarUrl = item.avatar_url ? resolveApiAssetUrl(item.avatar_url) : null;

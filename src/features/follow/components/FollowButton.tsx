@@ -8,11 +8,11 @@ import { colors, radius, spacing } from "@/theme";
 import { useFollowMutation } from "../hooks/useFollowMutation";
 import type { FollowStatus } from "../types";
 
-type FollowButtonProps = {
+type FollowButtonProps = Readonly<{
   status: FollowStatus;
   userId: string;
   username: string;
-};
+}>;
 
 export function FollowButton({ status, userId, username }: FollowButtonProps) {
   const { t } = useTranslation();
@@ -22,8 +22,6 @@ export function FollowButton({ status, userId, username }: FollowButtonProps) {
 
   const runUnfollow = () => mutation.mutate({ action: "unfollow", userId });
 
-  // O `Pressable` da linha que envolve este botão não dispara junto: no React
-  // Native o pressable interno vence o responder do toque.
   const handlePress = () => {
     if (isFollowing) {
       // Deixar de seguir exige confirmação; cancelar uma solicitação, não.

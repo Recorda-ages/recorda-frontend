@@ -31,7 +31,7 @@ export function useFollowMutation() {
 
     onError: (_error, _input, context) => {
       context?.snapshot.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
+        restoreCachedUser(queryClient, queryKey, data, _input.userId);
       });
     },
 
@@ -64,6 +64,33 @@ function patchCachedUser(queryClient: QueryClient, userId: string, status: Follo
 
     return data.map((item) =>
       isFollowableUser(item) && item.user_id === userId ? { ...item, follow_status: status } : item
+    );
+  });
+}
+
+function restoreCachedUser(
+  queryClient: QueryClient,
+  queryKey: readonly unknown[],
+  snapshot: unknown,
+  userId: string
+) {
+  if (!Array.isArray(snapshot)) {
+    return;
+  }
+
+  const previousUser = snapshot.find((item) => isFollowableUser(item) && item.user_id === userId);
+
+  if (!previousUser) {
+    return;
+  }
+
+  queryClient.setQueryData(queryKey, (current: unknown) => {
+    if (!Array.isArray(current)) {
+      return current;
+    }
+
+    return current.map((item) =>
+      isFollowableUser(item) && item.user_id === userId ? previousUser : item
     );
   });
 }
