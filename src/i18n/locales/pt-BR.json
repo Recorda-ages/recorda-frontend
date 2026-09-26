@@ -198,6 +198,16 @@
       "title": "Excluir Comentário?"
     }
   },
+  "shareCard": {
+    "title": "Compartilhar",
+    "subtitle": "Escolha o estilo do card",
+    "back": "Voltar",
+    "share": "Compartilhar",
+    "shareMessage": "Veja só a minha nova Recorda! <link do app ainda não existente>",
+    "shareDialogTitle": "Compartilhar Recorda",
+    "shareErrorTitle": "Erro ao compartilhar",
+    "shareErrorMessage": "Não foi possível compartilhar. Tente novamente."
+  },
   "userSearch": {
     "back": "Voltar",
     "header": "Pesquisar",

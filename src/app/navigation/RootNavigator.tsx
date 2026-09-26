@@ -28,6 +28,7 @@ import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/Record
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
 import { RecordaViewScreen } from "@/features/recorda-view";
+import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 import { SplashScreen } from "@/features/splash";
 import { UserSearchScreen } from "@/features/user-search";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
@@ -51,6 +52,7 @@ export type RootStackParamList = {
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   RecordaView: { recordaId: string };
+  ShareCard: { mediaUri: string; songTitle: string; artistName: string; coverUrl: string | null };
   SignUp: undefined;
   UserProfile: { userId: string };
   UserSearch: undefined;
@@ -117,7 +119,7 @@ function UserProfilePlaceholderScreen() {
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Feed" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={SignInScreen} />
@@ -137,6 +139,7 @@ export function RootNavigator() {
         <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />
         <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
         <Stack.Screen name="RecordaView" component={RecordaViewScreen} />
+        <Stack.Screen name="ShareCard" component={ShareCardScreen} />
         <Stack.Screen name="UserSearch" component={UserSearchScreen} />
         <Stack.Screen name="UserProfile" component={UserProfilePlaceholderScreen} />
       </Stack.Navigator>

@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
+import { resolveApiAssetUrl } from "@/services/api";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -42,6 +43,15 @@ export function FeedScreen() {
     if (tab === "profile") {
       navigation.navigate("Profile");
     }
+  };
+
+  const handleCardShare = (item: FeedItem) => {
+    navigation.navigate("ShareCard", {
+      artistName: item.song_artist_name,
+      coverUrl: item.song_cover_url || null,
+      mediaUri: resolveApiAssetUrl(item.media_url),
+      songTitle: item.song_title
+    });
   };
 
   const handleCardPress = (item: FeedItem) => {
@@ -109,7 +119,7 @@ export function FeedScreen() {
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.4}
             renderItem={({ item }) => (
-              <RecordaCard item={item} onPress={() => handleCardPress(item)} />
+              <RecordaCard item={item} onPress={() => handleCardPress(item)} onShare={() => handleCardShare(item)} />
             )}
             showsVerticalScrollIndicator={false}
             testID={`${feedVariant}-feed-list`}

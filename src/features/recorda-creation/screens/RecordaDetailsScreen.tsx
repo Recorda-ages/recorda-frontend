@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Share,
   StyleSheet,
   TouchableWithoutFeedback,
   View
@@ -122,15 +121,16 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
       return;
     }
 
-    const message = [
-      currentDraft.song?.title,
-      currentDraft.song?.artistName,
-      currentDraft.description
-    ]
-      .filter(Boolean)
-      .join("\n");
+    if (!currentDraft.song || !currentDraft.media) {
+      return;
+    }
 
-    void Share.share({ message });
+    navigation.navigate("ShareCard", {
+      artistName: currentDraft.song.artistName,
+      coverUrl: currentDraft.song.coverUrl || null,
+      mediaUri: currentDraft.media.uri,
+      songTitle: currentDraft.song.title
+    });
   }
 
   return (
