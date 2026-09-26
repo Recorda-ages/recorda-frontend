@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
+import { generalFeedMock } from "@/mocks/recordaMock";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -19,9 +20,92 @@ import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useFeed } from "../state/FeedContext";
 import type { FeedItem, FeedTab } from "../types";
 
+type GeneralTabContentProps = {
+  onCardPress: (item: FeedItem) => void;
+};
+
+function GeneralTabContent({ onCardPress }: Readonly<GeneralTabContentProps>) {
+  return (
+    <View style={styles.generalFeed}>
+      <RecordaCard item={generalFeedMock} onPress={() => onCardPress(generalFeedMock)} />
+    </View>
+  );
+}
+
+type FollowingTabContentProps = {
+  items: FeedItem[];
+  onCardPress: (item: FeedItem) => void;
+  onEndReached: () => void;
+  query: ReturnType<typeof useFollowingFeed>;
+};
+
+function FollowingTabContent({
+  items,
+  onCardPress,
+  onEndReached,
+  query
+}: Readonly<FollowingTabContentProps>) {
+  const { t } = useTranslation();
+
+  if (query.isPending) {
+    return <Loading label={t("feed.loading")} />;
+  }
+
+  if (query.isError && items.length === 0) {
+    return (
+      <View style={styles.feedback}>
+        <ErrorState message={t("feed.loadError")} />
+        <Button label={t("feed.retry")} onPress={() => void query.refetch()} variant="secondary" />
+      </View>
+    );
+  }
+
+  if (query.isSuccess && items.length === 0) {
+    return <FeedEmptyState />;
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  const renderFooter = () => {
+    if (query.isFetchingNextPage) {
+      return <Loading label={t("feed.loadingMore")} />;
+    }
+
+    if (query.isFetchNextPageError) {
+      return (
+        <View style={styles.paginationError}>
+          <ErrorState message={t("feed.loadMoreError")} />
+          <Button
+            label={t("feed.retry")}
+            onPress={() => void query.fetchNextPage()}
+            variant="secondary"
+          />
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <FlatList
+      contentContainerStyle={styles.list}
+      data={items}
+      keyExtractor={(item) => item.recorda_id}
+      ListFooterComponent={renderFooter()}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.4}
+      renderItem={({ item }) => <RecordaCard item={item} onPress={() => onCardPress(item)} />}
+      showsVerticalScrollIndicator={false}
+      testID="following-feed-list"
+    />
+  );
+}
+
 export function FeedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { t } = useTranslation();
   const { deletedIds, openFeedItem } = useFeed();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
@@ -40,7 +124,11 @@ export function FeedScreen() {
     }
   };
 
-  const handleCardPress = (item: FeedItem) => {
+  const handleGeneralCardPress = (item: FeedItem) => {
+    navigation.navigate("RecordaView", { recordaId: item.recorda_id });
+  };
+
+  const handlePublishedCardPress = (item: FeedItem) => {
     openFeedItem(item);
     navigation.navigate("PublishedRecorda", { postId: item.recorda_id });
   };
@@ -61,52 +149,14 @@ export function FeedScreen() {
       <SafeAreaView edges={["top"]} style={styles.content}>
         <FeedHeader />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
-        {activeTab === "geral" ? <FeedEmptyState variant="general" /> : null}
+        {activeTab === "geral" ? <GeneralTabContent onCardPress={handleGeneralCardPress} /> : null}
         {activeTab === "following" ? (
-          <>
-            {followingFeedQuery.isPending ? <Loading label={t("feed.loading")} /> : null}
-            {followingFeedQuery.isError && followingItems.length === 0 ? (
-              <View style={styles.feedback}>
-                <ErrorState message={t("feed.loadError")} />
-                <Button
-                  label={t("feed.retry")}
-                  onPress={() => void followingFeedQuery.refetch()}
-                  variant="secondary"
-                />
-              </View>
-            ) : null}
-            {followingFeedQuery.isSuccess && followingItems.length === 0 ? (
-              <FeedEmptyState />
-            ) : null}
-            {followingItems.length > 0 ? (
-              <FlatList
-                contentContainerStyle={styles.list}
-                data={followingItems}
-                keyExtractor={(item) => item.recorda_id}
-                ListFooterComponent={
-                  followingFeedQuery.isFetchingNextPage ? (
-                    <Loading label={t("feed.loadingMore")} />
-                  ) : followingFeedQuery.isFetchNextPageError ? (
-                    <View style={styles.paginationError}>
-                      <ErrorState message={t("feed.loadMoreError")} />
-                      <Button
-                        label={t("feed.retry")}
-                        onPress={() => void followingFeedQuery.fetchNextPage()}
-                        variant="secondary"
-                      />
-                    </View>
-                  ) : null
-                }
-                onEndReached={handleEndReached}
-                onEndReachedThreshold={0.4}
-                renderItem={({ item }) => (
-                  <RecordaCard item={item} onPress={() => handleCardPress(item)} />
-                )}
-                showsVerticalScrollIndicator={false}
-                testID="following-feed-list"
-              />
-            ) : null}
-          </>
+          <FollowingTabContent
+            items={followingItems}
+            onCardPress={handlePublishedCardPress}
+            onEndReached={handleEndReached}
+            query={followingFeedQuery}
+          />
         ) : null}
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={handleTabBarPress} />
@@ -121,6 +171,9 @@ const styles = StyleSheet.create({
   feedback: {
     gap: spacing[3],
     padding: spacing[4]
+  },
+  generalFeed: {
+    paddingTop: spacing[2]
   },
   list: {
     gap: spacing[4],

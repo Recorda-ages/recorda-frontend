@@ -1,10 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import {
-  NavigationContainer,
-  type RouteProp,
-  useNavigation,
-  useRoute
-} from "@react-navigation/native";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp
@@ -26,6 +21,7 @@ import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
+import { RecordaViewScreen } from "@/features/recorda-view";
 import { SplashScreen } from "@/features/splash";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 
@@ -92,22 +88,6 @@ function ProfilePlaceholderScreen() {
   return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
 }
 
-function RecordaViewPlaceholderScreen() {
-  const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, "RecordaView">>();
-
-  return (
-    <View style={styles.placeholder} testID="recorda-view-screen">
-      <AppText style={styles.placeholderTitle} variant="headline3">
-        {t("recordaView.title")}
-      </AppText>
-      <AppText style={styles.placeholderTitle}>{route.params.recordaId}</AppText>
-      <Button label={t("recordaView.back")} onPress={() => navigation.goBack()} />
-    </View>
-  );
-}
-
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
@@ -129,7 +109,7 @@ export function RootNavigator() {
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />
         <Stack.Screen name="RecordaDetails" component={RecordaDetailsScreen} />
-        <Stack.Screen name="RecordaView" component={RecordaViewPlaceholderScreen} />
+        <Stack.Screen name="RecordaView" component={RecordaViewScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -107,12 +107,10 @@ describe("RecordaCard", () => {
     );
   });
 
-  it("only exposes the card itself and the menu icon as interactive buttons", () => {
+  it("exposes the card, menu and like controls as interactive buttons", () => {
     renderCard(BASE_ITEM);
 
-    // The card (tap-to-open) and the "..." menu icon are the only real buttons;
-    // like/comment/share are static Icons wrapped in plain (non-pressable) Views.
-    expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(screen.getAllByRole("button")).toHaveLength(3);
   });
 
   it("calls onPress with the whole card when tapped", () => {
@@ -121,5 +119,16 @@ describe("RecordaCard", () => {
     fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("toggles like and updates the likes count immediately", () => {
+    renderCard({ ...BASE_ITEM, is_liked: false, likes_count: 12 });
+
+    expect(screen.getByText("12 curtidas")).toBeTruthy();
+    const likeButton = screen.getByTestId("like-button-recorda-1");
+    fireEvent.press(likeButton);
+
+    expect(screen.getByText("13 curtidas")).toBeTruthy();
+    expect(likeButton).toBeSelected();
   });
 });

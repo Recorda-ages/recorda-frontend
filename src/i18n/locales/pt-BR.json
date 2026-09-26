@@ -172,7 +172,13 @@
     }
   },
   "recordaView": {
-    "title": "Recorda",
-    "back": "Voltar"
+    "back": "Voltar",
+    "deleteComment": "Excluir comentário",
+    "deleteDialog": {
+      "cancel": "Cancelar",
+      "confirm": "Excluir",
+      "message": "Tem certeza que deseja excluir o comentário?\nEssa ação não pode ser revertida.",
+      "title": "Excluir Comentário?"
+    }
   }
 }
