@@ -40,12 +40,12 @@ function IconAction({
   icon,
   onPress,
   selected
-}: {
+}: Readonly<{
   label: string;
   icon: string;
   onPress: () => void;
   selected?: boolean;
-}) {
+}>) {
   return (
     <Pressable
       accessibilityLabel={label}
@@ -59,7 +59,7 @@ function IconAction({
   );
 }
 
-function RecordaVideo({ uri, label }: { uri: string; label: string }) {
+function RecordaVideo({ uri, label }: Readonly<{ uri: string; label: string }>) {
   const player = useVideoPlayer(uri, (instance) => {
     instance.muted = true;
   });
@@ -86,7 +86,7 @@ export function RecordaDetailView({
   onReport,
   onShare,
   onTabPress
-}: Props) {
+}: Readonly<Props>) {
   const { t } = useTranslation();
   const [menu, setMenu] = useState<"options" | "delete" | null>(null);
   const [comment, setComment] = useState("");

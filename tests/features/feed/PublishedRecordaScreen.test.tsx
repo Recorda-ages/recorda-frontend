@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
@@ -55,9 +55,15 @@ function renderScreen(item?: FeedItem) {
 
 describe("PublishedRecordaScreen", () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     resetVideoMock();
     mockRoute = { name: "PublishedRecorda", params: { postId: "post-1" } };
+  });
+
+  afterEach(() => {
+    act(() => jest.runOnlyPendingTimers());
+    jest.useRealTimers();
   });
 
   it("shows the expanded post, publication date and comments", () => {
@@ -162,6 +168,9 @@ describe("PublishedRecordaScreen", () => {
     expect(mockUseVideoPlayer).toHaveBeenCalledWith(item.media_url, expect.any(Function));
     expect(screen.getByText("12 curtidas")).toBeTruthy();
     fireEvent.press(screen.getByRole("button", { name: "Curtir" }));
+    expect(screen.getByText("11 curtidas")).toBeTruthy();
+
+    fireEvent.press(screen.getByText("Open API item"));
     expect(screen.getByText("11 curtidas")).toBeTruthy();
   });
 

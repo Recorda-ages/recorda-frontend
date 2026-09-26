@@ -1,4 +1,12 @@
-import { createContext, type PropsWithChildren, useContext, useRef, useState } from "react";
+import {
+  createContext,
+  type PropsWithChildren,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
@@ -29,8 +37,9 @@ export function FeedProvider({ children }: PropsWithChildren) {
   const [likedIds, setLikedIds] = useState<string[]>([]);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const nextComment = useRef(0);
+  const knownPostIds = useRef(new Set(mockFeedPosts.map((post) => post.id)));
 
-  const openFeedItem = (item: FeedItem) => {
+  const openFeedItem = useCallback((item: FeedItem) => {
     const post: FeedPost = {
       author: {
         id: item.author.user_id,
@@ -53,19 +62,21 @@ export function FeedProvider({ children }: PropsWithChildren) {
       song: { artistName: item.song_artist_name, title: item.song_title },
       tabs: ["following"]
     };
-    setPosts((current) =>
-      current.some((existing) => existing.id === post.id) ? current : [...current, post]
-    );
-    if (item.is_liked && !posts.some((existing) => existing.id === post.id)) {
+    const isNewPost = !knownPostIds.current.has(post.id);
+    if (isNewPost) {
+      knownPostIds.current.add(post.id);
+      setPosts((current) => [...current, post]);
+    }
+    if (item.is_liked && isNewPost) {
       setLikedIds((current) => (current.includes(post.id) ? current : [...current, post.id]));
     }
-  };
+  }, []);
 
-  const toggleLike = (id: string) => {
+  const toggleLike = useCallback((id: string) => {
     setLikedIds((ids) => (ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]));
-  };
+  }, []);
 
-  const addComment = (id: string, value: string) => {
+  const addComment = useCallback((id: string, value: string) => {
     const text = value.trim();
     if (!text) return;
     const comment = {
@@ -80,29 +91,28 @@ export function FeedProvider({ children }: PropsWithChildren) {
         post.id === id ? { ...post, comments: [...post.comments, comment] } : post
       )
     );
-  };
+  }, []);
 
-  const deletePost = (id: string) => {
+  const deletePost = useCallback((id: string) => {
     setPosts((current) => current.filter((post) => post.id !== id));
-    setDeletedIds((current) => [...current, id]);
-  };
+    setDeletedIds((current) => (current.includes(id) ? current : [...current, id]));
+  }, []);
 
-  return (
-    <FeedContext.Provider
-      value={{
-        posts,
-        likedIds,
-        deletedIds,
-        currentUser: demoFeedUser,
-        openFeedItem,
-        toggleLike,
-        addComment,
-        deletePost
-      }}
-    >
-      {children}
-    </FeedContext.Provider>
+  const value = useMemo(
+    () => ({
+      posts,
+      likedIds,
+      deletedIds,
+      currentUser: demoFeedUser,
+      openFeedItem,
+      toggleLike,
+      addComment,
+      deletePost
+    }),
+    [posts, likedIds, deletedIds, openFeedItem, toggleLike, addComment, deletePost]
   );
+
+  return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
 }
 
 export function useFeed() {
