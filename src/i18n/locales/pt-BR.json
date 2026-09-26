@@ -197,5 +197,27 @@
       "message": "Tem certeza que deseja excluir o comentário?\nEssa ação não pode ser revertida.",
       "title": "Excluir Comentário?"
     }
+  },
+  "userSearch": {
+    "back": "Voltar",
+    "header": "Pesquisar",
+    "search": "Buscar",
+    "loading": "Buscando usuários",
+    "hint": "Busque por um nome de usuário para encontrar pessoas.",
+    "searchError": "Não foi possível buscar usuários.",
+    "retry": "Tentar novamente",
+    "empty": "Nenhum usuário encontrado. Tente outro nome de usuário."
+  },
+  "follow": {
+    "follow": "Seguir",
+    "requested": "Solicitado",
+    "following": "Seguindo",
+    "followA11y": "Seguir {{username}}",
+    "requestedA11y": "Cancelar solicitação para seguir {{username}}",
+    "followingA11y": "Deixar de seguir {{username}}",
+    "unfollowTitle": "Deixar de seguir",
+    "unfollowMessage": "Tem certeza que deseja deixar de seguir {{username}}?",
+    "unfollowCancel": "Cancelar",
+    "unfollowConfirm": "Deixar de seguir"
   }
 }

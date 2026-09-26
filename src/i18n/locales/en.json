@@ -197,5 +197,27 @@
       "message": "Are you sure you want to delete this comment?\nThis action cannot be undone.",
       "title": "Delete comment?"
     }
+  },
+  "userSearch": {
+    "back": "Back",
+    "header": "Search",
+    "search": "Search",
+    "loading": "Searching users",
+    "hint": "Search for a username to find people.",
+    "searchError": "Could not search users.",
+    "retry": "Try again",
+    "empty": "No users found. Try another username."
+  },
+  "follow": {
+    "follow": "Follow",
+    "requested": "Requested",
+    "following": "Following",
+    "followA11y": "Follow {{username}}",
+    "requestedA11y": "Cancel follow request for {{username}}",
+    "followingA11y": "Unfollow {{username}}",
+    "unfollowTitle": "Unfollow",
+    "unfollowMessage": "Are you sure you want to unfollow {{username}}?",
+    "unfollowCancel": "Cancel",
+    "unfollowConfirm": "Unfollow"
   }
 }
