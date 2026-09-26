@@ -7,11 +7,6 @@ export const notificationService = {
 
   markAllAsRead: () => authApiClient.post<void>("/notifications/read-all"),
 
-  respondToFollowRequest: (followerId: string, decision: FollowRequestDecision) => {
-    const path = `/users/me/follow-requests/${followerId}`;
-
-    return decision === "accept"
-      ? authApiClient.post<void>(`${path}/accept`)
-      : authApiClient.delete<void>(path);
-  }
+  respondToFollowRequest: (followId: string, decision: FollowRequestDecision) =>
+    authApiClient.patch<void>(`/follow-requests/${followId}`, { action: decision })
 };

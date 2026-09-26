@@ -45,7 +45,7 @@ export function useRespondFollowRequest() {
 
   return useMutation({
     mutationFn: ({ decision, notification }: RespondVariables) =>
-      notificationService.respondToFollowRequest(notification.sender?.user_id ?? "", decision),
+      notificationService.respondToFollowRequest(notification.follow_id ?? "", decision),
     onError: (_error, _variables, previous) => {
       if (previous) {
         queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, previous);

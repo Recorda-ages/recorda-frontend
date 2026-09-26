@@ -114,7 +114,7 @@ describe("NotificationsScreen", () => {
       fireEvent.press(screen.getByTestId("notification-accept-n-request"));
     });
 
-    expect(respond).toHaveBeenCalledWith("user-9", "accept");
+    expect(respond).toHaveBeenCalledWith("follow-1", "accept");
     await waitFor(() => expect(screen.queryByTestId("notification-accept-n-request")).toBeNull());
     expect(screen.getAllByText("começou a seguir você", { exact: false })).toHaveLength(2);
   });
@@ -128,7 +128,7 @@ describe("NotificationsScreen", () => {
       fireEvent.press(screen.getByTestId("notification-decline-n-request"));
     });
 
-    expect(respond).toHaveBeenCalledWith("user-9", "decline");
+    expect(respond).toHaveBeenCalledWith("follow-1", "decline");
     await waitFor(() => expect(screen.queryByTestId("notification-n-request")).toBeNull());
   });
 
