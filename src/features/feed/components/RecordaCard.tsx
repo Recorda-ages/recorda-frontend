@@ -9,6 +9,7 @@ import { AppText, LikeButton } from "@/components/ui";
 import { resolveApiAssetUrl } from "@/services/api";
 import { colors, fontFamily, radius, spacing } from "@/theme";
 
+import { RecordaSoundControl } from "./RecordaSoundControl";
 import type { FeedItem } from "../types";
 
 type RecordaCardProps = Readonly<{
@@ -71,11 +72,17 @@ export function RecordaCard({ item, onPress, onToggleLike, onShare }: RecordaCar
         </Pressable>
       </View>
 
-      <RecordaCardMedia
-        accessibilityLabel={item.description ?? item.song_title}
-        mediaType={item.media_type}
-        mediaUrl={mediaUrl}
-      />
+      <View style={styles.mediaWrapper}>
+        <RecordaCardMedia
+          accessibilityLabel={item.description ?? item.song_title}
+          mediaType={item.media_type}
+          mediaUrl={mediaUrl}
+        />
+        <RecordaSoundControl
+          hasPreview={Boolean(item.song_preview_url)}
+          recordaId={item.recorda_id}
+        />
+      </View>
 
       <View style={styles.actions}>
         <View style={styles.actionGroup}>
@@ -225,6 +232,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1
+  },
+  mediaWrapper: {
+    position: "relative"
   },
   media: {
     aspectRatio: 1,

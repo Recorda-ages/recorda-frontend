@@ -6,6 +6,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
 import { FeedProvider } from "@/features/feed";
+import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { RecordaDraftProvider } from "@/features/recorda-creation/context/RecordaDraftContext";
 import { i18n } from "@/i18n";
 import { paperTheme } from "@/theme";
@@ -20,7 +21,9 @@ export function AppProviders({ children }: PropsWithChildren) {
           <PaperProvider theme={paperTheme}>
             <RecordaDraftProvider>
               <OnboardingProvider>
-                <FeedProvider>{children}</FeedProvider>
+                <FeedProvider>
+                  <FeedAudioProvider>{children}</FeedAudioProvider>
+                </FeedProvider>
               </OnboardingProvider>
             </RecordaDraftProvider>
           </PaperProvider>

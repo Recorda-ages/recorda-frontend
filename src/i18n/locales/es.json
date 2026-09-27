@@ -191,7 +191,12 @@
       "feed": "Feed",
       "profile": "Perfil"
     },
-    "notificationsUnread": "Notificaciones, {{count}} sin leer"
+    "notificationsUnread": "Notificaciones, {{count}} sin leer",
+    "sound": {
+      "mute": "Silenciar música",
+      "unmute": "Reactivar música",
+      "unavailable": "Esta Recorda no tiene vista previa de música"
+    }
   },
   "recordaView": {
     "back": "Volver",

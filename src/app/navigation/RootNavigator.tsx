@@ -1,6 +1,7 @@
 import { StyleSheet, View } from "react-native";
 import {
   NavigationContainer,
+  useNavigationContainerRef,
   type RouteProp,
   useNavigation,
   useRoute
@@ -17,6 +18,7 @@ import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { clearSession } from "@/features/auth/session";
 import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
+import { useFeedAudio } from "@/features/feed/state/FeedAudioContext";
 import { NotificationsScreen } from "@/features/notifications";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
@@ -125,8 +127,19 @@ function UserProfilePlaceholderScreen() {
 }
 
 export function RootNavigator() {
+  const { setActiveRoute } = useFeedAudio();
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
+  // A prévia só toca no Feed e nos Detalhes; sair para qualquer outra tela
+  // silencia. `onReady` cobre a rota inicial, que `onStateChange` não emite.
+  const syncActiveRoute = () => setActiveRoute(navigationRef.getCurrentRoute()?.name);
+
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer
+      onReady={syncActiveRoute}
+      onStateChange={syncActiveRoute}
+      ref={navigationRef}
+      theme={navigationTheme}
+    >
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />

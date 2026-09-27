@@ -18,6 +18,7 @@ import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
 import { useRecordaDetails } from "../hooks/useRecordaDetails";
 import { recordaCommentsQueryKey, recordaDetailsQueryKey } from "../queryKeys";
 import { feedService } from "../services/feedService";
+import { useFeedAudio } from "../state/FeedAudioContext";
 import { feedItemToFeedPost, recordaDetailToFeedItem, useFeed } from "../state/FeedContext";
 import type { FeedComment, RecordaCommentResponse } from "../types";
 
@@ -48,6 +49,7 @@ export function PublishedRecordaScreen() {
     addComment,
     deletePost
   } = useFeed();
+  const { setActivePreview } = useFeedAudio();
   const { t } = useTranslation();
   const snapshot = posts.find((item) => item.id === params.postId);
   const isLocallyDeleted = deletedIds.includes(params.postId);
@@ -113,6 +115,12 @@ export function PublishedRecordaScreen() {
       openFeedItem(remoteItem);
     }
   }, [isLocallyDeleted, openFeedItem, remoteItem, snapshot]);
+
+  useEffect(() => {
+    if (post) {
+      setActivePreview(post.id, post.previewUrl ?? null);
+    }
+  }, [post, setActivePreview]);
 
   if (!post && recorda.isPending && !isLocallyDeleted) {
     return (

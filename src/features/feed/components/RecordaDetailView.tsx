@@ -21,6 +21,7 @@ import { colors, fontFamily, radius, spacing } from "@/theme";
 
 import type { FeedPost } from "../types";
 import { BottomTabBar, type BottomTab } from "./BottomTabBar";
+import { RecordaSoundControl } from "./RecordaSoundControl";
 
 type Props = {
   post: FeedPost;
@@ -171,16 +172,19 @@ export function RecordaDetailView({
                   onPress={() => setMenu("options")}
                 />
               </View>
-              {post.mediaType === "VIDEO" ? (
-                <RecordaVideo label={post.description} uri={post.mediaUrl} />
-              ) : (
-                <Image
-                  accessibilityLabel={post.description}
-                  source={post.mediaUrl}
-                  contentFit="cover"
-                  style={styles.media}
-                />
-              )}
+              <View style={styles.mediaWrapper}>
+                {post.mediaType === "VIDEO" ? (
+                  <RecordaVideo label={post.description} uri={post.mediaUrl} />
+                ) : (
+                  <Image
+                    accessibilityLabel={post.description}
+                    source={post.mediaUrl}
+                    contentFit="cover"
+                    style={styles.media}
+                  />
+                )}
+                <RecordaSoundControl hasPreview={Boolean(post.previewUrl)} recordaId={post.id} />
+              </View>
               <View style={styles.actions}>
                 <View style={styles.actions}>
                   <IconAction
@@ -375,6 +379,9 @@ const styles = StyleSheet.create({
   bold: { color: colors.neutrals[100], fontFamily: fontFamily.primary.bold },
   text: { color: colors.neutrals[100] },
   song: { color: colors.primary[500], fontSize: 12 },
+  mediaWrapper: {
+    position: "relative"
+  },
   media: {
     width: "100%",
     aspectRatio: 9 / 13,

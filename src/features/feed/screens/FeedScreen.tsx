@@ -1,8 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FlatList, StyleSheet, View, type ViewToken } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,13 +20,19 @@ import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
 import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
+import { useFeedAudio } from "../state/FeedAudioContext";
 import { useFeed } from "../state/FeedContext";
 import type { FeedItem, FeedTab } from "../types";
+
+// 70% visível é o limiar que evita trocar a música a cada pixel do scroll:
+// um card só assume o áudio quando domina a tela de fato.
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 70 };
 
 export function FeedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
   const { deletedIds, openFeedItem } = useFeed();
+  const { setActivePreview } = useFeedAudio();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const generalFeedQuery = useGeneralFeed(activeTab === "geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
@@ -55,8 +61,57 @@ export function FeedScreen() {
 
   const handleCardPress = (item: FeedItem) => {
     openFeedItem(item);
+    setActivePreview(item.recorda_id, item.song_preview_url);
     navigation.navigate("PublishedRecorda", { postId: item.recorda_id });
   };
+
+  // Os dois painéis ficam montados (o inativo só tem opacity 0), então ambas as
+  // listas disparam viewability. Cada handler armazena a Recorda em foco da
+  // sua aba e só entrega o áudio se for a ativa. Ao trocar de aba, o áudio
+  // sincroniza imediatamente com a aba que veio para a frente.
+  const activeTabRef = useRef(activeTab);
+  const focusedCardByTab = useRef<Record<FeedTab, FeedItem | null>>({
+    geral: null,
+    following: null
+  });
+
+  const takeFocus = useCallback(
+    (tab: FeedTab, viewableItems: ViewToken[]) => {
+      const focused = viewableItems[0]?.item as FeedItem | undefined;
+      focusedCardByTab.current[tab] = focused ?? null;
+
+      if (activeTabRef.current !== tab) {
+        return;
+      }
+
+      if (focused) {
+        setActivePreview(focused.recorda_id, focused.song_preview_url);
+      } else {
+        setActivePreview("", null);
+      }
+    },
+    [setActivePreview]
+  );
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    const tabFocused = focusedCardByTab.current[activeTab];
+    if (tabFocused) {
+      setActivePreview(tabFocused.recorda_id, tabFocused.song_preview_url);
+    } else {
+      setActivePreview("", null);
+    }
+  }, [activeTab, setActivePreview]);
+
+  const handleGeralViewable = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("geral", viewableItems),
+    [takeFocus]
+  );
+
+  const handleFollowingViewable = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("following", viewableItems),
+    [takeFocus]
+  );
 
   const renderFeed = (tab: FeedTab, query: typeof generalFeedQuery) => {
     const isActive = activeTab === tab;
@@ -132,8 +187,10 @@ export function FeedScreen() {
                 onShare={() => handleCardShare(item)}
               />
             )}
+            onViewableItemsChanged={tab === "geral" ? handleGeralViewable : handleFollowingViewable}
             showsVerticalScrollIndicator={false}
             testID={`${variant}-feed-list`}
+            viewabilityConfig={VIEWABILITY_CONFIG}
           />
         ) : null}
       </View>

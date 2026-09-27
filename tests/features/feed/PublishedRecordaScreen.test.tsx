@@ -5,12 +5,14 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
+import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { feedService } from "@/features/feed/services/feedService";
 import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
+import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -64,9 +66,11 @@ function renderScreen(item?: FeedItem) {
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <FeedProvider>
-          {item ? <OpenFeedItem item={item} /> : null}
-          {item ? null : <PublishedRecordaScreen />}
-          <FeedSnapshot />
+          <FeedAudioProvider>
+            {item ? <OpenFeedItem item={item} /> : null}
+            {item ? null : <PublishedRecordaScreen />}
+            <FeedSnapshot />
+          </FeedAudioProvider>
         </FeedProvider>
       </QueryClientProvider>
     </I18nextProvider>
@@ -81,6 +85,7 @@ describe("PublishedRecordaScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetVideoMock();
+    resetAudioMock();
     mockRoute = { name: "PublishedRecorda", params: { postId: "post-1" } };
     getRecordaById = jest
       .spyOn(feedService, "getRecordaById")
@@ -376,4 +381,32 @@ describe("PublishedRecordaScreen", () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     }
   );
+
+  it("synchronizes the audio preview for the opened Recorda", async () => {
+    const detail: RecordaDetailResponse = {
+      author: { avatar_url: "/avatars/jane.jpg", user_id: "user-2", username: "jane" },
+      created_at: "2026-05-10T12:00:00Z",
+      deezer_track_id: "track-1",
+      description: "Recorda aberta pela notificação com áudio",
+      is_liked: false,
+      likes_count: 7,
+      media_type: "PHOTO",
+      media_url: "/api/v1/recordas/media/notification.jpg",
+      recorda_id: "recorda-preview-notification",
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: "https://cdn.example.com/notification-song.mp3",
+      song_title: "Song"
+    };
+    getRecordaById.mockResolvedValue(detail);
+    mockRoute.params.postId = detail.recorda_id;
+
+    renderScreen();
+
+    await waitFor(() =>
+      expect(mockAudioPlayer.replace).toHaveBeenCalledWith(
+        "https://cdn.example.com/notification-song.mp3"
+      )
+    );
+  });
 });
