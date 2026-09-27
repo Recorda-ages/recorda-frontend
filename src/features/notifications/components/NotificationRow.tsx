@@ -27,14 +27,8 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
     ? resolveApiAssetUrl(item.sender.profile_picture_url)
     : null;
 
-  return (
-    <Pressable
-      accessibilityRole={onPress ? "button" : undefined}
-      disabled={!onPress}
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-      testID={`notification-${item.notification_id}`}
-    >
+  const content = (
+    <>
       {avatarUrl ? (
         <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />
       ) : (
@@ -76,6 +70,25 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
       </View>
 
       <AppText style={styles.time}>{t(`notifications.time.${elapsed.unit}`, elapsed)}</AppText>
+    </>
+  );
+
+  if (!onPress) {
+    return (
+      <View style={styles.row} testID={`notification-${item.notification_id}`}>
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      testID={`notification-${item.notification_id}`}
+    >
+      {content}
     </Pressable>
   );
 }

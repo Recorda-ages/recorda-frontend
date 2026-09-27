@@ -208,6 +208,7 @@
     "empty": "Você ainda não tem notificações.",
     "accept": "Aceitar",
     "decline": "Recusar",
+    "actionError": "Não foi possível responder à solicitação. Tente novamente.",
     "types": {
       "FOLLOW_REQUEST": "quer seguir você",
       "FOLLOW_ACCEPTED": "aceitou seu pedido para seguir",

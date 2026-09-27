@@ -33,13 +33,25 @@ export function NotificationsScreen() {
   const unreadCount = notifications.data?.pages[0]?.unread_count ?? 0;
 
   useEffect(() => {
-    if (markedRef.current || !notifications.isSuccess || unreadCount === 0) {
+    if (
+      markedRef.current ||
+      !notifications.isSuccess ||
+      !notifications.isFetchedAfterMount ||
+      notifications.isFetching ||
+      unreadCount === 0
+    ) {
       return;
     }
 
     markedRef.current = true;
     markAllAsReadMutation();
-  }, [markAllAsReadMutation, notifications.isSuccess, unreadCount]);
+  }, [
+    markAllAsReadMutation,
+    notifications.isFetchedAfterMount,
+    notifications.isFetching,
+    notifications.isSuccess,
+    unreadCount
+  ]);
 
   useEffect(
     () => () => {
@@ -52,7 +64,7 @@ export function NotificationsScreen() {
     if (item.recorda_id && ["COMMENT", "LIKE", "MENTION"].includes(item.type)) {
       const recordaId = item.recorda_id;
 
-      return () => navigation.navigate("RecordaView", { recordaId });
+      return () => navigation.navigate("PublishedRecorda", { postId: recordaId });
     }
 
     if (item.type === "NEW_FOLLOWER" || item.type === "FOLLOW_ACCEPTED") {
@@ -69,8 +81,10 @@ export function NotificationsScreen() {
   const handleEndReached = () => {
     if (
       notifications.hasNextPage &&
+      !notifications.isFetching &&
       !notifications.isFetchingNextPage &&
-      !notifications.isFetchNextPageError
+      !notifications.isFetchNextPageError &&
+      !respond.isPending
     ) {
       void notifications.fetchNextPage();
     }
@@ -86,6 +100,7 @@ export function NotificationsScreen() {
         <View style={styles.feedback}>
           <ErrorState message={t("notifications.loadError")} />
           <Button
+            disabled={respond.isPending}
             label={t("notifications.retry")}
             onPress={() => void notifications.fetchNextPage()}
             variant="secondary"
@@ -131,10 +146,17 @@ export function NotificationsScreen() {
         {markAllAsRead.isError ? (
           <View style={styles.readError}>
             <Button
+              disabled={respond.isPending}
               label={t("notifications.retry")}
               onPress={() => markAllAsRead.mutate()}
               variant="secondary"
             />
+          </View>
+        ) : null}
+
+        {respond.isError ? (
+          <View style={styles.readError}>
+            <ErrorState message={t("notifications.actionError")} />
           </View>
         ) : null}
 
@@ -153,7 +175,7 @@ export function NotificationsScreen() {
                 item={item}
                 onPress={pressHandlerFor(item)}
                 onRespond={(decision) => respond.mutate({ decision, notification: item })}
-                responding={respond.isPending}
+                responding={respond.isPending || markAllAsRead.isPending}
               />
             )}
             onEndReached={handleEndReached}

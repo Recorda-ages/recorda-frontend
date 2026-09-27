@@ -1,6 +1,8 @@
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import type { UserBasicResponse } from "@/features/auth/api/types";
+import { recordaDetailsQueryKey } from "@/features/feed/queryKeys";
+import { NOTIFICATIONS_QUERY_KEY } from "@/features/notifications/queryKeys";
 import {
   LEGACY_ACCOUNT_TYPE_KEY,
   ROLE_KEY,
@@ -47,8 +49,14 @@ describe("auth session", () => {
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
   });
 
-  it("clears stored credentials and the cached user even if storage fails", async () => {
+  it("clears credentials and user-scoped notification data even if storage fails", async () => {
     queryClient.setQueryData(AUTH_ME_QUERY_KEY, buildUser());
+    queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, {
+      pageParams: [0],
+      pages: [{ items: [{ notification_id: "private-notification" }], unread_count: 1 }]
+    });
+    const privateRecordaKey = recordaDetailsQueryKey("private-recorda");
+    queryClient.setQueryData(privateRecordaKey, { recorda_id: "private-recorda" });
     (secureStorage.removeItem as jest.Mock).mockRejectedValueOnce(new Error("locked"));
 
     await expect(clearSession()).resolves.toBeUndefined();
@@ -57,6 +65,8 @@ describe("auth session", () => {
     expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
     expect(secureStorage.removeItem).toHaveBeenCalledWith(LEGACY_ACCOUNT_TYPE_KEY);
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+    expect(queryClient.getQueryData(NOTIFICATIONS_QUERY_KEY)).toBeUndefined();
+    expect(queryClient.getQueryData(privateRecordaKey)).toBeUndefined();
   });
 
   it.each([

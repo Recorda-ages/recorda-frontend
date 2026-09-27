@@ -8,6 +8,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { I18nextProvider } from "react-i18next";
 
 import { NotificationsScreen } from "@/features/notifications";
+import { NOTIFICATIONS_QUERY_KEY } from "@/features/notifications/hooks/useNotifications";
 import { notificationService } from "@/features/notifications/services/notificationService";
 import type { NotificationPage } from "@/features/notifications/types";
 import { i18n } from "@/i18n";
@@ -48,11 +49,18 @@ const PAGE: NotificationPage = {
 };
 
 let queryClient: QueryClient;
+let serverPage: NotificationPage;
 
-function renderScreen() {
+function renderScreen(cachedPage?: NotificationPage) {
   queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { gcTime: Infinity, retry: false } }
   });
+  if (cachedPage) {
+    queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, {
+      pageParams: [0],
+      pages: [{ ...cachedPage, _wasFull: cachedPage.items.length === 20 }]
+    });
+  }
 
   return render(
     <I18nextProvider i18n={i18n}>
@@ -71,9 +79,32 @@ describe("NotificationsScreen", () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
-    list = jest.spyOn(notificationService, "list").mockResolvedValue(structuredClone(PAGE));
-    markAllAsRead = jest.spyOn(notificationService, "markAllAsRead").mockResolvedValue();
-    respond = jest.spyOn(notificationService, "respondToFollowRequest").mockResolvedValue();
+    serverPage = structuredClone(PAGE);
+    list = jest
+      .spyOn(notificationService, "list")
+      .mockImplementation(() => Promise.resolve(structuredClone(serverPage)));
+    markAllAsRead = jest.spyOn(notificationService, "markAllAsRead").mockImplementation(() => {
+      serverPage = {
+        ...serverPage,
+        items: serverPage.items.map((item) => ({ ...item, is_read: true })),
+        unread_count: 0
+      };
+      return Promise.resolve();
+    });
+    respond = jest
+      .spyOn(notificationService, "respondToFollowRequest")
+      .mockImplementation((followId: string, decision: "accept" | "decline") => {
+        serverPage = {
+          ...serverPage,
+          items:
+            decision === "decline"
+              ? serverPage.items.filter((item) => item.follow_id !== followId)
+              : serverPage.items.map((item) =>
+                  item.follow_id === followId ? { ...item, type: "NEW_FOLLOWER" } : item
+                )
+        };
+        return Promise.resolve();
+      });
   });
 
   afterEach(() => {
@@ -91,6 +122,67 @@ describe("NotificationsScreen", () => {
       screen.getAllByTestId(/^notification-n-/).map((node) => node.props.testID as string)
     ).toEqual(["notification-n-request", "notification-n-like", "notification-n-follower"]);
     expect(screen.getByText("curtiu sua publicação", { exact: false })).toBeTruthy();
+  });
+
+  it("refetches the notification list when opening with fresh cached data", async () => {
+    renderScreen({ items: [], unread_count: 0 });
+
+    await waitFor(() => expect(list).toHaveBeenCalledWith(20, 0, expect.any(AbortSignal)));
+    expect(await screen.findByTestId("notification-n-like")).toBeTruthy();
+  });
+
+  it("does not load the next page while the cached first page is refetching", async () => {
+    let finishRefetch!: () => void;
+    const cachedPage: NotificationPage = {
+      items: Array.from({ length: 20 }, (_, index) =>
+        notification({ notification_id: `cached-${index}` })
+      ),
+      unread_count: 0
+    };
+    list.mockImplementation(
+      () =>
+        new Promise<NotificationPage>((resolve) => {
+          finishRefetch = () => resolve(cachedPage);
+        })
+    );
+
+    renderScreen(cachedPage);
+
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(1));
+    fireEvent(screen.getByTestId("notifications-list"), "endReached");
+
+    expect(list).toHaveBeenCalledTimes(1);
+    expect(list).toHaveBeenLastCalledWith(20, 0, expect.any(AbortSignal));
+
+    await act(async () => finishRefetch());
+  });
+
+  it("waits for the opening refetch before marking cached notifications as read", async () => {
+    let finishRefetch!: (page: NotificationPage) => void;
+    const cachedNotification = notification({ notification_id: "cached-notification" });
+    const freshNotification = notification({ notification_id: "fresh-notification" });
+    const freshPage = { items: [freshNotification, cachedNotification], unread_count: 2 };
+    list.mockImplementationOnce(
+      () =>
+        new Promise<NotificationPage>((resolve) => {
+          finishRefetch = resolve;
+        })
+    );
+    list.mockResolvedValue({ ...freshPage, unread_count: 0 });
+
+    renderScreen({ items: [cachedNotification], unread_count: 1 });
+
+    expect(screen.getByTestId("notification-cached-notification")).toBeTruthy();
+    await waitFor(() => expect(list).toHaveBeenCalledWith(20, 0, expect.any(AbortSignal)));
+    expect(markAllAsRead).not.toHaveBeenCalled();
+
+    await act(async () => {
+      finishRefetch(freshPage);
+    });
+
+    expect(await screen.findByTestId("notification-fresh-notification")).toBeTruthy();
+    await waitFor(() => expect(markAllAsRead).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
   });
 
   it("marks everything as read on open and zeroes the counter", async () => {
@@ -140,6 +232,43 @@ describe("NotificationsScreen", () => {
     await waitFor(() => expect(screen.queryByTestId("notification-n-request")).toBeNull());
   });
 
+  it("does not load another page before a decline reaches the backend", async () => {
+    let finishDecline!: () => void;
+    const firstPage: NotificationPage = {
+      items: [
+        notification({
+          follow_id: "follow-pending",
+          notification_id: "pending-request",
+          type: "FOLLOW_REQUEST"
+        }),
+        ...Array.from({ length: 19 }, (_, index) =>
+          notification({ notification_id: `pending-page-${index}` })
+        )
+      ],
+      unread_count: 20
+    };
+    list.mockResolvedValue(firstPage);
+    respond.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishDecline = resolve;
+        })
+    );
+    renderScreen();
+
+    const declineButton = await screen.findByTestId("notification-decline-pending-request");
+    await waitFor(() => expect(declineButton).not.toBeDisabled());
+    fireEvent.press(screen.getByTestId("notification-decline-pending-request"));
+    await waitFor(() => expect(respond).toHaveBeenCalledWith("follow-pending", "decline"));
+    await waitFor(() => expect(screen.queryByTestId("notification-pending-request")).toBeNull());
+
+    const callsBeforeEndReached = list.mock.calls.length;
+    fireEvent(screen.getByTestId("notifications-list"), "endReached");
+    expect(list).toHaveBeenCalledTimes(callsBeforeEndReached);
+
+    await act(async () => finishDecline());
+  });
+
   it("restores the request if the API rejects the answer", async () => {
     respond.mockRejectedValue(new Error("boom"));
     renderScreen();
@@ -151,6 +280,9 @@ describe("NotificationsScreen", () => {
     });
 
     await waitFor(() => expect(screen.getByTestId("notification-n-request")).toBeTruthy());
+    expect(
+      screen.getByText("Não foi possível responder à solicitação. Tente novamente.")
+    ).toBeTruthy();
   });
 
   it("opens the Recorda from a like and the sender profile from a new follower", async () => {
@@ -161,7 +293,9 @@ describe("NotificationsScreen", () => {
     fireEvent.press(screen.getByTestId("notification-n-like"));
     fireEvent.press(screen.getByTestId("notification-n-follower"));
 
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, "RecordaView", { recordaId: "recorda-1" });
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, "PublishedRecorda", {
+      postId: "recorda-1"
+    });
     expect(mockNavigate).toHaveBeenNthCalledWith(2, "UserProfile", { userId: "user-9" });
   });
 
@@ -184,7 +318,7 @@ describe("NotificationsScreen", () => {
     await waitFor(() => expect(screen.getByTestId("notification-first-0")).toBeTruthy());
     fireEvent(screen.getByTestId("notifications-list"), "endReached");
 
-    await waitFor(() => expect(list).toHaveBeenNthCalledWith(2, 20, 20, expect.any(AbortSignal)));
+    await waitFor(() => expect(list).toHaveBeenCalledWith(20, 20, expect.any(AbortSignal)));
     expect(
       queryClient
         .getQueryData<InfiniteData<NotificationPage, number>>(["notifications"])
@@ -201,6 +335,28 @@ describe("NotificationsScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
 
     await waitFor(() => expect(markAllAsRead).toHaveBeenCalledTimes(2));
+  });
+
+  it("blocks the read-all retry while a follow response is pending", async () => {
+    let finishResponse!: () => void;
+    markAllAsRead.mockRejectedValueOnce(new Error("offline"));
+    respond.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishResponse = resolve;
+        })
+    );
+    renderScreen();
+
+    const retry = await screen.findByRole("button", { name: "Tentar novamente" });
+    const accept = await screen.findByTestId("notification-accept-n-request");
+    await waitFor(() => expect(accept).not.toBeDisabled());
+    fireEvent.press(accept);
+
+    await waitFor(() => expect(respond).toHaveBeenCalledWith("follow-1", "accept"));
+    expect(retry).toBeDisabled();
+
+    await act(async () => finishResponse());
   });
 
   it("shows an error with retry when the list fails", async () => {
