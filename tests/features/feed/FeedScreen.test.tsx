@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
@@ -5,12 +6,14 @@ import { FeedProvider, FeedScreen } from "@/features/feed";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
 import { useGeneralFeed } from "@/features/feed/hooks/useGeneralFeed";
+import { feedService } from "@/features/feed/services/feedService";
 import type { FeedItem, FeedPage } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
 const mockNavigate = jest.fn();
+const queryClients: QueryClient[] = [];
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
@@ -89,8 +92,10 @@ function pendingResult(handlers: QueryHandlers = followingHandlers) {
     fetchNextPage: handlers.fetchNextPage,
     hasNextPage: false,
     isError: false,
+    isFetching: false,
     isFetchingNextPage: false,
     isFetchNextPageError: false,
+    isRefetching: false,
     isPending: true,
     isSuccess: false,
     refetch: handlers.refetch
@@ -107,8 +112,10 @@ function successResult(
     fetchNextPage: handlers.fetchNextPage,
     hasNextPage,
     isError: false,
+    isFetching: false,
     isFetchingNextPage: false,
     isFetchNextPageError: false,
+    isRefetching: false,
     isPending: false,
     isSuccess: true,
     refetch: handlers.refetch
@@ -121,8 +128,10 @@ function errorResult(handlers: QueryHandlers = followingHandlers) {
     fetchNextPage: handlers.fetchNextPage,
     hasNextPage: false,
     isError: true,
+    isFetching: false,
     isFetchingNextPage: false,
     isFetchNextPageError: false,
+    isRefetching: false,
     isPending: false,
     isSuccess: false,
     refetch: handlers.refetch
@@ -143,6 +152,11 @@ function mockGeneral(result: MockQueryResult) {
 }
 
 function renderScreen() {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
+  });
+  queryClients.push(queryClient);
+
   return render(
     <I18nextProvider i18n={i18n}>
       <FeedProvider>
@@ -155,6 +169,12 @@ function renderScreen() {
 }
 
 describe("FeedScreen", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    queryClients.forEach((queryClient) => queryClient.clear());
+    queryClients.length = 0;
+  });
+
   beforeEach(() => {
     resetAudioMock();
     mockNavigate.mockClear();
@@ -198,6 +218,25 @@ describe("FeedScreen", () => {
       expect(within(screen.getByTestId("feed-post-general-2")).getByText("Highway")).toBeTruthy();
     });
 
+    it("sends a like from the general feed to the API", async () => {
+      const recordaId = "11111111-1111-4111-8111-111111111111";
+      const setRecordaLike = jest
+        .spyOn(feedService, "setRecordaLike")
+        .mockResolvedValue({ is_liked: true, likes_count: 1 });
+      mockGeneral(
+        successResult(
+          { items: [buildItem({ likes_count: 0, recorda_id: recordaId })], next_cursor: null },
+          false,
+          generalHandlers
+        )
+      );
+      renderScreen();
+
+      fireEvent.press(screen.getByTestId(`like-button-${recordaId}`));
+
+      await waitFor(() => expect(setRecordaLike).toHaveBeenCalledWith(recordaId, true));
+    });
+
     it("renders followed and discovery authors through the same card with no distinction", () => {
       mockGeneral(successResult(GENERAL_PAGE, false, generalHandlers));
       renderScreen();
@@ -232,6 +271,21 @@ describe("FeedScreen", () => {
       expect(mockRefetch).not.toHaveBeenCalled();
     });
 
+    it("offers retry when refresh fails while existing Recordas remain visible", () => {
+      mockGeneral({
+        ...successResult(GENERAL_PAGE, false, generalHandlers),
+        isError: true,
+        isSuccess: false
+      });
+      renderScreen();
+
+      expect(screen.getByTestId("feed-post-general-1")).toBeTruthy();
+      expect(screen.getByText("Não foi possível carregar o feed. Tente novamente.")).toBeTruthy();
+      fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+
+      expect(mockGeneralRefetch).toHaveBeenCalledTimes(1);
+    });
+
     it("loads the next general page when the list reaches the end", () => {
       mockGeneral(
         successResult({ ...GENERAL_PAGE, next_cursor: "next-page" }, true, generalHandlers)
@@ -242,6 +296,28 @@ describe("FeedScreen", () => {
 
       expect(mockGeneralFetchNextPage).toHaveBeenCalledTimes(1);
       expect(mockFetchNextPage).not.toHaveBeenCalled();
+    });
+
+    it("does not load another page while refreshing", () => {
+      mockGeneral({
+        ...successResult({ ...GENERAL_PAGE, next_cursor: "next-page" }, true, generalHandlers),
+        isFetching: true,
+        isRefetching: true
+      });
+      renderScreen();
+
+      fireEvent(screen.getByTestId("general-feed-list"), "endReached");
+
+      expect(mockGeneralFetchNextPage).not.toHaveBeenCalled();
+    });
+
+    it("refreshes the general feed with a pull gesture, including when empty", () => {
+      mockGeneral(successResult({ items: [], next_cursor: null }, false, generalHandlers));
+      renderScreen();
+
+      fireEvent(screen.getByTestId("general-feed-list"), "refresh");
+
+      expect(mockGeneralRefetch).toHaveBeenCalledTimes(1);
     });
 
     it("opens published Recorda details when a general card is tapped", async () => {
@@ -257,6 +333,50 @@ describe("FeedScreen", () => {
   });
 
   describe("tab switching", () => {
+    it("keeps both lists mounted and retains their scroll and media instances", () => {
+      mockGeneral(
+        successResult(
+          {
+            ...GENERAL_PAGE,
+            items: [buildItem({ media_type: "VIDEO", recorda_id: "general-video" })]
+          },
+          false,
+          generalHandlers
+        )
+      );
+      mockFollowing(
+        successResult({
+          ...FEED_PAGE,
+          items: [buildItem({ media_type: "VIDEO", recorda_id: "following-video" })]
+        })
+      );
+      renderScreen();
+
+      const generalList = screen.getByTestId("general-feed-list");
+      const generalVideo = within(screen.getByTestId("feed-post-general-video")).getByTestId(
+        "mock-video-view"
+      );
+      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      const followingList = screen.getByTestId("following-feed-list");
+      const followingVideo = within(screen.getByTestId("feed-post-following-video")).getByTestId(
+        "mock-video-view"
+      );
+      fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+
+      expect(screen.getByTestId("general-feed-list")).toBe(generalList);
+      expect(
+        within(screen.getByTestId("feed-post-general-video")).getByTestId("mock-video-view")
+      ).toBe(generalVideo);
+      expect(screen.getByTestId("following-feed-list", { includeHiddenElements: true })).toBe(
+        followingList
+      );
+      expect(
+        within(
+          screen.getByTestId("feed-post-following-video", { includeHiddenElements: true })
+        ).getByTestId("mock-video-view", { includeHiddenElements: true })
+      ).toBe(followingVideo);
+    });
+
     it("enables only the query of the active tab", () => {
       renderScreen();
 
@@ -342,6 +462,16 @@ describe("FeedScreen", () => {
       expect(mockGeneralFetchNextPage).not.toHaveBeenCalled();
     });
 
+    it("refreshes the following feed with a pull gesture", () => {
+      mockFollowing(successResult(FEED_PAGE));
+      renderScreen();
+
+      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      fireEvent(screen.getByTestId("following-feed-list"), "refresh");
+
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+
     it("opens published Recorda details when a following card is tapped", async () => {
       mockFollowing(successResult(FEED_PAGE));
       renderScreen();
@@ -407,12 +537,15 @@ describe("FeedScreen", () => {
   it("shows the pagination error footer and retries when the next-page fetch fails", () => {
     mockGeneral({
       ...successResult({ ...GENERAL_PAGE, next_cursor: "next" }, true, generalHandlers),
+      isError: true,
       isFetchNextPageError: true,
-      isFetchingNextPage: false
+      isFetchingNextPage: false,
+      isSuccess: false
     } as ReturnType<typeof successResult>);
     renderScreen();
 
     expect(screen.getByText("Não foi possível carregar mais Recordas.")).toBeTruthy();
+    expect(screen.queryByText("Não foi possível carregar o feed. Tente novamente.")).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
 
     expect(mockGeneralFetchNextPage).toHaveBeenCalledTimes(1);

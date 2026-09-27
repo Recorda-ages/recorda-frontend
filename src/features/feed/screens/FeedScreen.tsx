@@ -19,6 +19,7 @@ import { FeedTabs } from "../components/FeedTabs";
 import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
+import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
 import { useFeed } from "../state/FeedContext";
 import { useFeedAudio } from "../state/FeedAudioContext";
 import type { FeedItem, FeedTab } from "../types";
@@ -35,12 +36,7 @@ export function FeedScreen() {
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const generalFeedQuery = useGeneralFeed(activeTab === "geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
-  const activeQuery = activeTab === "geral" ? generalFeedQuery : followingFeedQuery;
-  const feedVariant = activeTab === "geral" ? "general" : "following";
-  const items =
-    activeQuery.data?.pages
-      .flatMap((page) => page.items)
-      .filter((item) => !deletedIds.includes(item.recorda_id)) ?? [];
+  const likeMutation = useRecordaLikeMutation();
   const unreadCount = useNotifications().data?.pages[0]?.unread_count ?? 0;
 
   const handleTabBarPress = (tab: BottomTab) => {
@@ -112,41 +108,67 @@ export function FeedScreen() {
     return null;
   };
 
-  return (
-    <View style={styles.screen} testID="feed-screen">
-      <StatusBar style="light" />
-      <SafeAreaView edges={["top"]} style={styles.content}>
-        <FeedHeader
-          onNotificationsPress={() => navigation.navigate("Notifications")}
-          unreadCount={unreadCount}
+    const footer = query.isFetchingNextPage ? (
+      <Loading label={t("feed.loadingMore")} />
+    ) : query.isFetchNextPageError ? (
+      <View style={styles.paginationError}>
+        <ErrorState message={t("feed.loadMoreError")} />
+        <Button
+          label={t("feed.retry")}
+          onPress={() => void query.fetchNextPage()}
+          variant="secondary"
         />
-        <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
-        {activeQuery.isPending ? <Loading label={t("feed.loading")} /> : null}
-        {activeQuery.isError && items.length === 0 ? (
+      </View>
+    ) : null;
+
+    return (
+      <View
+        accessibilityElementsHidden={!isActive}
+        importantForAccessibility={isActive ? "auto" : "no-hide-descendants"}
+        key={tab}
+        pointerEvents={isActive ? "auto" : "none"}
+        style={[styles.panel, !isActive && styles.hiddenPanel]}
+        testID={`${variant}-feed-panel`}
+      >
+        {query.isPending ? <Loading label={t("feed.loading")} /> : null}
+        {query.isError && !query.isFetchNextPageError ? (
           <View style={styles.feedback}>
             <ErrorState message={t("feed.loadError")} />
             <Button
               label={t("feed.retry")}
-              onPress={() => void activeQuery.refetch()}
+              onPress={() => void query.refetch()}
               variant="secondary"
             />
           </View>
         ) : null}
-        {activeQuery.isSuccess && items.length === 0 ? (
-          <FeedEmptyState variant={feedVariant} />
-        ) : null}
-        {items.length > 0 ? (
+        {query.isSuccess || items.length > 0 ? (
           <FlatList
             contentContainerStyle={styles.list}
             data={items}
             keyExtractor={(item) => item.recorda_id}
-            ListFooterComponent={renderFooter()}
-            onEndReached={handleEndReached}
+            ListEmptyComponent={<FeedEmptyState variant={variant} />}
+            ListFooterComponent={footer}
+            onEndReached={() => {
+              if (
+                isActive &&
+                query.hasNextPage &&
+                !query.isFetching &&
+                !query.isFetchNextPageError
+              ) {
+                void query.fetchNextPage();
+              }
+            }}
             onEndReachedThreshold={0.4}
             onViewableItemsChanged={handleViewableItemsChanged}
             renderItem={({ item }) => (
               <RecordaCard
                 item={item}
+                onToggleLike={async (liked) => {
+                  await likeMutation.mutateAsync({
+                    isLiked: liked,
+                    recordaId: item.recorda_id
+                  });
+                }}
                 onPress={() => handleCardPress(item)}
                 onShare={() => handleCardShare(item)}
               />
@@ -156,6 +178,23 @@ export function FeedScreen() {
             viewabilityConfig={VIEWABILITY_CONFIG}
           />
         ) : null}
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.screen} testID="feed-screen">
+      <StatusBar style="light" />
+      <SafeAreaView edges={["top"]} style={styles.content}>
+        <FeedHeader
+          onNotificationsPress={() => navigation.navigate("Notifications")}
+          unreadCount={unreadCount}
+        />
+        <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
+        <View style={styles.panelContainer}>
+          {renderFeed("geral", generalFeedQuery)}
+          {renderFeed("following", followingFeedQuery)}
+        </View>
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={handleTabBarPress} />
     </View>
@@ -171,6 +210,7 @@ const styles = StyleSheet.create({
     padding: spacing[4]
   },
   list: {
+    flexGrow: 1,
     gap: spacing[4],
     paddingBottom: spacing[4],
     paddingTop: spacing[2]
@@ -178,6 +218,20 @@ const styles = StyleSheet.create({
   paginationError: {
     gap: spacing[3],
     paddingHorizontal: spacing[4]
+  },
+  panel: {
+    flex: 1
+  },
+  panelContainer: {
+    flex: 1
+  },
+  hiddenPanel: {
+    bottom: 0,
+    left: 0,
+    opacity: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
   },
   screen: {
     backgroundColor: colors.neutrals[900],

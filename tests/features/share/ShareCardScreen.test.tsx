@@ -1,10 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import * as Sharing from "expo-sharing";
 import * as ExpoVideo from "expo-video";
 import { Alert, Image as RNImage } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
+import * as CardExport from "@/features/share/services/cardExport";
 
 import type * as ExpoVideoMock from "../../mocks/expoVideo";
 
@@ -37,8 +37,9 @@ jest.mock("@react-navigation/native", () => {
   };
 });
 
-jest.mock("expo-sharing", () => ({
-  shareAsync: jest.fn()
+jest.mock("@/features/share/services/cardExport", () => ({
+  shareCardToInstagramStories: jest.fn(),
+  saveCardToGallery: jest.fn()
 }));
 
 jest.mock("expo-image-manipulator", () => ({
@@ -85,7 +86,7 @@ jest.mock("expo-image", () => {
   };
 });
 
-const mockShareAsync = Sharing.shareAsync as jest.Mock;
+const mockShareStories = CardExport.shareCardToInstagramStories as jest.Mock;
 
 function renderScreen() {
   return render(
@@ -107,7 +108,7 @@ describe("ShareCardScreen", () => {
       mediaType: "photo",
       songTitle: "Believer"
     };
-    mockShareAsync.mockResolvedValue(undefined);
+    mockShareStories.mockResolvedValue("shared");
     videoMock.mockGenerateVideoThumbnails.mockResolvedValue([
       { width: 640, height: 480, requestedTime: 0 }
     ]);
@@ -127,10 +128,11 @@ describe("ShareCardScreen", () => {
     expect(screen.getByText("Imagine Dragons")).toBeTruthy();
   });
 
-  it("renders the share button", () => {
+  it("renders the export buttons", () => {
     renderScreen();
 
-    expect(screen.getByRole("button", { name: "Compartilhar" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Instagram Stories" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Baixar imagem" })).toBeTruthy();
   });
 
   it("calls goBack when back button is pressed", () => {
@@ -178,29 +180,26 @@ describe("ShareCardScreen", () => {
     expect(radios[0].props.accessibilityState.checked).toBe(true);
   });
 
-  it("calls Sharing.shareAsync after pressing share", async () => {
+  it("sends the captured card to Instagram Stories", async () => {
     renderScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+      fireEvent.press(screen.getByRole("button", { name: "Instagram Stories" }));
     });
 
     await waitFor(() => {
-      expect(mockShareAsync).toHaveBeenCalledWith(
-        "file://captured.png",
-        expect.objectContaining({ mimeType: "image/png" })
-      );
+      expect(mockShareStories).toHaveBeenCalledWith("file://captured.png");
     });
   });
 
   it("shows an alert when sharing fails", async () => {
-    mockShareAsync.mockRejectedValue(new Error("share failed"));
+    mockShareStories.mockRejectedValue(new Error("share failed"));
     const alertSpy = jest.spyOn(Alert, "alert");
 
     renderScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+      fireEvent.press(screen.getByRole("button", { name: "Instagram Stories" }));
     });
 
     await waitFor(() => {
@@ -216,7 +215,7 @@ describe("ShareCardScreen", () => {
 
     renderScreen();
 
-    const shareButton = screen.getByRole("button", { name: "Compartilhar" });
+    const shareButton = screen.getByRole("button", { name: "Instagram Stories" });
     expect(shareButton).not.toBeDisabled();
 
     fireEvent.press(shareButton);
@@ -232,15 +231,12 @@ describe("ShareCardScreen", () => {
     renderScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+      fireEvent.press(screen.getByRole("button", { name: "Instagram Stories" }));
     });
 
     await waitFor(
       () => {
-        expect(mockShareAsync).toHaveBeenCalledWith(
-          "file://captured.png",
-          expect.objectContaining({ mimeType: "image/png" })
-        );
+        expect(mockShareStories).toHaveBeenCalledWith("file://captured.png");
       },
       { timeout: 3000 }
     );

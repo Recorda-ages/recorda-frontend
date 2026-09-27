@@ -37,6 +37,7 @@ export type RecordaDetailResponse = {
   created_at: string;
   deezer_track_id: string;
   description: string | null;
+  is_liked: boolean;
   likes_count: number;
   media_type: MediaType;
   media_url: string;
@@ -47,7 +48,27 @@ export type RecordaDetailResponse = {
   song_title: string;
 };
 
-export type FeedComment = { id: string; text: string; username: string };
+export type RecordaLikeState = {
+  is_liked: boolean;
+  likes_count: number;
+};
+
+export type RecordaCommentResponse = {
+  comment_id: string;
+  user_id: string;
+  username: string;
+  avatar_url: string | null;
+  content: string;
+  created_at: string;
+};
+
+export type FeedComment = {
+  id: string;
+  text: string;
+  username: string;
+  avatarUrl?: string | null;
+  createdAt?: string;
+};
 
 export type FeedPost = {
   author: { id: string; avatarUrl: string; username: string };

@@ -197,8 +197,10 @@ describe("useNotifications", () => {
       await mutation;
     });
 
-    expect(invalidate).toHaveBeenCalledTimes(1);
+    expect(invalidate).toHaveBeenCalledTimes(3);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: NOTIFICATIONS_QUERY_KEY });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["users"] });
   });
 
   it("does not restore or invalidate mark-all data after the authenticated session changes", async () => {

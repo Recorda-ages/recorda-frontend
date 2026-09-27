@@ -15,10 +15,11 @@ import type { FeedItem } from "../types";
 type RecordaCardProps = Readonly<{
   item: FeedItem;
   onPress: () => void;
+  onToggleLike: (liked: boolean) => Promise<void>;
   onShare?: () => void;
 }>;
 
-export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
+export function RecordaCard({ item, onPress, onToggleLike, onShare }: RecordaCardProps) {
   const { t, i18n } = useTranslation();
   const [prevItem, setPrevItem] = useState(item);
   const [likesCount, setLikesCount] = useState(item.likes_count);
@@ -58,7 +59,15 @@ export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
             {` • ${item.song_artist_name}`}
           </AppText>
         </View>
-        <Pressable accessibilityLabel={t("feed.more")} accessibilityRole="button" hitSlop={8}>
+        <Pressable
+          accessibilityLabel={t("feed.more")}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={(event) => {
+            event?.stopPropagation?.();
+            onPress();
+          }}
+        >
           <Icon color={colors.neutrals[100]} size={24} source="dots-horizontal" />
         </Pressable>
       </View>
@@ -85,17 +94,28 @@ export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
               setLikesCount(count);
               setIsLiked(liked);
             }}
+            onToggle={onToggleLike}
             showCount={false}
             testID={`like-button-${item.recorda_id}`}
           />
-          <View accessibilityLabel={t("feed.comment")}>
+          <Pressable
+            accessibilityLabel={t("feed.comment")}
+            accessibilityRole="button"
+            onPress={(event) => {
+              event?.stopPropagation?.();
+              onPress();
+            }}
+          >
             <Icon color={colors.primary[500]} size={26} source="message-text-outline" />
-          </View>
+          </Pressable>
           <Pressable
             accessibilityLabel={t("feed.share")}
             accessibilityRole="button"
             hitSlop={8}
-            onPress={onShare}
+            onPress={(event) => {
+              event?.stopPropagation?.();
+              onShare?.();
+            }}
           >
             <Icon color={colors.primary[500]} size={24} source="share-variant-outline" />
           </Pressable>

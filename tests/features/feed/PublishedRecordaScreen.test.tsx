@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -78,6 +78,8 @@ function renderScreen(item?: FeedItem) {
 
 describe("PublishedRecordaScreen", () => {
   let getRecordaById: jest.SpyInstance;
+  let getComments: jest.SpyInstance;
+  let createComment: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -86,6 +88,8 @@ describe("PublishedRecordaScreen", () => {
     getRecordaById = jest
       .spyOn(feedService, "getRecordaById")
       .mockRejectedValue(new Error("not found"));
+    getComments = jest.spyOn(feedService, "getComments").mockResolvedValue([]);
+    createComment = jest.spyOn(feedService, "createComment");
   });
 
   afterEach(() => {
@@ -109,7 +113,7 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps likes and comments in shared state", () => {
+  it("keeps likes and comments in shared state", async () => {
     renderScreen();
     const details = within(screen.getByTestId("recorda-detail-screen"));
     fireEvent.press(details.getByRole("button", { name: "Curtir" }));
@@ -125,7 +129,7 @@ describe("PublishedRecordaScreen", () => {
     expect(details.getByRole("button", { name: "Enviar comentário" })).toBeDisabled();
     fireEvent.changeText(input, "  Que lembrança boa!  ");
     fireEvent.press(details.getByRole("button", { name: "Enviar comentário" }));
-    expect(details.getByText(/Que lembrança boa!/)).toBeTruthy();
+    await waitFor(() => expect(details.getByText(/Que lembrança boa!/)).toBeTruthy());
     expect(screen.getByTestId("shared-comments").props.children).toContain("Que lembrança boa!");
     expect(input.props.value).toBe("");
   });
@@ -147,6 +151,47 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it("deletes an owned API Recorda on the server before removing it locally", async () => {
+    const recordaId = "11111111-1111-4111-8111-111111111111";
+    const item: FeedItem = {
+      author: { user_id: "demo-lucas", username: "lucas_almeida", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Minha Recorda",
+      is_liked: false,
+      likes_count: 0,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/photo.jpg",
+      recorda_id: recordaId,
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    let finishDelete!: () => void;
+    const deleteRecorda = jest.spyOn(feedService, "deleteRecorda").mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishDelete = resolve;
+        })
+    );
+    mockRoute.params.postId = recordaId;
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+    fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+    fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
+    fireEvent.press(screen.getByRole("button", { name: "Confirmar exclusão" }));
+
+    await waitFor(() => expect(deleteRecorda).toHaveBeenCalledWith(recordaId));
+    expect(screen.getByTestId("remaining-posts").props.children).toContain(recordaId);
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    await act(async () => finishDelete());
+    await waitFor(() =>
+      expect(screen.getByTestId("remaining-posts").props.children).not.toContain(recordaId)
+    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it("only offers Report for another author and passes the post id", () => {
     mockRoute.params.postId = "post-2";
     renderScreen();
@@ -160,17 +205,68 @@ describe("PublishedRecordaScreen", () => {
   it("opens the sharing destination with the selected Recorda", () => {
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
-    expect(mockNavigate).toHaveBeenCalledWith("RecordaShare", { postId: "post-1" });
+    expect(mockNavigate).toHaveBeenCalledWith("ShareCard", {
+      artistName: "The American Dawn",
+      coverUrl: null,
+      mediaUri: expect.any(String),
+      mediaType: "photo",
+      songTitle: "The Edge"
+    });
   });
 
-  it("handles a Recorda with no comments", () => {
+  it("handles a Recorda with no comments", async () => {
     mockRoute.params.postId = "post-4";
     renderScreen();
     expect(screen.getByText(/Nenhum comentário ainda/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("Adicione um comentário..."), "Primeiro!");
     fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
-    expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull();
+    await waitFor(() => expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull());
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
+  });
+
+  it("loads and publishes API comments with avatar, username and date", async () => {
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Show ao vivo",
+      is_liked: false,
+      likes_count: 1,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/live.jpg",
+      recorda_id: "11111111-1111-4111-8111-111111111111",
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    const existing = {
+      comment_id: "comment-1",
+      user_id: "user-3",
+      username: "ana",
+      avatar_url: "/avatars/ana.jpg",
+      content: "Eu estava lá!",
+      created_at: "2026-09-27T12:00:00Z"
+    };
+    const created = { ...existing, comment_id: "comment-2", content: "Que saudade!" };
+    getComments.mockResolvedValue([existing]);
+    createComment.mockResolvedValue(created);
+    mockRoute.params.postId = item.recorda_id;
+
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+
+    await waitFor(() => expect(screen.getByText(/Eu estava lá!/)).toBeTruthy());
+    expect(getComments).toHaveBeenCalledWith(item.recorda_id, expect.any(AbortSignal));
+    expect(screen.getByText(/27 de set/)).toBeTruthy();
+
+    const input = screen.getByLabelText("Adicione um comentário...");
+    expect(input.props.maxLength).toBe(500);
+    fireEvent.changeText(input, " Que saudade! ");
+    fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+
+    await waitFor(() => expect(screen.getByText(/Que saudade!/)).toBeTruthy());
+    expect(createComment).toHaveBeenCalledWith(item.recorda_id, "Que saudade!");
+    expect(input.props.value).toBe("");
   });
 
   it("opens an API video with its existing like count", () => {
@@ -199,7 +295,35 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByText("11 curtidas")).toBeTruthy();
 
     fireEvent.press(screen.getByText("Open API item"));
-    expect(screen.getByText("11 curtidas")).toBeTruthy();
+    expect(screen.getByText("12 curtidas")).toBeTruthy();
+  });
+
+  it("persists API likes from the detail screen and updates its count", async () => {
+    const recordaId = "11111111-1111-4111-8111-111111111111";
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "A memory",
+      is_liked: false,
+      likes_count: 8,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/photo.jpg",
+      recorda_id: recordaId,
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    const setRecordaLike = jest
+      .spyOn(feedService, "setRecordaLike")
+      .mockResolvedValue({ is_liked: true, likes_count: 9 });
+    mockRoute.params.postId = recordaId;
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+    fireEvent.press(screen.getByRole("button", { name: "Curtir" }));
+
+    await waitFor(() => expect(setRecordaLike).toHaveBeenCalledWith(recordaId, true));
+    expect(screen.getByText("9 curtidas")).toBeTruthy();
   });
 
   it("loads a Recorda by id when there is no feed snapshot", async () => {
@@ -208,6 +332,7 @@ describe("PublishedRecordaScreen", () => {
       created_at: "2026-05-10T12:00:00Z",
       deezer_track_id: "track-1",
       description: "Recorda aberta pela notificação",
+      is_liked: false,
       likes_count: 7,
       media_type: "PHOTO",
       media_url: "/api/v1/recordas/media/notification.jpg",

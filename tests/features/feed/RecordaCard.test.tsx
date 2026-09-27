@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { RecordaCard } from "@/features/feed/components/RecordaCard";
@@ -27,7 +27,12 @@ const BASE_ITEM: FeedItem = {
   song_title: "The Edge"
 };
 
-function renderCard(item: FeedItem, onPress = jest.fn(), onShare?: () => void) {
+function renderCard(
+  item: FeedItem,
+  onPress = jest.fn(),
+  onShare?: () => void,
+  onToggleLike = jest.fn()
+) {
   render(
     <I18nextProvider i18n={i18n}>
       <FeedAudioProvider>
@@ -113,7 +118,7 @@ describe("RecordaCard", () => {
   it("exposes the card, menu and like controls as interactive buttons", () => {
     renderCard(BASE_ITEM);
 
-    expect(screen.getAllByRole("button")).toHaveLength(4);
+    expect(screen.getAllByRole("button")).toHaveLength(5);
   });
 
   it("calls onPress with the whole card when tapped", () => {
@@ -133,14 +138,28 @@ describe("RecordaCard", () => {
     expect(onShare).toHaveBeenCalledTimes(1);
   });
 
+  it("opens the detail from the comment and more controls", () => {
+    const { onPress } = renderCard(BASE_ITEM);
+    fireEvent.press(screen.getByLabelText("Comentar"));
+    fireEvent.press(screen.getByLabelText("Mais opções"));
+    expect(onPress).toHaveBeenCalledTimes(2);
+  });
+
   it("renders an empty date when created_at is not a valid ISO string", () => {
     renderCard({ ...BASE_ITEM, created_at: "not-a-date" });
 
     expect(screen.queryByText(/janeiro|fevereiro|março/i)).toBeNull();
   });
 
-  it("toggles like and updates the likes count immediately", () => {
-    renderCard({ ...BASE_ITEM, is_liked: false, likes_count: 12 });
+  it("toggles like immediately, calls the server handler and does not open the card", async () => {
+    const onPress = jest.fn();
+    const onToggleLike = jest.fn().mockResolvedValue(undefined);
+    renderCard(
+      { ...BASE_ITEM, is_liked: false, likes_count: 12 },
+      onPress,
+      undefined,
+      onToggleLike
+    );
 
     expect(screen.getByText("12 curtidas")).toBeTruthy();
     const likeButton = screen.getByTestId("like-button-recorda-1");
@@ -148,5 +167,26 @@ describe("RecordaCard", () => {
 
     expect(screen.getByText("13 curtidas")).toBeTruthy();
     expect(likeButton).toBeSelected();
+    await waitFor(() => expect(onToggleLike).toHaveBeenCalledWith(true));
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("reverts the optimistic like when the server request fails", async () => {
+    const onToggleLike = jest.fn().mockRejectedValue(new Error("offline"));
+    renderCard(
+      { ...BASE_ITEM, is_liked: false, likes_count: 12 },
+      jest.fn(),
+      undefined,
+      onToggleLike
+    );
+
+    const likeButton = screen.getByTestId("like-button-recorda-1");
+    fireEvent.press(likeButton);
+    expect(screen.getByText("13 curtidas")).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText("12 curtidas")).toBeTruthy();
+      expect(likeButton).not.toBeSelected();
+    });
   });
 });
