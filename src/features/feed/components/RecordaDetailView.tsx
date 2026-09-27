@@ -24,11 +24,16 @@ import { BottomTabBar, type BottomTab } from "./BottomTabBar";
 
 type Props = {
   post: FeedPost;
+  commentsLoading?: boolean;
+  commentsError?: boolean;
+  commentSubmitError?: boolean;
+  commentSubmitting?: boolean;
+  onRetryComments?: () => void;
   liked: boolean;
   isOwnPost: boolean;
   onBack: () => void;
   onLike: () => void;
-  onComment: (text: string) => void;
+  onComment: (text: string) => Promise<void>;
   onDelete: () => void;
   onReport: () => void;
   onShare: () => void;
@@ -77,6 +82,11 @@ function RecordaVideo({ uri, label }: Readonly<{ uri: string; label: string }>) 
 
 export function RecordaDetailView({
   post,
+  commentsLoading = false,
+  commentsError = false,
+  commentSubmitError = false,
+  commentSubmitting = false,
+  onRetryComments,
   liked,
   isOwnPost,
   onBack,
@@ -87,17 +97,21 @@ export function RecordaDetailView({
   onShare,
   onTabPress
 }: Readonly<Props>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [menu, setMenu] = useState<"options" | "delete" | null>(null);
   const [comment, setComment] = useState("");
   const input = useRef<TextInput>(null);
   const list = useRef<FlatList>(null);
 
-  const submitComment = () => {
+  const submitComment = async () => {
     const text = comment.trim();
-    if (!text) return;
-    onComment(text);
-    setComment("");
+    if (!text || text.length > 500 || commentSubmitting) return;
+    try {
+      await onComment(text);
+      setComment("");
+    } catch {
+      // The error stays visible beside the composer so the draft can be retried.
+    }
   };
 
   return (
@@ -191,14 +205,45 @@ export function RecordaDetailView({
             </View>
           }
           ListEmptyComponent={
-            <AppText style={styles.muted}>{t("publishedRecorda.noComments")}</AppText>
+            commentsLoading ? (
+              <AppText style={styles.muted}>{t("publishedRecorda.loadingComments")}</AppText>
+            ) : commentsError ? (
+              <Pressable accessibilityRole="button" onPress={onRetryComments}>
+                <AppText style={styles.muted}>{t("publishedRecorda.commentsLoadError")}</AppText>
+              </Pressable>
+            ) : (
+              <AppText style={styles.muted}>{t("publishedRecorda.noComments")}</AppText>
+            )
           }
           renderItem={({ item }) => (
-            <AppText style={styles.comment}>
-              <AppText style={styles.bold}>{item.username}</AppText> {item.text}
-            </AppText>
+            <View style={styles.commentRow}>
+              {item.avatarUrl ? (
+                <Image source={item.avatarUrl} style={styles.commentAvatar} />
+              ) : (
+                <View style={[styles.commentAvatar, styles.avatarFallback]}>
+                  <Icon source="account" size={20} color={colors.neutrals[400]} />
+                </View>
+              )}
+              <View style={styles.commentBody}>
+                <AppText style={styles.comment}>
+                  <AppText style={styles.bold}>{item.username}</AppText> {item.text}
+                </AppText>
+                {item.createdAt ? (
+                  <AppText style={styles.commentDate}>
+                    {new Date(item.createdAt).toLocaleDateString(i18n.language, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    })}
+                  </AppText>
+                ) : null}
+              </View>
+            </View>
           )}
         />
+        {commentSubmitError ? (
+          <AppText style={styles.submitError}>{t("publishedRecorda.commentSubmitError")}</AppText>
+        ) : null}
         <View style={styles.composer}>
           <TextInput
             ref={input}
@@ -209,15 +254,15 @@ export function RecordaDetailView({
             value={comment}
             onChangeText={setComment}
             onFocus={() => list.current?.scrollToEnd({ animated: true })}
-            maxLength={2000}
+            maxLength={500}
             multiline
           />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("publishedRecorda.send")}
-            accessibilityState={{ disabled: !comment.trim() }}
-            disabled={!comment.trim()}
-            onPress={submitComment}
+            accessibilityState={{ disabled: !comment.trim() || commentSubmitting }}
+            disabled={!comment.trim() || commentSubmitting}
+            onPress={() => void submitComment()}
             style={styles.iconButton}
           >
             <Icon
@@ -326,6 +371,16 @@ const styles = StyleSheet.create({
   date: { color: colors.neutrals[300], fontSize: 12, flexShrink: 1 },
   muted: { color: colors.neutrals[300] },
   comment: { color: colors.neutrals[100], paddingVertical: spacing[1] },
+  commentRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing[2] },
+  commentAvatar: { width: 32, height: 32, borderRadius: 16 },
+  avatarFallback: {
+    backgroundColor: colors.neutrals[800],
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  commentBody: { flex: 1 },
+  commentDate: { color: colors.neutrals[300], fontSize: 12 },
+  submitError: { color: colors.error[200], paddingHorizontal: spacing[3] },
   composer: {
     flexDirection: "row",
     alignItems: "center",

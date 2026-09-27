@@ -141,7 +141,9 @@ export function FeedProvider({ children }: PropsWithChildren) {
       text,
       username:
         queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY)?.username ??
-        demoFeedUser.username
+        demoFeedUser.username,
+      avatarUrl: null,
+      createdAt: new Date().toISOString()
     };
     setPosts((current) =>
       current.map((post) =>

@@ -1,22 +1,39 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { queryClient } from "@/app/providers/queryClient";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import type { UserBasicResponse } from "@/features/auth/api/types";
 import { colors, spacing } from "@/theme";
+import { resolveApiAssetUrl } from "@/services/api";
 
 import { RecordaDetailView } from "../components/RecordaDetailView";
 import { useRecordaDetails } from "../hooks/useRecordaDetails";
+import { recordaCommentsQueryKey } from "../queryKeys";
+import { feedService } from "../services/feedService";
 import { feedItemToFeedPost, recordaDetailToFeedItem, useFeed } from "../state/FeedContext";
+import type { FeedComment, RecordaCommentResponse } from "../types";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function toFeedComment(comment: RecordaCommentResponse): FeedComment {
+  return {
+    id: comment.comment_id,
+    text: comment.content,
+    username: comment.username,
+    avatarUrl: comment.avatar_url ? resolveApiAssetUrl(comment.avatar_url) : null,
+    createdAt: comment.created_at
+  };
+}
 
 export function PublishedRecordaScreen() {
+  const queryClient = useQueryClient();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { params } = useRoute<RouteProp<RootStackParamList, "PublishedRecorda">>();
   const {
@@ -32,10 +49,27 @@ export function PublishedRecordaScreen() {
   const { t } = useTranslation();
   const snapshot = posts.find((item) => item.id === params.postId);
   const isLocallyDeleted = deletedIds.includes(params.postId);
+  const isApiRecorda = UUID_PATTERN.test(params.postId);
   const recorda = useRecordaDetails(params.postId, !snapshot && !isLocallyDeleted);
+  const comments = useQuery({
+    enabled: isApiRecorda && !isLocallyDeleted,
+    queryKey: recordaCommentsQueryKey(params.postId),
+    queryFn: ({ signal }) => feedService.getComments(params.postId, signal)
+  });
+  const createComment = useMutation({
+    mutationFn: (content: string) => feedService.createComment(params.postId, content),
+    onSuccess: (created) => {
+      queryClient.setQueryData<RecordaCommentResponse[]>(
+        recordaCommentsQueryKey(params.postId),
+        (current = []) => [...current, created]
+      );
+    }
+  });
   const remoteItem = recorda.data ? recordaDetailToFeedItem(recorda.data) : undefined;
   const remotePost = remoteItem ? feedItemToFeedPost(remoteItem) : undefined;
   const post = isLocallyDeleted ? undefined : (snapshot ?? remotePost);
+  const visiblePost =
+    post && isApiRecorda ? { ...post, comments: (comments.data ?? []).map(toFeedComment) } : post;
   const authenticatedUser = queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY);
   const isOwnPost = post?.author.id === (authenticatedUser?.user_id ?? currentUser.id);
 
@@ -82,12 +116,23 @@ export function PublishedRecordaScreen() {
   // player when that feature is integrated, with no seek/play on screen mount.
   return (
     <RecordaDetailView
-      post={post}
+      post={visiblePost ?? post}
+      commentsLoading={isApiRecorda && comments.isPending}
+      commentsError={isApiRecorda && comments.isError}
+      commentSubmitError={createComment.isError}
+      commentSubmitting={createComment.isPending}
+      onRetryComments={() => void comments.refetch()}
       liked={likedIds.includes(post.id)}
       isOwnPost={isOwnPost}
       onBack={() => navigation.goBack()}
       onLike={() => toggleLike(post.id)}
-      onComment={(text) => addComment(post.id, text)}
+      onComment={async (text) => {
+        if (isApiRecorda) {
+          await createComment.mutateAsync(text);
+        } else {
+          addComment(post.id, text);
+        }
+      }}
       onDelete={() => {
         if (!isOwnPost) return;
         deletePost(post.id);
