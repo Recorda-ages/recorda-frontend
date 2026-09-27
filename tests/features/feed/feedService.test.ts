@@ -1,5 +1,5 @@
 import { feedService } from "@/features/feed/services/feedService";
-import type { FeedPage } from "@/features/feed/types";
+import type { FeedPage, RecordaDetailResponse } from "@/features/feed/types";
 import { authApiClient } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
@@ -14,6 +14,21 @@ const FEED_PAGE: FeedPage = {
 };
 
 beforeEach(() => mockGet.mockReset());
+
+describe("feedService.getRecordaById", () => {
+  it("loads the authenticated Recorda detail and encodes its id", async () => {
+    const detail = { recorda_id: "recorda/id" } as RecordaDetailResponse;
+    const controller = new AbortController();
+    mockGet.mockResolvedValueOnce(detail);
+
+    const result = await feedService.getRecordaById("recorda/id", controller.signal);
+
+    expect(mockGet).toHaveBeenCalledWith("/recordas/recorda%2Fid", {
+      signal: controller.signal
+    });
+    expect(result).toBe(detail);
+  });
+});
 
 describe.each([
   ["following", feedService.getFollowingFeed],

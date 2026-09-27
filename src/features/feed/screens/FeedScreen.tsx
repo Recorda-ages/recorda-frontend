@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
 import { resolveApiAssetUrl } from "@/services/api";
+import { useNotifications } from "@/features/notifications";
 import { colors, spacing } from "@/theme";
 
 import { BottomTabBar, type BottomTab } from "../components/BottomTabBar";
@@ -34,6 +35,7 @@ export function FeedScreen() {
     activeQuery.data?.pages
       .flatMap((page) => page.items)
       .filter((item) => !deletedIds.includes(item.recorda_id)) ?? [];
+  const unreadCount = useNotifications().data?.pages[0]?.unread_count ?? 0;
 
   const handleTabBarPress = (tab: BottomTab) => {
     if (tab === "camera") {
@@ -94,7 +96,10 @@ export function FeedScreen() {
     <View style={styles.screen} testID="feed-screen">
       <StatusBar style="light" />
       <SafeAreaView edges={["top"]} style={styles.content}>
-        <FeedHeader />
+        <FeedHeader
+          onNotificationsPress={() => navigation.navigate("Notifications")}
+          unreadCount={unreadCount}
+        />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
         {activeQuery.isPending ? <Loading label={t("feed.loading")} /> : null}
         {activeQuery.isError && items.length === 0 ? (

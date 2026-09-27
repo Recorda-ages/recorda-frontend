@@ -1,4 +1,6 @@
 import { queryClient } from "@/app/providers/queryClient";
+import { RECORDA_DETAILS_QUERY_KEY } from "@/features/feed/queryKeys";
+import { NOTIFICATIONS_QUERY_KEY } from "@/features/notifications/queryKeys";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { secureStorage } from "@/services/storage";
 
@@ -18,12 +20,14 @@ export async function saveSession(response: AuthSessionResponse) {
 }
 
 export async function clearSession() {
-  queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
   await Promise.allSettled([
     secureStorage.removeItem(AUTH_TOKEN_KEY),
     secureStorage.removeItem(ROLE_KEY),
     secureStorage.removeItem(LEGACY_ACCOUNT_TYPE_KEY)
   ]);
+  queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
+  queryClient.removeQueries({ queryKey: RECORDA_DETAILS_QUERY_KEY });
+  queryClient.removeQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
 }
 
 export function getPostAuthDestination(user: UserBasicResponse): PostAuthDestination {
