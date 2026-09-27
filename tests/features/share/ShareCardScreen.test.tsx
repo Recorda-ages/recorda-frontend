@@ -169,17 +169,18 @@ describe("ShareCardScreen", () => {
 
   it("shows a loading indicator while sharing is in progress", async () => {
     const { ActivityIndicator } = jest.requireActual("react-native");
-    mockShareAsync.mockImplementation(() => new Promise<void>(() => {}));
 
-    const { UNSAFE_getByType } = renderScreen();
+    jest.useFakeTimers();
+    try {
+      const { UNSAFE_getByType } = renderScreen();
 
-    fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+      act(() => {
+        fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+      });
 
-    await waitFor(
-      () => {
-        expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
-      },
-      { timeout: 2000 }
-    );
+      expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
