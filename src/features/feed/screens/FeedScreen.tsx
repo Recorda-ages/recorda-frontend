@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, StyleSheet, View, type ViewToken } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,8 +20,8 @@ import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
 import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
-import { useFeed } from "../state/FeedContext";
 import { useFeedAudio } from "../state/FeedAudioContext";
+import { useFeed } from "../state/FeedContext";
 import type { FeedItem, FeedTab } from "../types";
 
 // 70% visível é o limiar que evita trocar a música a cada pixel do scroll:
@@ -64,49 +64,48 @@ export function FeedScreen() {
     navigation.navigate("PublishedRecorda", { postId: item.recorda_id });
   };
 
-  const handleEndReached = () => {
-    if (
-      activeQuery.hasNextPage &&
-      !activeQuery.isFetchingNextPage &&
-      !activeQuery.isFetchNextPageError
-    ) {
-      void activeQuery.fetchNextPage();
-    }
-  };
+  // Os dois painéis ficam montados (o inativo só tem opacity 0), então ambas as
+  // listas disparam viewability. Cada handler só entrega o áudio se a aba dele
+  // for a ativa. A identidade precisa ser estável: o React Native recusa trocar
+  // `onViewableItemsChanged` depois da montagem.
+  const activeTabRef = useRef(activeTab);
 
-  const handleViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      const focused = viewableItems[0]?.item as FeedItem | undefined;
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
 
-      if (!focused) {
+  const takeFocus = useCallback(
+    (tab: FeedTab, viewableItems: ViewToken[]) => {
+      if (activeTabRef.current !== tab) {
         return;
       }
 
-      setActivePreview(focused.recorda_id, focused.song_preview_url);
+      const focused = viewableItems[0]?.item as FeedItem | undefined;
+
+      if (focused) {
+        setActivePreview(focused.recorda_id, focused.song_preview_url);
+      }
     },
     [setActivePreview]
   );
 
-  const renderFooter = () => {
-    if (activeQuery.isFetchingNextPage) {
-      return <Loading label={t("feed.loadingMore")} />;
-    }
+  const handleGeralViewable = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("geral", viewableItems),
+    [takeFocus]
+  );
 
-    if (activeQuery.isFetchNextPageError) {
-      return (
-        <View style={styles.paginationError}>
-          <ErrorState message={t("feed.loadMoreError")} />
-          <Button
-            label={t("feed.retry")}
-            onPress={() => void activeQuery.fetchNextPage()}
-            variant="secondary"
-          />
-        </View>
-      );
-    }
+  const handleFollowingViewable = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("following", viewableItems),
+    [takeFocus]
+  );
 
-    return null;
-  };
+  const renderFeed = (tab: FeedTab, query: typeof generalFeedQuery) => {
+    const isActive = activeTab === tab;
+    const variant = tab === "geral" ? "general" : "following";
+    const items =
+      query.data?.pages
+        .flatMap((page) => page.items)
+        .filter((item) => !deletedIds.includes(item.recorda_id)) ?? [];
 
     const footer = query.isFetchingNextPage ? (
       <Loading label={t("feed.loadingMore")} />
@@ -159,7 +158,8 @@ export function FeedScreen() {
               }
             }}
             onEndReachedThreshold={0.4}
-            onViewableItemsChanged={handleViewableItemsChanged}
+            onRefresh={() => void query.refetch()}
+            refreshing={query.isRefetching}
             renderItem={({ item }) => (
               <RecordaCard
                 item={item}
@@ -173,8 +173,9 @@ export function FeedScreen() {
                 onShare={() => handleCardShare(item)}
               />
             )}
+            onViewableItemsChanged={tab === "geral" ? handleGeralViewable : handleFollowingViewable}
             showsVerticalScrollIndicator={false}
-            testID={`${feedVariant}-feed-list`}
+            testID={`${variant}-feed-list`}
             viewabilityConfig={VIEWABILITY_CONFIG}
           />
         ) : null}

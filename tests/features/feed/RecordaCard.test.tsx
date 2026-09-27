@@ -36,7 +36,7 @@ function renderCard(
   render(
     <I18nextProvider i18n={i18n}>
       <FeedAudioProvider>
-        <RecordaCard item={item} onPress={onPress} onShare={onShare} />
+        <RecordaCard item={item} onPress={onPress} onShare={onShare} onToggleLike={onToggleLike} />
       </FeedAudioProvider>
     </I18nextProvider>
   );

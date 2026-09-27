@@ -159,11 +159,13 @@ function renderScreen() {
 
   return render(
     <I18nextProvider i18n={i18n}>
-      <FeedProvider>
-        <FeedAudioProvider>
-          <FeedScreen />
-        </FeedAudioProvider>
-      </FeedProvider>
+      <QueryClientProvider client={queryClient}>
+        <FeedProvider>
+          <FeedAudioProvider>
+            <FeedScreen />
+          </FeedAudioProvider>
+        </FeedProvider>
+      </QueryClientProvider>
     </I18nextProvider>
   );
 }
@@ -558,60 +560,70 @@ describe("FeedScreen", () => {
       buildItem({ recorda_id: "recorda-2", song_preview_url: "https://cdn.example.com/b.mp3" })
     ];
 
-    function renderWithItems() {
-      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
-      renderScreen();
-      return screen.getByTestId("general-feed-list");
+    function viewable(item: FeedItem, index: number) {
+      return {
+        changed: [],
+        viewableItems: [{ index, isViewable: true, item, key: item.recorda_id }]
+      };
     }
 
     it("plays the preview of the card that comes into view", () => {
-      const list = renderWithItems();
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      renderScreen();
 
-      fireEvent(list, "viewableItemsChanged", {
-        changed: [],
-        viewableItems: [{ index: 0, isViewable: true, item: withPreview[0], key: "recorda-1" }]
-      });
+      fireEvent(
+        screen.getByTestId("general-feed-list"),
+        "viewableItemsChanged",
+        viewable(withPreview[0], 0)
+      );
 
       expect(mockAudioPlayer.replace).toHaveBeenCalledWith("https://cdn.example.com/a.mp3");
       expect(mockAudioPlayer.play).toHaveBeenCalled();
     });
 
     it("hands the audio over when the next card takes focus", () => {
-      const list = renderWithItems();
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      renderScreen();
+      const list = screen.getByTestId("general-feed-list");
 
-      fireEvent(list, "viewableItemsChanged", {
-        changed: [],
-        viewableItems: [{ index: 0, isViewable: true, item: withPreview[0], key: "recorda-1" }]
-      });
-      fireEvent(list, "viewableItemsChanged", {
-        changed: [],
-        viewableItems: [{ index: 1, isViewable: true, item: withPreview[1], key: "recorda-2" }]
-      });
+      fireEvent(list, "viewableItemsChanged", viewable(withPreview[0], 0));
+      fireEvent(list, "viewableItemsChanged", viewable(withPreview[1], 1));
 
       expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
     });
 
     it("stays silent when the focused card has no preview", () => {
-      mockGeneral(
-        successResult(
-          { items: [buildItem({ recorda_id: "recorda-9" })], next_cursor: null },
-          false,
-          generalHandlers
-        )
-      );
+      const silent = buildItem({ recorda_id: "recorda-9" });
+      mockGeneral(successResult({ items: [silent], next_cursor: null }, false, generalHandlers));
       renderScreen();
 
-      fireEvent(screen.getByTestId("general-feed-list"), "viewableItemsChanged", {
-        changed: [],
-        viewableItems: [
-          {
-            index: 0,
-            isViewable: true,
-            item: buildItem({ recorda_id: "recorda-9" }),
-            key: "recorda-9"
-          }
-        ]
-      });
+      fireEvent(
+        screen.getByTestId("general-feed-list"),
+        "viewableItemsChanged",
+        viewable(silent, 0)
+      );
+
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+    });
+
+    // O painel inativo segue montado (opacity 0), então sua lista também dispara
+    // viewability: ela não pode roubar o áudio da aba que está na frente.
+    it("ignores the hidden tab list", () => {
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      mockFollowing(successResult({ items: withPreview, next_cursor: null }));
+      renderScreen();
+
+      // Monta o painel de Seguindo e volta para Para Você: os dois ficam
+      // montados, mas só o da frente pode assumir o áudio.
+      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+      mockAudioPlayer.replace.mockClear();
+
+      fireEvent(
+        screen.getByTestId("following-feed-list", { includeHiddenElements: true }),
+        "viewableItemsChanged",
+        viewable(withPreview[1], 1)
+      );
 
       expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
     });
