@@ -186,7 +186,8 @@
       "camera": "Criar Recorda",
       "feed": "Feed",
       "profile": "Perfil"
-    }
+    },
+    "notificationsUnread": "Notificações, {{count}} não lidas"
   },
   "recordaView": {
     "back": "Voltar",
@@ -196,6 +197,31 @@
       "confirm": "Excluir",
       "message": "Tem certeza que deseja excluir o comentário?\nEssa ação não pode ser revertida.",
       "title": "Excluir Comentário?"
+    }
+  },
+  "notifications": {
+    "title": "Notificações",
+    "back": "Voltar",
+    "loading": "Carregando notificações...",
+    "loadError": "Não foi possível carregar suas notificações.",
+    "retry": "Tentar novamente",
+    "empty": "Você ainda não tem notificações.",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "actionError": "Não foi possível responder à solicitação. Tente novamente.",
+    "types": {
+      "FOLLOW_REQUEST": "quer seguir você",
+      "FOLLOW_ACCEPTED": "aceitou seu pedido para seguir",
+      "NEW_FOLLOWER": "começou a seguir você",
+      "LIKE": "curtiu sua publicação",
+      "COMMENT": "comentou em sua publicação",
+      "MENTION": "marcou você em uma publicação"
+    },
+    "time": {
+      "now": "agora",
+      "minutes": "{{count}} min",
+      "hours": "{{count}} h",
+      "days": "{{count}} d"
     }
   },
   "userSearch": {
