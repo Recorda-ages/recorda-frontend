@@ -318,6 +318,7 @@ describe("RecordaDetailsScreen", () => {
       artistName: mockRecordaDraft.song!.artistName,
       coverUrl: null,
       mediaUri: mockRecordaDraft.media!.uri,
+      mediaType: mockRecordaDraft.media!.type,
       songTitle: mockRecordaDraft.song!.title
     });
   });

@@ -392,6 +392,7 @@ describe("FeedScreen", () => {
         artistName: "The American Dawn",
         coverUrl: "https://cdn.example.com/cover-1.jpg",
         mediaUri: expect.stringContaining("media-1.jpg"),
+        mediaType: "photo",
         songTitle: "Ocean"
       })
     );

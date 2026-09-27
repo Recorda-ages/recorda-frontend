@@ -129,6 +129,7 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
       artistName: currentDraft.song.artistName,
       coverUrl: currentDraft.song.coverUrl || null,
       mediaUri: currentDraft.media.uri,
+      mediaType: currentDraft.media.type,
       songTitle: currentDraft.song.title
     });
   }

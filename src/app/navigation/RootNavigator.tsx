@@ -54,7 +54,13 @@ export type RootStackParamList = {
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   RecordaView: { recordaId: string };
-  ShareCard: { mediaUri: string; songTitle: string; artistName: string; coverUrl: string | null };
+  ShareCard: {
+    mediaUri: string;
+    mediaType: "photo" | "video";
+    songTitle: string;
+    artistName: string;
+    coverUrl: string | null;
+  };
   SignUp: undefined;
   UserProfile: { userId: string };
   UserSearch: undefined;
@@ -121,7 +127,7 @@ function UserProfilePlaceholderScreen() {
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator initialRouteName="Feed" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={SignInScreen} />

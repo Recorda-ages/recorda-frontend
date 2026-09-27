@@ -1,12 +1,29 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import * as Sharing from "expo-sharing";
+import * as ExpoVideo from "expo-video";
 import { Alert, Image as RNImage } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 
+import type * as ExpoVideoMock from "../../mocks/expoVideo";
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const videoMock = ExpoVideo as unknown as typeof ExpoVideoMock;
+let mockRouteParams: {
+  artistName: string;
+  coverUrl: string;
+  mediaUri: string;
+  mediaType: "photo" | "video";
+  songTitle: string;
+} = {
+  artistName: "Imagine Dragons",
+  coverUrl: "https://example.com/cover.jpg",
+  mediaUri: "https://example.com/photo.jpg",
+  mediaType: "photo",
+  songTitle: "Believer"
+};
 
 jest.mock("@react-navigation/native", () => {
   const actual = jest.requireActual("@react-navigation/native");
@@ -15,12 +32,7 @@ jest.mock("@react-navigation/native", () => {
     ...actual,
     useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
     useRoute: () => ({
-      params: {
-        artistName: "Imagine Dragons",
-        coverUrl: "https://example.com/cover.jpg",
-        mediaUri: "https://example.com/photo.jpg",
-        songTitle: "Believer"
-      }
+      params: mockRouteParams
     })
   };
 });
@@ -88,7 +100,17 @@ let mockGetSize: jest.SpyInstance;
 describe("ShareCardScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {
+      artistName: "Imagine Dragons",
+      coverUrl: "https://example.com/cover.jpg",
+      mediaUri: "https://example.com/photo.jpg",
+      mediaType: "photo",
+      songTitle: "Believer"
+    };
     mockShareAsync.mockResolvedValue(undefined);
+    videoMock.mockGenerateVideoThumbnails.mockResolvedValue([
+      { width: 640, height: 480, requestedTime: 0 }
+    ]);
     (
       jest.requireMock("expo-image-manipulator") as { manipulateAsync: jest.Mock }
     ).manipulateAsync.mockResolvedValue({ uri: "file://cropped.png" });
@@ -123,6 +145,20 @@ describe("ShareCardScreen", () => {
     renderScreen();
 
     expect(screen.getAllByRole("radio")).toHaveLength(4);
+    expect(screen.getByTestId("share-card-presets").props.horizontal).toBe(true);
+  });
+
+  it("uses the video's first frame for the preview", async () => {
+    mockRouteParams.mediaType = "video";
+    mockRouteParams.mediaUri = "file://recorda-video.mp4";
+
+    renderScreen();
+
+    await waitFor(() => {
+      expect(videoMock.mockCreateVideoPlayer).toHaveBeenCalledWith("file://recorda-video.mp4");
+      expect(videoMock.mockGenerateVideoThumbnails).toHaveBeenCalledWith(0);
+      expect(videoMock.mockReleaseVideoPlayer).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("marks the teal preset as selected by default", () => {

@@ -52,6 +52,7 @@ export function FeedScreen() {
       artistName: item.song_artist_name,
       coverUrl: item.song_cover_url || null,
       mediaUri: resolveApiAssetUrl(item.media_url),
+      mediaType: item.media_type === "VIDEO" ? "video" : "photo",
       songTitle: item.song_title
     });
   };

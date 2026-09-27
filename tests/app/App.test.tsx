@@ -19,9 +19,9 @@ describe("App", () => {
     mockGetItem.mockResolvedValue(null);
   });
 
-  it("renders the feed screen as the initial route", () => {
+  it("renders the splash screen as the initial route", () => {
     render(<App />);
 
-    expect(screen.getByTestId("feed-screen")).toBeTruthy();
+    expect(screen.getByTestId("splash-screen-container")).toBeTruthy();
   });
 });

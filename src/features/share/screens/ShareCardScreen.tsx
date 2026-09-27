@@ -4,8 +4,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Sharing from "expo-sharing";
 import { Image } from "expo-image";
+import { createVideoPlayer, type VideoThumbnail } from "expo-video";
 import { StatusBar } from "expo-status-bar";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -13,11 +14,12 @@ import {
   Image as RNImage,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
   useWindowDimensions
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import ViewShot, { type ViewShotRef } from "react-native-view-shot";
 import { Icon } from "react-native-paper";
 
@@ -26,6 +28,7 @@ import { AppText } from "@/components/ui";
 import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 type PresetId = "light" | "mint" | "teal" | "dark";
+type MediaSource = string | VideoThumbnail;
 
 type Preset = {
   id: PresetId;
@@ -56,21 +59,132 @@ const EXPORT_SCALE = EXPORT_W / 375;
 // Photo dimensions in the export canvas, proportional to preview
 const EXPORT_PHOTO_W = Math.round(PHOTO_PREVIEW_W * EXPORT_SCALE * 1.2);
 const EXPORT_PHOTO_H = Math.round(PHOTO_PREVIEW_H * EXPORT_SCALE * 1.2);
+const CARD_PREVIEW_H = 480;
+const CARD_PREVIEW_W = 275;
+const PHOTO_PREVIEW_FIXED_H = 325;
+const PHOTO_PREVIEW_FIXED_W = 250;
+const NON_PREVIEW_CONTENT_H = 300;
+
+async function createWebVideoThumbnail(mediaUri: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
+    video.muted = true;
+    video.preload = "auto";
+
+    const cleanup = () => {
+      video.removeEventListener("loadeddata", handleLoadedData);
+      video.removeEventListener("error", handleError);
+      video.removeAttribute("src");
+      video.load();
+    };
+
+    const handleLoadedData = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext("2d");
+        if (!context || canvas.width === 0 || canvas.height === 0) {
+          throw new Error("Video frame is unavailable");
+        }
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const thumbnail = canvas.toDataURL("image/png");
+        cleanup();
+        resolve(thumbnail);
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
+    };
+
+    const handleError = () => {
+      cleanup();
+      reject(new Error("Unable to load the video frame"));
+    };
+
+    video.addEventListener("loadeddata", handleLoadedData, { once: true });
+    video.addEventListener("error", handleError, { once: true });
+    video.src = mediaUri;
+    video.load();
+  });
+}
+
+async function createVideoThumbnail(mediaUri: string): Promise<MediaSource> {
+  if (Platform.OS === "web") {
+    return createWebVideoThumbnail(mediaUri);
+  }
+
+  const player = createVideoPlayer(mediaUri);
+  try {
+    const [thumbnail] = await player.generateThumbnailsAsync(0);
+    if (!thumbnail) {
+      throw new Error("Video frame is unavailable");
+    }
+    return thumbnail;
+  } finally {
+    player.release();
+  }
+}
 
 export function ShareCardScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, "ShareCard">>();
-  const { mediaUri, songTitle, artistName, coverUrl } = route.params;
+  const { mediaUri, mediaType, songTitle, artistName, coverUrl } = route.params;
   const { height, width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const [selectedPreset, setSelectedPreset] = useState<PresetId>("teal");
   const [isSharing, setIsSharing] = useState(false);
-  const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
+  const [videoThumbnail, setVideoThumbnail] = useState<{
+    mediaUri: string;
+    source: MediaSource;
+  } | null>(null);
+  const [failedVideoUri, setFailedVideoUri] = useState<string | null>(null);
+  const [capturedMediaSource, setCapturedMediaSource] = useState<MediaSource | null>(null);
 
   const exportRef = useRef<ViewShotRef>(null);
 
-  const preset = PRESETS.find((p) => p.id === selectedPreset) ?? PRESETS[2];
+  const previewHeight = Math.min(
+    CARD_PREVIEW_H,
+    Math.max(280, height - insets.top - insets.bottom - NON_PREVIEW_CONTENT_H)
+  );
+  const previewScale = previewHeight / CARD_PREVIEW_H;
+  const preset = PRESETS.find((p) => p.id === selectedPreset) ?? PRESETS[1];
+  const isMediaLoading =
+    mediaType === "video" && videoThumbnail?.mediaUri !== mediaUri && failedVideoUri !== mediaUri;
+  const previewMediaSource =
+    mediaType === "video"
+      ? videoThumbnail?.mediaUri === mediaUri
+        ? videoThumbnail.source
+        : null
+      : mediaUri;
+
+  useEffect(() => {
+    if (mediaType !== "video") {
+      return;
+    }
+
+    let isCurrent = true;
+
+    void createVideoThumbnail(mediaUri)
+      .then((thumbnail) => {
+        if (isCurrent) {
+          setVideoThumbnail({ mediaUri, source: thumbnail });
+        }
+      })
+      .catch((error) => {
+        console.error("Video thumbnail error:", error);
+        if (isCurrent) {
+          setFailedVideoUri(mediaUri);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [mediaType, mediaUri]);
 
   async function handleShare() {
     if (isSharing) return;
@@ -81,9 +195,16 @@ export function ShareCardScreen() {
 
     setIsSharing(true);
     try {
-      // Step 1: crop the original photo to match contentFit="cover" at 250×325 ratio
-      let croppedUri: string | null = null;
-      if (mediaUri) {
+      let mediaSource: MediaSource | null = null;
+      if (mediaType === "video") {
+        mediaSource = videoThumbnail?.mediaUri === mediaUri ? videoThumbnail.source : null;
+        if (!mediaSource) {
+          mediaSource = await createVideoThumbnail(mediaUri);
+          setVideoThumbnail({ mediaUri, source: mediaSource });
+          setFailedVideoUri(null);
+        }
+      } else if (mediaUri) {
+        // Crop the photo to match the preview's cover fit at 250×325.
         const { width: imgW, height: imgH } = await new Promise<{ width: number; height: number }>(
           (resolve, reject) =>
             RNImage.getSize(mediaUri, (w, h) => resolve({ width: w, height: h }), reject)
@@ -110,16 +231,16 @@ export function ShareCardScreen() {
           [{ crop: { originX: cropX, originY: cropY, width: cropW, height: cropH } }],
           { compress: 1, format: ImageManipulator.SaveFormat.PNG }
         );
-        croppedUri = result.uri;
+        mediaSource = result.uri;
       }
 
-      // Step 2: set cropped photo and wait for exportRef to re-render
-      setCapturedPhotoUri(croppedUri);
+      // Update the export canvas before capturing it.
+      setCapturedMediaSource(mediaSource);
       await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
-      // Step 3: capture the export canvas (1080×1920)
+      // Capture the export canvas at 1080×1920.
       const exportUri = await exportRef.current.capture();
-      setCapturedPhotoUri(null);
+      setCapturedMediaSource(null);
 
       if (Platform.OS === "web") {
         const link = document.createElement("a");
@@ -135,7 +256,7 @@ export function ShareCardScreen() {
       });
     } catch (error) {
       console.error("Share error:", error);
-      setCapturedPhotoUri(null);
+      setCapturedMediaSource(null);
       Alert.alert(t("shareCard.shareErrorTitle"), t("shareCard.shareErrorMessage"));
     } finally {
       setIsSharing(false);
@@ -188,8 +309,10 @@ export function ShareCardScreen() {
       </AppText>
 
       {/* Preview area — visual only, not exported */}
-      <View style={styles.previewArea}>
-        <View style={styles.card}>
+      <View style={[styles.previewArea, { height: previewHeight }]}>
+        <View
+          style={[styles.card, { height: previewHeight, width: CARD_PREVIEW_W * previewScale }]}
+        >
           <LinearGradient
             colors={preset.card}
             end={{ x: 1, y: 1 }}
@@ -203,12 +326,23 @@ export function ShareCardScreen() {
             start={{ x: 0.5, y: 0 }}
             style={[styles.cardRect, { borderRadius: 24 }]}
           />
-          <View style={styles.photoWrap}>
-            {mediaUri ? (
-              <Image contentFit="cover" source={mediaUri} style={styles.photo} />
+          <View
+            style={[
+              styles.photoWrap,
+              {
+                height: PHOTO_PREVIEW_FIXED_H * previewScale,
+                width: PHOTO_PREVIEW_FIXED_W * previewScale
+              }
+            ]}
+          >
+            {previewMediaSource ? (
+              <Image contentFit="cover" source={previewMediaSource} style={styles.photo} />
             ) : (
               <View style={[styles.photo, styles.photoFallback]} />
             )}
+            {isMediaLoading ? (
+              <ActivityIndicator color={colors.neutrals[100]} style={styles.mediaLoading} />
+            ) : null}
             <LinearGradient
               colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.85)]}
               locations={[0.5, 1]}
@@ -237,7 +371,13 @@ export function ShareCardScreen() {
       </View>
 
       {/* Preset selectors */}
-      <View style={styles.presets}>
+      <ScrollView
+        contentContainerStyle={styles.presetsContent}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.presets}
+        testID="share-card-presets"
+      >
         {PRESETS.map((p) => (
           <View
             key={p.id}
@@ -259,16 +399,16 @@ export function ShareCardScreen() {
             </Pressable>
           </View>
         ))}
-      </View>
+      </ScrollView>
 
       {/* Share button */}
       <Pressable
         accessibilityRole="button"
-        disabled={isSharing}
+        disabled={isSharing || isMediaLoading}
         onPress={() => void handleShare()}
-        style={[styles.shareButton, isSharing && styles.shareButtonDisabled]}
+        style={[styles.shareButton, (isSharing || isMediaLoading) && styles.shareButtonDisabled]}
       >
-        {isSharing ? (
+        {isSharing || isMediaLoading ? (
           <ActivityIndicator color={colors.neutrals[900]} size="small" />
         ) : (
           <AppText style={styles.shareButtonLabel} variant="buttonLarge">
@@ -302,12 +442,12 @@ export function ShareCardScreen() {
             style={StyleSheet.absoluteFill}
           />
 
-          {capturedPhotoUri ? (
+          {capturedMediaSource ? (
             <View style={styles.exportPhotoWrap}>
-              <RNImage
-                source={{ uri: capturedPhotoUri }}
+              <Image
+                contentFit="cover"
+                source={capturedMediaSource}
                 style={StyleSheet.absoluteFill}
-                resizeMode="cover"
               />
               <LinearGradient
                 colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.85)]}
@@ -359,9 +499,7 @@ const styles = StyleSheet.create({
   card: {
     alignItems: "center",
     borderRadius: 28,
-    height: 480,
-    justifyContent: "center",
-    width: 275
+    justifyContent: "center"
   },
   cardRect: {
     borderRadius: radius.lg,
@@ -463,6 +601,11 @@ const styles = StyleSheet.create({
     left: spacing[4],
     position: "absolute"
   },
+  mediaLoading: {
+    alignSelf: "center",
+    position: "absolute",
+    top: "45%"
+  },
   photo: {
     bottom: 0,
     left: 0,
@@ -476,14 +619,12 @@ const styles = StyleSheet.create({
   photoWrap: {
     borderRadius: 17,
     elevation: 12,
-    height: 325,
     overflow: "hidden",
     position: "relative",
     shadowColor: baseColors.black,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
-    shadowRadius: 16,
-    width: 250
+    shadowRadius: 16
   },
   presetGlow: {
     borderRadius: 11
@@ -506,21 +647,23 @@ const styles = StyleSheet.create({
     borderWidth: 1.5
   },
   presets: {
+    height: 50,
+    marginTop: spacing[6]
+  },
+  presetsContent: {
+    alignItems: "center",
     flexDirection: "row",
+    flexGrow: 1,
     gap: spacing[3],
     justifyContent: "center",
-    marginBottom: spacing[0],
-    marginTop: spacing[8],
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[2]
+    paddingHorizontal: spacing[4]
   },
   previewArea: {
     alignItems: "center",
-    flex: 0.85,
+    flexGrow: 0,
+    flexShrink: 0,
     justifyContent: "center",
-    paddingBottom: spacing[4],
     paddingHorizontal: spacing[6],
-    paddingTop: spacing[10],
     position: "relative"
   },
   screen: {
@@ -532,9 +675,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[500],
     borderRadius: radius.full,
     justifyContent: "center",
-    marginBottom: spacing[6],
+    marginBottom: spacing[3],
     marginHorizontal: spacing[4],
-    marginTop: "auto",
+    marginTop: spacing[12],
     minHeight: 58
   },
   shareButtonDisabled: {
@@ -560,9 +703,9 @@ const styles = StyleSheet.create({
   subtitle: {
     color: colors.neutrals[100],
     fontFamily: fontFamily.primary.bold,
-    paddingBottom: spacing[8],
+    paddingBottom: spacing[2],
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
+    paddingTop: spacing[2],
     textAlign: "center"
   }
 });
