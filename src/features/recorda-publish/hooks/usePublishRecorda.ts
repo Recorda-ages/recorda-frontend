@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 
+import { queryClient } from "@/app/providers/queryClient";
+
 import { createRecorda, uploadRecordaMedia } from "../api/recordaPublishApi";
 import type { PublishRecordaDraft } from "../types";
 
@@ -47,6 +49,8 @@ export function usePublishRecorda(): UsePublishRecordaResult {
         mediaUrl: mediaUrl as string,
         song: draft.song
       });
+      // A atualização do feed não deve atrasar nem reverter um POST concluído.
+      void queryClient.invalidateQueries({ queryKey: ["feed", "general"] }).catch(() => undefined);
 
       // Ends here on purpose: navigating to the Feed (team decision, not the
       // Profile originally described) and clearing the draft are the caller's job.

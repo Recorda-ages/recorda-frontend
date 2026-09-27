@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react-native";
+import { queryClient } from "@/app/providers/queryClient";
 
 import {
   createRecorda,
@@ -48,6 +49,8 @@ describe("usePublishRecorda", () => {
     mockedCreate.mockReset();
   });
 
+  afterEach(() => jest.restoreAllMocks());
+
   it("goes upload -> create -> success on the happy path", async () => {
     mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
     mockedCreate.mockResolvedValueOnce({});
@@ -67,6 +70,35 @@ describe("usePublishRecorda", () => {
     });
     expect(result.current.status).toBe("success");
     expect(result.current.error).toBeNull();
+  });
+
+  it("invalidates the general feed after a successful publication", async () => {
+    const invalidate = jest.spyOn(queryClient, "invalidateQueries").mockResolvedValue();
+    mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
+    mockedCreate.mockResolvedValueOnce({ recorda_id: "new-recorda" });
+
+    const { result } = renderHook(() => usePublishRecorda());
+
+    await act(async () => {
+      await result.current.publish(draft);
+    });
+
+    expect(result.current.status).toBe("success");
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed", "general"] });
+  });
+
+  it("keeps publication successful if refreshing the feed fails", async () => {
+    jest.spyOn(queryClient, "invalidateQueries").mockRejectedValueOnce(new Error("network"));
+    mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
+    mockedCreate.mockResolvedValueOnce({ recorda_id: "new-recorda" });
+
+    const { result } = renderHook(() => usePublishRecorda());
+
+    await act(async () => {
+      await result.current.publish(draft);
+    });
+
+    expect(result.current.status).toBe("success");
   });
 
   it("does not call createRecorda when the upload fails", async () => {
