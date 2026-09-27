@@ -20,12 +20,12 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, Screen } from "@/components/ui";
 import { baseColors, radius, spacing } from "@/theme";
 
-let MediaLibrary: typeof import("expo-media-library") | null = null;
+let MediaLibrary: typeof import("expo-media-library/legacy") | null = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  MediaLibrary = require("expo-media-library");
+  MediaLibrary = require("expo-media-library/legacy");
 } catch {
-  // Native module ExpoMediaLibraryNext is not available in Expo Go on SDK 57
+  // The media library native module may be unavailable in Expo Go.
 }
 
 function useFallbackMediaPermissions(): [PermissionResponse, () => Promise<PermissionResponse>] {

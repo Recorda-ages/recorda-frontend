@@ -65,11 +65,13 @@ Use `npm run format` para formatar os arquivos com Prettier.
 ## Variáveis de ambiente
 
 `EXPO_PUBLIC_API_URL` define a URL do backend FastAPI.
+`EXPO_PUBLIC_META_APP_ID` define o ID do app Meta necessário para enviar cards diretamente ao Instagram Stories. Sem ele, o botão Stories abre o compartilhamento genérico do sistema.
 
 Exemplo:
 
 ```text
 EXPO_PUBLIC_API_URL=http://localhost:8000
+EXPO_PUBLIC_META_APP_ID=seu_meta_app_id
 ```
 
 O cliente HTTP centralizado adiciona o prefixo `/api/v1` automaticamente.

@@ -2,7 +2,6 @@ import { useNavigation, useRoute, type RouteProp } from "@react-navigation/nativ
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as Sharing from "expo-sharing";
 import { Image } from "expo-image";
 import { createVideoPlayer, type VideoThumbnail } from "expo-video";
 import { StatusBar } from "expo-status-bar";
@@ -25,6 +24,10 @@ import { Icon } from "react-native-paper";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
+import {
+  saveCardToGallery,
+  shareCardToInstagramStories
+} from "@/features/share/services/cardExport";
 import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 type PresetId = "light" | "mint" | "teal" | "dark";
@@ -64,6 +67,15 @@ const CARD_PREVIEW_W = 275;
 const PHOTO_PREVIEW_FIXED_H = 325;
 const PHOTO_PREVIEW_FIXED_W = 250;
 const NON_PREVIEW_CONTENT_H = 300;
+
+function showFeedback(title: string, message: string) {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n${message}`);
+    return;
+  }
+
+  Alert.alert(title, message);
+}
 
 async function createWebVideoThumbnail(mediaUri: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -136,7 +148,7 @@ export function ShareCardScreen() {
   const insets = useSafeAreaInsets();
 
   const [selectedPreset, setSelectedPreset] = useState<PresetId>("teal");
-  const [isSharing, setIsSharing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [videoThumbnail, setVideoThumbnail] = useState<{
     mediaUri: string;
     source: MediaSource;
@@ -145,6 +157,7 @@ export function ShareCardScreen() {
   const [capturedMediaSource, setCapturedMediaSource] = useState<MediaSource | null>(null);
 
   const exportRef = useRef<ViewShotRef>(null);
+  const exportInProgress = useRef(false);
 
   const previewHeight = Math.min(
     CARD_PREVIEW_H,
@@ -186,14 +199,18 @@ export function ShareCardScreen() {
     };
   }, [mediaType, mediaUri]);
 
-  async function handleShare() {
-    if (isSharing) return;
+  async function handleExport(action: "stories" | "save") {
+    if (exportInProgress.current) return;
     if (!exportRef.current) {
-      Alert.alert("Erro", "Ref não disponível");
+      showFeedback(
+        t(action === "stories" ? "shareCard.shareErrorTitle" : "shareCard.saveErrorTitle"),
+        t(action === "stories" ? "shareCard.shareErrorMessage" : "shareCard.saveErrorMessage")
+      );
       return;
     }
 
-    setIsSharing(true);
+    exportInProgress.current = true;
+    setIsExporting(true);
     try {
       let mediaSource: MediaSource | null = null;
       if (mediaType === "video") {
@@ -240,26 +257,35 @@ export function ShareCardScreen() {
 
       // Capture the export canvas at 1080×1920.
       const exportUri = await exportRef.current.capture();
-      setCapturedMediaSource(null);
-
-      if (Platform.OS === "web") {
-        const link = document.createElement("a");
-        link.href = exportUri;
-        link.download = "recorda.png";
-        link.click();
-        return;
+      if (action === "stories") {
+        const result = await shareCardToInstagramStories(exportUri);
+        showFeedback(
+          t(result === "shared" ? "shareCard.storiesOpenedTitle" : "shareCard.fallbackTitle"),
+          t(
+            result === "shared"
+              ? "shareCard.storiesOpenedMessage"
+              : Platform.OS === "web"
+                ? "shareCard.webFallbackMessage"
+                : "shareCard.fallbackMessage"
+          )
+        );
+      } else {
+        const result = await saveCardToGallery(exportUri);
+        showFeedback(
+          t(result === "saved" ? "shareCard.savedTitle" : "shareCard.permissionDeniedTitle"),
+          t(result === "saved" ? "shareCard.savedMessage" : "shareCard.permissionDeniedMessage")
+        );
       }
-
-      await Sharing.shareAsync(exportUri, {
-        mimeType: "image/png",
-        dialogTitle: t("shareCard.shareDialogTitle")
-      });
     } catch (error) {
-      console.error("Share error:", error);
-      setCapturedMediaSource(null);
-      Alert.alert(t("shareCard.shareErrorTitle"), t("shareCard.shareErrorMessage"));
+      console.error("Card export error:", error);
+      showFeedback(
+        t(action === "stories" ? "shareCard.shareErrorTitle" : "shareCard.saveErrorTitle"),
+        t(action === "stories" ? "shareCard.shareErrorMessage" : "shareCard.saveErrorMessage")
+      );
     } finally {
-      setIsSharing(false);
+      setCapturedMediaSource(null);
+      exportInProgress.current = false;
+      setIsExporting(false);
     }
   }
 
@@ -401,21 +427,38 @@ export function ShareCardScreen() {
         ))}
       </ScrollView>
 
-      {/* Share button */}
-      <Pressable
-        accessibilityRole="button"
-        disabled={isSharing || isMediaLoading}
-        onPress={() => void handleShare()}
-        style={[styles.shareButton, (isSharing || isMediaLoading) && styles.shareButtonDisabled]}
-      >
-        {isSharing || isMediaLoading ? (
-          <ActivityIndicator color={colors.neutrals[900]} size="small" />
-        ) : (
-          <AppText style={styles.shareButtonLabel} variant="buttonLarge">
-            {t("shareCard.share")}
+      <View style={styles.actionRow}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={isExporting || isMediaLoading}
+          onPress={() => void handleExport("stories")}
+          style={[
+            styles.shareButton,
+            (isExporting || isMediaLoading) && styles.shareButtonDisabled
+          ]}
+        >
+          {isExporting || isMediaLoading ? (
+            <ActivityIndicator color={colors.neutrals[900]} size="small" />
+          ) : (
+            <AppText style={styles.shareButtonLabel} variant="buttonLarge">
+              {t("shareCard.instagramStories")}
+            </AppText>
+          )}
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          disabled={isExporting || isMediaLoading}
+          onPress={() => void handleExport("save")}
+          style={[
+            styles.downloadButton,
+            (isExporting || isMediaLoading) && styles.shareButtonDisabled
+          ]}
+        >
+          <AppText style={styles.downloadButtonLabel} variant="buttonLarge">
+            {t("shareCard.download")}
           </AppText>
-        )}
-      </Pressable>
+        </Pressable>
+      </View>
 
       {/* Off-screen export canvas — 1080×1920 */}
       <View style={styles.exportContainer} pointerEvents="none">
@@ -483,6 +526,13 @@ export function ShareCardScreen() {
 }
 
 const styles = StyleSheet.create({
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing[3],
+    marginBottom: spacing[3],
+    marginHorizontal: spacing[4],
+    marginTop: spacing[12]
+  },
   artistName: {
     color: withOpacity(baseColors.white, 0.85),
     fontFamily: fontFamily.primary.regular,
@@ -519,6 +569,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: withOpacity(baseColors.black, 0.3),
     justifyContent: "center"
+  },
+  downloadButton: {
+    alignItems: "center",
+    borderColor: colors.primary[500],
+    borderRadius: radius.full,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 58,
+    paddingHorizontal: spacing[2]
+  },
+  downloadButtonLabel: {
+    color: colors.primary[500],
+    fontSize: 14,
+    textAlign: "center"
   },
   exportArtistName: {
     color: withOpacity(baseColors.white, 0.85),
@@ -674,17 +739,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.primary[500],
     borderRadius: radius.full,
+    flex: 1,
     justifyContent: "center",
-    marginBottom: spacing[3],
-    marginHorizontal: spacing[4],
-    marginTop: spacing[12],
-    minHeight: 58
+    minHeight: 58,
+    paddingHorizontal: spacing[2]
   },
   shareButtonDisabled: {
     opacity: 0.7
   },
   shareButtonLabel: {
-    color: colors.neutrals[900]
+    color: colors.neutrals[900],
+    fontSize: 14,
+    textAlign: "center"
   },
   songRow: {
     alignItems: "flex-start",
