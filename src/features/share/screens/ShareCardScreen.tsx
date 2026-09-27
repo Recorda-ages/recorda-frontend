@@ -35,9 +35,9 @@ type Preset = {
 
 const PRESETS: Preset[] = [
   { id: "light", swatch: "#CCF9EE", card: ["#CCF9EE", "#66EECB", "#44C9A8"] },
-  { id: "mint",  swatch: "#66EECB", card: ["#66EECB", "#00C896", "#00A07A"] },
-  { id: "teal",  swatch: "#00E2A9", card: ["#00E2A9", "#00B587", "#008F6A"] },
-  { id: "dark",  swatch: "#006B4F", card: ["#008865", "#004D39", "#003328"] }
+  { id: "mint", swatch: "#66EECB", card: ["#66EECB", "#00C896", "#00A07A"] },
+  { id: "teal", swatch: "#00E2A9", card: ["#00E2A9", "#00B587", "#008F6A"] },
+  { id: "dark", swatch: "#006B4F", card: ["#008865", "#004D39", "#003328"] }
 ];
 
 const GLOW_SOURCE = require("@/assets/images/glow.png");
@@ -85,7 +85,8 @@ export function ShareCardScreen() {
       let croppedUri: string | null = null;
       if (mediaUri) {
         const { width: imgW, height: imgH } = await new Promise<{ width: number; height: number }>(
-          (resolve, reject) => RNImage.getSize(mediaUri, (w, h) => resolve({ width: w, height: h }), reject)
+          (resolve, reject) =>
+            RNImage.getSize(mediaUri, (w, h) => resolve({ width: w, height: h }), reject)
         );
 
         const targetAspect = PHOTO_PREVIEW_W / PHOTO_PREVIEW_H;
@@ -280,7 +281,11 @@ export function ShareCardScreen() {
       <View style={styles.exportContainer} pointerEvents="none">
         <ViewShot
           ref={exportRef}
-          options={{ format: "png", quality: 1, result: Platform.OS === "web" ? "data-uri" : "tmpfile" }}
+          options={{
+            format: "png",
+            quality: 1,
+            result: Platform.OS === "web" ? "data-uri" : "tmpfile"
+          }}
           style={styles.exportCanvas}
         >
           <LinearGradient
@@ -291,7 +296,7 @@ export function ShareCardScreen() {
             style={StyleSheet.absoluteFill}
           />
           <LinearGradient
-            colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.40)]}
+            colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.4)]}
             end={{ x: 0.5, y: 1 }}
             start={{ x: 0.5, y: 0 }}
             style={StyleSheet.absoluteFill}
@@ -311,7 +316,11 @@ export function ShareCardScreen() {
               />
               <View style={styles.exportSongRow}>
                 {coverUrl ? (
-                  <RNImage source={{ uri: coverUrl }} style={styles.exportCover} resizeMode="cover" />
+                  <RNImage
+                    source={{ uri: coverUrl }}
+                    style={styles.exportCover}
+                    resizeMode="cover"
+                  />
                 ) : (
                   <View style={[styles.exportCover, styles.exportCoverFallback]} />
                 )}

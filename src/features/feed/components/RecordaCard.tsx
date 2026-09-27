@@ -84,7 +84,12 @@ export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
           <View accessibilityLabel={t("feed.comment")}>
             <Icon color={colors.primary[500]} size={26} source="message-text-outline" />
           </View>
-          <Pressable accessibilityLabel={t("feed.share")} accessibilityRole="button" hitSlop={8} onPress={onShare}>
+          <Pressable
+            accessibilityLabel={t("feed.share")}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onShare}
+          >
             <Icon color={colors.primary[500]} size={24} source="share-variant-outline" />
           </Pressable>
         </View>

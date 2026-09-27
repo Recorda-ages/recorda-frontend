@@ -119,7 +119,11 @@ export function FeedScreen() {
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.4}
             renderItem={({ item }) => (
-              <RecordaCard item={item} onPress={() => handleCardPress(item)} onShare={() => handleCardShare(item)} />
+              <RecordaCard
+                item={item}
+                onPress={() => handleCardPress(item)}
+                onShare={() => handleCardShare(item)}
+              />
             )}
             showsVerticalScrollIndicator={false}
             testID={`${feedVariant}-feed-list`}
