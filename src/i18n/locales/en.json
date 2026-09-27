@@ -187,7 +187,12 @@
       "feed": "Feed",
       "profile": "Profile"
     },
-    "notificationsUnread": "Notifications, {{count}} unread"
+    "notificationsUnread": "Notifications, {{count}} unread",
+    "sound": {
+      "mute": "Mute music",
+      "unmute": "Unmute music",
+      "unavailable": "This Recorda has no music preview"
+    }
   },
   "recordaView": {
     "back": "Back",

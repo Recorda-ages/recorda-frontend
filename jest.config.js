@@ -1,5 +1,6 @@
 module.exports = {
   moduleNameMapper: {
+    "^expo-audio$": "<rootDir>/tests/mocks/expoAudio.ts",
     "^expo-camera$": "<rootDir>/tests/mocks/expoCamera.tsx",
     "^expo-file-system$": "<rootDir>/tests/mocks/expoFileSystem.ts",
     "^expo-font$": "<rootDir>/tests/mocks/expoFont.ts",

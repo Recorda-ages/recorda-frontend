@@ -2,10 +2,13 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { I18nextProvider } from "react-i18next";
 
 import { FeedProvider, FeedScreen } from "@/features/feed";
+import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
 import { useGeneralFeed } from "@/features/feed/hooks/useGeneralFeed";
 import type { FeedItem, FeedPage } from "@/features/feed/types";
 import { i18n } from "@/i18n";
+
+import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
 const mockNavigate = jest.fn();
 
@@ -143,7 +146,9 @@ function renderScreen() {
   return render(
     <I18nextProvider i18n={i18n}>
       <FeedProvider>
-        <FeedScreen />
+        <FeedAudioProvider>
+          <FeedScreen />
+        </FeedAudioProvider>
       </FeedProvider>
     </I18nextProvider>
   );
@@ -151,6 +156,7 @@ function renderScreen() {
 
 describe("FeedScreen", () => {
   beforeEach(() => {
+    resetAudioMock();
     mockNavigate.mockClear();
     mockFetchNextPage.mockReset();
     mockRefetch.mockReset();
@@ -410,5 +416,71 @@ describe("FeedScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
 
     expect(mockGeneralFetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  // US16: o card em foco durante o scroll assume o áudio.
+  describe("preview autoplay", () => {
+    const withPreview = [
+      buildItem({ recorda_id: "recorda-1", song_preview_url: "https://cdn.example.com/a.mp3" }),
+      buildItem({ recorda_id: "recorda-2", song_preview_url: "https://cdn.example.com/b.mp3" })
+    ];
+
+    function renderWithItems() {
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      renderScreen();
+      return screen.getByTestId("general-feed-list");
+    }
+
+    it("plays the preview of the card that comes into view", () => {
+      const list = renderWithItems();
+
+      fireEvent(list, "viewableItemsChanged", {
+        changed: [],
+        viewableItems: [{ index: 0, isViewable: true, item: withPreview[0], key: "recorda-1" }]
+      });
+
+      expect(mockAudioPlayer.replace).toHaveBeenCalledWith("https://cdn.example.com/a.mp3");
+      expect(mockAudioPlayer.play).toHaveBeenCalled();
+    });
+
+    it("hands the audio over when the next card takes focus", () => {
+      const list = renderWithItems();
+
+      fireEvent(list, "viewableItemsChanged", {
+        changed: [],
+        viewableItems: [{ index: 0, isViewable: true, item: withPreview[0], key: "recorda-1" }]
+      });
+      fireEvent(list, "viewableItemsChanged", {
+        changed: [],
+        viewableItems: [{ index: 1, isViewable: true, item: withPreview[1], key: "recorda-2" }]
+      });
+
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+    });
+
+    it("stays silent when the focused card has no preview", () => {
+      mockGeneral(
+        successResult(
+          { items: [buildItem({ recorda_id: "recorda-9" })], next_cursor: null },
+          false,
+          generalHandlers
+        )
+      );
+      renderScreen();
+
+      fireEvent(screen.getByTestId("general-feed-list"), "viewableItemsChanged", {
+        changed: [],
+        viewableItems: [
+          {
+            index: 0,
+            isViewable: true,
+            item: buildItem({ recorda_id: "recorda-9" }),
+            key: "recorda-9"
+          }
+        ]
+      });
+
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+    });
   });
 });

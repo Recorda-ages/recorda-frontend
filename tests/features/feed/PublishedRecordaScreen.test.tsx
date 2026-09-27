@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
+import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { feedService } from "@/features/feed/services/feedService";
 import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
@@ -64,9 +65,11 @@ function renderScreen(item?: FeedItem) {
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <FeedProvider>
-          {item ? <OpenFeedItem item={item} /> : null}
-          {item ? null : <PublishedRecordaScreen />}
-          <FeedSnapshot />
+          <FeedAudioProvider>
+            {item ? <OpenFeedItem item={item} /> : null}
+            {item ? null : <PublishedRecordaScreen />}
+            <FeedSnapshot />
+          </FeedAudioProvider>
         </FeedProvider>
       </QueryClientProvider>
     </I18nextProvider>

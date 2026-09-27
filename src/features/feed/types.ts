@@ -58,6 +58,7 @@ export type FeedPost = {
   likesCount: number;
   mediaType?: MediaType;
   mediaUrl: string;
+  previewUrl?: string | null;
   publishedAt: string;
   song: { artistName: string; title: string };
   tabs: ("following" | "forYou")[];

@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { RecordaCard } from "@/features/feed/components/RecordaCard";
+import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import type { FeedItem } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 
@@ -29,7 +30,9 @@ const BASE_ITEM: FeedItem = {
 function renderCard(item: FeedItem, onPress = jest.fn(), onShare?: () => void) {
   render(
     <I18nextProvider i18n={i18n}>
-      <RecordaCard item={item} onPress={onPress} onShare={onShare} />
+      <FeedAudioProvider>
+        <RecordaCard item={item} onPress={onPress} onShare={onShare} />
+      </FeedAudioProvider>
     </I18nextProvider>
   );
   return { onPress };

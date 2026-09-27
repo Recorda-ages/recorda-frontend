@@ -1,8 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { useCallback, useState } from "react";
+import { FlatList, StyleSheet, View, type ViewToken } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,12 +20,18 @@ import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
 import { useFeed } from "../state/FeedContext";
+import { useFeedAudio } from "../state/FeedAudioContext";
 import type { FeedItem, FeedTab } from "../types";
+
+// 70% visível é o limiar que evita trocar a música a cada pixel do scroll:
+// um card só assume o áudio quando domina a tela de fato.
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 70 };
 
 export function FeedScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { t } = useTranslation();
   const { deletedIds, openFeedItem } = useFeed();
+  const { setActivePreview } = useFeedAudio();
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const generalFeedQuery = useGeneralFeed(activeTab === "geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
@@ -71,6 +77,19 @@ export function FeedScreen() {
       void activeQuery.fetchNextPage();
     }
   };
+
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const focused = viewableItems[0]?.item as FeedItem | undefined;
+
+      if (!focused) {
+        return;
+      }
+
+      setActivePreview(focused.recorda_id, focused.song_preview_url);
+    },
+    [setActivePreview]
+  );
 
   const renderFooter = () => {
     if (activeQuery.isFetchingNextPage) {
@@ -124,6 +143,7 @@ export function FeedScreen() {
             ListFooterComponent={renderFooter()}
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.4}
+            onViewableItemsChanged={handleViewableItemsChanged}
             renderItem={({ item }) => (
               <RecordaCard
                 item={item}
@@ -133,6 +153,7 @@ export function FeedScreen() {
             )}
             showsVerticalScrollIndicator={false}
             testID={`${feedVariant}-feed-list`}
+            viewabilityConfig={VIEWABILITY_CONFIG}
           />
         ) : null}
       </SafeAreaView>

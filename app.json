@@ -25,7 +25,8 @@
             "enableSceneSupport": true
           }
         }
-      ]
+      ],
+      "expo-audio"
     ]
   }
 }

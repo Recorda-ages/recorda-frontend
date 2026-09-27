@@ -79,6 +79,7 @@ export function feedItemToFeedPost(item: FeedItem): FeedPost {
     likesCount: item.likes_count - (item.is_liked ? 1 : 0),
     mediaType: item.media_type,
     mediaUrl: resolveApiAssetUrl(item.media_url),
+    previewUrl: item.song_preview_url,
     publishedAt: new Date(item.created_at).toLocaleDateString(undefined, {
       day: "2-digit",
       month: "long"
