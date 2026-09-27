@@ -23,6 +23,12 @@ export const mockUseVideoPlayer = jest.fn<
   MockPlayer,
   [MockVideoSource, ((player: MockPlayer) => void)?]
 >();
+export const mockGenerateVideoThumbnails = jest.fn();
+export const mockReleaseVideoPlayer = jest.fn();
+export const mockCreateVideoPlayer = jest.fn((_source: MockVideoSource) => ({
+  generateThumbnailsAsync: mockGenerateVideoThumbnails,
+  release: mockReleaseVideoPlayer
+}));
 
 export function resetVideoMock() {
   mockUseVideoPlayer.mockReset();
@@ -41,6 +47,10 @@ resetVideoMock();
 
 export function useVideoPlayer(source: MockVideoSource, setup?: (player: MockPlayer) => void) {
   return mockUseVideoPlayer(source, setup);
+}
+
+export function createVideoPlayer(source: MockVideoSource) {
+  return mockCreateVideoPlayer(source);
 }
 
 type VideoViewProps = {

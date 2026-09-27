@@ -14,9 +14,10 @@ import type { FeedItem } from "../types";
 type RecordaCardProps = Readonly<{
   item: FeedItem;
   onPress: () => void;
+  onShare?: () => void;
 }>;
 
-export function RecordaCard({ item, onPress }: RecordaCardProps) {
+export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
   const { t, i18n } = useTranslation();
   const [prevItem, setPrevItem] = useState(item);
   const [likesCount, setLikesCount] = useState(item.likes_count);
@@ -83,9 +84,14 @@ export function RecordaCard({ item, onPress }: RecordaCardProps) {
           <View accessibilityLabel={t("feed.comment")}>
             <Icon color={colors.primary[500]} size={26} source="message-text-outline" />
           </View>
-          <View accessibilityLabel={t("feed.share")}>
+          <Pressable
+            accessibilityLabel={t("feed.share")}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onShare}
+          >
             <Icon color={colors.primary[500]} size={24} source="share-variant-outline" />
-          </View>
+          </Pressable>
         </View>
         <AppText style={styles.date}>{formattedDate}</AppText>
       </View>

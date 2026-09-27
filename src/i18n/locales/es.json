@@ -199,6 +199,16 @@
       "title": "¿Eliminar comentario?"
     }
   },
+  "shareCard": {
+    "title": "Compartir",
+    "subtitle": "Elige el estilo de la tarjeta",
+    "back": "Volver",
+    "share": "Compartir",
+    "shareMessage": "¡Mira mi nuevo Recorda! <enlace de la app próximamente>",
+    "shareDialogTitle": "Compartir Recorda",
+    "shareErrorTitle": "Error al compartir",
+    "shareErrorMessage": "No fue posible compartir. Intenta nuevamente."
+  },
   "notifications": {
     "title": "Notificaciones",
     "back": "Volver",

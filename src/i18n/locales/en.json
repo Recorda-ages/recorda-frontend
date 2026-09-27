@@ -199,6 +199,16 @@
       "title": "Delete comment?"
     }
   },
+  "shareCard": {
+    "title": "Share",
+    "subtitle": "Choose the card style",
+    "back": "Back",
+    "share": "Share",
+    "shareMessage": "Check out my new Recorda! <app link coming soon>",
+    "shareDialogTitle": "Share Recorda",
+    "shareErrorTitle": "Share error",
+    "shareErrorMessage": "Could not share. Please try again."
+  },
   "notifications": {
     "title": "Notifications",
     "back": "Back",
