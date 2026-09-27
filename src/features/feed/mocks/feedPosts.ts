@@ -11,8 +11,13 @@ export const mockFeedPosts: FeedPost[] = [
       id: "demo-lucas"
     },
     comments: [
-      { id: "c1", text: "Show I-N-C-R-I-V-E-L!", username: "lucas_almeida" },
-      { id: "c2", text: "Estava d+!", username: "jane_smith" }
+      {
+        id: "c1",
+        text: "Show I-N-C-R-I-V-E-L!",
+        username: "lucas_almeida",
+        createdAt: "2026-01-01T12:00:00Z"
+      },
+      { id: "c2", text: "Estava d+!", username: "jane_smith", createdAt: "2026-01-02T12:00:00Z" }
     ],
     description: "Show I-N-C-R-I-V-E-L!",
     id: "post-1",
@@ -32,7 +37,9 @@ export const mockFeedPosts: FeedPost[] = [
       username: "john_doe",
       id: "demo-john"
     },
-    comments: [{ id: "c3", text: "Que vista!", username: "ana.souza" }],
+    comments: [
+      { id: "c3", text: "Que vista!", username: "ana.souza", createdAt: "2025-12-28T12:00:00Z" }
+    ],
     description: "Fim de tarde perfeito",
     id: "post-2",
     likedBy: {
@@ -52,8 +59,13 @@ export const mockFeedPosts: FeedPost[] = [
       id: "demo-ana"
     },
     comments: [
-      { id: "c4", text: "Saudade desse dia", username: "lucas_almeida" },
-      { id: "c5", text: "Bora de novo?", username: "john_doe" }
+      {
+        id: "c4",
+        text: "Saudade desse dia",
+        username: "lucas_almeida",
+        createdAt: "2025-12-15T12:00:00Z"
+      },
+      { id: "c5", text: "Bora de novo?", username: "john_doe", createdAt: "2025-12-16T12:00:00Z" }
     ],
     description: "Primeira vez no festival",
     id: "post-3",

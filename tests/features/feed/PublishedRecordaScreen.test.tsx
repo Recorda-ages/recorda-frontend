@@ -75,6 +75,8 @@ function renderScreen(item?: FeedItem) {
 
 describe("PublishedRecordaScreen", () => {
   let getRecordaById: jest.SpyInstance;
+  let getComments: jest.SpyInstance;
+  let createComment: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -83,6 +85,8 @@ describe("PublishedRecordaScreen", () => {
     getRecordaById = jest
       .spyOn(feedService, "getRecordaById")
       .mockRejectedValue(new Error("not found"));
+    getComments = jest.spyOn(feedService, "getComments").mockResolvedValue([]);
+    createComment = jest.spyOn(feedService, "createComment");
   });
 
   afterEach(() => {
@@ -106,7 +110,7 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps likes and comments in shared state", () => {
+  it("keeps likes and comments in shared state", async () => {
     renderScreen();
     const details = within(screen.getByTestId("recorda-detail-screen"));
     fireEvent.press(details.getByRole("button", { name: "Curtir" }));
@@ -122,7 +126,7 @@ describe("PublishedRecordaScreen", () => {
     expect(details.getByRole("button", { name: "Enviar comentário" })).toBeDisabled();
     fireEvent.changeText(input, "  Que lembrança boa!  ");
     fireEvent.press(details.getByRole("button", { name: "Enviar comentário" }));
-    expect(details.getByText(/Que lembrança boa!/)).toBeTruthy();
+    await waitFor(() => expect(details.getByText(/Que lembrança boa!/)).toBeTruthy());
     expect(screen.getByTestId("shared-comments").props.children).toContain("Que lembrança boa!");
     expect(input.props.value).toBe("");
   });
@@ -160,14 +164,59 @@ describe("PublishedRecordaScreen", () => {
     expect(mockNavigate).toHaveBeenCalledWith("RecordaShare", { postId: "post-1" });
   });
 
-  it("handles a Recorda with no comments", () => {
+  it("handles a Recorda with no comments", async () => {
     mockRoute.params.postId = "post-4";
     renderScreen();
     expect(screen.getByText(/Nenhum comentário ainda/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("Adicione um comentário..."), "Primeiro!");
     fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
-    expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull();
+    await waitFor(() => expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull());
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
+  });
+
+  it("loads and publishes API comments with avatar, username and date", async () => {
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Show ao vivo",
+      is_liked: false,
+      likes_count: 1,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/live.jpg",
+      recorda_id: "11111111-1111-4111-8111-111111111111",
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    const existing = {
+      comment_id: "comment-1",
+      user_id: "user-3",
+      username: "ana",
+      avatar_url: "/avatars/ana.jpg",
+      content: "Eu estava lá!",
+      created_at: "2026-09-27T12:00:00Z"
+    };
+    const created = { ...existing, comment_id: "comment-2", content: "Que saudade!" };
+    getComments.mockResolvedValue([existing]);
+    createComment.mockResolvedValue(created);
+    mockRoute.params.postId = item.recorda_id;
+
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+
+    await waitFor(() => expect(screen.getByText(/Eu estava lá!/)).toBeTruthy());
+    expect(getComments).toHaveBeenCalledWith(item.recorda_id, expect.any(AbortSignal));
+    expect(screen.getByText(/27 de set/)).toBeTruthy();
+
+    const input = screen.getByLabelText("Adicione um comentário...");
+    expect(input.props.maxLength).toBe(500);
+    fireEvent.changeText(input, " Que saudade! ");
+    fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+
+    await waitFor(() => expect(screen.getByText(/Que saudade!/)).toBeTruthy());
+    expect(createComment).toHaveBeenCalledWith(item.recorda_id, "Que saudade!");
+    expect(input.props.value).toBe("");
   });
 
   it("opens an API video with its existing like count", () => {

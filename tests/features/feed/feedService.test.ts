@@ -3,17 +3,39 @@ import type { FeedPage, RecordaDetailResponse } from "@/features/feed/types";
 import { authApiClient } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
-  authApiClient: { get: jest.fn() }
+  authApiClient: { get: jest.fn(), post: jest.fn() }
 }));
 
 const mockGet = authApiClient.get as jest.Mock;
+const mockPost = authApiClient.post as jest.Mock;
 
 const FEED_PAGE: FeedPage = {
   items: [],
   next_cursor: null
 };
 
-beforeEach(() => mockGet.mockReset());
+beforeEach(() => {
+  mockGet.mockReset();
+  mockPost.mockReset();
+});
+
+describe("feedService comments", () => {
+  it("loads comments for a Recorda", async () => {
+    mockGet.mockResolvedValueOnce([]);
+    await feedService.getComments("recorda/id");
+    expect(mockGet).toHaveBeenCalledWith("/recordas/recorda%2Fid/comments", {
+      signal: undefined
+    });
+  });
+
+  it("posts comment content to the authenticated endpoint", async () => {
+    mockPost.mockResolvedValueOnce({ comment_id: "comment-1" });
+    await feedService.createComment("recorda/id", "Olá!");
+    expect(mockPost).toHaveBeenCalledWith("/recordas/recorda%2Fid/comments", {
+      content: "Olá!"
+    });
+  });
+});
 
 describe("feedService.getRecordaById", () => {
   it("loads the authenticated Recorda detail and encodes its id", async () => {
