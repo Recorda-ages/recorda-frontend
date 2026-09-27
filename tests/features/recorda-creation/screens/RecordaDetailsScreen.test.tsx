@@ -20,7 +20,7 @@ jest.mock("@react-navigation/native", () => {
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, reset: mockReset })
+    useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn(), reset: mockReset })
   };
 });
 
@@ -307,17 +307,22 @@ describe("RecordaDetailsScreen", () => {
     );
   });
 
-  it("uses the native share sheet when no share action is provided", () => {
-    const share = jest.spyOn(Share, "share").mockResolvedValue({ action: Share.sharedAction });
+  it("navigates to ShareCard when no share action is provided", () => {
+    const mockNavigate = jest.fn();
+    jest
+      .spyOn(require("@react-navigation/native"), "useNavigation")
+      .mockReturnValue({ goBack: mockGoBack, navigate: mockNavigate, reset: mockReset });
+
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
 
     fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
 
-    expect(share).toHaveBeenCalledWith({
-      message: `${mockRecordaDraft.song!.title}\n${mockRecordaDraft.song!.artistName}`
+    expect(mockNavigate).toHaveBeenCalledWith("ShareCard", {
+      artistName: mockRecordaDraft.song!.artistName,
+      coverUrl: null,
+      mediaUri: mockRecordaDraft.media!.uri,
+      songTitle: mockRecordaDraft.song!.title
     });
-
-    share.mockRestore();
   });
 
   it("reads media and song from the draft stored during the creation flow", async () => {
