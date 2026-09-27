@@ -38,7 +38,10 @@ jest.mock("react-native-view-shot", () => {
   const React = jest.requireActual("react");
 
   const ViewShot = React.forwardRef(
-    ({ children, style }: { children: React.ReactNode; style?: object }, ref: React.Ref<unknown>) => {
+    (
+      { children, style }: { children: React.ReactNode; style?: object },
+      ref: React.Ref<unknown>
+    ) => {
       React.useImperativeHandle(ref, () => ({
         capture: jest.fn().mockResolvedValue("file://captured.png")
       }));
@@ -121,9 +124,7 @@ describe("ShareCardScreen", () => {
     renderScreen();
 
     const radios = screen.getAllByRole("radio");
-    const checked = radios.filter(
-      (r) => r.props.accessibilityState?.checked === true
-    );
+    const checked = radios.filter((r) => r.props.accessibilityState?.checked === true);
     expect(checked).toHaveLength(1);
   });
 
@@ -174,8 +175,11 @@ describe("ShareCardScreen", () => {
 
     fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
 
-    await waitFor(() => {
-      expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+      },
+      { timeout: 2000 }
+    );
   });
 });
