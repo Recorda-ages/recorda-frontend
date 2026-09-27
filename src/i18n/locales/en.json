@@ -208,6 +208,7 @@
     "shareDialogTitle": "Share Recorda",
     "shareErrorTitle": "Share error",
     "shareErrorMessage": "Could not share. Please try again."
+  },
   "notifications": {
     "title": "Notifications",
     "back": "Back",

@@ -208,6 +208,7 @@
     "shareDialogTitle": "Compartir Recorda",
     "shareErrorTitle": "Error al compartir",
     "shareErrorMessage": "No fue posible compartir. Intenta nuevamente."
+  },
   "notifications": {
     "title": "Notificaciones",
     "back": "Volver",
