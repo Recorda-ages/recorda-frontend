@@ -23,20 +23,14 @@
         {
           "photosPermission": "Allow Recorda to access your photos.",
           "savePhotosPermission": "Allow Recorda to save images to your photo library.",
-          "granularPermissions": [
-            "photo"
-          ]
+          "granularPermissions": ["photo"]
         }
       ],
       [
         "react-native-share",
         {
-          "android": [
-            "com.instagram.android"
-          ],
-          "ios": [
-            "instagram-stories"
-          ]
+          "android": ["com.instagram.android"],
+          "ios": ["instagram-stories"]
         }
       ],
       [
