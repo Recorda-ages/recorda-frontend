@@ -28,6 +28,25 @@ export type FeedPage = {
   next_cursor: string | null;
 };
 
+export type RecordaDetailResponse = {
+  author: {
+    avatar_url: string | null;
+    user_id: string;
+    username: string;
+  };
+  created_at: string;
+  deezer_track_id: string;
+  description: string | null;
+  likes_count: number;
+  media_type: MediaType;
+  media_url: string;
+  recorda_id: string;
+  song_artist_name: string;
+  song_cover_url: string;
+  song_preview_url: string | null;
+  song_title: string;
+};
+
 export type FeedComment = { id: string; text: string; username: string };
 
 export type FeedPost = {

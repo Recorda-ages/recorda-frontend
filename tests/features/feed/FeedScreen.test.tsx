@@ -14,6 +14,10 @@ jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate })
 }));
 
+jest.mock("@/features/notifications", () => ({
+  useNotifications: () => ({ data: { pageParams: [0], pages: [{ items: [], unread_count: 3 }] } })
+}));
+
 jest.mock("@/features/feed/hooks/useFollowingFeed", () => ({
   useFollowingFeed: jest.fn()
 }));
@@ -363,5 +367,15 @@ describe("FeedScreen", () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(1, "Camera");
     expect(mockNavigate).toHaveBeenNthCalledWith(2, "Profile");
     expect(mockNavigate).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows the unread badge on the bell and opens the notifications screen", () => {
+    renderScreen();
+
+    expect(screen.getByTestId("feed-notifications-badge")).toHaveTextContent("3");
+
+    fireEvent.press(screen.getByTestId("feed-notifications-button"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("Notifications");
   });
 });

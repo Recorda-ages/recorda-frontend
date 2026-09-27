@@ -17,6 +17,7 @@ import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { clearSession } from "@/features/auth/session";
 import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
+import { NotificationsScreen } from "@/features/notifications";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
@@ -39,6 +40,7 @@ export type RootStackParamList = {
   Camera: undefined;
   Feed: undefined;
   Login: undefined;
+  Notifications: undefined;
   OnboardingArtists: undefined;
   OnboardingGenres: undefined;
   OnboardingMusic: undefined;
@@ -128,6 +130,7 @@ export function RootNavigator() {
         <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
         <Stack.Screen name="Feed" component={FeedScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="PublishedRecorda" component={PublishedRecordaScreen} />
         <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
         <Stack.Screen name="RecordaReport" component={RecordaIntegrationScreen} />
