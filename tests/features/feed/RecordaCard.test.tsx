@@ -115,7 +115,7 @@ describe("RecordaCard", () => {
   it("exposes the card, menu and like controls as interactive buttons", () => {
     renderCard(BASE_ITEM);
 
-    expect(screen.getAllByRole("button")).toHaveLength(4);
+    expect(screen.getAllByRole("button")).toHaveLength(5);
   });
 
   it("calls onPress with the whole card when tapped", () => {
@@ -133,6 +133,13 @@ describe("RecordaCard", () => {
     fireEvent.press(screen.getByLabelText("Compartilhar"));
 
     expect(onShare).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the detail from the comment and more controls", () => {
+    const { onPress } = renderCard(BASE_ITEM);
+    fireEvent.press(screen.getByLabelText("Comentar"));
+    fireEvent.press(screen.getByLabelText("Mais opções"));
+    expect(onPress).toHaveBeenCalledTimes(2);
   });
 
   it("renders an empty date when created_at is not a valid ISO string", () => {

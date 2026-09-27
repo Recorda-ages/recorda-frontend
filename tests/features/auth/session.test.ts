@@ -55,6 +55,9 @@ describe("auth session", () => {
       pageParams: [0],
       pages: [{ items: [{ notification_id: "private-notification" }], unread_count: 1 }]
     });
+    queryClient.setQueryData(["feed", "general"], {
+      pages: [{ items: [{ recorda_id: "private-recorda" }] }]
+    });
     const privateRecordaKey = recordaDetailsQueryKey("private-recorda");
     queryClient.setQueryData(privateRecordaKey, { recorda_id: "private-recorda" });
     const privateCommentsKey = recordaCommentsQueryKey("private-recorda");
@@ -68,6 +71,7 @@ describe("auth session", () => {
     expect(secureStorage.removeItem).toHaveBeenCalledWith(LEGACY_ACCOUNT_TYPE_KEY);
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
     expect(queryClient.getQueryData(NOTIFICATIONS_QUERY_KEY)).toBeUndefined();
+    expect(queryClient.getQueryData(["feed", "general"])).toBeUndefined();
     expect(queryClient.getQueryData(privateRecordaKey)).toBeUndefined();
     expect(queryClient.getQueryData(privateCommentsKey)).toBeUndefined();
   });

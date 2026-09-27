@@ -16,7 +16,7 @@ import { resolveApiAssetUrl } from "@/services/api";
 import { RecordaDetailView } from "../components/RecordaDetailView";
 import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
 import { useRecordaDetails } from "../hooks/useRecordaDetails";
-import { recordaCommentsQueryKey } from "../queryKeys";
+import { recordaCommentsQueryKey, recordaDetailsQueryKey } from "../queryKeys";
 import { feedService } from "../services/feedService";
 import { feedItemToFeedPost, recordaDetailToFeedItem, useFeed } from "../state/FeedContext";
 import type { FeedComment, RecordaCommentResponse } from "../types";
@@ -66,6 +66,17 @@ export function PublishedRecordaScreen() {
         recordaCommentsQueryKey(params.postId),
         (current = []) => [...current, created]
       );
+    }
+  });
+  const removeRecorda = useMutation({
+    mutationFn: () => feedService.deleteRecorda(params.postId),
+    onSuccess: () => {
+      deletePost(params.postId);
+      queryClient.removeQueries({ queryKey: recordaDetailsQueryKey(params.postId) });
+      queryClient.removeQueries({ queryKey: recordaCommentsQueryKey(params.postId) });
+      void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      navigation.goBack();
     }
   });
   const remoteItem = recorda.data ? recordaDetailToFeedItem(recorda.data) : undefined;
@@ -144,6 +155,8 @@ export function PublishedRecordaScreen() {
       commentsLoading={isApiRecorda && comments.isPending}
       commentsError={isApiRecorda && comments.isError}
       commentSubmitError={createComment.isError}
+      deleteError={removeRecorda.isError}
+      deleteSubmitting={removeRecorda.isPending}
       commentSubmitting={createComment.isPending}
       onRetryComments={() => void comments.refetch()}
       liked={isLiked}
@@ -160,11 +173,23 @@ export function PublishedRecordaScreen() {
       }}
       onDelete={() => {
         if (!isOwnPost) return;
-        deletePost(post.id);
-        navigation.goBack();
+        if (isApiRecorda) {
+          removeRecorda.mutate();
+        } else {
+          deletePost(post.id);
+          navigation.goBack();
+        }
       }}
       onReport={() => navigation.navigate("RecordaReport", { postId: post.id })}
-      onShare={() => navigation.navigate("RecordaShare", { postId: post.id })}
+      onShare={() =>
+        navigation.navigate("ShareCard", {
+          artistName: post.song.artistName,
+          coverUrl: remoteItem?.song_cover_url || null,
+          mediaUri: post.mediaUrl,
+          mediaType: post.mediaType === "VIDEO" ? "video" : "photo",
+          songTitle: post.song.title
+        })
+      }
       onTabPress={(tab) => {
         if (tab === "feed") navigation.goBack();
         else navigation.navigate(tab === "camera" ? "Camera" : "Profile");

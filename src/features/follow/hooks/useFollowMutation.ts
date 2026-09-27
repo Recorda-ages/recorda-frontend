@@ -46,6 +46,7 @@ export function useFollowMutation() {
 
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: USERS_QUERY_PREFIX });
+      void queryClient.invalidateQueries({ queryKey: ["feed"] });
     },
 
     onSuccess: (result: FollowMutationResult | null, { userId }: FollowMutationInput) => {

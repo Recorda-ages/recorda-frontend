@@ -58,7 +58,15 @@ export function RecordaCard({ item, onPress, onToggleLike, onShare }: RecordaCar
             {` • ${item.song_artist_name}`}
           </AppText>
         </View>
-        <Pressable accessibilityLabel={t("feed.more")} accessibilityRole="button" hitSlop={8}>
+        <Pressable
+          accessibilityLabel={t("feed.more")}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={(event) => {
+            event?.stopPropagation?.();
+            onPress();
+          }}
+        >
           <Icon color={colors.neutrals[100]} size={24} source="dots-horizontal" />
         </Pressable>
       </View>
@@ -83,14 +91,24 @@ export function RecordaCard({ item, onPress, onToggleLike, onShare }: RecordaCar
             showCount={false}
             testID={`like-button-${item.recorda_id}`}
           />
-          <View accessibilityLabel={t("feed.comment")}>
+          <Pressable
+            accessibilityLabel={t("feed.comment")}
+            accessibilityRole="button"
+            onPress={(event) => {
+              event?.stopPropagation?.();
+              onPress();
+            }}
+          >
             <Icon color={colors.primary[500]} size={26} source="message-text-outline" />
-          </View>
+          </Pressable>
           <Pressable
             accessibilityLabel={t("feed.share")}
             accessibilityRole="button"
             hitSlop={8}
-            onPress={onShare}
+            onPress={(event) => {
+              event?.stopPropagation?.();
+              onShare?.();
+            }}
           >
             <Icon color={colors.primary[500]} size={24} source="share-variant-outline" />
           </Pressable>

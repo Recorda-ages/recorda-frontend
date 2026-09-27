@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -148,6 +148,47 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it("deletes an owned API Recorda on the server before removing it locally", async () => {
+    const recordaId = "11111111-1111-4111-8111-111111111111";
+    const item: FeedItem = {
+      author: { user_id: "demo-lucas", username: "lucas_almeida", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Minha Recorda",
+      is_liked: false,
+      likes_count: 0,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/photo.jpg",
+      recorda_id: recordaId,
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    let finishDelete!: () => void;
+    const deleteRecorda = jest.spyOn(feedService, "deleteRecorda").mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finishDelete = resolve;
+        })
+    );
+    mockRoute.params.postId = recordaId;
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+    fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+    fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
+    fireEvent.press(screen.getByRole("button", { name: "Confirmar exclusão" }));
+
+    await waitFor(() => expect(deleteRecorda).toHaveBeenCalledWith(recordaId));
+    expect(screen.getByTestId("remaining-posts").props.children).toContain(recordaId);
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    await act(async () => finishDelete());
+    await waitFor(() =>
+      expect(screen.getByTestId("remaining-posts").props.children).not.toContain(recordaId)
+    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it("only offers Report for another author and passes the post id", () => {
     mockRoute.params.postId = "post-2";
     renderScreen();
@@ -161,7 +202,13 @@ describe("PublishedRecordaScreen", () => {
   it("opens the sharing destination with the selected Recorda", () => {
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
-    expect(mockNavigate).toHaveBeenCalledWith("RecordaShare", { postId: "post-1" });
+    expect(mockNavigate).toHaveBeenCalledWith("ShareCard", {
+      artistName: "The American Dawn",
+      coverUrl: null,
+      mediaUri: expect.any(String),
+      mediaType: "photo",
+      songTitle: "The Edge"
+    });
   });
 
   it("handles a Recorda with no comments", async () => {

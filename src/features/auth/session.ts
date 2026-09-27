@@ -28,6 +28,7 @@ export async function clearSession() {
   queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
   queryClient.removeQueries({ queryKey: RECORDA_DETAILS_QUERY_KEY });
   queryClient.removeQueries({ queryKey: RECORDA_COMMENTS_QUERY_KEY });
+  queryClient.removeQueries({ queryKey: ["feed"] });
   queryClient.removeQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
 }
 

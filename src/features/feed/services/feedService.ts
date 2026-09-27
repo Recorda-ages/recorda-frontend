@@ -12,6 +12,9 @@ function buildFeedPath(feed: "following" | "general", cursor: string | null) {
 }
 
 export const feedService = {
+  deleteRecorda: (recordaId: string) =>
+    authApiClient.delete<void>(`/recordas/${encodeURIComponent(recordaId)}`),
+
   getRecordaById: (recordaId: string, signal?: AbortSignal) =>
     authApiClient.get<RecordaDetailResponse>(`/recordas/${encodeURIComponent(recordaId)}`, {
       signal

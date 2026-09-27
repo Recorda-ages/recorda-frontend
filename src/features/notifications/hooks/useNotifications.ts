@@ -91,7 +91,11 @@ export function useMarkAllNotificationsAsRead() {
         data
           ? {
               ...data,
-              pages: data.pages.map((page) => ({ ...page, unread_count: 0 }))
+              pages: data.pages.map((page) => ({
+                ...page,
+                unread_count: 0,
+                items: page.items.map((item) => ({ ...item, is_read: true }))
+              }))
             }
           : data
       );
@@ -159,9 +163,13 @@ export function useRespondFollowRequest() {
 
       return { previous, session } satisfies NotificationMutationContext;
     },
-    onSettled: (_data, _error, _variables, context) =>
-      context && isCurrentAuthSession(queryClient, context.session)
-        ? queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY })
-        : undefined
+    onSettled: (_data, error, _variables, context) => {
+      if (!context || !isCurrentAuthSession(queryClient, context.session)) return;
+      void queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+      if (!error) {
+        void queryClient.invalidateQueries({ queryKey: ["feed"] });
+        void queryClient.invalidateQueries({ queryKey: ["users"] });
+      }
+    }
   });
 }

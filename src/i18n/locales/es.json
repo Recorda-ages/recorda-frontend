@@ -153,6 +153,7 @@
     "cancel": "Cancelar",
     "deleteTitle": "¿Eliminar Recorda?",
     "deleteMessage": "Esta acción no se puede deshacer.",
+    "deleteError": "No se pudo eliminar la Recorda. Inténtalo de nuevo.",
     "confirmDelete": "Confirmar eliminación",
     "unavailable": "Esta Recorda ya no está disponible.",
     "sharePending": "Compartir Recordas todavía no está disponible en esta versión.",

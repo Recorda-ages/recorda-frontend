@@ -54,6 +54,12 @@ describe("feedService.getRecordaById", () => {
   });
 });
 
+it("deletes an encoded Recorda through the authenticated API", async () => {
+  mockDelete.mockResolvedValueOnce(undefined);
+  await feedService.deleteRecorda("recorda/id");
+  expect(mockDelete).toHaveBeenCalledWith("/recordas/recorda%2Fid");
+});
+
 describe("feedService likes", () => {
   it("posts a like for an encoded Recorda id", async () => {
     const state = { is_liked: true, likes_count: 4 };

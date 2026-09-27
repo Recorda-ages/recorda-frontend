@@ -27,6 +27,8 @@ type Props = {
   commentsLoading?: boolean;
   commentsError?: boolean;
   commentSubmitError?: boolean;
+  deleteError?: boolean;
+  deleteSubmitting?: boolean;
   commentSubmitting?: boolean;
   likeSubmitting?: boolean;
   onRetryComments?: () => void;
@@ -89,6 +91,8 @@ export function RecordaDetailView({
   commentsLoading = false,
   commentsError = false,
   commentSubmitError = false,
+  deleteError = false,
+  deleteSubmitting = false,
   commentSubmitting = false,
   likeSubmitting = false,
   onRetryComments,
@@ -292,10 +296,13 @@ export function RecordaDetailView({
               <>
                 <AppText style={styles.bold}>{t("publishedRecorda.deleteTitle")}</AppText>
                 <AppText style={styles.text}>{t("publishedRecorda.deleteMessage")}</AppText>
+                {deleteError ? (
+                  <AppText style={styles.submitError}>{t("publishedRecorda.deleteError")}</AppText>
+                ) : null}
                 <Pressable
                   accessibilityRole="button"
+                  disabled={deleteSubmitting}
                   onPress={() => {
-                    setMenu(null);
                     onDelete();
                   }}
                   style={styles.dialogButton}
@@ -324,6 +331,7 @@ export function RecordaDetailView({
             )}
             <Pressable
               accessibilityRole="button"
+              disabled={deleteSubmitting}
               onPress={() => setMenu(null)}
               style={styles.dialogButton}
             >

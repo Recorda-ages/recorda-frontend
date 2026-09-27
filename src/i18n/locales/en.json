@@ -153,6 +153,7 @@
     "cancel": "Cancel",
     "deleteTitle": "Delete Recorda?",
     "deleteMessage": "This action cannot be undone.",
+    "deleteError": "Could not delete the Recorda. Try again.",
     "confirmDelete": "Confirm deletion",
     "unavailable": "This Recorda is no longer available.",
     "sharePending": "Recorda sharing is not available in this version yet.",
