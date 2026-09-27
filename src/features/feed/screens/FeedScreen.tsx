@@ -19,6 +19,7 @@ import { FeedTabs } from "../components/FeedTabs";
 import { RecordaCard } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
+import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
 import { useFeed } from "../state/FeedContext";
 import type { FeedItem, FeedTab } from "../types";
 
@@ -29,6 +30,7 @@ export function FeedScreen() {
   const [activeTab, setActiveTab] = useState<FeedTab>("geral");
   const generalFeedQuery = useGeneralFeed(activeTab === "geral");
   const followingFeedQuery = useFollowingFeed(activeTab === "following");
+  const likeMutation = useRecordaLikeMutation();
   const unreadCount = useNotifications().data?.pages[0]?.unread_count ?? 0;
 
   const handleTabBarPress = (tab: BottomTab) => {
@@ -120,6 +122,12 @@ export function FeedScreen() {
             renderItem={({ item }) => (
               <RecordaCard
                 item={item}
+                onToggleLike={async (liked) => {
+                  await likeMutation.mutateAsync({
+                    isLiked: liked,
+                    recordaId: item.recorda_id
+                  });
+                }}
                 onPress={() => handleCardPress(item)}
                 onShare={() => handleCardShare(item)}
               />

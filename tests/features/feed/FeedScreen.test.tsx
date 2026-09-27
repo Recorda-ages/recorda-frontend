@@ -1,13 +1,16 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { FeedProvider, FeedScreen } from "@/features/feed";
 import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
 import { useGeneralFeed } from "@/features/feed/hooks/useGeneralFeed";
+import { feedService } from "@/features/feed/services/feedService";
 import type { FeedItem, FeedPage } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 
 const mockNavigate = jest.fn();
+const queryClients: QueryClient[] = [];
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
@@ -146,16 +149,29 @@ function mockGeneral(result: MockQueryResult) {
 }
 
 function renderScreen() {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
+  });
+  queryClients.push(queryClient);
+
   return render(
     <I18nextProvider i18n={i18n}>
-      <FeedProvider>
-        <FeedScreen />
-      </FeedProvider>
+      <QueryClientProvider client={queryClient}>
+        <FeedProvider>
+          <FeedScreen />
+        </FeedProvider>
+      </QueryClientProvider>
     </I18nextProvider>
   );
 }
 
 describe("FeedScreen", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    queryClients.forEach((queryClient) => queryClient.clear());
+    queryClients.length = 0;
+  });
+
   beforeEach(() => {
     mockNavigate.mockClear();
     mockFetchNextPage.mockReset();
@@ -196,6 +212,25 @@ describe("FeedScreen", () => {
       expect(screen.getByTestId("general-feed-list")).toBeTruthy();
       expect(within(screen.getByTestId("feed-post-general-1")).getByText("Ocean")).toBeTruthy();
       expect(within(screen.getByTestId("feed-post-general-2")).getByText("Highway")).toBeTruthy();
+    });
+
+    it("sends a like from the general feed to the API", async () => {
+      const recordaId = "11111111-1111-4111-8111-111111111111";
+      const setRecordaLike = jest
+        .spyOn(feedService, "setRecordaLike")
+        .mockResolvedValue({ is_liked: true, likes_count: 1 });
+      mockGeneral(
+        successResult(
+          { items: [buildItem({ likes_count: 0, recorda_id: recordaId })], next_cursor: null },
+          false,
+          generalHandlers
+        )
+      );
+      renderScreen();
+
+      fireEvent.press(screen.getByTestId(`like-button-${recordaId}`));
+
+      await waitFor(() => expect(setRecordaLike).toHaveBeenCalledWith(recordaId, true));
     });
 
     it("renders followed and discovery authors through the same card with no distinction", () => {

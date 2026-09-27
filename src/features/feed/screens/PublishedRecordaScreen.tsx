@@ -14,6 +14,7 @@ import { colors, spacing } from "@/theme";
 import { resolveApiAssetUrl } from "@/services/api";
 
 import { RecordaDetailView } from "../components/RecordaDetailView";
+import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
 import { useRecordaDetails } from "../hooks/useRecordaDetails";
 import { recordaCommentsQueryKey } from "../queryKeys";
 import { feedService } from "../services/feedService";
@@ -43,6 +44,7 @@ export function PublishedRecordaScreen() {
     deletedIds,
     openFeedItem,
     toggleLike,
+    setLikeState,
     addComment,
     deletePost
   } = useFeed();
@@ -51,6 +53,7 @@ export function PublishedRecordaScreen() {
   const isLocallyDeleted = deletedIds.includes(params.postId);
   const isApiRecorda = UUID_PATTERN.test(params.postId);
   const recorda = useRecordaDetails(params.postId, !snapshot && !isLocallyDeleted);
+  const likeMutation = useRecordaLikeMutation();
   const comments = useQuery({
     enabled: isApiRecorda && !isLocallyDeleted,
     queryKey: recordaCommentsQueryKey(params.postId),
@@ -72,6 +75,27 @@ export function PublishedRecordaScreen() {
     post && isApiRecorda ? { ...post, comments: (comments.data ?? []).map(toFeedComment) } : post;
   const authenticatedUser = queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY);
   const isOwnPost = post?.author.id === (authenticatedUser?.user_id ?? currentUser.id);
+  const isLiked = remoteItem?.is_liked ?? likedIds.includes(post?.id ?? params.postId);
+
+  const handleLike = () => {
+    if (likeMutation.isPending) return;
+
+    if (!isApiRecorda) {
+      toggleLike(params.postId);
+      return;
+    }
+
+    const nextLiked = !isLiked;
+    const previousCount = remoteItem?.likes_count ?? (post?.likesCount ?? 0) + (isLiked ? 1 : 0);
+    setLikeState(params.postId, nextLiked, previousCount + (nextLiked ? 1 : -1));
+    likeMutation.mutate(
+      { isLiked: nextLiked, recordaId: params.postId },
+      {
+        onError: () => setLikeState(params.postId, isLiked, previousCount),
+        onSuccess: (state) => setLikeState(params.postId, state.is_liked, state.likes_count)
+      }
+    );
+  };
 
   useEffect(() => {
     if (!snapshot && !isLocallyDeleted && remoteItem) {
@@ -122,10 +146,11 @@ export function PublishedRecordaScreen() {
       commentSubmitError={createComment.isError}
       commentSubmitting={createComment.isPending}
       onRetryComments={() => void comments.refetch()}
-      liked={likedIds.includes(post.id)}
+      liked={isLiked}
+      likeSubmitting={likeMutation.isPending}
       isOwnPost={isOwnPost}
       onBack={() => navigation.goBack()}
-      onLike={() => toggleLike(post.id)}
+      onLike={handleLike}
       onComment={async (text) => {
         if (isApiRecorda) {
           await createComment.mutateAsync(text);

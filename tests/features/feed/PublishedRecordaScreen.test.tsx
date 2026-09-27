@@ -245,7 +245,35 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByText("11 curtidas")).toBeTruthy();
 
     fireEvent.press(screen.getByText("Open API item"));
-    expect(screen.getByText("11 curtidas")).toBeTruthy();
+    expect(screen.getByText("12 curtidas")).toBeTruthy();
+  });
+
+  it("persists API likes from the detail screen and updates its count", async () => {
+    const recordaId = "11111111-1111-4111-8111-111111111111";
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "A memory",
+      is_liked: false,
+      likes_count: 8,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/photo.jpg",
+      recorda_id: recordaId,
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    const setRecordaLike = jest
+      .spyOn(feedService, "setRecordaLike")
+      .mockResolvedValue({ is_liked: true, likes_count: 9 });
+    mockRoute.params.postId = recordaId;
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+    fireEvent.press(screen.getByRole("button", { name: "Curtir" }));
+
+    await waitFor(() => expect(setRecordaLike).toHaveBeenCalledWith(recordaId, true));
+    expect(screen.getByText("9 curtidas")).toBeTruthy();
   });
 
   it("loads a Recorda by id when there is no feed snapshot", async () => {
@@ -254,6 +282,7 @@ describe("PublishedRecordaScreen", () => {
       created_at: "2026-05-10T12:00:00Z",
       deezer_track_id: "track-1",
       description: "Recorda aberta pela notificação",
+      is_liked: false,
       likes_count: 7,
       media_type: "PHOTO",
       media_url: "/api/v1/recordas/media/notification.jpg",

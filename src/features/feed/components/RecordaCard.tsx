@@ -14,10 +14,11 @@ import type { FeedItem } from "../types";
 type RecordaCardProps = Readonly<{
   item: FeedItem;
   onPress: () => void;
+  onToggleLike: (liked: boolean) => Promise<void>;
   onShare?: () => void;
 }>;
 
-export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
+export function RecordaCard({ item, onPress, onToggleLike, onShare }: RecordaCardProps) {
   const { t, i18n } = useTranslation();
   const [prevItem, setPrevItem] = useState(item);
   const [likesCount, setLikesCount] = useState(item.likes_count);
@@ -78,6 +79,7 @@ export function RecordaCard({ item, onPress, onShare }: RecordaCardProps) {
               setLikesCount(count);
               setIsLiked(liked);
             }}
+            onToggle={onToggleLike}
             showCount={false}
             testID={`like-button-${item.recorda_id}`}
           />
