@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { type ReactElement, useEffect } from "react";
-import { Alert, Share } from "react-native";
+import { Alert } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
@@ -11,6 +11,7 @@ import { usePublishRecorda } from "@/features/recorda-publish";
 import { mockRecordaDraft } from "../../../mocks/recordaDraft";
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPublish = jest.fn();
 const mockRetry = jest.fn();
@@ -20,7 +21,7 @@ jest.mock("@react-navigation/native", () => {
 
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn(), reset: mockReset })
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate, reset: mockReset })
   };
 });
 
@@ -55,6 +56,7 @@ function DraftSeeder({ draft }: { draft: RecordaDraft }) {
 describe("RecordaDetailsScreen", () => {
   beforeEach(() => {
     mockGoBack.mockClear();
+    mockNavigate.mockClear();
     mockReset.mockClear();
     mockPublish.mockReset();
     mockRetry.mockReset();
@@ -308,11 +310,6 @@ describe("RecordaDetailsScreen", () => {
   });
 
   it("navigates to ShareCard when no share action is provided", () => {
-    const mockNavigate = jest.fn();
-    jest
-      .spyOn(require("@react-navigation/native"), "useNavigation")
-      .mockReturnValue({ goBack: mockGoBack, navigate: mockNavigate, reset: mockReset });
-
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
 
     fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
