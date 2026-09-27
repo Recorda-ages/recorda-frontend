@@ -61,33 +61,47 @@ export function FeedScreen() {
 
   const handleCardPress = (item: FeedItem) => {
     openFeedItem(item);
+    setActivePreview(item.recorda_id, item.song_preview_url);
     navigation.navigate("PublishedRecorda", { postId: item.recorda_id });
   };
 
   // Os dois painéis ficam montados (o inativo só tem opacity 0), então ambas as
-  // listas disparam viewability. Cada handler só entrega o áudio se a aba dele
-  // for a ativa. A identidade precisa ser estável: o React Native recusa trocar
-  // `onViewableItemsChanged` depois da montagem.
+  // listas disparam viewability. Cada handler armazena a Recorda em foco da
+  // sua aba e só entrega o áudio se for a ativa. Ao trocar de aba, o áudio
+  // sincroniza imediatamente com a aba que veio para a frente.
   const activeTabRef = useRef(activeTab);
-
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
+  const focusedCardByTab = useRef<Record<FeedTab, FeedItem | null>>({
+    geral: null,
+    following: null
+  });
 
   const takeFocus = useCallback(
     (tab: FeedTab, viewableItems: ViewToken[]) => {
+      const focused = viewableItems[0]?.item as FeedItem | undefined;
+      focusedCardByTab.current[tab] = focused ?? null;
+
       if (activeTabRef.current !== tab) {
         return;
       }
 
-      const focused = viewableItems[0]?.item as FeedItem | undefined;
-
       if (focused) {
         setActivePreview(focused.recorda_id, focused.song_preview_url);
+      } else {
+        setActivePreview("", null);
       }
     },
     [setActivePreview]
   );
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    const tabFocused = focusedCardByTab.current[activeTab];
+    if (tabFocused) {
+      setActivePreview(tabFocused.recorda_id, tabFocused.song_preview_url);
+    } else {
+      setActivePreview("", null);
+    }
+  }, [activeTab, setActivePreview]);
 
   const handleGeralViewable = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("geral", viewableItems),

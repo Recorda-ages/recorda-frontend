@@ -15,7 +15,7 @@ import { AppState } from "react-native";
  * exige que a música siga do mesmo ponto ao abrir a Recorda; qualquer outra
  * tela silencia o áudio.
  */
-const AUDIO_ROUTES = ["Feed", "PublishedRecorda"];
+const AUDIO_ROUTES = new Set(["Feed", "PublishedRecorda"]);
 
 type ActivePreview = Readonly<{
   previewUrl: string;
@@ -102,7 +102,7 @@ export function FeedAudioProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setActiveRoute = useCallback((routeName: string | undefined) => {
-    setIsRouteAllowed(routeName === undefined || AUDIO_ROUTES.includes(routeName));
+    setIsRouteAllowed(routeName === undefined || AUDIO_ROUTES.has(routeName));
   }, []);
 
   const toggleMuted = useCallback(() => setIsMuted((current) => !current), []);

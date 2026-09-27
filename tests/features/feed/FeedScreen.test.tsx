@@ -627,5 +627,45 @@ describe("FeedScreen", () => {
 
       expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
     });
+
+    it("synchronizes audio preview immediately when switching tabs", () => {
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      mockFollowing(successResult({ items: withPreview, next_cursor: null }));
+      renderScreen();
+
+      // Card 0 on general feed takes focus:
+      fireEvent(
+        screen.getByTestId("general-feed-list"),
+        "viewableItemsChanged",
+        viewable(withPreview[0], 0)
+      );
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/a.mp3");
+
+      // Switch to Following tab before it has any focused card:
+      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      expect(mockAudioPlayer.pause).toHaveBeenCalled();
+
+      // Card 1 on following feed takes focus:
+      fireEvent(
+        screen.getByTestId("following-feed-list"),
+        "viewableItemsChanged",
+        viewable(withPreview[1], 1)
+      );
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+
+      // Switch back to Para Você: card 0 immediately resumes
+      fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/a.mp3");
+    });
+
+    it("activates audio preview on card tap even before visibility threshold", () => {
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      renderScreen();
+
+      mockAudioPlayer.replace.mockClear();
+      fireEvent.press(screen.getByTestId("feed-post-recorda-2"));
+
+      expect(mockAudioPlayer.replace).toHaveBeenCalledWith("https://cdn.example.com/b.mp3");
+    });
   });
 });
