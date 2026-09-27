@@ -27,6 +27,7 @@ type FeedState = {
   deletedIds: string[];
   openFeedItem: (item: FeedItem) => void;
   toggleLike: (id: string) => void;
+  setLikeState: (id: string, liked: boolean, likesCount?: number) => void;
   addComment: (id: string, text: string) => void;
   deletePost: (id: string) => void;
 };
@@ -51,7 +52,7 @@ export function recordaDetailToFeedItem(detail: RecordaDetailResponse): FeedItem
     },
     created_at: detail.created_at,
     description: detail.description,
-    is_liked: false,
+    is_liked: detail.is_liked,
     likes_count: detail.likes_count,
     media_type: detail.media_type,
     media_url: detail.media_url,
@@ -93,7 +94,6 @@ export function FeedProvider({ children }: PropsWithChildren) {
   const [likedIds, setLikedIds] = useState<string[]>([]);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const nextComment = useRef(0);
-  const knownPostIds = useRef(new Set(mockFeedPosts.map((post) => post.id)));
   const feedSessionId = useRef(getFeedSessionId());
 
   useEffect(() => {
@@ -109,7 +109,6 @@ export function FeedProvider({ children }: PropsWithChildren) {
 
         feedSessionId.current = nextSessionId;
         nextComment.current = 0;
-        knownPostIds.current = new Set(mockFeedPosts.map((post) => post.id));
         setPosts(mockFeedPosts);
         setLikedIds([]);
         setDeletedIds([]);
@@ -119,18 +118,43 @@ export function FeedProvider({ children }: PropsWithChildren) {
 
   const openFeedItem = useCallback((item: FeedItem) => {
     const post = feedItemToFeedPost(item);
-    const isNewPost = !knownPostIds.current.has(post.id);
-    if (isNewPost) {
-      knownPostIds.current.add(post.id);
-      setPosts((current) => [...current, post]);
-    }
-    if (item.is_liked && isNewPost) {
-      setLikedIds((current) => (current.includes(post.id) ? current : [...current, post.id]));
-    }
+    setPosts((current) => {
+      const existing = current.find((candidate) => candidate.id === post.id);
+      return existing
+        ? current.map((candidate) =>
+            candidate.id === post.id ? { ...post, comments: existing.comments } : candidate
+          )
+        : [...current, post];
+    });
+    setLikedIds((current) =>
+      item.is_liked
+        ? current.includes(post.id)
+          ? current
+          : [...current, post.id]
+        : current.filter((value) => value !== post.id)
+    );
   }, []);
 
   const toggleLike = useCallback((id: string) => {
     setLikedIds((ids) => (ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]));
+  }, []);
+
+  const setLikeState = useCallback((id: string, liked: boolean, likesCount?: number) => {
+    setLikedIds((current) =>
+      liked
+        ? current.includes(id)
+          ? current
+          : [...current, id]
+        : current.filter((value) => value !== id)
+    );
+
+    if (likesCount !== undefined) {
+      setPosts((current) =>
+        current.map((post) =>
+          post.id === id ? { ...post, likesCount: likesCount - (liked ? 1 : 0) } : post
+        )
+      );
+    }
   }, []);
 
   const addComment = useCallback((id: string, value: string) => {
@@ -165,10 +189,11 @@ export function FeedProvider({ children }: PropsWithChildren) {
       currentUser: demoFeedUser,
       openFeedItem,
       toggleLike,
+      setLikeState,
       addComment,
       deletePost
     }),
-    [posts, likedIds, deletedIds, openFeedItem, toggleLike, addComment, deletePost]
+    [posts, likedIds, deletedIds, openFeedItem, toggleLike, setLikeState, addComment, deletePost]
   );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;

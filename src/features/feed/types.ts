@@ -37,6 +37,7 @@ export type RecordaDetailResponse = {
   created_at: string;
   deezer_track_id: string;
   description: string | null;
+  is_liked: boolean;
   likes_count: number;
   media_type: MediaType;
   media_url: string;
@@ -45,6 +46,11 @@ export type RecordaDetailResponse = {
   song_cover_url: string;
   song_preview_url: string | null;
   song_title: string;
+};
+
+export type RecordaLikeState = {
+  is_liked: boolean;
+  likes_count: number;
 };
 
 export type RecordaCommentResponse = {

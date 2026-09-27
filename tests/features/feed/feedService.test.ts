@@ -3,11 +3,12 @@ import type { FeedPage, RecordaDetailResponse } from "@/features/feed/types";
 import { authApiClient } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
-  authApiClient: { get: jest.fn(), post: jest.fn() }
+  authApiClient: { delete: jest.fn(), get: jest.fn(), post: jest.fn() }
 }));
 
 const mockGet = authApiClient.get as jest.Mock;
 const mockPost = authApiClient.post as jest.Mock;
+const mockDelete = authApiClient.delete as jest.Mock;
 
 const FEED_PAGE: FeedPage = {
   items: [],
@@ -17,6 +18,7 @@ const FEED_PAGE: FeedPage = {
 beforeEach(() => {
   mockGet.mockReset();
   mockPost.mockReset();
+  mockDelete.mockReset();
 });
 
 describe("feedService comments", () => {
@@ -49,6 +51,24 @@ describe("feedService.getRecordaById", () => {
       signal: controller.signal
     });
     expect(result).toBe(detail);
+  });
+});
+
+describe("feedService likes", () => {
+  it("posts a like for an encoded Recorda id", async () => {
+    const state = { is_liked: true, likes_count: 4 };
+    mockPost.mockResolvedValueOnce(state);
+
+    await expect(feedService.setRecordaLike("recorda/id", true)).resolves.toBe(state);
+    expect(mockPost).toHaveBeenCalledWith("/recordas/recorda%2Fid/likes");
+  });
+
+  it("deletes a like for an encoded Recorda id", async () => {
+    const state = { is_liked: false, likes_count: 3 };
+    mockDelete.mockResolvedValueOnce(state);
+
+    await expect(feedService.setRecordaLike("recorda/id", false)).resolves.toBe(state);
+    expect(mockDelete).toHaveBeenCalledWith("/recordas/recorda%2Fid/likes");
   });
 });
 

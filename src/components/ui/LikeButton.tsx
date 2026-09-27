@@ -10,7 +10,7 @@ type LikeButtonProps = {
   count: number;
   initialLiked?: boolean;
   onChange?: (state: { count: number; liked: boolean }) => void;
-  onToggle?: (liked: boolean) => Promise<void> | void;
+  onToggle: (liked: boolean) => Promise<void> | void;
   showCount?: boolean;
   testID?: string;
 };
@@ -28,7 +28,8 @@ export function LikeButton({
   const [prevCount, setPrevCount] = useState(count);
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(count);
-  const requestId = useRef(0);
+  const [isPending, setIsPending] = useState(false);
+  const pendingRef = useRef(false);
 
   if (initialLiked !== prevInitialLiked) {
     setPrevInitialLiked(initialLiked);
@@ -41,12 +42,14 @@ export function LikeButton({
   }
 
   async function handlePress() {
+    if (pendingRef.current) return;
+
     const nextLiked = !liked;
     const previousLiked = liked;
     const previousCount = likeCount;
-    const currentRequestId = requestId.current + 1;
 
-    requestId.current = currentRequestId;
+    pendingRef.current = true;
+    setIsPending(true);
     setLiked(nextLiked);
     setLikeCount(previousCount + (nextLiked ? 1 : -1));
     onChange?.({ count: previousCount + (nextLiked ? 1 : -1), liked: nextLiked });
@@ -54,11 +57,12 @@ export function LikeButton({
     try {
       await onToggle?.(nextLiked);
     } catch {
-      if (requestId.current === currentRequestId) {
-        setLiked(previousLiked);
-        setLikeCount(previousCount);
-        onChange?.({ count: previousCount, liked: previousLiked });
-      }
+      setLiked(previousLiked);
+      setLikeCount(previousCount);
+      onChange?.({ count: previousCount, liked: previousLiked });
+    } finally {
+      pendingRef.current = false;
+      setIsPending(false);
     }
   }
 
@@ -68,8 +72,12 @@ export function LikeButton({
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
         accessibilityState={{ selected: liked }}
+        disabled={isPending}
         hitSlop={8}
-        onPress={() => void handlePress()}
+        onPress={(event) => {
+          event?.stopPropagation?.();
+          void handlePress();
+        }}
         style={styles.button}
         testID={testID}
       >

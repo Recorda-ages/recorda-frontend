@@ -28,6 +28,7 @@ type Props = {
   commentsError?: boolean;
   commentSubmitError?: boolean;
   commentSubmitting?: boolean;
+  likeSubmitting?: boolean;
   onRetryComments?: () => void;
   liked: boolean;
   isOwnPost: boolean;
@@ -44,18 +45,21 @@ function IconAction({
   label,
   icon,
   onPress,
-  selected
+  selected,
+  disabled = false
 }: Readonly<{
   label: string;
   icon: string;
   onPress: () => void;
   selected?: boolean;
+  disabled?: boolean;
 }>) {
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
       accessibilityState={selected === undefined ? undefined : { selected }}
+      disabled={disabled}
       onPress={onPress}
       style={styles.iconButton}
     >
@@ -86,6 +90,7 @@ export function RecordaDetailView({
   commentsError = false,
   commentSubmitError = false,
   commentSubmitting = false,
+  likeSubmitting = false,
   onRetryComments,
   liked,
   isOwnPost,
@@ -176,6 +181,7 @@ export function RecordaDetailView({
                 <View style={styles.actions}>
                   <IconAction
                     label={t("feed.like")}
+                    disabled={likeSubmitting}
                     icon={liked ? "heart" : "heart-outline"}
                     onPress={onLike}
                     selected={liked}
