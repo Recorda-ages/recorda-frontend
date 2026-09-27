@@ -7,6 +7,7 @@ module.exports = {
     "^expo-image-manipulator$": "<rootDir>/tests/mocks/expoImageManipulator.ts",
     "^expo-image-picker$": "<rootDir>/tests/mocks/expoImagePicker.ts",
     "^expo-media-library$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",
+    "^expo-media-library/legacy$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",
     "^expo-splash-screen$": "<rootDir>/tests/mocks/expoSplashScreen.ts",
     "^expo-video$": "<rootDir>/tests/mocks/expoVideo.tsx",
     "^react-native-safe-area-context$": "<rootDir>/tests/mocks/safeAreaContext.tsx",

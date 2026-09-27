@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import * as ExpoCamera from "expo-camera";
 import * as ExpoImagePicker from "expo-image-picker";
-import * as ExpoMediaLibrary from "expo-media-library";
+import * as ExpoMediaLibrary from "expo-media-library/legacy";
 import { Alert } from "react-native";
 
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
