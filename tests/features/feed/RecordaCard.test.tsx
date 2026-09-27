@@ -110,7 +110,7 @@ describe("RecordaCard", () => {
   it("exposes the card, menu and like controls as interactive buttons", () => {
     renderCard(BASE_ITEM);
 
-    expect(screen.getAllByRole("button")).toHaveLength(3);
+    expect(screen.getAllByRole("button")).toHaveLength(4);
   });
 
   it("calls onPress with the whole card when tapped", () => {
