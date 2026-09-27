@@ -26,10 +26,10 @@ const BASE_ITEM: FeedItem = {
   song_title: "The Edge"
 };
 
-function renderCard(item: FeedItem, onPress = jest.fn()) {
+function renderCard(item: FeedItem, onPress = jest.fn(), onShare?: () => void) {
   render(
     <I18nextProvider i18n={i18n}>
-      <RecordaCard item={item} onPress={onPress} />
+      <RecordaCard item={item} onPress={onPress} onShare={onShare} />
     </I18nextProvider>
   );
   return { onPress };
@@ -119,6 +119,21 @@ describe("RecordaCard", () => {
     fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onShare when the share button is pressed", () => {
+    const onShare = jest.fn();
+    renderCard(BASE_ITEM, jest.fn(), onShare);
+
+    fireEvent.press(screen.getByLabelText("Compartilhar"));
+
+    expect(onShare).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders an empty date when created_at is not a valid ISO string", () => {
+    renderCard({ ...BASE_ITEM, created_at: "not-a-date" });
+
+    expect(screen.queryByText(/janeiro|fevereiro|março/i)).toBeNull();
   });
 
   it("toggles like and updates the likes count immediately", () => {

@@ -83,12 +83,17 @@ function renderScreen() {
   );
 }
 
+let mockGetSize: jest.SpyInstance;
+
 describe("ShareCardScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockShareAsync.mockResolvedValue(undefined);
-    jest.spyOn(RNImage, "getSize").mockImplementation((_, success) => {
-      success(800, 600);
+    (
+      jest.requireMock("expo-image-manipulator") as { manipulateAsync: jest.Mock }
+    ).manipulateAsync.mockResolvedValue({ uri: "file://cropped.png" });
+    mockGetSize = jest.spyOn(RNImage, "getSize").mockImplementation((_, success) => {
+      (success as (w: number, h: number) => void)(800, 600);
     });
   });
 
@@ -181,5 +186,27 @@ describe("ShareCardScreen", () => {
     fireEvent.press(shareButton);
 
     await waitFor(() => expect(shareButton).toBeDisabled());
+  });
+
+  it("uses portrait crop branch when the image is taller than wide", async () => {
+    mockGetSize.mockImplementation((_, success) => {
+      (success as (w: number, h: number) => void)(300, 600);
+    });
+
+    renderScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+    });
+
+    await waitFor(
+      () => {
+        expect(mockShareAsync).toHaveBeenCalledWith(
+          "file://captured.png",
+          expect.objectContaining({ mimeType: "image/png" })
+        );
+      },
+      { timeout: 3000 }
+    );
   });
 });

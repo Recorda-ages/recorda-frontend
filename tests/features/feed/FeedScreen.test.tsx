@@ -378,4 +378,36 @@ describe("FeedScreen", () => {
 
     expect(mockNavigate).toHaveBeenCalledWith("Notifications");
   });
+
+  it("navigates to ShareCard when the share button on a general card is pressed", async () => {
+    mockGeneral(successResult(GENERAL_PAGE, false, generalHandlers));
+    renderScreen();
+
+    fireEvent.press(
+      within(screen.getByTestId("feed-post-general-1")).getByLabelText("Compartilhar")
+    );
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith("ShareCard", {
+        artistName: "The American Dawn",
+        coverUrl: "https://cdn.example.com/cover-1.jpg",
+        mediaUri: expect.stringContaining("media-1.jpg"),
+        songTitle: "Ocean"
+      })
+    );
+  });
+
+  it("shows the pagination error footer and retries when the next-page fetch fails", () => {
+    mockGeneral({
+      ...successResult({ ...GENERAL_PAGE, next_cursor: "next" }, true, generalHandlers),
+      isFetchNextPageError: true,
+      isFetchingNextPage: false
+    } as ReturnType<typeof successResult>);
+    renderScreen();
+
+    expect(screen.getByText("Não foi possível carregar mais Recordas.")).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+
+    expect(mockGeneralFetchNextPage).toHaveBeenCalledTimes(1);
+  });
 });
