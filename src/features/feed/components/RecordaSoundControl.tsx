@@ -4,7 +4,7 @@ import { Icon } from "react-native-paper";
 
 import { baseColors, colors, radius, spacing, withOpacity } from "@/theme";
 
-import { useFeedAudio } from "../state/FeedAudioContext";
+import { useFeedAudioActions, useFeedAudioMuted } from "../state/FeedAudioContext";
 
 type RecordaSoundControlProps = Readonly<{
   hasPreview: boolean;
@@ -20,7 +20,8 @@ type RecordaSoundControlProps = Readonly<{
  */
 export function RecordaSoundControl({ hasPreview, recordaId }: RecordaSoundControlProps) {
   const { t } = useTranslation();
-  const { isMuted, toggleMuted } = useFeedAudio();
+  const isMuted = useFeedAudioMuted();
+  const { toggleMuted } = useFeedAudioActions();
 
   if (!hasPreview) {
     return (

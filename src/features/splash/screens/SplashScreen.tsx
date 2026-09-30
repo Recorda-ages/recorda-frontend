@@ -13,6 +13,7 @@ import {
   type PostAuthDestination
 } from "@/features/auth/session";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
+import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { ApiError } from "@/services/api/errors";
 import { secureStorage } from "@/services/storage/secureStorage";
 import { baseColors, colors } from "@/theme/colors";
@@ -91,6 +92,9 @@ export function SplashScreen() {
         }
 
         queryClient.setQueryData(AUTH_ME_QUERY_KEY, user);
+        // Same as a fresh login: media requests on the first screen go out with the token
+        // instead of 401-ing until the cached token query loads.
+        queryClient.setQueryData(AUTH_TOKEN_QUERY_KEY, token);
         finish(getPostAuthDestination(user));
       } catch (error) {
         if (!isActive) {

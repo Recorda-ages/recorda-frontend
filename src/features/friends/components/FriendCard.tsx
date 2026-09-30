@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { colors, radius, spacing } from "@/theme";
 import { AppText } from "@/components/ui";
+import { useAuthImageSource } from "@/services/api";
+import { colors, radius, spacing } from "@/theme";
+
 import type { FriendProfile } from "../types";
 
 type FriendCardProps = {
@@ -21,12 +23,13 @@ export function FriendCard({
 }: Readonly<FriendCardProps>) {
   const { t } = useTranslation();
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const avatarSource = useAuthImageSource(profile.avatarUrl);
 
   return (
     <>
       <Pressable onPress={() => onPress(profile)} style={styles.container}>
-        {profile.avatarUrl ? (
-          <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
+        {avatarSource ? (
+          <Image source={avatarSource} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]} />
         )}

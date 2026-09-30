@@ -139,6 +139,7 @@
   "publishedRecorda": {
     "back": "Voltar",
     "open": "Ver detalhes da Recorda",
+    "likes_zero": "{{count}} curtidas",
     "likes_one": "{{count}} curtida",
     "likes_other": "{{count}} curtidas",
     "comments": "Comentários",
@@ -147,6 +148,10 @@
     "commentsLoadError": "Não foi possível carregar os comentários. Toque para tentar novamente.",
     "commentSubmitError": "Não foi possível enviar o comentário. Tente novamente.",
     "writeComment": "Adicione um comentário...",
+    "closeComment": "Fechar comentários",
+    "dragToClose": "Arraste para baixo para fechar",
+    "expandDescription": "Toque para ver a descrição inteira",
+    "collapseDescription": "Recolher descrição",
     "send": "Enviar comentário",
     "delete": "Excluir",
     "report": "Denunciar",
@@ -167,6 +172,7 @@
     "like": "Curtir",
     "comment": "Comentar",
     "share": "Compartilhar",
+    "likesCount_zero": "{{count}} curtidas",
     "likesCount_one": "{{count}} curtida",
     "likesCount_other": "{{count}} curtidas",
     "loading": "Carregando feed...",
@@ -192,6 +198,7 @@
       "profile": "Perfil"
     },
     "notificationsUnread": "Notificações, {{count}} não lidas",
+    "videoLoading": "Carregando vídeo",
     "sound": {
       "mute": "Silenciar música",
       "unmute": "Reativar música",
@@ -264,7 +271,8 @@
     "hint": "Busque por um nome de usuário para encontrar pessoas.",
     "searchError": "Não foi possível buscar usuários.",
     "retry": "Tentar novamente",
-    "empty": "Nenhum usuário encontrado. Tente outro nome de usuário."
+    "empty": "Nenhum usuário encontrado. Tente outro nome de usuário.",
+    "suggestions": "Perfis sugeridos"
   },
   "follow": {
     "follow": "Seguir",

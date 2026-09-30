@@ -81,6 +81,6 @@ export type FeedPost = {
   mediaUrl: string;
   previewUrl?: string | null;
   publishedAt: string;
-  song: { artistName: string; title: string };
+  song: { artistName: string; coverUrl?: string | null; title: string };
   tabs: ("following" | "forYou")[];
 };

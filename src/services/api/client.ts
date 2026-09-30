@@ -77,6 +77,12 @@ export function resolveApiAssetUrl(url: string) {
   return `${baseUrl}/${normalizedUrl.replace(/^\/+/, "")}`;
 }
 
+/** Whether a URL (relative or absolute) points at our API, i.e. may receive the auth token. */
+export function isApiUrl(url: string) {
+  const baseUrl = env.apiUrl.replace(/\/+$/, "");
+  return resolveApiAssetUrl(url).startsWith(`${baseUrl}/`);
+}
+
 async function request<TResponse>(path: string, options: ApiRequestOptions = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);

@@ -100,7 +100,12 @@ export function PreviewScreen() {
       <View style={styles.content}>
         <View style={styles.stage}>
           {type === "video" ? (
-            <VideoView player={player} style={StyleSheet.absoluteFill} />
+            <VideoView
+              contentFit="cover"
+              nativeControls={false}
+              player={player}
+              style={StyleSheet.absoluteFill}
+            />
           ) : (
             <Image source={{ uri }} style={StyleSheet.absoluteFill} />
           )}

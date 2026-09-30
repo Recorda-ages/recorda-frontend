@@ -19,9 +19,9 @@ describe("App", () => {
     mockGetItem.mockResolvedValue(null);
   });
 
-  it("renders the splash screen as the initial route", () => {
+  it("renders the splash screen as the initial route once startup assets are ready", async () => {
     render(<App />);
 
-    expect(screen.getByTestId("splash-screen-container")).toBeTruthy();
+    expect(await screen.findByTestId("splash-screen-container")).toBeTruthy();
   });
 });

@@ -1,6 +1,7 @@
 export { Button } from "./Button";
 export { ErrorState } from "./ErrorState";
 export { Input } from "./Input";
+export { AnimatedHeart } from "./AnimatedHeart";
 export { LikeButton } from "./LikeButton";
 export { Loading } from "./Loading";
 export { Screen } from "./Screen";

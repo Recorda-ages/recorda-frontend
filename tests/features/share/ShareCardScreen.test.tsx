@@ -1,10 +1,14 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { File, Paths } from "expo-file-system";
+
+import { mockDeleteFile } from "../../mocks/expoFileSystem";
 import * as ExpoVideo from "expo-video";
 import { Alert, Image as RNImage } from "react-native";
 
 import { AppProviders } from "@/app/providers/AppProviders";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 import * as CardExport from "@/features/share/services/cardExport";
+import { secureStorage } from "@/services/storage";
 
 import type * as ExpoVideoMock from "../../mocks/expoVideo";
 
@@ -42,9 +46,18 @@ jest.mock("@/features/share/services/cardExport", () => ({
   saveCardToGallery: jest.fn()
 }));
 
+const mockCrop = jest.fn();
+const mockSaveCropped = jest.fn();
+
 jest.mock("expo-image-manipulator", () => ({
-  SaveFormat: { JPEG: "jpeg", PNG: "png" },
-  manipulateAsync: jest.fn().mockResolvedValue({ uri: "file://cropped.png" })
+  ImageManipulator: {
+    manipulate: jest.fn(() => ({
+      crop: mockCrop,
+      release: jest.fn(),
+      renderAsync: jest.fn(async () => ({ saveAsync: mockSaveCropped }))
+    }))
+  },
+  SaveFormat: { JPEG: "jpeg", PNG: "png" }
 }));
 
 jest.mock("react-native-view-shot", () => {
@@ -88,12 +101,17 @@ jest.mock("expo-image", () => {
 
 const mockShareStories = CardExport.shareCardToInstagramStories as jest.Mock;
 
-function renderScreen() {
-  return render(
+function renderScreen({ coverLoaded = true } = {}) {
+  const view = render(
     <AppProviders>
       <ShareCardScreen />
     </AppProviders>
   );
+  // The export waits for the album cover; jest never loads network images by itself.
+  if (coverLoaded) {
+    fireEvent(screen.getByTestId("export-cover", { includeHiddenElements: true }), "load");
+  }
+  return view;
 }
 
 let mockGetSize: jest.SpyInstance;
@@ -112,9 +130,7 @@ describe("ShareCardScreen", () => {
     videoMock.mockGenerateVideoThumbnails.mockResolvedValue([
       { width: 640, height: 480, requestedTime: 0 }
     ]);
-    (
-      jest.requireMock("expo-image-manipulator") as { manipulateAsync: jest.Mock }
-    ).manipulateAsync.mockResolvedValue({ uri: "file://cropped.png" });
+    mockSaveCropped.mockResolvedValue({ uri: "file://cropped.png" });
     mockGetSize = jest.spyOn(RNImage, "getSize").mockImplementation((_, success) => {
       (success as (w: number, h: number) => void)(800, 600);
     });
@@ -124,6 +140,7 @@ describe("ShareCardScreen", () => {
     renderScreen();
 
     expect(screen.getByTestId("share-card-screen")).toBeTruthy();
+    // The off-screen export canvas repeats them, but it's hidden from accessibility.
     expect(screen.getByText("Believer")).toBeTruthy();
     expect(screen.getByText("Imagine Dragons")).toBeTruthy();
   });
@@ -157,10 +174,65 @@ describe("ShareCardScreen", () => {
     renderScreen();
 
     await waitFor(() => {
-      expect(videoMock.mockCreateVideoPlayer).toHaveBeenCalledWith("file://recorda-video.mp4");
+      expect(videoMock.mockReplaceVideoAsync).toHaveBeenCalledWith("file://recorda-video.mp4");
       expect(videoMock.mockGenerateVideoThumbnails).toHaveBeenCalledWith(0);
       expect(videoMock.mockReleaseVideoPlayer).toHaveBeenCalledTimes(1);
     });
+    const loadOrder = videoMock.mockReplaceVideoAsync.mock.invocationCallOrder[0];
+    const thumbnailOrder = videoMock.mockGenerateVideoThumbnails.mock.invocationCallOrder[0];
+    expect(loadOrder).toBeLessThan(thumbnailOrder);
+  });
+
+  it("downloads protected videos with the token before reading the first frame", async () => {
+    mockRouteParams.mediaType = "video";
+    mockRouteParams.mediaUri = "http://localhost:8000/api/v1/recordas/media/clip.mp4";
+    jest.spyOn(secureStorage, "getItem").mockResolvedValue("token-123");
+    const download = jest
+      .spyOn(File, "downloadFileAsync")
+      .mockResolvedValue(new File("file:///cache/clip.mp4"));
+
+    renderScreen();
+
+    await waitFor(() => {
+      expect(download).toHaveBeenCalledWith(mockRouteParams.mediaUri, Paths.cache, {
+        headers: { Authorization: "Bearer token-123" },
+        idempotent: true
+      });
+      expect(videoMock.mockReplaceVideoAsync).toHaveBeenCalledWith("file:///cache/clip.mp4");
+      // The frame is in memory; the downloaded copy is deleted.
+      expect(mockDeleteFile).toHaveBeenCalledWith("file:///cache/clip.mp4");
+    });
+  });
+
+  it("deletes the files it created after exporting, never the source media", async () => {
+    mockRouteParams.mediaUri = "file://camera-capture.jpg";
+    renderScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Baixar imagem" }));
+    });
+
+    await waitFor(() => {
+      expect(mockDeleteFile).toHaveBeenCalledWith("file://cropped.png");
+      expect(mockDeleteFile).toHaveBeenCalledWith("file://captured.png");
+    });
+    expect(mockDeleteFile).not.toHaveBeenCalledWith("file://camera-capture.jpg");
+  });
+
+  it("never downloads media from another host with the token", async () => {
+    mockRouteParams.mediaType = "video";
+    mockRouteParams.mediaUri = "https://cdn.example.com/clip.mp4";
+    jest.spyOn(secureStorage, "getItem").mockResolvedValue("token-123");
+    const download = jest.spyOn(File, "downloadFileAsync");
+
+    renderScreen();
+
+    await waitFor(() => {
+      expect(videoMock.mockReplaceVideoAsync).toHaveBeenCalledWith(
+        "https://cdn.example.com/clip.mp4"
+      );
+    });
+    expect(download).not.toHaveBeenCalled();
   });
 
   it("marks the teal preset as selected by default", () => {
@@ -192,6 +264,23 @@ describe("ShareCardScreen", () => {
     });
   });
 
+  it("waits for the album cover to load before capturing the card", async () => {
+    renderScreen({ coverLoaded: false });
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Instagram Stories" }));
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
+    expect(mockShareStories).not.toHaveBeenCalled();
+
+    fireEvent(screen.getByTestId("export-cover", { includeHiddenElements: true }), "load");
+    await waitFor(() => {
+      expect(mockShareStories).toHaveBeenCalledWith("file://captured.png");
+    });
+  });
+
   it("shows an alert when sharing fails", async () => {
     mockShareStories.mockRejectedValue(new Error("share failed"));
     const alertSpy = jest.spyOn(Alert, "alert");
@@ -208,10 +297,7 @@ describe("ShareCardScreen", () => {
   });
 
   it("disables the share button while sharing is in progress", async () => {
-    const { manipulateAsync } = jest.requireMock("expo-image-manipulator") as {
-      manipulateAsync: jest.Mock;
-    };
-    manipulateAsync.mockImplementation(() => new Promise(() => {}));
+    mockSaveCropped.mockImplementation(() => new Promise(() => {}));
 
     renderScreen();
 
@@ -240,5 +326,8 @@ describe("ShareCardScreen", () => {
       },
       { timeout: 3000 }
     );
+    // 300×600 is taller than the 262:380 frame: full width, centered vertically.
+    const [crop] = mockCrop.mock.calls.at(-1);
+    expect(crop).toEqual({ height: 435, originX: 0, originY: 83, width: 300 });
   });
 });

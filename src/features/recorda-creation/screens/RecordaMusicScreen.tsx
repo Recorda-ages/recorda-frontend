@@ -57,10 +57,9 @@ export function RecordaMusicScreen() {
   const hasQuery = debouncedQuery.length > 0;
   const tracks = hasQuery ? (search.data ?? []) : [];
 
+  // Never played: the paused player shows the first frame while the song previews play.
   const player = useVideoPlayer(media?.type === "video" ? media.uri : null, (instance) => {
-    instance.loop = true;
     instance.muted = true;
-    instance.play();
   });
 
   const handleNext = () => {

@@ -1,7 +1,8 @@
 import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
-import * as ImageManipulator from "expo-image-manipulator";
+import { File, Paths } from "expo-file-system";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Image } from "expo-image";
 import { createVideoPlayer, type VideoThumbnail } from "expo-video";
 import { StatusBar } from "expo-status-bar";
@@ -28,6 +29,8 @@ import {
   saveCardToGallery,
   shareCardToInstagramStories
 } from "@/features/share/services/cardExport";
+import { AUTH_TOKEN_KEY, isApiUrl, useAuthImageSource } from "@/services/api";
+import { secureStorage } from "@/services/storage";
 import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 type PresetId = "light" | "mint" | "teal" | "dark";
@@ -47,14 +50,15 @@ const PRESETS: Preset[] = [
 ];
 
 const GLOW_SOURCE = require("@/assets/images/glow.png");
+const COVER_LOAD_TIMEOUT_MS = 4000;
 
 // Export canvas size (Full HD portrait)
 const EXPORT_W = 1080;
 const EXPORT_H = 1920;
 
 // Photo dimensions in the preview (photoWrap)
-const PHOTO_PREVIEW_W = 250;
-const PHOTO_PREVIEW_H = 325;
+const PHOTO_PREVIEW_W = 262;
+const PHOTO_PREVIEW_H = 380;
 
 // Scale factor: how many export pixels per 1 preview pixel
 const EXPORT_SCALE = EXPORT_W / 375;
@@ -64,8 +68,8 @@ const EXPORT_PHOTO_W = Math.round(PHOTO_PREVIEW_W * EXPORT_SCALE * 1.2);
 const EXPORT_PHOTO_H = Math.round(PHOTO_PREVIEW_H * EXPORT_SCALE * 1.2);
 const CARD_PREVIEW_H = 480;
 const CARD_PREVIEW_W = 275;
-const PHOTO_PREVIEW_FIXED_H = 325;
-const PHOTO_PREVIEW_FIXED_W = 250;
+const PHOTO_PREVIEW_FIXED_H = PHOTO_PREVIEW_H;
+const PHOTO_PREVIEW_FIXED_W = PHOTO_PREVIEW_W;
 const NON_PREVIEW_CONTENT_H = 300;
 
 function showFeedback(title: string, message: string) {
@@ -122,13 +126,42 @@ async function createWebVideoThumbnail(mediaUri: string): Promise<string> {
   });
 }
 
+// Native image/video tools can't send auth headers, so protected media is downloaded first.
+// The token is read from storage directly: the cached query may not be loaded yet on first render.
+// Only our API gets the token; local files and other hosts are handed to the native tools as-is.
+// `downloaded` marks a temporary copy this screen created, to be deleted after use.
+async function resolveLocalMediaUri(uri: string): Promise<{ downloaded: boolean; uri: string }> {
+  if (!/^https?:\/\//.test(uri) || !isApiUrl(uri)) return { downloaded: false, uri };
+  const token = await secureStorage.getItem(AUTH_TOKEN_KEY);
+  if (!token) return { downloaded: false, uri };
+  const file = await File.downloadFileAsync(uri, Paths.cache, {
+    headers: { Authorization: `Bearer ${token}` },
+    idempotent: true
+  });
+  return { downloaded: true, uri: file.uri };
+}
+
+/** Deletes a temporary file this screen created (downloads, crops, captures). */
+function deleteTemporaryFile(uri: string | null | undefined) {
+  if (!uri?.startsWith("file://")) return;
+  try {
+    new File(uri).delete();
+  } catch {
+    // Already gone, or never written: nothing to clean up.
+  }
+}
+
 async function createVideoThumbnail(mediaUri: string): Promise<MediaSource> {
   if (Platform.OS === "web") {
     return createWebVideoThumbnail(mediaUri);
   }
 
-  const player = createVideoPlayer(mediaUri);
+  const local = await resolveLocalMediaUri(mediaUri);
+  // On iOS the constructor loads its source in the background, and thumbnails of a player
+  // without a loaded item come back as an empty list; replaceAsync resolves once it's loaded.
+  const player = createVideoPlayer(null);
   try {
+    await player.replaceAsync(local.uri);
     const [thumbnail] = await player.generateThumbnailsAsync(0);
     if (!thumbnail) {
       throw new Error("Video frame is unavailable");
@@ -136,6 +169,8 @@ async function createVideoThumbnail(mediaUri: string): Promise<MediaSource> {
     return thumbnail;
   } finally {
     player.release();
+    // The frame is decoded into memory; the downloaded copy of the video isn't needed.
+    if (local.downloaded) deleteTemporaryFile(local.uri);
   }
 }
 
@@ -146,9 +181,11 @@ export function ShareCardScreen() {
   const { mediaUri, mediaType, songTitle, artistName, coverUrl } = route.params;
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const authMediaSource = useAuthImageSource(mediaUri);
 
   const [selectedPreset, setSelectedPreset] = useState<PresetId>("teal");
-  const [isExporting, setIsExporting] = useState(false);
+  const [exportingAction, setExportingAction] = useState<"stories" | "save" | null>(null);
+  const isExporting = exportingAction !== null;
   const [videoThumbnail, setVideoThumbnail] = useState<{
     mediaUri: string;
     source: MediaSource;
@@ -157,6 +194,30 @@ export function ShareCardScreen() {
   const [capturedMediaSource, setCapturedMediaSource] = useState<MediaSource | null>(null);
 
   const exportRef = useRef<ViewShotRef>(null);
+  // The export captures the album cover from a remote URL; capturing before it has loaded
+  // leaves a blank square. Settles on load or error, with a timeout as the last resort.
+  const coverState = useRef<{ settled: boolean; waiters: (() => void)[] }>({
+    settled: !coverUrl,
+    waiters: []
+  });
+
+  const markCoverSettled = () => {
+    coverState.current.settled = true;
+    coverState.current.waiters.splice(0).forEach((resolve) => resolve());
+  };
+
+  const waitForCover = () =>
+    new Promise<void>((resolve) => {
+      if (coverState.current.settled) {
+        resolve();
+        return;
+      }
+      const timer = setTimeout(resolve, COVER_LOAD_TIMEOUT_MS);
+      coverState.current.waiters.push(() => {
+        clearTimeout(timer);
+        resolve();
+      });
+    });
   const exportInProgress = useRef(false);
 
   const previewHeight = Math.min(
@@ -172,7 +233,7 @@ export function ShareCardScreen() {
       ? videoThumbnail?.mediaUri === mediaUri
         ? videoThumbnail.source
         : null
-      : mediaUri;
+      : authMediaSource;
 
   useEffect(() => {
     if (mediaType !== "video") {
@@ -210,7 +271,10 @@ export function ShareCardScreen() {
     }
 
     exportInProgress.current = true;
-    setIsExporting(true);
+    setExportingAction(action);
+    // Files created for this export only; the source media (e.g. a fresh camera capture
+    // still used by the draft) is never deleted.
+    const temporaryFiles: string[] = [];
     try {
       let mediaSource: MediaSource | null = null;
       if (mediaType === "video") {
@@ -221,10 +285,13 @@ export function ShareCardScreen() {
           setFailedVideoUri(null);
         }
       } else if (mediaUri) {
-        // Crop the photo to match the preview's cover fit at 250×325.
+        // Crop the photo to match the preview's cover fit.
+        const localPhoto = await resolveLocalMediaUri(mediaUri);
+        if (localPhoto.downloaded) temporaryFiles.push(localPhoto.uri);
+        const localPhotoUri = localPhoto.uri;
         const { width: imgW, height: imgH } = await new Promise<{ width: number; height: number }>(
           (resolve, reject) =>
-            RNImage.getSize(mediaUri, (w, h) => resolve({ width: w, height: h }), reject)
+            RNImage.getSize(localPhotoUri, (w, h) => resolve({ width: w, height: h }), reject)
         );
 
         const targetAspect = PHOTO_PREVIEW_W / PHOTO_PREVIEW_H;
@@ -243,20 +310,25 @@ export function ShareCardScreen() {
           cropY = Math.round((imgH - cropH) / 2);
         }
 
-        const result = await ImageManipulator.manipulateAsync(
-          mediaUri,
-          [{ crop: { originX: cropX, originY: cropY, width: cropW, height: cropH } }],
-          { compress: 1, format: ImageManipulator.SaveFormat.PNG }
-        );
-        mediaSource = result.uri;
+        const context = ImageManipulator.manipulate(localPhotoUri);
+        try {
+          context.crop({ height: cropH, originX: cropX, originY: cropY, width: cropW });
+          const cropped = await context.renderAsync();
+          const result = await cropped.saveAsync({ compress: 1, format: SaveFormat.PNG });
+          mediaSource = result.uri;
+          temporaryFiles.push(result.uri);
+        } finally {
+          context.release();
+        }
       }
 
       // Update the export canvas before capturing it.
       setCapturedMediaSource(mediaSource);
-      await new Promise<void>((resolve) => setTimeout(resolve, 150));
+      await Promise.all([new Promise<void>((resolve) => setTimeout(resolve, 150)), waitForCover()]);
 
       // Capture the export canvas at 1080×1920.
       const exportUri = await exportRef.current.capture();
+      temporaryFiles.push(exportUri);
       if (action === "stories") {
         const result = await shareCardToInstagramStories(exportUri);
         showFeedback(
@@ -283,9 +355,12 @@ export function ShareCardScreen() {
         t(action === "stories" ? "shareCard.shareErrorMessage" : "shareCard.saveErrorMessage")
       );
     } finally {
+      // Sharing and saving have finished with the files by now (the share sheet and the
+      // gallery keep their own copies).
+      temporaryFiles.forEach(deleteTemporaryFile);
       setCapturedMediaSource(null);
       exportInProgress.current = false;
-      setIsExporting(false);
+      setExportingAction(null);
     }
   }
 
@@ -354,44 +429,46 @@ export function ShareCardScreen() {
           />
           <View
             style={[
-              styles.photoWrap,
+              styles.photoShadow,
               {
                 height: PHOTO_PREVIEW_FIXED_H * previewScale,
                 width: PHOTO_PREVIEW_FIXED_W * previewScale
               }
             ]}
           >
-            {previewMediaSource ? (
-              <Image contentFit="cover" source={previewMediaSource} style={styles.photo} />
-            ) : (
-              <View style={[styles.photo, styles.photoFallback]} />
-            )}
-            {isMediaLoading ? (
-              <ActivityIndicator color={colors.neutrals[100]} style={styles.mediaLoading} />
-            ) : null}
-            <LinearGradient
-              colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.85)]}
-              locations={[0.5, 1]}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.songRow}>
-              {coverUrl ? (
-                <Image contentFit="cover" source={coverUrl} style={styles.cover} />
+            <View style={styles.photoWrap}>
+              {previewMediaSource ? (
+                <Image contentFit="cover" source={previewMediaSource} style={styles.photo} />
               ) : (
-                <View style={[styles.cover, styles.coverFallback]}>
-                  <Icon color={colors.neutrals[100]} size={20} source="music-note" />
-                </View>
+                <View style={[styles.photo, styles.photoFallback]} />
               )}
-              <View style={styles.songText}>
-                <AppText numberOfLines={1} style={styles.songTitle}>
-                  {songTitle}
-                </AppText>
-                <AppText numberOfLines={1} style={styles.artistName}>
-                  {artistName}
-                </AppText>
+              {isMediaLoading ? (
+                <ActivityIndicator color={colors.neutrals[100]} style={styles.mediaLoading} />
+              ) : null}
+              <LinearGradient
+                colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.85)]}
+                locations={[0.5, 1]}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.songRow}>
+                {coverUrl ? (
+                  <Image contentFit="cover" source={coverUrl} style={styles.cover} />
+                ) : (
+                  <View style={[styles.cover, styles.coverFallback]}>
+                    <Icon color={colors.neutrals[100]} size={20} source="music-note" />
+                  </View>
+                )}
+                <View style={styles.songText}>
+                  <AppText numberOfLines={1} style={styles.songTitle}>
+                    {songTitle}
+                  </AppText>
+                  <AppText numberOfLines={1} style={styles.artistName}>
+                    {artistName}
+                  </AppText>
+                </View>
               </View>
+              <AppText style={styles.logoText}>recorda.</AppText>
             </View>
-            <AppText style={styles.logoText}>recorda.</AppText>
           </View>
         </View>
       </View>
@@ -407,7 +484,11 @@ export function ShareCardScreen() {
         {PRESETS.map((p) => (
           <View
             key={p.id}
-            style={[styles.presetGlow, selectedPreset === p.id && styles.presetGlowActive]}
+            style={[
+              styles.presetGlow,
+              { backgroundColor: p.swatch },
+              selectedPreset === p.id && styles.presetGlowActive
+            ]}
           >
             <Pressable
               accessibilityRole="radio"
@@ -437,7 +518,7 @@ export function ShareCardScreen() {
             (isExporting || isMediaLoading) && styles.shareButtonDisabled
           ]}
         >
-          {isExporting || isMediaLoading ? (
+          {exportingAction === "stories" || isMediaLoading ? (
             <ActivityIndicator color={colors.neutrals[900]} size="small" />
           ) : (
             <AppText style={styles.shareButtonLabel} variant="buttonLarge">
@@ -454,14 +535,23 @@ export function ShareCardScreen() {
             (isExporting || isMediaLoading) && styles.shareButtonDisabled
           ]}
         >
-          <AppText style={styles.downloadButtonLabel} variant="buttonLarge">
-            {t("shareCard.download")}
-          </AppText>
+          {exportingAction === "save" ? (
+            <ActivityIndicator color={colors.primary[500]} size="small" />
+          ) : (
+            <AppText style={styles.downloadButtonLabel} variant="buttonLarge">
+              {t("shareCard.download")}
+            </AppText>
+          )}
         </Pressable>
       </View>
 
       {/* Off-screen export canvas — 1080×1920 */}
-      <View style={styles.exportContainer} pointerEvents="none">
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        pointerEvents="none"
+        style={styles.exportContainer}
+      >
         <ViewShot
           ref={exportRef}
           options={{
@@ -485,13 +575,17 @@ export function ShareCardScreen() {
             style={StyleSheet.absoluteFill}
           />
 
-          {capturedMediaSource ? (
+          {/* Always mounted, so the (remote) album cover is already loaded when the card is
+              captured; only the photo waits for the export. */}
+          <View style={styles.exportPhotoShadow}>
             <View style={styles.exportPhotoWrap}>
-              <Image
-                contentFit="cover"
-                source={capturedMediaSource}
-                style={StyleSheet.absoluteFill}
-              />
+              {capturedMediaSource ? (
+                <Image
+                  contentFit="cover"
+                  source={capturedMediaSource}
+                  style={StyleSheet.absoluteFill}
+                />
+              ) : null}
               <LinearGradient
                 colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.85)]}
                 locations={[0.5, 1]}
@@ -500,9 +594,12 @@ export function ShareCardScreen() {
               <View style={styles.exportSongRow}>
                 {coverUrl ? (
                   <RNImage
+                    onError={markCoverSettled}
+                    onLoad={markCoverSettled}
+                    resizeMode="cover"
                     source={{ uri: coverUrl }}
                     style={styles.exportCover}
-                    resizeMode="cover"
+                    testID="export-cover"
                   />
                 ) : (
                   <View style={[styles.exportCover, styles.exportCoverFallback]} />
@@ -518,7 +615,7 @@ export function ShareCardScreen() {
               </View>
               <AppText style={styles.exportLogoText}>recorda.</AppText>
             </View>
-          ) : null}
+          </View>
         </ViewShot>
       </View>
     </SafeAreaView>
@@ -531,7 +628,7 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     marginBottom: spacing[3],
     marginHorizontal: spacing[4],
-    marginTop: spacing[12]
+    marginTop: spacing[12] - spacing[3]
   },
   artistName: {
     color: withOpacity(baseColors.white, 0.85),
@@ -619,11 +716,21 @@ const styles = StyleSheet.create({
     left: Math.round(spacing[4] * EXPORT_SCALE),
     position: "absolute"
   },
+  exportPhotoShadow: {
+    backgroundColor: baseColors.black,
+    borderRadius: Math.round(17 * EXPORT_SCALE),
+    elevation: 24,
+    height: EXPORT_PHOTO_H,
+    shadowColor: baseColors.black,
+    shadowOffset: { width: 0, height: Math.round(10 * EXPORT_SCALE) },
+    shadowOpacity: 0.55,
+    shadowRadius: Math.round(18 * EXPORT_SCALE),
+    width: EXPORT_PHOTO_W
+  },
   exportPhotoWrap: {
     borderRadius: Math.round(17 * EXPORT_SCALE),
-    height: EXPORT_PHOTO_H,
-    overflow: "hidden",
-    width: EXPORT_PHOTO_W
+    flex: 1,
+    overflow: "hidden"
   },
   exportSongRow: {
     alignItems: "flex-start",
@@ -681,15 +788,20 @@ const styles = StyleSheet.create({
   photoFallback: {
     backgroundColor: withOpacity(baseColors.black, 0.35)
   },
+  photoShadow: {
+    backgroundColor: baseColors.black,
+    borderRadius: 17,
+    elevation: 16,
+    shadowColor: baseColors.black,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18
+  },
   photoWrap: {
     borderRadius: 17,
-    elevation: 12,
+    flex: 1,
     overflow: "hidden",
-    position: "relative",
-    shadowColor: baseColors.black,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16
+    position: "relative"
   },
   presetGlow: {
     borderRadius: 11
@@ -697,9 +809,8 @@ const styles = StyleSheet.create({
   presetGlowActive: {
     shadowColor: baseColors.white,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
-    elevation: 10
+    shadowOpacity: 0.7,
+    shadowRadius: 6
   },
   presetItem: {
     borderRadius: 11,
@@ -712,8 +823,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5
   },
   presets: {
-    height: 50,
-    marginTop: spacing[6]
+    flexGrow: 0,
+    marginTop: spacing[6] - spacing[3]
   },
   presetsContent: {
     alignItems: "center",
@@ -721,7 +832,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: spacing[3],
     justifyContent: "center",
-    paddingHorizontal: spacing[4]
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3]
   },
   previewArea: {
     alignItems: "center",

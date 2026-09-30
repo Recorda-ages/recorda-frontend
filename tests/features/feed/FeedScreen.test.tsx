@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
+import { Dimensions } from "react-native";
 
 import { FeedProvider, FeedScreen } from "@/features/feed";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
@@ -149,6 +150,19 @@ function mockFollowing(result: MockQueryResult) {
 
 function mockGeneral(result: MockQueryResult) {
   mockedUseGeneralFeed.mockReturnValue(result as unknown as ReturnType<typeof useGeneralFeed>);
+}
+
+const TAB_PAGES = { "Para Você": 0, Seguindo: 1 } as const;
+
+/**
+ * Taps a feed tab and reports the pager settling on its page, as iOS does when the
+ * programmatic scroll ends. The screen only switches tabs at that point.
+ */
+function switchTab(name: keyof typeof TAB_PAGES) {
+  fireEvent.press(screen.getByRole("tab", { name }));
+  fireEvent(screen.getByTestId("feed-pager"), "momentumScrollEnd", {
+    nativeEvent: { contentOffset: { x: TAB_PAGES[name] * Dimensions.get("window").width } }
+  });
 }
 
 function renderScreen() {
@@ -313,6 +327,34 @@ describe("FeedScreen", () => {
       expect(mockGeneralFetchNextPage).not.toHaveBeenCalled();
     });
 
+    it("keeps the pull-to-refresh spinner hidden during background refetches", () => {
+      mockGeneral({
+        ...successResult(GENERAL_PAGE, false, generalHandlers),
+        isFetching: true,
+        isRefetching: true
+      });
+      renderScreen();
+
+      expect(screen.getByTestId("general-feed-list").props.refreshing).toBe(false);
+    });
+
+    it("shows the spinner only while a pull refresh is in flight", async () => {
+      let finishRefetch!: () => void;
+      mockGeneralRefetch.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          finishRefetch = resolve;
+        })
+      );
+      mockGeneral(successResult(GENERAL_PAGE, false, generalHandlers));
+      renderScreen();
+
+      fireEvent(screen.getByTestId("general-feed-list"), "refresh");
+      expect(screen.getByTestId("general-feed-list").props.refreshing).toBe(true);
+
+      await act(async () => finishRefetch());
+      expect(screen.getByTestId("general-feed-list").props.refreshing).toBe(false);
+    });
+
     it("refreshes the general feed with a pull gesture, including when empty", () => {
       mockGeneral(successResult({ items: [], next_cursor: null }, false, generalHandlers));
       renderScreen();
@@ -336,34 +378,38 @@ describe("FeedScreen", () => {
 
   describe("tab switching", () => {
     it("keeps both lists mounted and retains their scroll and media instances", () => {
-      mockGeneral(
-        successResult(
-          {
-            ...GENERAL_PAGE,
-            items: [buildItem({ media_type: "VIDEO", recorda_id: "general-video" })]
-          },
-          false,
-          generalHandlers
-        )
-      );
-      mockFollowing(
-        successResult({
-          ...FEED_PAGE,
-          items: [buildItem({ media_type: "VIDEO", recorda_id: "following-video" })]
-        })
-      );
+      const generalItem = buildItem({ media_type: "VIDEO", recorda_id: "general-video" });
+      const followingItem = buildItem({ media_type: "VIDEO", recorda_id: "following-video" });
+      mockGeneral(successResult({ ...GENERAL_PAGE, items: [generalItem] }, false, generalHandlers));
+      mockFollowing(successResult({ ...FEED_PAGE, items: [followingItem] }));
       renderScreen();
 
+      // A video's player only mounts once its card has been focused.
+      const focus = (listId: string, item: FeedItem) =>
+        fireEvent(screen.getByTestId(listId), "viewableItemsChanged", {
+          changed: [],
+          viewableItems: [{ index: 0, isViewable: true, item, key: item.recorda_id }]
+        });
+
       const generalList = screen.getByTestId("general-feed-list");
+      focus("general-feed-list", generalItem);
       const generalVideo = within(screen.getByTestId("feed-post-general-video")).getByTestId(
         "mock-video-view"
       );
+      const { width } = Dimensions.get("window");
       fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      fireEvent(screen.getByTestId("feed-pager"), "momentumScrollEnd", {
+        nativeEvent: { contentOffset: { x: width } }
+      });
       const followingList = screen.getByTestId("following-feed-list");
+      focus("following-feed-list", followingItem);
       const followingVideo = within(screen.getByTestId("feed-post-following-video")).getByTestId(
         "mock-video-view"
       );
       fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+      fireEvent(screen.getByTestId("feed-pager"), "momentumScrollEnd", {
+        nativeEvent: { contentOffset: { x: 0 } }
+      });
 
       expect(screen.getByTestId("general-feed-list")).toBe(generalList);
       expect(
@@ -379,20 +425,88 @@ describe("FeedScreen", () => {
       ).toBe(followingVideo);
     });
 
+    it("focuses the copy of a Recorda in the tab brought to the front", () => {
+      const video = buildItem({ media_type: "VIDEO", recorda_id: "shared-video" });
+      mockGeneral(successResult({ ...GENERAL_PAGE, items: [video] }, false, generalHandlers));
+      mockFollowing(successResult({ ...FEED_PAGE, items: [video] }));
+      renderScreen();
+      const focus = (listId: string) =>
+        fireEvent(
+          screen.getByTestId(listId, { includeHiddenElements: true }),
+          "viewableItemsChanged",
+          {
+            changed: [],
+            viewableItems: [{ index: 0, isViewable: true, item: video, key: video.recorda_id }]
+          }
+        );
+      const videoIn = (panelId: string) =>
+        within(screen.getByTestId(panelId, { includeHiddenElements: true })).queryAllByTestId(
+          "mock-video-view",
+          { includeHiddenElements: true }
+        );
+
+      focus("general-feed-list");
+      focus("following-feed-list");
+      expect(videoIn("general-feed-panel")).toHaveLength(1);
+      expect(videoIn("following-feed-panel")).toHaveLength(0);
+
+      const { width } = Dimensions.get("window");
+      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      fireEvent(screen.getByTestId("feed-pager"), "momentumScrollEnd", {
+        nativeEvent: { contentOffset: { x: width } }
+      });
+
+      expect(videoIn("following-feed-panel")).toHaveLength(1);
+    });
+
     it("enables only the query of the active tab", () => {
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
 
       expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
       expect(mockedUseGeneralFeed).toHaveBeenLastCalledWith(false);
       expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(true);
 
-      fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+      switchTab("Para Você");
 
       expect(screen.getByRole("tab", { name: "Para Você" })).toBeSelected();
       expect(mockedUseGeneralFeed).toHaveBeenLastCalledWith(true);
       expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(false);
+    });
+
+    it("highlights a tapped tab at once but switches feeds only when the pager settles", () => {
+      renderScreen();
+
+      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
+      // Nothing else re-renders while the pager is scrolling.
+      expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(false);
+
+      fireEvent(screen.getByTestId("feed-pager"), "momentumScrollEnd", {
+        nativeEvent: { contentOffset: { x: Dimensions.get("window").width } }
+      });
+      expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(true);
+      expect(mockedUseGeneralFeed).toHaveBeenLastCalledWith(false);
+    });
+
+    it("switches tabs by swiping the pager sideways", () => {
+      renderScreen();
+      const pager = screen.getByTestId("feed-pager");
+      const { width } = Dimensions.get("window");
+
+      fireEvent(pager, "scrollBeginDrag");
+      expect(mockedUseGeneralFeed).toHaveBeenLastCalledWith(true);
+      expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(true);
+
+      fireEvent(pager, "momentumScrollEnd", { nativeEvent: { contentOffset: { x: width } } });
+      expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
+      expect(mockedUseGeneralFeed).toHaveBeenLastCalledWith(false);
+      expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(true);
+
+      fireEvent(pager, "scrollBeginDrag");
+      fireEvent(pager, "momentumScrollEnd", { nativeEvent: { contentOffset: { x: 0 } } });
+      expect(screen.getByRole("tab", { name: "Para Você" })).toBeSelected();
     });
 
     it("shows each tab's own list", () => {
@@ -403,7 +517,7 @@ describe("FeedScreen", () => {
       expect(screen.getByTestId("feed-post-general-1")).toBeTruthy();
       expect(screen.queryByTestId("feed-post-recorda-1")).toBeNull();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
 
       expect(screen.getByTestId("feed-post-recorda-1")).toBeTruthy();
       expect(screen.queryByTestId("feed-post-general-1")).toBeNull();
@@ -414,7 +528,7 @@ describe("FeedScreen", () => {
     it("shows a loading state while the following feed is pending", () => {
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
 
       expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
       expect(mockedUseFollowingFeed).toHaveBeenLastCalledWith(true);
@@ -425,7 +539,7 @@ describe("FeedScreen", () => {
       mockFollowing(successResult(FEED_PAGE));
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
 
       const post = within(screen.getByTestId("feed-post-recorda-1"));
       expect(post.getAllByText("lucas_almeida")).toHaveLength(2);
@@ -436,7 +550,7 @@ describe("FeedScreen", () => {
       mockFollowing(successResult({ items: [], next_cursor: null }));
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
 
       expect(screen.getByTestId("feed-following-empty-state")).toBeTruthy();
     });
@@ -445,7 +559,7 @@ describe("FeedScreen", () => {
       mockFollowing(errorResult());
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
 
       expect(screen.getByText("Não foi possível carregar o feed. Tente novamente.")).toBeTruthy();
       fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
@@ -457,7 +571,7 @@ describe("FeedScreen", () => {
       mockFollowing(successResult({ ...FEED_PAGE, next_cursor: "next-page" }, true));
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
       fireEvent(screen.getByTestId("following-feed-list"), "endReached");
 
       expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
@@ -468,7 +582,7 @@ describe("FeedScreen", () => {
       mockFollowing(successResult(FEED_PAGE));
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
       fireEvent(screen.getByTestId("following-feed-list"), "refresh");
 
       expect(mockRefetch).toHaveBeenCalledTimes(1);
@@ -478,7 +592,7 @@ describe("FeedScreen", () => {
       mockFollowing(successResult(FEED_PAGE));
       renderScreen();
 
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      switchTab("Seguindo");
       fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
 
       await waitFor(() =>
@@ -560,6 +674,19 @@ describe("FeedScreen", () => {
       buildItem({ recorda_id: "recorda-2", song_preview_url: "https://cdn.example.com/b.mp3" })
     ];
 
+    function scrollEvent() {
+      return {
+        nativeEvent: {
+          contentInset: { bottom: 0, left: 0, right: 0, top: 0 },
+          contentOffset: { x: 0, y: 0 },
+          contentSize: { height: 2000, width: 400 },
+          layoutMeasurement: { height: 800, width: 400 },
+          velocity: { x: 0, y: 0 },
+          zoomScale: 1
+        }
+      };
+    }
+
     function viewable(item: FeedItem, index: number) {
       return {
         changed: [],
@@ -592,6 +719,95 @@ describe("FeedScreen", () => {
       expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
     });
 
+    it("waits for the scroll to settle before handing the audio over", () => {
+      mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
+      renderScreen();
+      const list = screen.getByTestId("general-feed-list");
+
+      fireEvent(list, "viewableItemsChanged", viewable(withPreview[0], 0));
+      mockAudioPlayer.replace.mockClear();
+
+      fireEvent(list, "scrollBeginDrag", scrollEvent());
+      fireEvent(list, "viewableItemsChanged", viewable(withPreview[1], 1));
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+
+      fireEvent(list, "scrollEndDrag", scrollEvent());
+      fireEvent(list, "momentumScrollBegin", scrollEvent());
+      fireEvent(list, "momentumScrollEnd", scrollEvent());
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+    });
+
+    it("settles a scroll released without momentum", () => {
+      jest.useFakeTimers();
+      try {
+        mockGeneral(
+          successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
+        );
+        renderScreen();
+        const list = screen.getByTestId("general-feed-list");
+
+        fireEvent(list, "scrollBeginDrag", scrollEvent());
+        fireEvent(list, "viewableItemsChanged", viewable(withPreview[1], 1));
+        fireEvent(list, "scrollEndDrag", scrollEvent());
+        expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+
+        act(() => {
+          jest.advanceTimersByTime(100);
+        });
+        expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it("settles a fling stopped by a tap, which sends no end event", () => {
+      jest.useFakeTimers();
+      try {
+        mockGeneral(
+          successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
+        );
+        renderScreen();
+        const list = screen.getByTestId("general-feed-list");
+
+        fireEvent(list, "scrollBeginDrag", scrollEvent());
+        fireEvent(list, "scrollEndDrag", scrollEvent());
+        fireEvent(list, "momentumScrollBegin", scrollEvent());
+        fireEvent(list, "scroll", scrollEvent());
+        fireEvent(list, "viewableItemsChanged", viewable(withPreview[1], 1));
+        // A tap stops the fling here: no momentumScrollEnd ever arrives.
+        expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+
+        act(() => {
+          jest.advanceTimersByTime(300);
+        });
+        expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it("doesn't treat a finger resting mid-drag as a settled list", () => {
+      jest.useFakeTimers();
+      try {
+        mockGeneral(
+          successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
+        );
+        renderScreen();
+        const list = screen.getByTestId("general-feed-list");
+
+        fireEvent(list, "scrollBeginDrag", scrollEvent());
+        fireEvent(list, "scroll", scrollEvent());
+        fireEvent(list, "viewableItemsChanged", viewable(withPreview[1], 1));
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it("stays silent when the focused card has no preview", () => {
       const silent = buildItem({ recorda_id: "recorda-9" });
       mockGeneral(successResult({ items: [silent], next_cursor: null }, false, generalHandlers));
@@ -615,8 +831,8 @@ describe("FeedScreen", () => {
 
       // Monta o painel de Seguindo e volta para Para Você: os dois ficam
       // montados, mas só o da frente pode assumir o áudio.
-      fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
-      fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+      switchTab("Seguindo");
+      switchTab("Para Você");
       mockAudioPlayer.replace.mockClear();
 
       fireEvent(
@@ -628,10 +844,16 @@ describe("FeedScreen", () => {
       expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
     });
 
-    it("synchronizes audio preview immediately when switching tabs", () => {
+    it("synchronizes audio preview once a tapped tab switch settles", () => {
       mockGeneral(successResult({ items: withPreview, next_cursor: null }, false, generalHandlers));
       mockFollowing(successResult({ items: withPreview, next_cursor: null }));
       renderScreen();
+      const { width } = Dimensions.get("window");
+      // What iOS reports when the programmatic pager scroll finishes.
+      const settlePager = (page: number) =>
+        fireEvent(screen.getByTestId("feed-pager"), "momentumScrollEnd", {
+          nativeEvent: { contentOffset: { x: page * width } }
+        });
 
       // Card 0 on general feed takes focus:
       fireEvent(
@@ -641,8 +863,13 @@ describe("FeedScreen", () => {
       );
       expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/a.mp3");
 
-      // Switch to Following tab before it has any focused card:
+      // Switch to Following tab before it has any focused card: nothing changes while
+      // the pager is still scrolling, the handover happens when it settles.
+      mockAudioPlayer.pause.mockClear();
       fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+      expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
+      expect(mockAudioPlayer.pause).not.toHaveBeenCalled();
+      settlePager(1);
       expect(mockAudioPlayer.pause).toHaveBeenCalled();
 
       // Card 1 on following feed takes focus:
@@ -653,9 +880,38 @@ describe("FeedScreen", () => {
       );
       expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
 
-      // Switch back to Para Você: card 0 immediately resumes
+      // Switch back to Para Você: card 0 resumes as soon as the pager settles
       fireEvent.press(screen.getByRole("tab", { name: "Para Você" }));
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+      settlePager(0);
       expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/a.mp3");
+    });
+
+    it("still hands the audio over if the tapped tab's scroll never reports settling", () => {
+      jest.useFakeTimers();
+      try {
+        mockGeneral(
+          successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
+        );
+        mockFollowing(successResult({ items: withPreview, next_cursor: null }));
+        renderScreen();
+
+        fireEvent.press(screen.getByRole("tab", { name: "Seguindo" }));
+        // Still hidden from accessibility until the pager settles on it.
+        fireEvent(
+          screen.getByTestId("following-feed-list", { includeHiddenElements: true }),
+          "viewableItemsChanged",
+          viewable(withPreview[1], 1)
+        );
+        expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+
+        act(() => {
+          jest.advanceTimersByTime(500);
+        });
+        expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith("https://cdn.example.com/b.mp3");
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it("activates audio preview on card tap even before visibility threshold", () => {

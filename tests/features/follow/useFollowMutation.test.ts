@@ -43,13 +43,18 @@ function buildCache(status: FollowStatus): CachedUser[] {
   ];
 }
 
+const clients: QueryClient[] = [];
+
 function setup(status: FollowStatus) {
   const client = new QueryClient({
     defaultOptions: {
-      mutations: { retry: false },
+      // gcTime 0: a finished mutation otherwise schedules a 5-minute cleanup timer that
+      // outlives the test and keeps Jest from exiting.
+      mutations: { gcTime: 0, retry: false },
       queries: { gcTime: Infinity, retry: false }
     }
   });
+  clients.push(client);
   client.setQueryData(SEARCH_KEY, buildCache(status));
 
   function wrapper({ children }: { children: React.ReactNode }) {
@@ -79,6 +84,10 @@ function deferred<T>() {
 beforeEach(() => {
   mockFollow.mockReset();
   mockUnfollow.mockReset();
+});
+
+afterEach(() => {
+  clients.splice(0).forEach((client) => client.clear());
 });
 
 describe("useFollowMutation", () => {
@@ -243,5 +252,29 @@ describe("useFollowMutation", () => {
     });
 
     await waitFor(() => expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["users"] }));
+  });
+
+  it("refreshes suggestions after an unfollow so the profile can come back", async () => {
+    mockUnfollow.mockResolvedValueOnce({ follow_status: "nenhuma" });
+    const { client, result } = setup("seguindo");
+    const invalidateSpy = jest.spyOn(client, "invalidateQueries");
+
+    await act(async () => {
+      await result.current.mutateAsync({ action: "unfollow", userId: "user-1" });
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["suggestions", "users"] });
+  });
+
+  it("keeps suggestions as they are after a follow", async () => {
+    mockFollow.mockResolvedValueOnce({ follow_status: "seguindo" });
+    const { client, result } = setup("nenhuma");
+    const invalidateSpy = jest.spyOn(client, "invalidateQueries");
+
+    await act(async () => {
+      await result.current.mutateAsync({ action: "follow", userId: "user-1" });
+    });
+
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ["suggestions", "users"] });
   });
 });

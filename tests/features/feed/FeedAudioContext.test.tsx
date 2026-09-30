@@ -1,7 +1,13 @@
 import { act, renderHook } from "@testing-library/react-native";
 import { AppState } from "react-native";
 
-import { FeedAudioProvider, useFeedAudio } from "@/features/feed/state/FeedAudioContext";
+import {
+  FeedAudioProvider,
+  useFeedAudioActions,
+  useFeedAudioMuted,
+  useFeedFocusKey
+} from "@/features/feed/state/FeedAudioContext";
+import { authApiClient } from "@/services/api";
 
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
@@ -9,7 +15,14 @@ const PREVIEW = "https://cdn.example.com/preview-1.mp3";
 const OTHER_PREVIEW = "https://cdn.example.com/preview-2.mp3";
 
 function renderProvider() {
-  const { result } = renderHook(() => useFeedAudio(), { wrapper: FeedAudioProvider });
+  const { result } = renderHook(
+    () => ({
+      ...useFeedAudioActions(),
+      focusKey: useFeedFocusKey(),
+      isMuted: useFeedAudioMuted()
+    }),
+    { wrapper: FeedAudioProvider }
+  );
   return result;
 }
 
@@ -27,7 +40,51 @@ describe("FeedAudioContext", () => {
 
     expect(mockAudioPlayer.replace).toHaveBeenNthCalledWith(1, PREVIEW);
     expect(mockAudioPlayer.replace).toHaveBeenNthCalledWith(2, OTHER_PREVIEW);
-    expect(api.current.activeRecordaId).toBe("recorda-2");
+    expect(api.current.focusKey).toBe("recorda-2");
+  });
+
+  it("moves focus between cards of the same Recorda without restarting its song", () => {
+    const api = renderProvider();
+
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW, { focusKey: "geral:recorda-1" }));
+    mockAudioPlayer.replace.mockClear();
+    act(() =>
+      api.current.setActivePreview("recorda-1", PREVIEW, { focusKey: "following:recorda-1" })
+    );
+
+    expect(api.current.focusKey).toBe("following:recorda-1");
+    expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+  });
+
+  it("leaves the feed card focused when its details re-activate the same Recorda", () => {
+    const api = renderProvider();
+
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW, { focusKey: "geral:recorda-1" }));
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW));
+
+    expect(api.current.focusKey).toBe("geral:recorda-1");
+  });
+
+  it("retries once when the loaded song reports it isn't playing", () => {
+    const api = renderProvider();
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW));
+    mockAudioPlayer.play.mockClear();
+
+    act(() => mockAudioPlayer.emitStatus({ isLoaded: true, playing: false }));
+    act(() => mockAudioPlayer.emitStatus({ isLoaded: true, playing: false }));
+
+    expect(mockAudioPlayer.play).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't restart a song that was meant to stay paused", () => {
+    const api = renderProvider();
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW));
+    act(() => api.current.setActiveRoute("Camera"));
+    mockAudioPlayer.play.mockClear();
+
+    act(() => mockAudioPlayer.emitStatus({ isLoaded: true, playing: false }));
+
+    expect(mockAudioPlayer.play).not.toHaveBeenCalled();
   });
 
   // US16: "Preview de 30 segundos deve entrar em loop enquanto o card estiver em foco."
@@ -38,6 +95,136 @@ describe("FeedAudioContext", () => {
 
     expect(mockAudioPlayer.loop).toBe(true);
     expect(mockAudioPlayer.play).toHaveBeenCalled();
+  });
+
+  describe("previews served by the API", () => {
+    const API_PREVIEW = "/api/v1/music/tracks/3135556/preview";
+    const FRESH_LINK = "https://cdnt-preview.dzcdn.net/fresh.mp3";
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it("fetches the fresh Deezer link and plays that, not the API route", async () => {
+      const get = jest.spyOn(authApiClient, "get").mockResolvedValue({ preview_url: FRESH_LINK });
+      const api = renderProvider();
+
+      await act(async () => api.current.setActivePreview("recorda-1", API_PREVIEW));
+
+      expect(get).toHaveBeenCalledWith(API_PREVIEW);
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith(FRESH_LINK);
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalledWith(API_PREVIEW);
+      expect(mockAudioPlayer.play).toHaveBeenCalled();
+    });
+
+    it("drops a link that arrives after another card took focus", async () => {
+      let resolveFirst!: (value: { preview_url: string }) => void;
+      jest
+        .spyOn(authApiClient, "get")
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          })
+        )
+        .mockResolvedValueOnce({ preview_url: FRESH_LINK });
+      const api = renderProvider();
+
+      act(() => api.current.setActivePreview("recorda-1", API_PREVIEW));
+      await act(async () => api.current.setActivePreview("recorda-2", API_PREVIEW));
+      await act(async () => resolveFirst({ preview_url: "https://stale.example/old.mp3" }));
+
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith(FRESH_LINK);
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalledWith("https://stale.example/old.mp3");
+    });
+
+    it("stays silent when the preview can't be fetched", async () => {
+      jest.spyOn(authApiClient, "get").mockRejectedValue(new Error("404"));
+      const api = renderProvider();
+
+      await act(async () => api.current.setActivePreview("recorda-1", API_PREVIEW));
+
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalled();
+      expect(mockAudioPlayer.play).not.toHaveBeenCalled();
+    });
+
+    it("never hands the native player an empty source", async () => {
+      jest.spyOn(authApiClient, "get").mockResolvedValue({ preview_url: FRESH_LINK });
+      const api = renderProvider();
+
+      await act(async () => api.current.setActivePreview("recorda-1", API_PREVIEW));
+
+      expect(mockAudioPlayer.replace).not.toHaveBeenCalledWith(null);
+    });
+
+    it("keeps the previous song paused while the next link is fetched", async () => {
+      let resolveLink!: (value: { preview_url: string }) => void;
+      jest.spyOn(authApiClient, "get").mockReturnValue(
+        new Promise((resolve) => {
+          resolveLink = resolve;
+        })
+      );
+      const api = renderProvider();
+      act(() => api.current.setActivePreview("recorda-1", PREVIEW));
+      mockAudioPlayer.play.mockClear();
+      mockAudioPlayer.pause.mockClear();
+
+      act(() => api.current.setActivePreview("recorda-2", API_PREVIEW));
+      expect(mockAudioPlayer.pause).toHaveBeenCalled();
+      expect(mockAudioPlayer.play).not.toHaveBeenCalled();
+
+      await act(async () => resolveLink({ preview_url: FRESH_LINK }));
+      expect(mockAudioPlayer.replace).toHaveBeenLastCalledWith(FRESH_LINK);
+      expect(mockAudioPlayer.play).toHaveBeenCalled();
+    });
+
+    it("plays external links directly without calling the API", () => {
+      const get = jest.spyOn(authApiClient, "get");
+      const api = renderProvider();
+
+      act(() => api.current.setActivePreview("recorda-1", PREVIEW));
+
+      expect(get).not.toHaveBeenCalled();
+      expect(mockAudioPlayer.replace).toHaveBeenCalledWith(PREVIEW);
+    });
+  });
+
+  it("holds a video Recorda's song until its video is ready", () => {
+    const api = renderProvider();
+
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW, { waitForMedia: true }));
+    expect(mockAudioPlayer.replace).toHaveBeenCalledWith(PREVIEW);
+    expect(mockAudioPlayer.play).not.toHaveBeenCalled();
+
+    act(() => api.current.setMediaReady("recorda-1", true));
+    expect(mockAudioPlayer.play).toHaveBeenCalled();
+  });
+
+  it("plays at once when the focused video had already loaded", () => {
+    const api = renderProvider();
+
+    act(() => api.current.setMediaReady("recorda-1", true));
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW, { waitForMedia: true }));
+
+    expect(mockAudioPlayer.play).toHaveBeenCalled();
+  });
+
+  it("keeps a Recorda ready while any view still has its video loaded", () => {
+    const api = renderProvider();
+
+    act(() => api.current.setMediaReady("recorda-1", true, "feed-card"));
+    act(() => api.current.setMediaReady("recorda-1", true, "details"));
+    // Leaving the details screen withdraws only its own report.
+    act(() => api.current.setMediaReady("recorda-1", false, "details"));
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW, { waitForMedia: true }));
+
+    expect(mockAudioPlayer.play).toHaveBeenCalled();
+  });
+
+  it("ignores readiness reported by a video that isn't the one being waited on", () => {
+    const api = renderProvider();
+
+    act(() => api.current.setActivePreview("recorda-1", PREVIEW, { waitForMedia: true }));
+    act(() => api.current.setMediaReady("recorda-2", true));
+
+    expect(mockAudioPlayer.play).not.toHaveBeenCalled();
   });
 
   it("does not restart the preview when the same card stays in focus", () => {
@@ -57,7 +244,8 @@ describe("FeedAudioContext", () => {
     act(() => api.current.setActivePreview("recorda-1", PREVIEW));
     act(() => api.current.setActivePreview("recorda-2", null));
 
-    expect(api.current.activeRecordaId).toBeNull();
+    // The focused card has no song: nothing new is loaded and playback stops.
+    expect(mockAudioPlayer.replace).toHaveBeenCalledTimes(1);
     expect(mockAudioPlayer.pause).toHaveBeenCalled();
   });
 
@@ -135,6 +323,7 @@ describe("FeedAudioContext", () => {
     const api = renderProvider();
 
     expect(() => act(() => api.current.setActivePreview("recorda-1", PREVIEW))).not.toThrow();
-    expect(api.current.activeRecordaId).toBe("recorda-1");
+    expect(api.current.focusKey).toBe("recorda-1");
+    expect(mockAudioPlayer.replace).toHaveBeenCalledWith(PREVIEW);
   });
 });

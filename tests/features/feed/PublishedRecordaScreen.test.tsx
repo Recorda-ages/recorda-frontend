@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
+import { shouldCloseCommentsSheet } from "@/features/feed/components/RecordaDetailView";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { feedService } from "@/features/feed/services/feedService";
 import { useFeed } from "@/features/feed/state/FeedContext";
@@ -106,10 +107,14 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByText("The Edge")).toBeTruthy();
     expect(screen.getByText(/The American Dawn/)).toBeTruthy();
     expect(screen.getByText("01 de janeiro")).toBeTruthy();
+    // Comments live in the sheet opened from the comment button.
+    expect(
+      within(screen.getByTestId("recorda-detail-screen")).queryByText(/Estava d\+!/)
+    ).toBeNull();
+    fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
     expect(
       within(screen.getByTestId("recorda-detail-screen")).getByText(/Estava d\+!/)
     ).toBeTruthy();
-    expect(screen.getByText("Comentários")).toBeTruthy();
     expect(screen.queryByText(/Data da Memória|Local|Marcações/)).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
@@ -125,6 +130,8 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByTestId("liked-posts")).toHaveTextContent("");
     expect(details.getByText("12 curtidas")).toBeTruthy();
 
+    expect(details.queryByLabelText("Adicione um comentário...")).toBeNull();
+    fireEvent.press(details.getByRole("button", { name: "Comentar" }));
     const input = details.getByLabelText("Adicione um comentário...");
     expect(details.getByRole("button", { name: "Enviar comentário" })).toBeDisabled();
     fireEvent.changeText(input, "   ");
@@ -204,6 +211,33 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-2/);
   });
 
+  it("shares a Recorda opened from the feed with its album cover", () => {
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Show ao vivo",
+      is_liked: false,
+      likes_count: 0,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/live.jpg",
+      recorda_id: "11111111-1111-4111-8111-111111111111",
+      song_artist_name: "Artist",
+      song_cover_url: "https://cdn.example.com/cover.jpg",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    mockRoute.params.postId = item.recorda_id;
+    renderScreen(item);
+    fireEvent.press(screen.getByText("Open API item"));
+
+    fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "ShareCard",
+      expect.objectContaining({ coverUrl: "https://cdn.example.com/cover.jpg" })
+    );
+  });
+
   it("opens the sharing destination with the selected Recorda", () => {
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Compartilhar" }));
@@ -216,9 +250,95 @@ describe("PublishedRecordaScreen", () => {
     });
   });
 
+  it("closes the comments sheet when tapping outside it", () => {
+    jest.useFakeTimers();
+    try {
+      renderScreen();
+      fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
+      expect(screen.getByTestId("comments-sheet")).toBeTruthy();
+      expect(screen.getByLabelText("Adicione um comentário...")).toBeTruthy();
+
+      // The open sheet is modal for screen readers, so everything behind it is hidden
+      // from accessibility (and from default queries).
+      const hidden = { includeHiddenElements: true };
+      expect(screen.queryByTestId("recorda-bottom-overlay")).toBeNull();
+      // Description and actions stop taking touches while the sheet covers them.
+      expect(screen.getByTestId("recorda-bottom-overlay", hidden).props.pointerEvents).toBe(
+        "none"
+      );
+
+      fireEvent.press(screen.getByTestId("comments-backdrop", hidden));
+      // Stays mounted while it slides out, then unmounts.
+      expect(screen.getByTestId("comments-sheet")).toBeTruthy();
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+      expect(screen.queryByTestId("comments-sheet")).toBeNull();
+      expect(screen.getByTestId("recorda-bottom-overlay").props.pointerEvents).toBe("box-none");
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("keeps the description outside the comments sheet", () => {
+    renderScreen();
+
+    expect(screen.getByTestId("recorda-description")).toBeTruthy();
+    expect(screen.queryByTestId("comments-sheet")).toBeNull();
+  });
+
+  it("does not offer to expand a description that fits in one line", () => {
+    renderScreen();
+    fireEvent(
+      screen.getByTestId("recorda-description-measure", { includeHiddenElements: true }),
+      "textLayout",
+      {
+        nativeEvent: { lines: [{ text: "cabe numa linha" }] }
+      }
+    );
+
+    expect(screen.queryByRole("button", { name: /Show I-N-C-R-I-V-E-L!/ })).toBeNull();
+  });
+
+  it("shows one line of description, expands it on tap and collapses from the chevron", () => {
+    renderScreen();
+    // The full-width measurement reports more than one line: the text is cut off.
+    fireEvent(
+      screen.getByTestId("recorda-description-measure", { includeHiddenElements: true }),
+      "textLayout",
+      {
+        nativeEvent: { lines: [{ text: "primeira" }, { text: "segunda" }] }
+      }
+    );
+    // The visible copy is always the last one (the measurement comes first when collapsed).
+    const text = () =>
+      within(screen.getByTestId("recorda-description"))
+        .getAllByText(/Show I-N-C-R-I-V-E-L!/)
+        .at(-1)!;
+
+    expect(text().props.numberOfLines).toBe(1);
+    expect(screen.queryByRole("button", { name: "Recolher descrição" })).toBeNull();
+
+    fireEvent.press(text());
+    expect(text().props.numberOfLines).toBeUndefined();
+    // The expanded text scrolls instead of reacting to taps.
+    fireEvent.press(text());
+    expect(text().props.numberOfLines).toBeUndefined();
+
+    fireEvent.press(screen.getByRole("button", { name: "Recolher descrição" }));
+    expect(text().props.numberOfLines).toBe(1);
+  });
+
+  it("decides when a drag on the sheet handle dismisses it", () => {
+    expect(shouldCloseCommentsSheet(40, 0.1, 300)).toBe(false);
+    expect(shouldCloseCommentsSheet(120, 0.1, 300)).toBe(true);
+    expect(shouldCloseCommentsSheet(20, 0.9, 300)).toBe(true);
+  });
+
   it("handles a Recorda with no comments", async () => {
     mockRoute.params.postId = "post-4";
     renderScreen();
+    fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
     expect(screen.getByText(/Nenhum comentário ainda/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("Adicione um comentário..."), "Primeiro!");
     fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
@@ -226,7 +346,7 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
   });
 
-  it("loads and publishes API comments with avatar, username and date", async () => {
+  it("loads and publishes API comments with username and text", async () => {
     const item: FeedItem = {
       author: { user_id: "user-2", username: "jane", profile_picture_url: null },
       created_at: "2026-01-01T12:00:00Z",
@@ -256,10 +376,11 @@ describe("PublishedRecordaScreen", () => {
 
     renderScreen(item);
     fireEvent.press(screen.getByText("Open API item"));
+    fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
 
     await waitFor(() => expect(screen.getByText(/Eu estava lá!/)).toBeTruthy());
     expect(getComments).toHaveBeenCalledWith(item.recorda_id, expect.any(AbortSignal));
-    expect(screen.getByText(/27 de set/)).toBeTruthy();
+    expect(screen.getByText("ana")).toBeTruthy();
 
     const input = screen.getByLabelText("Adicione um comentário...");
     expect(input.props.maxLength).toBe(500);
@@ -291,7 +412,9 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByText("Open API item"));
 
     expect(screen.getByTestId("mock-video-view")).toBeTruthy();
-    expect(mockUseVideoPlayer).toHaveBeenCalledWith(item.media_url, expect.any(Function));
+    expect(mockUseVideoPlayer).toHaveBeenCalledWith({ uri: item.media_url }, expect.any(Function));
+    // The loader covers the video until its first frame is ready.
+    expect(screen.getByTestId("recorda-video-loading")).toBeTruthy();
     expect(screen.getByText("12 curtidas")).toBeTruthy();
     fireEvent.press(screen.getByRole("button", { name: "Curtir" }));
     expect(screen.getByText("11 curtidas")).toBeTruthy();

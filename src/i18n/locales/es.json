@@ -147,6 +147,10 @@
     "commentsLoadError": "No se pudieron cargar los comentarios. Toca para reintentar.",
     "commentSubmitError": "No se pudo enviar el comentario. Inténtalo de nuevo.",
     "writeComment": "Añade un comentario...",
+    "closeComment": "Cerrar comentarios",
+    "dragToClose": "Arrastra hacia abajo para cerrar",
+    "expandDescription": "Toca para ver la descripción completa",
+    "collapseDescription": "Contraer descripción",
     "send": "Enviar comentario",
     "delete": "Eliminar",
     "report": "Denunciar",
@@ -192,6 +196,7 @@
       "profile": "Perfil"
     },
     "notificationsUnread": "Notificaciones, {{count}} sin leer",
+    "videoLoading": "Cargando video",
     "sound": {
       "mute": "Silenciar música",
       "unmute": "Reactivar música",
@@ -264,7 +269,8 @@
     "hint": "Busca por un nombre de usuario para encontrar personas.",
     "searchError": "No fue posible buscar usuarios.",
     "retry": "Intentar de nuevo",
-    "empty": "Ningún usuario encontrado. Prueba con otro nombre de usuario."
+    "empty": "Ningún usuario encontrado. Prueba con otro nombre de usuario.",
+    "suggestions": "Perfiles sugeridos"
   },
   "follow": {
     "follow": "Seguir",

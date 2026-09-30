@@ -147,6 +147,10 @@
     "commentsLoadError": "Could not load comments. Tap to retry.",
     "commentSubmitError": "Could not send the comment. Try again.",
     "writeComment": "Add a comment...",
+    "closeComment": "Close comments",
+    "dragToClose": "Drag down to close",
+    "expandDescription": "Tap to see the full description",
+    "collapseDescription": "Collapse description",
     "send": "Send comment",
     "delete": "Delete",
     "report": "Report",
@@ -192,6 +196,7 @@
       "profile": "Profile"
     },
     "notificationsUnread": "Notifications, {{count}} unread",
+    "videoLoading": "Loading video",
     "sound": {
       "mute": "Mute music",
       "unmute": "Unmute music",
@@ -264,7 +269,8 @@
     "hint": "Search for a username to find people.",
     "searchError": "Could not search users.",
     "retry": "Try again",
-    "empty": "No users found. Try another username."
+    "empty": "No users found. Try another username.",
+    "suggestions": "Suggested profiles"
   },
   "follow": {
     "follow": "Follow",

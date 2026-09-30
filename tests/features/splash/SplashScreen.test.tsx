@@ -7,6 +7,7 @@ import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurren
 import { ROLE_KEY } from "@/features/auth/session";
 import { SPLASH_MIN_DURATION_MS, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
+import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { ApiError } from "@/services/api/errors";
 import { secureStorage } from "@/services/storage/secureStorage";
 
@@ -97,6 +98,8 @@ describe("SplashScreen", () => {
     );
     expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
+    // Media on the first screen can use the token right away.
+    expect(queryClient.getQueryData(AUTH_TOKEN_QUERY_KEY)).toBe("valid-token");
   });
 
   it("navigates to the first onboarding step when user has not completed onboarding", async () => {

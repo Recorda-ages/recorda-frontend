@@ -2,6 +2,9 @@ import type { StyleProp, ViewStyle } from "react-native";
 import { View } from "react-native";
 
 type MockPlayer = {
+  addListener: (event: string, listener: (payload: { status: string }) => void) => {
+    remove: () => void;
+  };
   loop: boolean;
   pause: () => void;
   play: jest.Mock<void, []>;
@@ -12,6 +15,7 @@ type MockVideoSource = null | number | string | Record<string, unknown>;
 
 function createMockPlayer(): MockPlayer {
   return {
+    addListener: () => ({ remove: () => undefined }),
     loop: false,
     pause: () => undefined,
     play: jest.fn(),
@@ -25,9 +29,11 @@ export const mockUseVideoPlayer = jest.fn<
 >();
 export const mockGenerateVideoThumbnails = jest.fn();
 export const mockReleaseVideoPlayer = jest.fn();
+export const mockReplaceVideoAsync = jest.fn(async (_source: MockVideoSource) => undefined);
 export const mockCreateVideoPlayer = jest.fn((_source: MockVideoSource) => ({
   generateThumbnailsAsync: mockGenerateVideoThumbnails,
-  release: mockReleaseVideoPlayer
+  release: mockReleaseVideoPlayer,
+  replaceAsync: mockReplaceVideoAsync
 }));
 
 export function resetVideoMock() {

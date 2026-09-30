@@ -4,7 +4,7 @@ import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
 import { FollowButton } from "@/features/follow";
-import { resolveApiAssetUrl } from "@/services/api";
+import { resolveApiAssetUrl, useAuthImageSource } from "@/services/api";
 import { colors, spacing } from "@/theme";
 
 import type { UserSearchResultItem } from "../types";
@@ -16,6 +16,7 @@ type UserSearchResultRowProps = Readonly<{
 
 export function UserSearchResultRow({ item, onPress }: UserSearchResultRowProps) {
   const avatarUrl = item.avatar_url ? resolveApiAssetUrl(item.avatar_url) : null;
+  const avatarSource = useAuthImageSource(avatarUrl);
 
   return (
     <Pressable
@@ -25,8 +26,8 @@ export function UserSearchResultRow({ item, onPress }: UserSearchResultRowProps)
       style={styles.row}
       testID={`user-search-result-${item.user_id}`}
     >
-      {avatarUrl ? (
-        <Image source={avatarUrl} style={styles.avatar} testID={`user-avatar-${item.user_id}`} />
+      {avatarSource ? (
+        <Image source={avatarSource} style={styles.avatar} testID={`user-avatar-${item.user_id}`} />
       ) : (
         <View
           style={[styles.avatar, styles.avatarFallback]}

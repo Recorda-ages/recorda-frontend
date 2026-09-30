@@ -11,6 +11,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
 import { colors, fontFamily, radius, spacing } from "@/theme";
 
+import { SuggestedProfiles } from "../components/SuggestedProfiles";
 import { UserSearchResultRow } from "../components/UserSearchResultRow";
 import { useUserSearch } from "../hooks/useUserSearch";
 
@@ -77,6 +78,12 @@ export function UserSearchScreen() {
         )}
       </View>
 
+      {query.trim() ? null : (
+        <SuggestedProfiles
+          onOpenProfile={(userId) => navigation.navigate("UserProfile", { userId })}
+        />
+      )}
+
       <FlatList
         contentContainerStyle={styles.list}
         data={results}
@@ -108,12 +115,7 @@ type SearchFeedbackProps = Readonly<{
   onRetry: () => void;
 }>;
 
-/**
- * Estados da lista quando ela está vazia.
- *
- * O ramo `!hasQuery` é onde a US27 (#198) encaixa a lista de sugestões por
- * afinidade; até lá ele mostra só a dica de busca.
- */
+/** Estados da lista quando ela está vazia. */
 function SearchFeedback({ hasQuery, isError, isSuccess, onRetry }: SearchFeedbackProps) {
   const { t } = useTranslation();
 

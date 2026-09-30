@@ -12,10 +12,12 @@ import {
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import type { UserBasicResponse } from "@/features/auth/api/types";
+import { i18n } from "@/i18n";
 import { resolveApiAssetUrl } from "@/services/api";
 
 import { mockFeedPosts } from "../mocks/feedPosts";
 import type { FeedItem, FeedPost, RecordaDetailResponse } from "../types";
+import { formatFeedDate } from "../utils/formatFeedDate";
 
 // Fallback identity for the local preview without an authenticated session.
 export const demoFeedUser = { id: "demo-lucas", username: "lucas_almeida" };
@@ -81,11 +83,13 @@ export function feedItemToFeedPost(item: FeedItem): FeedPost {
     mediaType: item.media_type,
     mediaUrl: resolveApiAssetUrl(item.media_url),
     previewUrl: item.song_preview_url,
-    publishedAt: new Date(item.created_at).toLocaleDateString(undefined, {
-      day: "2-digit",
-      month: "long"
-    }),
-    song: { artistName: item.song_artist_name, title: item.song_title },
+    // Same format as the feed card, in the app's language rather than the device's.
+    publishedAt: formatFeedDate(item.created_at, i18n.language),
+    song: {
+      artistName: item.song_artist_name,
+      coverUrl: item.song_cover_url || null,
+      title: item.song_title
+    },
     tabs: ["following"]
   };
 }

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Icon } from "react-native-paper";
 
+import { AnimatedHeart } from "./AnimatedHeart";
 import { AppText } from "./Text";
 import { colors } from "@/theme";
 
@@ -81,7 +81,7 @@ export function LikeButton({
         style={styles.button}
         testID={testID}
       >
-        <Icon color={colors.primary[500]} size={26} source={liked ? "heart" : "heart-outline"} />
+        <AnimatedHeart color={colors.primary[500]} liked={liked} size={26} />
       </Pressable>
       {showCount ? <AppText>{likeCount}</AppText> : null}
     </View>

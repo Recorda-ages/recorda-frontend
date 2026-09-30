@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
@@ -23,6 +24,13 @@ jest.mock("@/features/follow/hooks/useFollowMutation", () => ({
   useFollowMutation: jest.fn()
 }));
 
+jest.mock("@/features/user-search/hooks/useUserSuggestions", () => ({
+  useUserSuggestions: () => ({
+    data: [{ affinity: 0.8, avatar_url: null, user_id: "sugg-1", username: "maria" }],
+    isPending: false
+  })
+}));
+
 const mockedUseUserSearch = jest.mocked(useUserSearch);
 const mockRefetch = jest.fn();
 
@@ -43,9 +51,15 @@ function searchResult(overrides: Record<string, unknown> = {}) {
 }
 
 function renderScreen() {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
+  });
+
   return render(
     <I18nextProvider i18n={i18n}>
-      <UserSearchScreen />
+      <QueryClientProvider client={queryClient}>
+        <UserSearchScreen />
+      </QueryClientProvider>
     </I18nextProvider>
   );
 }
@@ -179,6 +193,24 @@ describe("UserSearchScreen", () => {
     fireEvent.press(screen.getByTestId("user-search-result-user-2"));
 
     expect(mockNavigate).toHaveBeenCalledWith("UserProfile", { userId: "user-2" });
+  });
+
+  it("shows suggested profiles under the input while the field is empty", () => {
+    renderScreen();
+
+    expect(screen.getByText("Perfis sugeridos")).toBeTruthy();
+    expect(screen.getByText("maria")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("suggested-profile-sugg-1"));
+    expect(mockNavigate).toHaveBeenCalledWith("UserProfile", { userId: "sugg-1" });
+  });
+
+  it("hides suggested profiles once the user starts typing", () => {
+    renderScreen();
+
+    fireEvent.changeText(screen.getByTestId("user-search-input"), "j");
+
+    expect(screen.queryByTestId("suggested-profiles")).toBeNull();
   });
 
   it("goes back from the header", () => {

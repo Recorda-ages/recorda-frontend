@@ -1,12 +1,14 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { useEffect } from "react";
 import { I18nextProvider } from "react-i18next";
 
 import { RecordaCard } from "@/features/feed/components/RecordaCard";
-import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
+import { FeedAudioProvider, useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
 import type { FeedItem } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 
-import { mockUseVideoPlayer } from "../../mocks/expoVideo";
+import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 
 const BASE_ITEM: FeedItem = {
   author: {
@@ -27,17 +29,39 @@ const BASE_ITEM: FeedItem = {
   song_title: "The Edge"
 };
 
+function FocusCard({ focusKey, recordaId }: { focusKey?: string; recordaId: string }) {
+  const { setActivePreview } = useFeedAudioActions();
+  useEffect(
+    () => setActivePreview(recordaId, null, { focusKey }),
+    [focusKey, recordaId, setActivePreview]
+  );
+  return null;
+}
+
 function renderCard(
   item: FeedItem,
   onPress = jest.fn(),
   onShare?: () => void,
-  onToggleLike = jest.fn()
+  onToggleLike = jest.fn(),
+  focused = false
 ) {
+  const queryClient = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
+  });
+
   render(
     <I18nextProvider i18n={i18n}>
-      <FeedAudioProvider>
-        <RecordaCard item={item} onPress={onPress} onShare={onShare} onToggleLike={onToggleLike} />
-      </FeedAudioProvider>
+      <QueryClientProvider client={queryClient}>
+        <FeedAudioProvider>
+          {focused ? <FocusCard recordaId={item.recorda_id} /> : null}
+          <RecordaCard
+            item={item}
+            onPress={onPress}
+            onShare={onShare}
+            onToggleLike={onToggleLike}
+          />
+        </FeedAudioProvider>
+      </QueryClientProvider>
     </I18nextProvider>
   );
   return { onPress };
@@ -53,6 +77,14 @@ describe("RecordaCard", () => {
     expect(screen.getByText(/Show I-N-C-R-I-V-E-L!/)).toBeTruthy();
   });
 
+  it("caps the caption at three lines", () => {
+    renderCard(BASE_ITEM);
+
+    const caption = screen.getByText(/Show I-N-C-R-I-V-E-L!/);
+    expect(caption.props.numberOfLines).toBe(3);
+    expect(caption.props.ellipsizeMode).toBe("tail");
+  });
+
   it("omits the caption row when there is no description", () => {
     renderCard({ ...BASE_ITEM, description: null });
 
@@ -65,10 +97,10 @@ describe("RecordaCard", () => {
     expect(screen.getByText("1 curtida")).toBeTruthy();
   });
 
-  it("hides the likes line when the count is zero", () => {
+  it("shows zero likes beside the actions", () => {
     renderCard({ ...BASE_ITEM, likes_count: 0 });
 
-    expect(screen.queryByText(/curtida/)).toBeNull();
+    expect(screen.getByText("0 curtidas")).toBeTruthy();
   });
 
   it("renders a fallback avatar when there is no profile picture", () => {
@@ -92,25 +124,118 @@ describe("RecordaCard", () => {
     ]);
   });
 
-  it("renders a video view for VIDEO media instead of a static image", () => {
-    renderCard({
+  it("renders a video view for focused VIDEO media instead of a static image", () => {
+    renderCard(
+      { ...BASE_ITEM, media_type: "VIDEO", media_url: "https://cdn.example.com/media.mp4" },
+      jest.fn(),
+      undefined,
+      jest.fn(),
+      true
+    );
+
+    expect(screen.getByTestId("mock-video-view")).toBeTruthy();
+    expect(screen.queryByTestId("recorda-media-image")).toBeNull();
+  });
+
+  it("plays only the copy of a video in the tab that holds focus", () => {
+    const item: FeedItem = {
       ...BASE_ITEM,
       media_type: "VIDEO",
       media_url: "https://cdn.example.com/media.mp4"
-    });
+    };
+    const queryClient = new QueryClient({ defaultOptions: { queries: { gcTime: 0 } } });
 
-    expect(screen.getByTestId("mock-video-view")).toBeTruthy();
+    render(
+      <I18nextProvider i18n={i18n}>
+        <QueryClientProvider client={queryClient}>
+          <FeedAudioProvider>
+            <FocusCard focusKey="following:recorda-1" recordaId="recorda-1" />
+            <RecordaCard
+              focusKey="geral:recorda-1"
+              item={item}
+              onPress={jest.fn()}
+              onToggleLike={jest.fn()}
+            />
+            <RecordaCard
+              focusKey="following:recorda-1"
+              item={item}
+              onPress={jest.fn()}
+              onToggleLike={jest.fn()}
+            />
+          </FeedAudioProvider>
+        </QueryClientProvider>
+      </I18nextProvider>
+    );
+
+    expect(screen.getAllByTestId("mock-video-view")).toHaveLength(1);
   });
 
-  it("resolves a relative video URL before creating the player", () => {
+  it("waits for focus before loading a video", () => {
+    mockUseVideoPlayer.mockClear();
     renderCard({
       ...BASE_ITEM,
       media_type: "VIDEO",
       media_url: "/api/v1/recordas/media/video.mp4"
     });
 
+    expect(mockUseVideoPlayer).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("mock-video-view")).toBeNull();
+    expect(screen.queryByTestId("recorda-video-loading")).toBeNull();
+  });
+
+  it("counts a video that was already ready before it was listened to", () => {
+    // Like the real hook, the same player instance across renders.
+    const readyPlayer = {
+      addListener: () => ({ remove: () => undefined }),
+      loop: false,
+      pause: () => undefined,
+      play: jest.fn(),
+      playing: false,
+      status: "readyToPlay"
+    };
+    mockUseVideoPlayer.mockImplementation(() => readyPlayer);
+    try {
+      renderCard(
+        { ...BASE_ITEM, media_type: "VIDEO", media_url: "/api/v1/recordas/media/video.mp4" },
+        jest.fn(),
+        undefined,
+        jest.fn(),
+        true
+      );
+
+      expect(screen.queryByTestId("recorda-video-loading")).toBeNull();
+    } finally {
+      resetVideoMock();
+    }
+  });
+
+  it("shows the loader while a focused video is loading", () => {
+    renderCard(
+      { ...BASE_ITEM, media_type: "VIDEO", media_url: "/api/v1/recordas/media/video.mp4" },
+      jest.fn(),
+      undefined,
+      jest.fn(),
+      true
+    );
+
+    expect(screen.getByTestId("recorda-video-loading")).toBeTruthy();
+  });
+
+  it("resolves a relative video URL once the card is focused", () => {
+    renderCard(
+      {
+        ...BASE_ITEM,
+        media_type: "VIDEO",
+        media_url: "/api/v1/recordas/media/video.mp4"
+      },
+      jest.fn(),
+      undefined,
+      jest.fn(),
+      true
+    );
+
     expect(mockUseVideoPlayer).toHaveBeenLastCalledWith(
-      "http://localhost:8000/api/v1/recordas/media/video.mp4",
+      { uri: "http://localhost:8000/api/v1/recordas/media/video.mp4" },
       expect.any(Function)
     );
   });

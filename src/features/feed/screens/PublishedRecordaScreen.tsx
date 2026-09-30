@@ -18,7 +18,7 @@ import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
 import { useRecordaDetails } from "../hooks/useRecordaDetails";
 import { recordaCommentsQueryKey, recordaDetailsQueryKey } from "../queryKeys";
 import { feedService } from "../services/feedService";
-import { useFeedAudio } from "../state/FeedAudioContext";
+import { useFeedAudioActions } from "../state/FeedAudioContext";
 import { feedItemToFeedPost, recordaDetailToFeedItem, useFeed } from "../state/FeedContext";
 import type { FeedComment, RecordaCommentResponse } from "../types";
 
@@ -49,7 +49,7 @@ export function PublishedRecordaScreen() {
     addComment,
     deletePost
   } = useFeed();
-  const { setActivePreview } = useFeedAudio();
+  const { setActivePreview } = useFeedAudioActions();
   const { t } = useTranslation();
   const snapshot = posts.find((item) => item.id === params.postId);
   const isLocallyDeleted = deletedIds.includes(params.postId);
@@ -118,7 +118,9 @@ export function PublishedRecordaScreen() {
 
   useEffect(() => {
     if (post) {
-      setActivePreview(post.id, post.previewUrl ?? null);
+      setActivePreview(post.id, post.previewUrl ?? null, {
+        waitForMedia: post.mediaType === "VIDEO"
+      });
     }
   }, [post, setActivePreview]);
 
@@ -192,7 +194,9 @@ export function PublishedRecordaScreen() {
       onShare={() =>
         navigation.navigate("ShareCard", {
           artistName: post.song.artistName,
-          coverUrl: remoteItem?.song_cover_url || null,
+          // A post opened from the feed has no `remoteItem` (details aren't refetched), so
+          // the cover has to come from the post itself.
+          coverUrl: post.song.coverUrl || remoteItem?.song_cover_url || null,
           mediaUri: post.mediaUrl,
           mediaType: post.mediaType === "VIDEO" ? "video" : "photo",
           songTitle: post.song.title

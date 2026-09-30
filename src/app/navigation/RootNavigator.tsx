@@ -18,7 +18,7 @@ import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
 import { clearSession } from "@/features/auth/session";
 import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
-import { useFeedAudio } from "@/features/feed/state/FeedAudioContext";
+import { useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
 import { NotificationsScreen } from "@/features/notifications";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
@@ -127,7 +127,7 @@ function UserProfilePlaceholderScreen() {
 }
 
 export function RootNavigator() {
-  const { setActiveRoute } = useFeedAudio();
+  const { setActiveRoute } = useFeedAudioActions();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
   // A prévia só toca no Feed e nos Detalhes; sair para qualquer outra tela
   // silencia. `onReady` cobre a rota inicial, que `onStateChange` não emite.
