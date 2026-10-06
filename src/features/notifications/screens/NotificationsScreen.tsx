@@ -61,6 +61,14 @@ export function NotificationsScreen() {
   );
 
   const pressHandlerFor = (item: NotificationItem) => {
+    if (item.type === "CONTENT_REMOVED") {
+      return () => {
+        if (!item.is_read && !markAllAsRead.isPending && !respond.isPending) {
+          markAllAsRead.mutate();
+        }
+      };
+    }
+
     if (item.recorda_id && ["COMMENT", "LIKE", "MENTION"].includes(item.type)) {
       const recordaId = item.recorda_id;
 

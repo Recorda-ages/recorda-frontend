@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
 import { resolveApiAssetUrl } from "@/services/api";
@@ -22,6 +23,7 @@ type NotificationRowProps = Readonly<{
 export function NotificationRow({ item, onPress, onRespond, responding }: NotificationRowProps) {
   const { t } = useTranslation();
   const elapsed = elapsedSince(item.created_at);
+  const isContentRemoved = item.type === "CONTENT_REMOVED";
   const username = item.sender?.username;
   const avatarUrl = item.sender?.profile_picture_url
     ? resolveApiAssetUrl(item.sender.profile_picture_url)
@@ -29,7 +31,14 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
 
   const content = (
     <>
-      {avatarUrl ? (
+      {isContentRemoved ? (
+        <View
+          style={[styles.avatar, styles.avatarFallback]}
+          testID={`notification-system-icon-${item.notification_id}`}
+        >
+          <Icon color={colors.neutrals[100]} size={24} source="shield-alert-outline" />
+        </View>
+      ) : avatarUrl ? (
         <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />
       ) : (
         <View style={[styles.avatar, styles.avatarFallback]}>
@@ -38,9 +47,18 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
       )}
 
       <View style={styles.body}>
-        <AppText numberOfLines={2} style={styles.message}>
-          {username ? <AppText style={styles.username}>{username} </AppText> : null}
-          {t(`notifications.types.${item.type}`)}
+        <AppText numberOfLines={isContentRemoved ? undefined : 2} style={styles.message}>
+          {isContentRemoved ? (
+            t("notifications.types.CONTENT_REMOVED", {
+              song: item.recorda_song_title || t("notifications.removedSongFallback"),
+              reason: item.removal_reason || t("notifications.removalReasonFallback")
+            })
+          ) : (
+            <>
+              {username ? <AppText style={styles.username}>{username} </AppText> : null}
+              {t(`notifications.types.${item.type}`)}
+            </>
+          )}
         </AppText>
 
         {item.type === "FOLLOW_REQUEST" && item.follow_id ? (

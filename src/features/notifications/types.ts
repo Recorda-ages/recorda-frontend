@@ -1,5 +1,11 @@
 export type NotificationType =
-  "COMMENT" | "FOLLOW_ACCEPTED" | "FOLLOW_REQUEST" | "LIKE" | "MENTION" | "NEW_FOLLOWER";
+  | "COMMENT"
+  | "CONTENT_REMOVED"
+  | "FOLLOW_ACCEPTED"
+  | "FOLLOW_REQUEST"
+  | "LIKE"
+  | "MENTION"
+  | "NEW_FOLLOWER";
 
 export type NotificationSender = {
   profile_picture_url: string | null;
@@ -14,6 +20,8 @@ export type NotificationItem = {
   is_read: boolean;
   notification_id: string;
   recorda_id: string | null;
+  recorda_song_title?: string | null;
+  removal_reason?: string | null;
   sender: NotificationSender | null;
   type: NotificationType;
 };
