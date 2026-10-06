@@ -251,7 +251,8 @@ describe("PublishedRecordaScreen", () => {
   });
 
   it("closes the comments sheet when tapping outside it", () => {
-    jest.useFakeTimers();
+    // Keep React's async act scheduler running while animation timers are mocked.
+    jest.useFakeTimers({ doNotFake: ["setImmediate"] });
     try {
       renderScreen();
       fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
@@ -263,9 +264,7 @@ describe("PublishedRecordaScreen", () => {
       const hidden = { includeHiddenElements: true };
       expect(screen.queryByTestId("recorda-bottom-overlay")).toBeNull();
       // Description and actions stop taking touches while the sheet covers them.
-      expect(screen.getByTestId("recorda-bottom-overlay", hidden).props.pointerEvents).toBe(
-        "none"
-      );
+      expect(screen.getByTestId("recorda-bottom-overlay", hidden).props.pointerEvents).toBe("none");
 
       fireEvent.press(screen.getByTestId("comments-backdrop", hidden));
       // Stays mounted while it slides out, then unmounts.

@@ -1,7 +1,7 @@
 # #241 — Notificação de conteúdo removido
 
-Entrega local na branch `feat/241-content-removed-notification`, baseada em
-`origin/dev` (`b91b935`). Sem push ou PR: aguardando revisão do autor da task.
+Entrega na branch `feat/241-content-removed-notification`, baseada em
+`origin/dev` (`b91b935`), no [PR #244](https://github.com/Recorda-ages/recorda-frontend/pull/244).
 
 ## Comportamento
 
@@ -54,18 +54,23 @@ incluído em um commit.
 ## Validação
 
 - Suíte completa: 68 suítes e 538 testes aprovados, incluindo 36 testes da tela
-  de notificações, com `npm test -- --coverage --runInBand --forceExit`.
+  de notificações, no Node 22.13.1 com os parâmetros da CI:
+  `npm test -- --coverage --maxWorkers=50% --forceExit --testTimeout=30000`.
 - Cobertura de linhas: 100% em `NotificationRow.tsx`, 95,83% em
-  `NotificationsScreen.tsx` e 90,50% global. Cobertura de branches: 94,11% na linha
+  `NotificationsScreen.tsx` e 90,83% global. Cobertura de branches: 94,11% na linha
   de notificação e 96,07% na tela.
 - ESLint sem avisos e TypeScript aprovados.
 - Exportação do app real: `npx expo export --platform web` aprovada.
 - Prettier dos arquivos alterados aprovado.
-- O `format:check` global aponta diferenças de fim de linha no checkout Windows.
-  Com `--end-of-line auto`, restam problemas preexistentes em
+- O Prettier global passou com `--end-of-line auto` no checkout Windows.
+  As três diferenças de formatação apontadas pela CI foram corrigidas em
   `src/services/api/useAuthImageSource.ts`,
-  `tests/features/feed/PublishedRecordaScreen.test.tsx` e
-  `tests/mocks/expoVideo.tsx`, que não foram alterados nesta task.
+  `tests/features/feed/PublishedRecordaScreen.test.tsx` e `tests/mocks/expoVideo.tsx`.
+- As falhas de cleanup nos testes de autoplay e detalhes foram reproduzidas no Node 22.13.1.
+  Os timers falsos agora preservam `setImmediate`, usado pelo agendamento de
+  `act` do React. Os 11 testes de autoplay passam com timeout de 5 segundos;
+  os 21 testes de detalhes também passam. A suíte completa terminou em 16,55 segundos.
+  As verificações existentes e o timeout da CI foram mantidos.
 - A suíte usa `--forceExit` porque o Jest mantém operações assíncronas abertas
   após terminar. Há avisos de `act` nos testes existentes do feed/detalhes; o log
   preserva esses avisos.

@@ -738,7 +738,8 @@ describe("FeedScreen", () => {
     });
 
     it("settles a scroll released without momentum", () => {
-      jest.useFakeTimers();
+      // React act caches setImmediate; faking it can stall async cleanup on Node 22.
+      jest.useFakeTimers({ doNotFake: ["setImmediate"] });
       try {
         mockGeneral(
           successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
@@ -761,7 +762,7 @@ describe("FeedScreen", () => {
     });
 
     it("settles a fling stopped by a tap, which sends no end event", () => {
-      jest.useFakeTimers();
+      jest.useFakeTimers({ doNotFake: ["setImmediate"] });
       try {
         mockGeneral(
           successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
@@ -787,7 +788,7 @@ describe("FeedScreen", () => {
     });
 
     it("doesn't treat a finger resting mid-drag as a settled list", () => {
-      jest.useFakeTimers();
+      jest.useFakeTimers({ doNotFake: ["setImmediate"] });
       try {
         mockGeneral(
           successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
@@ -888,7 +889,7 @@ describe("FeedScreen", () => {
     });
 
     it("still hands the audio over if the tapped tab's scroll never reports settling", () => {
-      jest.useFakeTimers();
+      jest.useFakeTimers({ doNotFake: ["setImmediate"] });
       try {
         mockGeneral(
           successResult({ items: withPreview, next_cursor: null }, false, generalHandlers)
