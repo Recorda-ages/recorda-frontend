@@ -160,8 +160,7 @@
     "deleteError": "Could not delete the Recorda. Try again.",
     "confirmDelete": "Confirm deletion",
     "unavailable": "This Recorda is no longer available.",
-    "sharePending": "Recorda sharing is not available in this version yet.",
-    "reportPending": "Reporting is not available in this version yet. No report has been sent."
+    "sharePending": "Recorda sharing is not available in this version yet."
   },
   "feed": {
     "logo": "recorda.",
@@ -286,5 +285,27 @@
     "unfollowMessage": "Are you sure you want to unfollow {{username}}?",
     "unfollowCancel": "Cancel",
     "unfollowConfirm": "Unfollow"
+  },
+  "moderation": {
+    "report": {
+      "title": {
+        "recorda": "Report Recorda",
+        "user": "Report profile"
+      },
+      "message": "Tell us why you are reporting this. Moderation will review your report.",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Write a description",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel",
+      "submit": "Report",
+      "feedback": {
+        "success": "Report sent. Thank you for helping the community.",
+        "duplicate": "You have already reported this content.",
+        "unavailable": "This content is no longer available."
+      },
+      "error": {
+        "generic": "We could not send the report. Please try again."
+      }
+    }
   }
 }

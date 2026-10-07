@@ -52,7 +52,6 @@ export type RootStackParamList = {
   Friends: { userId?: string } | undefined;
   PublishedRecorda: { postId: string };
   RecordaShare: { postId: string };
-  RecordaReport: { postId: string };
   RecordaDetails: undefined;
   RecordaMusic: undefined;
   RecordaView: { recordaId: string };
@@ -152,7 +151,6 @@ export function RootNavigator() {
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="PublishedRecorda" component={PublishedRecordaScreen} />
         <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
-        <Stack.Screen name="RecordaReport" component={RecordaIntegrationScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />

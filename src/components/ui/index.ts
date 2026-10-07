@@ -1,4 +1,5 @@
 export { Button } from "./Button";
+export { destructiveDialogStyles } from "./destructiveDialogStyles";
 export { ErrorState } from "./ErrorState";
 export { Input } from "./Input";
 export { AnimatedHeart } from "./AnimatedHeart";
