@@ -14,6 +14,10 @@ export const ADMIN_ROLE = "ADMIN";
 
 export type PostAuthDestination = "Admin" | "Feed" | "OnboardingArtists";
 
+// The current user is only ever written with setQueryData and usually has no observer,
+// so the default 5-minute garbage collection would drop it in the middle of a session.
+queryClient.setQueryDefaults(AUTH_ME_QUERY_KEY, { gcTime: Infinity });
+
 export async function saveSession(response: AuthSessionResponse) {
   await secureStorage.setItem(AUTH_TOKEN_KEY, response.access_token);
   await secureStorage.setItem(ROLE_KEY, response.user.role);
