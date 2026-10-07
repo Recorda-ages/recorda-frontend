@@ -102,7 +102,27 @@
     }
   },
   "admin": {
-    "title": "Admin area"
+    "title": "Admin area",
+    "reasonDialog": {
+      "label": "Reason",
+      "placeholder": "Describe the reason",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel"
+    },
+    "status": {
+      "accessibilityLabel": "Status: {{status}}",
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "session": {
+      "expiredTitle": "Session ended",
+      "expiredMessage": "Your session has expired.",
+      "forbiddenTitle": "Administrative access removed",
+      "forbiddenMessage": "Your account does not have administrative access."
+    }
   },
   "profile": {
     "title": "Profile"

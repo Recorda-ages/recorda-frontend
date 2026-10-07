@@ -102,7 +102,27 @@
     }
   },
   "admin": {
-    "title": "Área administrativa"
+    "title": "Área administrativa",
+    "reasonDialog": {
+      "label": "Motivo",
+      "placeholder": "Describe el motivo",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancelar"
+    },
+    "status": {
+      "accessibilityLabel": "Estado: {{status}}",
+      "open": "Pendiente",
+      "resolved": "Resuelta",
+      "dismissed": "Descartada",
+      "active": "Activo",
+      "suspended": "Suspendido"
+    },
+    "session": {
+      "expiredTitle": "Sesión finalizada",
+      "expiredMessage": "Tu sesión ha expirado.",
+      "forbiddenTitle": "Acceso administrativo eliminado",
+      "forbiddenMessage": "Tu cuenta no tiene acceso administrativo."
+    }
   },
   "profile": {
     "title": "Perfil"
