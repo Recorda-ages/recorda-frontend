@@ -154,6 +154,7 @@
     "send": "Enviar comentario",
     "delete": "Eliminar",
     "report": "Denunciar",
+    "notInterested": "No me interesa",
     "cancel": "Cancelar",
     "deleteTitle": "¿Eliminar Recorda?",
     "deleteMessage": "Esta acción no se puede deshacer.",

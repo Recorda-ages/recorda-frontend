@@ -12,6 +12,7 @@ import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 import { authApiClient } from "@/services/api";
+import { fontFamily } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
@@ -148,6 +149,7 @@ describe("PublishedRecordaScreen", () => {
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     expect(screen.queryByText("Denunciar")).toBeNull();
+    expect(screen.queryByText("Não interessado")).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
     expect(screen.getByText("Excluir Recorda?")).toBeTruthy();
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-1/);
@@ -202,12 +204,26 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("only offers Report for another author and opens the report dialog", () => {
+  it("only offers Not interested and Report for another author and opens the report dialog", () => {
     mockRoute.params.postId = "post-2";
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+    const menu = within(screen.getByTestId("recorda-menu"));
+    expect(menu.getAllByRole("button")).toHaveLength(2);
     expect(screen.queryByText("Excluir")).toBeNull();
-    fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
+    expect(screen.queryByText("Cancelar")).toBeNull();
+    // No backend contract yet: the item is shown but cannot be triggered.
+    expect(menu.getByRole("button", { name: "Não interessado" })).toBeDisabled();
+    expect(menu.getByText("Não interessado")).toHaveStyle({
+      fontFamily: fontFamily.display.medium,
+      fontSize: 14
+    });
+    expect(menu.getByText("Denunciar")).toHaveStyle({
+      fontFamily: fontFamily.display.medium,
+      fontSize: 14
+    });
+    fireEvent.press(menu.getByRole("button", { name: "Denunciar" }));
+    expect(screen.queryByTestId("recorda-menu")).toBeNull();
     expect(screen.getByText("Denunciar Recorda")).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-2/);

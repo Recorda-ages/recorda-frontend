@@ -63,6 +63,8 @@ const DESCRIPTION_MAX_RATIO = 0.4;
 const ACTION_STRIP_HEIGHT = 52;
 const ACTION_ICON_SIZE = 30;
 const BACK_ICON_SIZE = 38;
+const MORE_ICON_SIZE = 24;
+const MENU_ICON_SIZE = 20;
 
 const SHEET_CLOSE_MS = 180;
 /** Shared by the comments sheet and the description/actions panel. */
@@ -489,7 +491,7 @@ export function RecordaDetailView({
                 onPress={() => setMenu("options")}
                 style={styles.moreButton}
               >
-                <Icon source="dots-horizontal" size={24} color={colors.neutrals[100]} />
+                <Icon source="dots-horizontal" size={MORE_ICON_SIZE} color={colors.neutrals[100]} />
               </Pressable>
             </View>
             <Animated.View
@@ -625,12 +627,54 @@ export function RecordaDetailView({
                 />
               </>
             ) : null}
+
+            {menu === "options" && !isOwnPost ? (
+              <>
+                <Pressable
+                  accessibilityLabel={t("publishedRecorda.cancel")}
+                  onPress={() => setMenu(null)}
+                  style={StyleSheet.absoluteFill}
+                  testID="recorda-menu-backdrop"
+                />
+                <View style={styles.popover} testID="recorda-menu">
+                  {/* Disabled until the backend has a "not interested" contract, so a tap
+                      never looks like it did something. */}
+                  <Pressable accessibilityRole="button" disabled style={styles.popoverItem}>
+                    <Icon
+                      source="eye-off-outline"
+                      size={MENU_ICON_SIZE}
+                      color={colors.neutrals[200]}
+                    />
+                    <AppText style={styles.popoverLabel}>
+                      {t("publishedRecorda.notInterested")}
+                    </AppText>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setMenu(null);
+                      onReport();
+                    }}
+                    style={styles.popoverItem}
+                  >
+                    <Icon
+                      source="message-alert-outline"
+                      size={MENU_ICON_SIZE}
+                      color={colors.error[200]}
+                    />
+                    <AppText style={[styles.popoverLabel, styles.popoverDestructive]}>
+                      {t("publishedRecorda.report")}
+                    </AppText>
+                  </Pressable>
+                </View>
+              </>
+            ) : null}
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={onTabPress} />
       <Modal
-        visible={menu !== null}
+        visible={isOwnPost && menu !== null}
         transparent
         animationType="fade"
         onRequestClose={() => setMenu(null)}
@@ -661,17 +705,9 @@ export function RecordaDetailView({
               <Pressable
                 accessibilityRole="button"
                 style={styles.dialogButton}
-                onPress={() => {
-                  if (isOwnPost) setMenu("delete");
-                  else {
-                    setMenu(null);
-                    onReport();
-                  }
-                }}
+                onPress={() => setMenu("delete")}
               >
-                <AppText style={styles.destructive}>
-                  {t(isOwnPost ? "publishedRecorda.delete" : "publishedRecorda.report")}
-                </AppText>
+                <AppText style={styles.destructive}>{t("publishedRecorda.delete")}</AppText>
               </Pressable>
             )}
             <Pressable
@@ -754,6 +790,24 @@ const styles = StyleSheet.create({
   songLine: { color: colors.neutrals[100], fontSize: 12 },
   song: { color: colors.primary[500], fontFamily: fontFamily.primary.bold, fontSize: 12 },
   moreButton: { alignSelf: "flex-start" },
+  // Hangs from the three-dots button: same top/right inset as the author row, one icon lower.
+  popover: {
+    backgroundColor: colors.neutrals[800],
+    borderRadius: radius.lg,
+    paddingVertical: spacing[1],
+    position: "absolute",
+    right: spacing[3],
+    top: spacing[3] + MORE_ICON_SIZE + spacing[1]
+  },
+  popoverItem: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[2],
+    minHeight: 48,
+    paddingHorizontal: spacing[4]
+  },
+  popoverLabel: { color: colors.neutrals[200], fontFamily: fontFamily.display.medium },
+  popoverDestructive: { color: colors.error[200] },
   // Sits just above the bottom overlay, whatever height the description gives it.
   soundSlot: {
     height: 56,
