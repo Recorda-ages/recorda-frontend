@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
 import { resolveApiAssetUrl } from "@/services/api";
@@ -19,28 +20,84 @@ type NotificationRowProps = Readonly<{
   responding: boolean;
 }>;
 
+type NotificationIndicatorProps = Readonly<{
+  avatarUrl: string | null;
+  isContentRemoved: boolean;
+  notificationId: string;
+  username: string | undefined;
+}>;
+
+function NotificationIndicator({
+  avatarUrl,
+  isContentRemoved,
+  notificationId,
+  username
+}: NotificationIndicatorProps) {
+  if (isContentRemoved) {
+    return (
+      <View
+        style={[styles.avatar, styles.avatarFallback]}
+        testID={`notification-system-icon-${notificationId}`}
+      >
+        <Icon color={colors.neutrals[100]} size={24} source="shield-alert-outline" />
+      </View>
+    );
+  }
+
+  if (avatarUrl) {
+    return <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />;
+  }
+
+  return (
+    <View style={[styles.avatar, styles.avatarFallback]}>
+      <AppText style={styles.avatarInitial}>{username?.charAt(0).toUpperCase()}</AppText>
+    </View>
+  );
+}
+
+function nonBlankOrFallback(value: string | null | undefined, fallback: string) {
+  return value?.trim() || fallback;
+}
+
 export function NotificationRow({ item, onPress, onRespond, responding }: NotificationRowProps) {
   const { t } = useTranslation();
   const elapsed = elapsedSince(item.created_at);
+  const isContentRemoved = item.type === "CONTENT_REMOVED";
   const username = item.sender?.username;
   const avatarUrl = item.sender?.profile_picture_url
     ? resolveApiAssetUrl(item.sender.profile_picture_url)
     : null;
+  const removedSong = nonBlankOrFallback(
+    item.recorda_song_title,
+    t("notifications.removedSongFallback")
+  );
+  const removalReason = nonBlankOrFallback(
+    item.removal_reason,
+    t("notifications.removalReasonFallback")
+  );
 
   const content = (
     <>
-      {avatarUrl ? (
-        <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />
-      ) : (
-        <View style={[styles.avatar, styles.avatarFallback]}>
-          <AppText style={styles.avatarInitial}>{username?.charAt(0).toUpperCase()}</AppText>
-        </View>
-      )}
+      <NotificationIndicator
+        avatarUrl={avatarUrl}
+        isContentRemoved={isContentRemoved}
+        notificationId={item.notification_id}
+        username={username}
+      />
 
       <View style={styles.body}>
-        <AppText numberOfLines={2} style={styles.message}>
-          {username ? <AppText style={styles.username}>{username} </AppText> : null}
-          {t(`notifications.types.${item.type}`)}
+        <AppText numberOfLines={isContentRemoved ? undefined : 2} style={styles.message}>
+          {isContentRemoved ? (
+            t("notifications.types.CONTENT_REMOVED", {
+              reason: removalReason,
+              song: removedSong
+            })
+          ) : (
+            <>
+              {username ? <AppText style={styles.username}>{username} </AppText> : null}
+              {t(`notifications.types.${item.type}`)}
+            </>
+          )}
         </AppText>
 
         {item.type === "FOLLOW_REQUEST" && item.follow_id ? (

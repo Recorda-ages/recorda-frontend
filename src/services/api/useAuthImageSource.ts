@@ -26,9 +26,7 @@ export type AuthImageSource = { headers?: Record<string, string>; uri: string };
  * back 401 and the image just never appears. The token only goes to our own
  * API: any other host would be handed the user's credentials.
  */
-export function useAuthImageSource(
-  uri: string | null | undefined
-): AuthImageSource | undefined {
+export function useAuthImageSource(uri: string | null | undefined): AuthImageSource | undefined {
   const token = useAuthToken();
 
   // Stable identity matters: screens use the source as an effect dependency.
