@@ -202,7 +202,8 @@ describe("NotificationsScreen", () => {
   it.each([
     [null, null],
     [undefined, undefined],
-    ["", ""]
+    ["", ""],
+    ["   ", "\t"]
   ])("uses localized fallbacks for missing song %s and reason %s", async (song, reason) => {
     serverPage = {
       items: [{ ...REMOVED_NOTIFICATION, recorda_song_title: song, removal_reason: reason }],
@@ -229,11 +230,24 @@ describe("NotificationsScreen", () => {
       expect(page?.unread_count).toBe(0);
       expect(page?.items[0].is_read).toBe(true);
     });
-    fireEvent.press(screen.getByTestId("notification-n-removed"));
 
+    expect(screen.getByTestId("notification-n-removed").props.accessibilityRole).toBeUndefined();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(markAllAsRead).toHaveBeenCalledTimes(1);
     expect(respond).not.toHaveBeenCalled();
+  });
+
+  it("does not expose an already-read removal notification as an actionable button", async () => {
+    serverPage = {
+      items: [{ ...REMOVED_NOTIFICATION, is_read: true }],
+      unread_count: 0
+    };
+    renderScreen();
+
+    const row = await screen.findByTestId("notification-n-removed");
+    expect(row.props.accessibilityRole).toBeUndefined();
+    expect(markAllAsRead).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("retries marking an unread removal notification when tapped after a read failure", async () => {
@@ -267,7 +281,7 @@ describe("NotificationsScreen", () => {
     renderScreen();
 
     await waitFor(() => expect(markAllAsRead).toHaveBeenCalledTimes(1));
-    fireEvent.press(screen.getByTestId("notification-n-removed"));
+    expect(screen.getByTestId("notification-n-removed").props.accessibilityRole).toBeUndefined();
     expect(markAllAsRead).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
 
@@ -291,8 +305,8 @@ describe("NotificationsScreen", () => {
     await waitFor(() => expect(accept).not.toBeDisabled());
     fireEvent.press(accept);
     await waitFor(() => expect(respond).toHaveBeenCalledTimes(1));
-    fireEvent.press(screen.getByTestId("notification-n-removed"));
 
+    expect(screen.getByTestId("notification-n-removed").props.accessibilityRole).toBeUndefined();
     expect(markAllAsRead).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
     await act(async () => finishResponse());

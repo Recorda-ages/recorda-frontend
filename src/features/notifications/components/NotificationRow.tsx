@@ -20,6 +20,45 @@ type NotificationRowProps = Readonly<{
   responding: boolean;
 }>;
 
+type NotificationIndicatorProps = Readonly<{
+  avatarUrl: string | null;
+  isContentRemoved: boolean;
+  notificationId: string;
+  username: string | undefined;
+}>;
+
+function NotificationIndicator({
+  avatarUrl,
+  isContentRemoved,
+  notificationId,
+  username
+}: NotificationIndicatorProps) {
+  if (isContentRemoved) {
+    return (
+      <View
+        style={[styles.avatar, styles.avatarFallback]}
+        testID={`notification-system-icon-${notificationId}`}
+      >
+        <Icon color={colors.neutrals[100]} size={24} source="shield-alert-outline" />
+      </View>
+    );
+  }
+
+  if (avatarUrl) {
+    return <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />;
+  }
+
+  return (
+    <View style={[styles.avatar, styles.avatarFallback]}>
+      <AppText style={styles.avatarInitial}>{username?.charAt(0).toUpperCase()}</AppText>
+    </View>
+  );
+}
+
+function nonBlankOrFallback(value: string | null | undefined, fallback: string) {
+  return value?.trim() || fallback;
+}
+
 export function NotificationRow({ item, onPress, onRespond, responding }: NotificationRowProps) {
   const { t } = useTranslation();
   const elapsed = elapsedSince(item.created_at);
@@ -28,30 +67,30 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
   const avatarUrl = item.sender?.profile_picture_url
     ? resolveApiAssetUrl(item.sender.profile_picture_url)
     : null;
+  const removedSong = nonBlankOrFallback(
+    item.recorda_song_title,
+    t("notifications.removedSongFallback")
+  );
+  const removalReason = nonBlankOrFallback(
+    item.removal_reason,
+    t("notifications.removalReasonFallback")
+  );
 
   const content = (
     <>
-      {isContentRemoved ? (
-        <View
-          style={[styles.avatar, styles.avatarFallback]}
-          testID={`notification-system-icon-${item.notification_id}`}
-        >
-          <Icon color={colors.neutrals[100]} size={24} source="shield-alert-outline" />
-        </View>
-      ) : avatarUrl ? (
-        <Image contentFit="cover" source={avatarUrl} style={styles.avatar} transition={150} />
-      ) : (
-        <View style={[styles.avatar, styles.avatarFallback]}>
-          <AppText style={styles.avatarInitial}>{username?.charAt(0).toUpperCase()}</AppText>
-        </View>
-      )}
+      <NotificationIndicator
+        avatarUrl={avatarUrl}
+        isContentRemoved={isContentRemoved}
+        notificationId={item.notification_id}
+        username={username}
+      />
 
       <View style={styles.body}>
         <AppText numberOfLines={isContentRemoved ? undefined : 2} style={styles.message}>
           {isContentRemoved ? (
             t("notifications.types.CONTENT_REMOVED", {
-              song: item.recorda_song_title || t("notifications.removedSongFallback"),
-              reason: item.removal_reason || t("notifications.removalReasonFallback")
+              reason: removalReason,
+              song: removedSong
             })
           ) : (
             <>
