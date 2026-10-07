@@ -29,11 +29,11 @@ const CREATED: ReportCreatedResponse = {
   status: "OPEN"
 };
 
-// Título único: a apresentação é genérica para Recorda e perfil.
-const TITLE = "Denunciar conteúdo";
-// A mensagem é o label visual do campo; o placeholder carrega a opcionalidade.
-const MESSAGE = "Qual o motivo da denúncia?";
-const PLACEHOLDER = "Descrição (opcional)";
+const RECORDA_TITLE = "Denunciar Recorda";
+const USER_TITLE = "Denunciar perfil";
+const MESSAGE = "Conte por que você está denunciando. A moderação avaliará sua denúncia.";
+const DESCRIPTION_LABEL = "Descrição (opcional)";
+const PLACEHOLDER = "Escreva uma descrição";
 const SUBMIT = "Denunciar";
 const CANCEL = "Cancelar";
 const SUCCESS = "Denúncia enviada. Obrigado por ajudar a comunidade.";
@@ -110,9 +110,10 @@ beforeEach(() => {
   mockReportUser.mockResolvedValue(CREATED);
 });
 
-afterEach(() => {
+afterEach(async () => {
   clients.forEach((client) => client.clear());
   clients.length = 0;
+  await i18n.changeLanguage("pt-BR");
 });
 
 describe("ReportDialog", () => {
@@ -121,10 +122,40 @@ describe("ReportDialog", () => {
     renderHarness();
     openRecordaDialog();
 
-    expect(screen.getByText(TITLE)).toBeTruthy();
+    expect(screen.getByText(RECORDA_TITLE)).toBeTruthy();
     expect(screen.getByText(MESSAGE)).toBeTruthy();
+    expect(screen.getByText(DESCRIPTION_LABEL)).toBeTruthy();
     expect(field()).toBeTruthy();
     expect(screen.getAllByRole("button")).toHaveLength(2);
+  });
+
+  it.each([
+    [
+      "pt-BR",
+      "Denunciar Recorda",
+      "Conte por que você está denunciando. A moderação avaliará sua denúncia.",
+      "Descrição (opcional)"
+    ],
+    [
+      "en",
+      "Report Recorda",
+      "Tell us why you are reporting this. Moderation will review your report.",
+      "Description (optional)"
+    ],
+    [
+      "es",
+      "Denunciar Recorda",
+      "Cuéntanos por qué haces esta denuncia. El equipo de moderación revisará tu denuncia.",
+      "Descripción (opcional)"
+    ]
+  ])("localizes the Recorda dialog in %s", async (language, title, message, label) => {
+    await i18n.changeLanguage(language);
+    renderHarness();
+    openRecordaDialog();
+
+    expect(screen.getByText(title)).toBeTruthy();
+    expect(screen.getByText(message)).toBeTruthy();
+    expect(screen.getByText(label)).toBeTruthy();
   });
 
   it("sends the report with an untouched description", async () => {
@@ -204,10 +235,11 @@ describe("ReportDialog", () => {
     fireEvent.press(submitButton());
 
     await waitFor(() => expect(screen.getByText(SUCCESS)).toBeTruthy());
-    expect(screen.queryByText(TITLE)).toBeNull();
+    expect(screen.queryByText(RECORDA_TITLE)).toBeNull();
 
     openRecordaDialog();
     expect(field().props.value).toBe("");
+    expect(screen.queryByText(SUCCESS)).toBeNull();
   });
 
   it("closes with an informative message on 409", async () => {
@@ -219,7 +251,7 @@ describe("ReportDialog", () => {
     fireEvent.press(submitButton());
 
     await waitFor(() => expect(screen.getByText(DUPLICATE)).toBeTruthy());
-    expect(screen.queryByText(TITLE)).toBeNull();
+    expect(screen.queryByText(RECORDA_TITLE)).toBeNull();
     expect(screen.queryByText(GENERIC_ERROR)).toBeNull();
   });
 
@@ -231,7 +263,7 @@ describe("ReportDialog", () => {
     fireEvent.press(submitButton());
 
     await waitFor(() => expect(screen.getByText(UNAVAILABLE)).toBeTruthy());
-    expect(screen.queryByText(TITLE)).toBeNull();
+    expect(screen.queryByText(RECORDA_TITLE)).toBeNull();
   });
 
   it("keeps the dialog and the typed text on a network failure", async () => {
@@ -245,7 +277,7 @@ describe("ReportDialog", () => {
     fireEvent.press(submitButton());
 
     await waitFor(() => expect(screen.getByText(GENERIC_ERROR)).toBeTruthy());
-    expect(screen.getByText(TITLE)).toBeTruthy();
+    expect(screen.getByText(RECORDA_TITLE)).toBeTruthy();
     expect(field().props.value).toBe("texto digitado");
     expect(screen.queryByText(SUCCESS)).toBeNull();
   });
@@ -277,7 +309,7 @@ describe("ReportDialog", () => {
     fireEvent.press(submitButton());
 
     await waitFor(() => expect(screen.getByText(GENERIC_ERROR)).toBeTruthy());
-    expect(screen.getByText(TITLE)).toBeTruthy();
+    expect(screen.getByText(RECORDA_TITLE)).toBeTruthy();
     expect(field().props.value).toBe("texto");
   });
 
@@ -290,7 +322,7 @@ describe("ReportDialog", () => {
     fireEvent.press(submitButton());
 
     await waitFor(() => expect(screen.getByText(GENERIC_ERROR)).toBeTruthy());
-    expect(screen.getByText(TITLE)).toBeTruthy();
+    expect(screen.getByText(RECORDA_TITLE)).toBeTruthy();
   });
 
   it("closes without any request when cancelled", () => {
@@ -300,22 +332,22 @@ describe("ReportDialog", () => {
 
     fireEvent.press(cancelButton());
 
-    expect(screen.queryByText(TITLE)).toBeNull();
+    expect(screen.queryByText(RECORDA_TITLE)).toBeNull();
     expect(mockReportRecorda).not.toHaveBeenCalled();
 
     openRecordaDialog();
     expect(field().props.value).toBe("");
   });
 
-  it("shows the same title for both targets and still picks the endpoint by type", async () => {
+  it("uses the target-specific title and picks the endpoint by type", async () => {
     renderHarness();
 
     openRecordaDialog();
-    expect(screen.getByText(TITLE)).toBeTruthy();
+    expect(screen.getByText(RECORDA_TITLE)).toBeTruthy();
     fireEvent.press(cancelButton());
 
     fireEvent.press(screen.getByText("abrir-perfil"));
-    expect(screen.getByText(TITLE)).toBeTruthy();
+    expect(screen.getByText(USER_TITLE)).toBeTruthy();
 
     fireEvent.press(submitButton());
 

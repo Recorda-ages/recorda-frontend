@@ -208,7 +208,7 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     expect(screen.queryByText("Excluir")).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
-    expect(screen.getByText("Denunciar conteúdo")).toBeTruthy();
+    expect(screen.getByText("Denunciar Recorda")).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-2/);
   });
@@ -227,7 +227,7 @@ describe("PublishedRecordaScreen", () => {
 
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
-    fireEvent.changeText(screen.getByPlaceholderText("Descrição (opcional)"), "conteúdo ofensivo");
+    fireEvent.changeText(screen.getByLabelText("Descrição (opcional)"), "conteúdo ofensivo");
     fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
 
     await waitFor(() =>
@@ -515,20 +515,16 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["RecordaShare", "RecordaReport"])(
-    "makes pending integration explicit for %s",
-    (name) => {
-      mockRoute.name = name;
-      render(
-        <I18nextProvider i18n={i18n}>
-          <RecordaIntegrationScreen />
-        </I18nextProvider>
-      );
-      expect(screen.getByText(/ainda não está disponível/)).toBeTruthy();
-      fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    }
-  );
+  it("makes the pending sharing integration explicit", () => {
+    render(
+      <I18nextProvider i18n={i18n}>
+        <RecordaIntegrationScreen />
+      </I18nextProvider>
+    );
+    expect(screen.getByText(/ainda não está disponível/)).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
 
   it("synchronizes the audio preview for the opened Recorda", async () => {
     const detail: RecordaDetailResponse = {

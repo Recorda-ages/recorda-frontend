@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 import { AppText, Input } from "@/components/ui";
 import { baseColors, colors, fontFamily, radius, spacing } from "@/theme";
 
+import type { ReportTarget } from "../types";
+
 const DESCRIPTION_MAX_LENGTH = 500;
 
 type ReportDialogProps = {
@@ -23,6 +25,7 @@ type ReportDialogProps = {
   onChangeDescription: (description: string) => void;
   onSubmit: () => void;
   pending: boolean;
+  targetType: ReportTarget["type"];
   visible: boolean;
 };
 
@@ -30,9 +33,8 @@ type ReportDialogProps = {
  * Modal de denúncia (US 40): descrição opcional e dois botões, sem lista de
  * motivos. Segue o padrão visual de `DeleteCommentDialog`.
  *
- * A apresentação é a mesma para Recorda e perfil — por isso o componente não
- * recebe o alvo. Quem escolhe o endpoint pelo `target.type` é o
- * `useReportDialog`, junto com a mutation.
+ * O título acompanha o tipo do alvo; a escolha do endpoint continua isolada em
+ * `useReportDialog` e `useReportMutation`.
  *
  * O componente é controlado — quem guarda o texto, o estado de envio e o
  * resultado é o `useReportDialog`, para que a mensagem de resultado sobreviva
@@ -45,9 +47,12 @@ export function ReportDialog({
   onChangeDescription,
   onSubmit,
   pending,
+  targetType,
   visible
 }: Readonly<ReportDialogProps>) {
   const { t } = useTranslation();
+  const titleKey =
+    targetType === "RECORDA" ? "moderation.report.title.recorda" : "moderation.report.title.user";
 
   // Um envio em curso não pode ser interrompido pelo botão voltar do Android:
   // fechar aqui descartaria o texto de uma denúncia que talvez seja aceita.
@@ -77,18 +82,17 @@ export function ReportDialog({
               <Icon color={baseColors.white} size={28} source="message-alert-outline" />
             </View>
             <AppText style={styles.title} variant="headline4">
-              {t("moderation.report.title")}
+              {t(titleKey)}
             </AppText>
             <View style={styles.field}>
-              {/* A mensagem é o label visual do campo — e, por isso, também o
-                  nome acessível dele. Placeholder não cumpre esse papel. */}
               <AppText style={styles.message} variant="body1">
                 {t("moderation.report.message")}
               </AppText>
               <Input
-                accessibilityLabel={t("moderation.report.message")}
+                accessibilityLabel={t("moderation.report.descriptionLabel")}
                 editable={!pending}
                 inputContainerStyle={styles.inputContainer}
+                label={t("moderation.report.descriptionLabel")}
                 maxLength={DESCRIPTION_MAX_LENGTH}
                 multiline
                 onChangeText={onChangeDescription}

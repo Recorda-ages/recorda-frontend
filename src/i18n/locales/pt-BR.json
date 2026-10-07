@@ -161,8 +161,7 @@
     "deleteError": "Não foi possível excluir a Recorda. Tente novamente.",
     "confirmDelete": "Confirmar exclusão",
     "unavailable": "Esta Recorda não está mais disponível.",
-    "sharePending": "O compartilhamento de Recordas ainda não está disponível nesta versão.",
-    "reportPending": "O envio de denúncias ainda não está disponível nesta versão. Nenhuma denúncia foi enviada."
+    "sharePending": "O compartilhamento de Recordas ainda não está disponível nesta versão."
   },
   "feed": {
     "logo": "recorda.",
@@ -291,9 +290,13 @@
   },
   "moderation": {
     "report": {
-      "title": "Denunciar conteúdo",
-      "message": "Qual o motivo da denúncia?",
-      "descriptionPlaceholder": "Descrição (opcional)",
+      "title": {
+        "recorda": "Denunciar Recorda",
+        "user": "Denunciar perfil"
+      },
+      "message": "Conte por que você está denunciando. A moderação avaliará sua denúncia.",
+      "descriptionLabel": "Descrição (opcional)",
+      "descriptionPlaceholder": "Escreva uma descrição",
       "counter": "{{current}}/{{max}}",
       "cancel": "Cancelar",
       "submit": "Denunciar",

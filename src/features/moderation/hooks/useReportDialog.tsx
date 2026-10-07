@@ -40,6 +40,7 @@ export function useReportDialog() {
     setTarget(nextTarget);
     setVisible(true);
     setDescription("");
+    setFeedback(null);
     setHasError(false);
   }, []);
 
@@ -97,6 +98,7 @@ export function useReportDialog() {
             onChangeDescription={setDescription}
             onSubmit={submit}
             pending={isPending}
+            targetType={target.type}
             visible={visible}
           />
         ) : null}

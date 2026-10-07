@@ -160,8 +160,7 @@
     "deleteError": "Could not delete the Recorda. Try again.",
     "confirmDelete": "Confirm deletion",
     "unavailable": "This Recorda is no longer available.",
-    "sharePending": "Recorda sharing is not available in this version yet.",
-    "reportPending": "Reporting is not available in this version yet. No report has been sent."
+    "sharePending": "Recorda sharing is not available in this version yet."
   },
   "feed": {
     "logo": "recorda.",
@@ -289,9 +288,13 @@
   },
   "moderation": {
     "report": {
-      "title": "Report content",
-      "message": "Why are you reporting this?",
-      "descriptionPlaceholder": "Description (optional)",
+      "title": {
+        "recorda": "Report Recorda",
+        "user": "Report profile"
+      },
+      "message": "Tell us why you are reporting this. Moderation will review your report.",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Write a description",
       "counter": "{{current}}/{{max}}",
       "cancel": "Cancel",
       "submit": "Report",
