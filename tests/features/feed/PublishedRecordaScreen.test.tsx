@@ -277,7 +277,8 @@ describe("PublishedRecordaScreen", () => {
   });
 
   it("closes the comments sheet when tapping outside it", () => {
-    jest.useFakeTimers();
+    // Keep React's async act scheduler running while animation timers are mocked.
+    jest.useFakeTimers({ doNotFake: ["setImmediate"] });
     try {
       renderScreen();
       fireEvent.press(screen.getByRole("button", { name: "Comentar" }));

@@ -252,8 +252,11 @@
       "NEW_FOLLOWER": "comenzó a seguirte",
       "LIKE": "le gustó tu publicación",
       "COMMENT": "comentó en tu publicación",
-      "MENTION": "te mencionó en una publicación"
+      "MENTION": "te mencionó en una publicación",
+      "CONTENT_REMOVED": "Tu Recorda \"{{song}}\" fue eliminada por la moderación. Motivo: {{reason}}"
     },
+    "removedSongFallback": "Canción no informada",
+    "removalReasonFallback": "No informado",
     "time": {
       "now": "ahora",
       "minutes": "{{count}} min",

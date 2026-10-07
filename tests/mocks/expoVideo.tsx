@@ -2,7 +2,10 @@ import type { StyleProp, ViewStyle } from "react-native";
 import { View } from "react-native";
 
 type MockPlayer = {
-  addListener: (event: string, listener: (payload: { status: string }) => void) => {
+  addListener: (
+    event: string,
+    listener: (payload: { status: string }) => void
+  ) => {
     remove: () => void;
   };
   loop: boolean;
