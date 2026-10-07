@@ -11,8 +11,8 @@ import {
 import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 
-import { AppText, Input } from "@/components/ui";
-import { baseColors, colors, fontFamily, radius, spacing } from "@/theme";
+import { AppText, destructiveDialogStyles, Input } from "@/components/ui";
+import { baseColors, colors, fontFamily, spacing } from "@/theme";
 
 import type { ReportTarget } from "../types";
 
@@ -159,98 +159,50 @@ export function ReportDialog({
   );
 }
 
-const styles = StyleSheet.create({
-  actions: {
-    flexDirection: "row",
-    gap: spacing[3],
-    width: "100%"
-  },
-  backdrop: {
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.74)",
-    flex: 1,
-    justifyContent: "center",
-    padding: spacing[6]
-  },
-  button: {
-    alignItems: "center",
-    borderCurve: "continuous",
-    borderRadius: radius.xl,
-    flex: 1,
-    justifyContent: "center",
-    minHeight: 48
-  },
-  cancelButton: {
-    backgroundColor: colors.neutrals[600],
-    borderColor: colors.neutrals[400],
-    borderWidth: 1
-  },
-  cancelLabel: {
-    color: colors.neutrals[100]
-  },
-  counter: {
-    color: colors.neutrals[300],
-    textAlign: "right"
-  },
-  dialog: {
-    alignItems: "center",
-    backgroundColor: colors.neutrals[800],
-    borderCurve: "continuous",
-    borderRadius: 32,
-    gap: spacing[4],
-    maxWidth: 520,
-    paddingHorizontal: spacing[6],
-    paddingVertical: spacing[5],
-    width: "100%"
-  },
-  error: {
-    color: colors.error[200],
-    textAlign: "center"
-  },
-  field: {
-    gap: spacing[1],
-    width: "100%"
-  },
-  iconBox: {
-    alignItems: "center",
-    backgroundColor: colors.error[300],
-    borderCurve: "continuous",
-    borderRadius: radius.xl,
-    height: 56,
-    justifyContent: "center",
-    width: 56
-  },
-  input: {
-    minHeight: 72
-  },
-  inputContainer: {
-    alignItems: "flex-start",
-    minHeight: 96,
-    paddingVertical: spacing[3]
-  },
-  keyboardAvoiding: {
-    alignItems: "center",
-    width: "100%"
-  },
-  message: {
-    color: colors.neutrals[300],
-    fontFamily: fontFamily.display.medium,
-    // O espaço abaixo da mensagem é este valor somado ao `field.gap` (4px);
-    marginBottom: spacing[3]
-  },
-  pressed: {
-    opacity: 0.82
-  },
-  submitButton: {
-    backgroundColor: colors.error[300]
-  },
-  submitLabel: {
-    color: baseColors.white
-  },
-  title: {
-    color: colors.neutrals[100],
-    fontFamily: fontFamily.display.semiBold,
-    marginBottom: spacing[2],
-    textAlign: "center"
-  }
-});
+const styles = {
+  ...destructiveDialogStyles,
+  ...StyleSheet.create({
+    counter: {
+      color: colors.neutrals[300],
+      textAlign: "right"
+    },
+    error: {
+      color: colors.error[200],
+      textAlign: "center"
+    },
+    field: {
+      gap: spacing[1],
+      width: "100%"
+    },
+    input: {
+      minHeight: 72
+    },
+    inputContainer: {
+      alignItems: "flex-start",
+      minHeight: 96,
+      paddingVertical: spacing[3]
+    },
+    keyboardAvoiding: {
+      alignItems: "center",
+      width: "100%"
+    },
+    message: {
+      color: colors.neutrals[300],
+      fontFamily: fontFamily.display.medium,
+      // O espaço abaixo da mensagem é este valor somado ao `field.gap` (4px);
+      marginBottom: spacing[3]
+    },
+    submitButton: {
+      backgroundColor: colors.error[300]
+    },
+    submitLabel: {
+      color: baseColors.white
+    },
+    title: {
+      color: colors.neutrals[100],
+      fontFamily: fontFamily.display.semiBold,
+      marginBottom: spacing[2],
+      textAlign: "center"
+    }
+  })
+};
