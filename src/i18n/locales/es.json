@@ -283,5 +283,23 @@
     "unfollowMessage": "¿Seguro que quieres dejar de seguir a {{username}}?",
     "unfollowCancel": "Cancelar",
     "unfollowConfirm": "Dejar de seguir"
+  },
+  "moderation": {
+    "report": {
+      "title": "Denunciar contenido",
+      "message": "¿Cuál es el motivo de la denuncia?",
+      "descriptionPlaceholder": "Descripción (opcional)",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancelar",
+      "submit": "Denunciar",
+      "feedback": {
+        "success": "Denuncia enviada. Gracias por ayudar a la comunidad.",
+        "duplicate": "Ya has denunciado este contenido.",
+        "unavailable": "Este contenido ya no está disponible."
+      },
+      "error": {
+        "generic": "No se pudo enviar la denuncia. Inténtalo de nuevo."
+      }
+    }
   }
 }

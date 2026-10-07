@@ -283,5 +283,23 @@
     "unfollowMessage": "Are you sure you want to unfollow {{username}}?",
     "unfollowCancel": "Cancel",
     "unfollowConfirm": "Unfollow"
+  },
+  "moderation": {
+    "report": {
+      "title": "Report content",
+      "message": "Why are you reporting this?",
+      "descriptionPlaceholder": "Description (optional)",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel",
+      "submit": "Report",
+      "feedback": {
+        "success": "Report sent. Thank you for helping the community.",
+        "duplicate": "You have already reported this content.",
+        "unavailable": "This content is no longer available."
+      },
+      "error": {
+        "generic": "We could not send the report. Please try again."
+      }
+    }
   }
 }
