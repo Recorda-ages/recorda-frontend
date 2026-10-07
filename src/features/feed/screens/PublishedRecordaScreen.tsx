@@ -10,6 +10,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import type { UserBasicResponse } from "@/features/auth/api/types";
+import { useReportDialog } from "@/features/moderation";
 import { colors, spacing } from "@/theme";
 import { resolveApiAssetUrl } from "@/services/api";
 
@@ -51,6 +52,7 @@ export function PublishedRecordaScreen() {
   } = useFeed();
   const { setActivePreview } = useFeedAudioActions();
   const { t } = useTranslation();
+  const { openReport, reportDialog } = useReportDialog();
   const snapshot = posts.find((item) => item.id === params.postId);
   const isLocallyDeleted = deletedIds.includes(params.postId);
   const isApiRecorda = UUID_PATTERN.test(params.postId);
@@ -160,53 +162,56 @@ export function PublishedRecordaScreen() {
   // Navigation only reads the post. Playback must remain owned by the shared
   // player when that feature is integrated, with no seek/play on screen mount.
   return (
-    <RecordaDetailView
-      post={visiblePost ?? post}
-      commentsLoading={isApiRecorda && comments.isPending}
-      commentsError={isApiRecorda && comments.isError}
-      commentSubmitError={createComment.isError}
-      deleteError={removeRecorda.isError}
-      deleteSubmitting={removeRecorda.isPending}
-      commentSubmitting={createComment.isPending}
-      onRetryComments={() => void comments.refetch()}
-      liked={isLiked}
-      likeSubmitting={likeMutation.isPending}
-      isOwnPost={isOwnPost}
-      onBack={() => navigation.goBack()}
-      onLike={handleLike}
-      onComment={async (text) => {
-        if (isApiRecorda) {
-          await createComment.mutateAsync(text);
-        } else {
-          addComment(post.id, text);
+    <>
+      <RecordaDetailView
+        post={visiblePost ?? post}
+        commentsLoading={isApiRecorda && comments.isPending}
+        commentsError={isApiRecorda && comments.isError}
+        commentSubmitError={createComment.isError}
+        deleteError={removeRecorda.isError}
+        deleteSubmitting={removeRecorda.isPending}
+        commentSubmitting={createComment.isPending}
+        onRetryComments={() => void comments.refetch()}
+        liked={isLiked}
+        likeSubmitting={likeMutation.isPending}
+        isOwnPost={isOwnPost}
+        onBack={() => navigation.goBack()}
+        onLike={handleLike}
+        onComment={async (text) => {
+          if (isApiRecorda) {
+            await createComment.mutateAsync(text);
+          } else {
+            addComment(post.id, text);
+          }
+        }}
+        onDelete={() => {
+          if (!isOwnPost) return;
+          if (isApiRecorda) {
+            removeRecorda.mutate();
+          } else {
+            deletePost(post.id);
+            navigation.goBack();
+          }
+        }}
+        onReport={() => openReport({ recordaId: post.id, type: "RECORDA" })}
+        onShare={() =>
+          navigation.navigate("ShareCard", {
+            artistName: post.song.artistName,
+            // A post opened from the feed has no `remoteItem` (details aren't refetched), so
+            // the cover has to come from the post itself.
+            coverUrl: post.song.coverUrl || remoteItem?.song_cover_url || null,
+            mediaUri: post.mediaUrl,
+            mediaType: post.mediaType === "VIDEO" ? "video" : "photo",
+            songTitle: post.song.title
+          })
         }
-      }}
-      onDelete={() => {
-        if (!isOwnPost) return;
-        if (isApiRecorda) {
-          removeRecorda.mutate();
-        } else {
-          deletePost(post.id);
-          navigation.goBack();
-        }
-      }}
-      onReport={() => navigation.navigate("RecordaReport", { postId: post.id })}
-      onShare={() =>
-        navigation.navigate("ShareCard", {
-          artistName: post.song.artistName,
-          // A post opened from the feed has no `remoteItem` (details aren't refetched), so
-          // the cover has to come from the post itself.
-          coverUrl: post.song.coverUrl || remoteItem?.song_cover_url || null,
-          mediaUri: post.mediaUrl,
-          mediaType: post.mediaType === "VIDEO" ? "video" : "photo",
-          songTitle: post.song.title
-        })
-      }
-      onTabPress={(tab) => {
-        if (tab === "feed") navigation.goBack();
-        else navigation.navigate(tab === "camera" ? "Camera" : "Profile");
-      }}
-    />
+        onTabPress={(tab) => {
+          if (tab === "feed") navigation.goBack();
+          else navigation.navigate(tab === "camera" ? "Camera" : "Profile");
+        }}
+      />
+      {reportDialog}
+    </>
   );
 }
 

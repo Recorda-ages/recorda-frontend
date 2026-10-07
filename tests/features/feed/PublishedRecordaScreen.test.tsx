@@ -11,6 +11,7 @@ import { feedService } from "@/features/feed/services/feedService";
 import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
 import { i18n } from "@/i18n";
+import { authApiClient } from "@/services/api";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
@@ -201,14 +202,39 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("only offers Report for another author and passes the post id", () => {
+  it("only offers Report for another author and opens the report dialog", () => {
     mockRoute.params.postId = "post-2";
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     expect(screen.queryByText("Excluir")).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
-    expect(mockNavigate).toHaveBeenCalledWith("RecordaReport", { postId: "post-2" });
+    expect(screen.getByText("Denunciar conteúdo")).toBeTruthy();
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-2/);
+  });
+
+  // Só o contrato da integração: que a tela entrega o id certo ao fluxo de
+  // denúncia. Contador, limite, duplo envio e os ramos de erro são da feature
+  // moderation e estão cobertos nos testes dela.
+  it("sends the report for the open Recorda with its own id", async () => {
+    mockRoute.params.postId = "post-2";
+    const reportPost = jest.spyOn(authApiClient, "post").mockResolvedValue({
+      created_at: "2026-10-06T12:00:00Z",
+      report_id: "11111111-1111-4111-8111-111111111111",
+      status: "OPEN"
+    });
+    renderScreen();
+
+    fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+    fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
+    fireEvent.changeText(screen.getByPlaceholderText("Descrição (opcional)"), "conteúdo ofensivo");
+    fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
+
+    await waitFor(() =>
+      expect(reportPost).toHaveBeenCalledWith("/recordas/post-2/reports", {
+        description: "conteúdo ofensivo"
+      })
+    );
   });
 
   it("shares a Recorda opened from the feed with its album cover", () => {
@@ -263,9 +289,7 @@ describe("PublishedRecordaScreen", () => {
       const hidden = { includeHiddenElements: true };
       expect(screen.queryByTestId("recorda-bottom-overlay")).toBeNull();
       // Description and actions stop taking touches while the sheet covers them.
-      expect(screen.getByTestId("recorda-bottom-overlay", hidden).props.pointerEvents).toBe(
-        "none"
-      );
+      expect(screen.getByTestId("recorda-bottom-overlay", hidden).props.pointerEvents).toBe("none");
 
       fireEvent.press(screen.getByTestId("comments-backdrop", hidden));
       // Stays mounted while it slides out, then unmounts.
