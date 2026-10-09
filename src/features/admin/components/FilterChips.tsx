@@ -9,6 +9,7 @@ export type FilterChipOption<TValue extends string> = {
 };
 
 type FilterChipsProps<TValue extends string> = {
+  columns?: 2 | 3;
   disabled?: boolean;
   onChange: (value: TValue) => void;
   options: readonly FilterChipOption<TValue>[];
@@ -16,6 +17,7 @@ type FilterChipsProps<TValue extends string> = {
 };
 
 export function FilterChips<TValue extends string>({
+  columns,
   disabled = false,
   onChange,
   options,
@@ -29,19 +31,26 @@ export function FilterChips<TValue extends string>({
         return (
           <Pressable
             accessibilityLabel={option.label}
-            accessibilityRole="button"
-            accessibilityState={{ disabled, selected }}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selected, disabled }}
             disabled={disabled}
             key={option.value}
             onPress={() => onChange(option.value)}
             style={({ pressed }) => [
               styles.chip,
+              columns === 2 ? styles.twoColumnChip : undefined,
+              columns === 3 ? styles.threeColumnChip : undefined,
               selected ? styles.selectedChip : styles.unselectedChip,
               disabled ? styles.disabled : undefined,
               pressed ? styles.pressed : undefined
             ]}
           >
-            <AppText style={selected ? styles.selectedLabel : styles.unselectedLabel}>
+            <AppText
+              style={[
+                selected ? styles.selectedLabel : styles.unselectedLabel,
+                columns ? styles.centeredLabel : undefined
+              ]}
+            >
               {option.label}
             </AppText>
           </Pressable>
@@ -59,6 +68,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2]
   },
+  centeredLabel: {
+    textAlign: "center"
+  },
   disabled: {
     opacity: 0.56
   },
@@ -75,6 +87,14 @@ const styles = StyleSheet.create({
   },
   selectedLabel: {
     color: colors.neutrals[100]
+  },
+  twoColumnChip: {
+    flexBasis: "45%",
+    flexGrow: 1
+  },
+  threeColumnChip: {
+    flexBasis: "28%",
+    flexGrow: 1
   },
   unselectedChip: {
     backgroundColor: colors.neutrals[700]

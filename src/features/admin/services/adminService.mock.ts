@@ -8,28 +8,48 @@ import type {
 
 const REPORT_GROUPS: readonly AdminReportGroup[] = [
   {
+    contentSummary: "Erro ao postar Recorda",
     latestReportedAt: "2026-10-05T18:30:00Z",
+    latestReporterUsername: "paulo",
     openReportCount: 3,
     status: "OPEN",
     targetId: "recorda-1042",
     targetLabel: "Post de @marina",
-    targetType: "RECORDA"
+    targetType: "RECORDA",
+    targetUsername: "marina"
   },
   {
+    contentSummary: "Perfil denunciado",
     latestReportedAt: "2026-10-04T15:10:00Z",
+    latestReporterUsername: "bia",
     openReportCount: 2,
     status: "OPEN",
     targetId: "user-1088",
     targetLabel: "@usuario2",
-    targetType: "USER"
+    targetType: "USER",
+    targetUsername: "usuario2"
   },
   {
+    contentSummary: "Publicação denunciada",
     latestReportedAt: "2026-09-28T12:00:00Z",
+    latestReporterUsername: "carol",
     openReportCount: 0,
     status: "RESOLVED",
     targetId: "recorda-1124",
     targetLabel: "Post de @lucas",
-    targetType: "RECORDA"
+    targetType: "RECORDA",
+    targetUsername: "lucas"
+  },
+  {
+    contentSummary: "Solicitação concluída",
+    latestReportedAt: "2026-09-27T12:00:00Z",
+    latestReporterUsername: "ana",
+    openReportCount: 0,
+    status: "DISMISSED",
+    targetId: "user-1201",
+    targetLabel: "@usuario1",
+    targetType: "USER",
+    targetUsername: "usuario1"
   }
 ];
 
@@ -60,10 +80,15 @@ const USERS: readonly AdminUserSummary[] = [
 export const adminServiceMock: AdminService = {
   async listReportGroups(filters: AdminReportFilters = {}, signal?: AbortSignal) {
     throwIfAborted(signal);
+    const query = filters.query?.trim().toLocaleLowerCase() ?? "";
     const items = REPORT_GROUPS.filter(
       (group) =>
         (filters.status === undefined || group.status === filters.status) &&
-        (filters.targetType === undefined || group.targetType === filters.targetType)
+        (filters.targetType === undefined || group.targetType === filters.targetType) &&
+        (query === "" ||
+          group.targetUsername.toLocaleLowerCase().includes(query) ||
+          group.contentSummary.toLocaleLowerCase().includes(query) ||
+          group.targetLabel.toLocaleLowerCase().includes(query))
     );
 
     return { items: clone(items), nextCursor: null };

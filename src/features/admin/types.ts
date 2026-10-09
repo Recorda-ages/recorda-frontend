@@ -16,15 +16,19 @@ export type AdminPage<TItem> = {
 };
 
 export type AdminReportGroup = {
+  contentSummary: string;
   latestReportedAt: string;
+  latestReporterUsername: string;
   openReportCount: number;
   status: AdminReportStatus;
   targetId: string;
   targetLabel: string;
   targetType: AdminTargetType;
+  targetUsername: string;
 };
 
 export type AdminReportFilters = {
+  query?: string;
   status?: AdminReportStatus;
   targetType?: AdminTargetType;
 };

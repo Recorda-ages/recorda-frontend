@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
+import { StyleSheet } from "react-native";
 
 import { AdminListRow } from "@/features/admin/components/AdminListRow";
 import { FilterChips } from "@/features/admin/components/FilterChips";
@@ -35,11 +36,11 @@ describe("FilterChips", () => {
     const onChange = jest.fn();
     render(<FilterChips onChange={onChange} options={options} value="ALL" />);
 
-    expect(screen.getByRole("button", { name: "Todos" }).props.accessibilityState).toMatchObject({
-      selected: true
+    expect(screen.getByRole("radio", { name: "Todos" }).props.accessibilityState).toMatchObject({
+      checked: true
     });
 
-    fireEvent.press(screen.getByRole("button", { name: "Pendentes" }));
+    fireEvent.press(screen.getByRole("radio", { name: "Pendentes" }));
     expect(onChange).toHaveBeenCalledWith("OPEN");
   });
 
@@ -47,8 +48,24 @@ describe("FilterChips", () => {
     const onChange = jest.fn();
     render(<FilterChips disabled onChange={onChange} options={options} value="ALL" />);
 
-    fireEvent.press(screen.getByRole("button", { name: "Pendentes" }));
+    fireEvent.press(screen.getByRole("radio", { name: "Pendentes" }));
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("distributes options in two columns when requested", () => {
+    render(<FilterChips columns={2} onChange={jest.fn()} options={options} value="ALL" />);
+
+    expect(
+      StyleSheet.flatten(screen.getByRole("radio", { name: "Todos" }).props.style)
+    ).toMatchObject({ flexBasis: "45%", flexGrow: 1 });
+  });
+
+  it("distributes options in three columns when requested", () => {
+    render(<FilterChips columns={3} onChange={jest.fn()} options={options} value="ALL" />);
+
+    expect(
+      StyleSheet.flatten(screen.getByRole("radio", { name: "Todos" }).props.style)
+    ).toMatchObject({ flexBasis: "28%", flexGrow: 1 });
   });
 });
 

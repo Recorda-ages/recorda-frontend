@@ -9,10 +9,11 @@ import { i18n } from "@/i18n";
 import { ApiError } from "@/services/api";
 
 const mockReset = jest.fn();
+const mockNavigation = { reset: mockReset };
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
-  useNavigation: () => ({ reset: mockReset })
+  useNavigation: () => mockNavigation
 }));
 
 jest.mock("@/features/auth/session", () => ({
@@ -81,6 +82,15 @@ describe("useAdminApiErrorHandler", () => {
     expect(alert).not.toHaveBeenCalled();
     expect(mockClearSession).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it("keeps a stable handler across rerenders", () => {
+    const { rerender, result } = renderHandler();
+    const firstHandler = result.current;
+
+    rerender(undefined);
+
+    expect(result.current).toBe(firstHandler);
   });
 
   it("coalesces concurrent authorization failures into one logout", async () => {

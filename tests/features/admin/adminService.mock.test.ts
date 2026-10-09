@@ -28,6 +28,18 @@ describe("adminServiceMock", () => {
     ]);
   });
 
+  it("searches report groups by target username or content", async () => {
+    const byUsername = await adminServiceMock.listReportGroups({ query: "MARINA" });
+    const byContent = await adminServiceMock.listReportGroups({ query: "perfil denunciado" });
+
+    expect(byUsername.items).toEqual([
+      expect.objectContaining({ targetUsername: "marina", targetType: "RECORDA" })
+    ]);
+    expect(byContent.items).toEqual([
+      expect.objectContaining({ targetUsername: "usuario2", targetType: "USER" })
+    ]);
+  });
+
   it("honors an already aborted query", async () => {
     const controller = new AbortController();
     controller.abort();
