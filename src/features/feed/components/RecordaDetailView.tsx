@@ -56,6 +56,8 @@ type Props = {
   onTabPress: (tab: BottomTab) => void;
 };
 
+type RecordaMenu = "options" | "delete" | null;
+
 /** Share of the media area covered by the open comments sheet. */
 const SHEET_HEIGHT_RATIO = 0.55;
 /** Tallest the expanded description gets before it scrolls, as a share of the media height. */
@@ -63,6 +65,8 @@ const DESCRIPTION_MAX_RATIO = 0.4;
 const ACTION_STRIP_HEIGHT = 52;
 const ACTION_ICON_SIZE = 30;
 const BACK_ICON_SIZE = 38;
+const MORE_ICON_SIZE = 24;
+const MENU_ICON_SIZE = 20;
 
 const SHEET_CLOSE_MS = 180;
 /** Shared by the comments sheet and the description/actions panel. */
@@ -329,6 +333,126 @@ function CommentsSheet({
   );
 }
 
+function ThirdPartyRecordaMenu({
+  isOwnPost,
+  menu,
+  onClose,
+  onReport
+}: Readonly<{
+  isOwnPost: boolean;
+  menu: RecordaMenu;
+  onClose: () => void;
+  onReport: () => void;
+}>) {
+  const { t } = useTranslation();
+
+  if (isOwnPost || menu !== "options") return null;
+
+  return (
+    <>
+      <Pressable
+        accessibilityLabel={t("publishedRecorda.cancel")}
+        onPress={onClose}
+        style={StyleSheet.absoluteFill}
+        testID="recorda-menu-backdrop"
+      />
+      <View style={styles.popover} testID="recorda-menu">
+        {/* Disabled until the backend has a "not interested" contract, so a tap
+            never looks like it did something. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: true }}
+          disabled
+          style={styles.popoverItem}
+        >
+          <Icon source="eye-off-outline" size={MENU_ICON_SIZE} color={colors.neutrals[200]} />
+          <AppText style={styles.popoverLabel}>{t("publishedRecorda.notInterested")}</AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            onClose();
+            onReport();
+          }}
+          style={styles.popoverItem}
+        >
+          <Icon source="message-alert-outline" size={MENU_ICON_SIZE} color={colors.error[200]} />
+          <AppText style={[styles.popoverLabel, styles.popoverDestructive]}>
+            {t("publishedRecorda.report")}
+          </AppText>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+function OwnRecordaMenu({
+  deleteError,
+  deleteSubmitting,
+  isOwnPost,
+  menu,
+  onClose,
+  onDelete,
+  onRequestDelete
+}: Readonly<{
+  deleteError: boolean;
+  deleteSubmitting: boolean;
+  isOwnPost: boolean;
+  menu: RecordaMenu;
+  onClose: () => void;
+  onDelete: () => void;
+  onRequestDelete: () => void;
+}>) {
+  const { t } = useTranslation();
+
+  return (
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      transparent
+      visible={isOwnPost && menu !== null}
+    >
+      <View style={styles.scrim}>
+        <View accessibilityViewIsModal style={styles.dialog}>
+          {menu === "delete" ? (
+            <>
+              <AppText style={styles.bold}>{t("publishedRecorda.deleteTitle")}</AppText>
+              <AppText style={styles.text}>{t("publishedRecorda.deleteMessage")}</AppText>
+              {deleteError ? (
+                <AppText style={styles.submitError}>{t("publishedRecorda.deleteError")}</AppText>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                disabled={deleteSubmitting}
+                onPress={onDelete}
+                style={styles.dialogButton}
+              >
+                <AppText style={styles.destructive}>{t("publishedRecorda.confirmDelete")}</AppText>
+              </Pressable>
+            </>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onRequestDelete}
+              style={styles.dialogButton}
+            >
+              <AppText style={styles.destructive}>{t("publishedRecorda.delete")}</AppText>
+            </Pressable>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            disabled={deleteSubmitting}
+            onPress={onClose}
+            style={styles.dialogButton}
+          >
+            <AppText style={styles.text}>{t("publishedRecorda.cancel")}</AppText>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export function RecordaDetailView({
   post,
   commentsLoading = false,
@@ -351,7 +475,7 @@ export function RecordaDetailView({
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
-  const [menu, setMenu] = useState<"options" | "delete" | null>(null);
+  const [menu, setMenu] = useState<RecordaMenu>(null);
   const [mediaHeight, setMediaHeight] = useState(0);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -489,7 +613,7 @@ export function RecordaDetailView({
                 onPress={() => setMenu("options")}
                 style={styles.moreButton}
               >
-                <Icon source="dots-horizontal" size={24} color={colors.neutrals[100]} />
+                <Icon source="dots-horizontal" size={MORE_ICON_SIZE} color={colors.neutrals[100]} />
               </Pressable>
             </View>
             <Animated.View
@@ -625,66 +749,26 @@ export function RecordaDetailView({
                 />
               </>
             ) : null}
+
+            <ThirdPartyRecordaMenu
+              isOwnPost={isOwnPost}
+              menu={menu}
+              onClose={() => setMenu(null)}
+              onReport={onReport}
+            />
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={onTabPress} />
-      <Modal
-        visible={menu !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenu(null)}
-      >
-        <View style={styles.scrim}>
-          <View accessibilityViewIsModal style={styles.dialog}>
-            {menu === "delete" ? (
-              <>
-                <AppText style={styles.bold}>{t("publishedRecorda.deleteTitle")}</AppText>
-                <AppText style={styles.text}>{t("publishedRecorda.deleteMessage")}</AppText>
-                {deleteError ? (
-                  <AppText style={styles.submitError}>{t("publishedRecorda.deleteError")}</AppText>
-                ) : null}
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={deleteSubmitting}
-                  onPress={() => {
-                    onDelete();
-                  }}
-                  style={styles.dialogButton}
-                >
-                  <AppText style={styles.destructive}>
-                    {t("publishedRecorda.confirmDelete")}
-                  </AppText>
-                </Pressable>
-              </>
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                style={styles.dialogButton}
-                onPress={() => {
-                  if (isOwnPost) setMenu("delete");
-                  else {
-                    setMenu(null);
-                    onReport();
-                  }
-                }}
-              >
-                <AppText style={styles.destructive}>
-                  {t(isOwnPost ? "publishedRecorda.delete" : "publishedRecorda.report")}
-                </AppText>
-              </Pressable>
-            )}
-            <Pressable
-              accessibilityRole="button"
-              disabled={deleteSubmitting}
-              onPress={() => setMenu(null)}
-              style={styles.dialogButton}
-            >
-              <AppText style={styles.text}>{t("publishedRecorda.cancel")}</AppText>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <OwnRecordaMenu
+        deleteError={deleteError}
+        deleteSubmitting={deleteSubmitting}
+        isOwnPost={isOwnPost}
+        menu={menu}
+        onClose={() => setMenu(null)}
+        onDelete={onDelete}
+        onRequestDelete={() => setMenu("delete")}
+      />
     </View>
   );
 }
@@ -754,6 +838,24 @@ const styles = StyleSheet.create({
   songLine: { color: colors.neutrals[100], fontSize: 12 },
   song: { color: colors.primary[500], fontFamily: fontFamily.primary.bold, fontSize: 12 },
   moreButton: { alignSelf: "flex-start" },
+  // Hangs from the three-dots button: same top/right inset as the author row, one icon lower.
+  popover: {
+    backgroundColor: colors.neutrals[800],
+    borderRadius: radius.lg,
+    paddingVertical: spacing[1],
+    position: "absolute",
+    right: spacing[3],
+    top: spacing[3] + MORE_ICON_SIZE + spacing[1]
+  },
+  popoverItem: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[2],
+    minHeight: 48,
+    paddingHorizontal: spacing[4]
+  },
+  popoverLabel: { color: colors.neutrals[200], fontFamily: fontFamily.display.medium },
+  popoverDestructive: { color: colors.error[200] },
   // Sits just above the bottom overlay, whatever height the description gives it.
   soundSlot: {
     height: 56,

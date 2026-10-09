@@ -154,6 +154,7 @@
     "send": "Send comment",
     "delete": "Delete",
     "report": "Report",
+    "notInterested": "Not interested",
     "cancel": "Cancel",
     "deleteTitle": "Delete Recorda?",
     "deleteMessage": "This action cannot be undone.",
