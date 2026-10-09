@@ -13,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { AppText, Button } from "@/components/ui";
+import { AdminAccessGuard, AdminHomeScreen, AdminPendingScreen } from "@/features/admin";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
@@ -39,6 +40,11 @@ import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 export type RootStackParamList = {
   Splash: undefined;
   Admin: undefined;
+  AdminAuditLog: undefined;
+  AdminReportDetail: { targetId: string; targetType: "RECORDA" | "USER" };
+  AdminReports: undefined;
+  AdminUserDetail: { userId: string };
+  AdminUsers: undefined;
   Camera: undefined;
   Feed: undefined;
   Login: undefined;
@@ -97,16 +103,62 @@ function SessionPlaceholderScreen({ testID, title }: SessionPlaceholderScreenPro
   );
 }
 
-function AdminPlaceholderScreen() {
-  const { t } = useTranslation();
-
-  return <SessionPlaceholderScreen testID="admin-screen" title={t("admin.title")} />;
-}
-
 function ProfilePlaceholderScreen() {
   const { t } = useTranslation();
 
   return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
+}
+
+function AdminHomeRoute() {
+  return (
+    <AdminAccessGuard>
+      <AdminHomeScreen />
+    </AdminAccessGuard>
+  );
+}
+
+function AdminReportsRoute() {
+  return <AdminHomeRoute />;
+}
+
+function AdminUsersRoute() {
+  const { t } = useTranslation();
+
+  return (
+    <AdminAccessGuard>
+      <AdminPendingScreen title={t("admin.pending.users")} />
+    </AdminAccessGuard>
+  );
+}
+
+function AdminReportDetailRoute() {
+  const { t } = useTranslation();
+
+  return (
+    <AdminAccessGuard>
+      <AdminPendingScreen title={t("admin.pending.reportDetail")} />
+    </AdminAccessGuard>
+  );
+}
+
+function AdminUserDetailRoute() {
+  const { t } = useTranslation();
+
+  return (
+    <AdminAccessGuard>
+      <AdminPendingScreen title={t("admin.pending.userDetail")} />
+    </AdminAccessGuard>
+  );
+}
+
+function AdminAuditLogRoute() {
+  const { t } = useTranslation();
+
+  return (
+    <AdminAccessGuard>
+      <AdminPendingScreen title={t("admin.pending.auditLog")} />
+    </AdminAccessGuard>
+  );
 }
 
 function UserProfilePlaceholderScreen() {
@@ -153,7 +205,12 @@ export function RootNavigator() {
         <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
-        <Stack.Screen name="Admin" component={AdminPlaceholderScreen} />
+        <Stack.Screen name="Admin" component={AdminHomeRoute} />
+        <Stack.Screen name="AdminReports" component={AdminReportsRoute} />
+        <Stack.Screen name="AdminReportDetail" component={AdminReportDetailRoute} />
+        <Stack.Screen name="AdminUsers" component={AdminUsersRoute} />
+        <Stack.Screen name="AdminUserDetail" component={AdminUserDetailRoute} />
+        <Stack.Screen name="AdminAuditLog" component={AdminAuditLogRoute} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Preview" component={PreviewScreen} />
         <Stack.Screen name="RecordaMusic" component={RecordaMusicScreen} />

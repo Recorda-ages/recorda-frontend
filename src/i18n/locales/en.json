@@ -102,7 +102,65 @@
     }
   },
   "admin": {
-    "title": "Admin area"
+    "title": "Admin area",
+    "reasonDialog": {
+      "label": "Reason",
+      "placeholder": "Describe the reason",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel"
+    },
+    "status": {
+      "accessibilityLabel": "Status: {{status}}",
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "session": {
+      "expiredTitle": "Session ended",
+      "expiredMessage": "Your session has expired.",
+      "forbiddenTitle": "Administrative access removed",
+      "forbiddenMessage": "Your account does not have administrative access."
+    },
+    "signOut": "Sign out",
+    "navigation": {
+      "reports": "Reports",
+      "users": "Users"
+    },
+    "reports": {
+      "title": "Reports",
+      "search": "Search by user or content",
+      "loading": "Loading reports",
+      "loadError": "Unable to load reports.",
+      "retry": "Try again",
+      "empty": "No reports found.",
+      "groupedCount_one": "{{count}} grouped report",
+      "groupedCount_other": "{{count}} grouped reports",
+      "openTarget": "Open reports for @{{username}}",
+      "rowMetadata_one": "{{target}} • {{count}} report",
+      "rowMetadata_other": "{{target}} • {{count}} reports",
+      "latestReport": "By @{{username}} • {{date}}",
+      "target": {
+        "recorda": "Recorda",
+        "user": "Profile"
+      },
+      "filters": {
+        "allTargets": "All types",
+        "allStatuses": "All statuses",
+        "recordas": "Recordas",
+        "profiles": "Profiles",
+        "open": "Open",
+        "resolved": "Resolved",
+        "dismissed": "Dismissed"
+      }
+    },
+    "pending": {
+      "users": "User management",
+      "reportDetail": "Report details",
+      "userDetail": "User details",
+      "auditLog": "Audit log"
+    }
   },
   "profile": {
     "title": "Profile"

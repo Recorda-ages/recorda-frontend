@@ -102,7 +102,65 @@
     }
   },
   "admin": {
-    "title": "Área administrativa"
+    "title": "Área administrativa",
+    "reasonDialog": {
+      "label": "Motivo",
+      "placeholder": "Descreva o motivo",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancelar"
+    },
+    "status": {
+      "accessibilityLabel": "Status: {{status}}",
+      "open": "Pendente",
+      "resolved": "Resolvida",
+      "dismissed": "Descartada",
+      "active": "Ativo",
+      "suspended": "Suspenso"
+    },
+    "session": {
+      "expiredTitle": "Sessão encerrada",
+      "expiredMessage": "Sua sessão expirou.",
+      "forbiddenTitle": "Acesso administrativo removido",
+      "forbiddenMessage": "Sua conta não tem acesso administrativo."
+    },
+    "signOut": "Sair",
+    "navigation": {
+      "reports": "Denúncias",
+      "users": "Usuários"
+    },
+    "reports": {
+      "title": "Denúncias",
+      "search": "Buscar por usuário ou conteúdo",
+      "loading": "Carregando denúncias",
+      "loadError": "Não foi possível carregar as denúncias.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhuma denúncia encontrada.",
+      "groupedCount_one": "{{count}} denúncia agrupada",
+      "groupedCount_other": "{{count}} denúncias agrupadas",
+      "openTarget": "Abrir denúncias de @{{username}}",
+      "rowMetadata_one": "{{target}} • {{count}} denúncia",
+      "rowMetadata_other": "{{target}} • {{count}} denúncias",
+      "latestReport": "Por @{{username}} • {{date}}",
+      "target": {
+        "recorda": "Recorda",
+        "user": "Perfil"
+      },
+      "filters": {
+        "allTargets": "Todos os tipos",
+        "allStatuses": "Todos os status",
+        "recordas": "Recordas",
+        "profiles": "Perfis",
+        "open": "Pendentes",
+        "resolved": "Resolvidas",
+        "dismissed": "Descartadas"
+      }
+    },
+    "pending": {
+      "users": "Gestão de usuários",
+      "reportDetail": "Detalhes da denúncia",
+      "userDetail": "Detalhes do usuário",
+      "auditLog": "Auditoria"
+    }
   },
   "profile": {
     "title": "Perfil"
