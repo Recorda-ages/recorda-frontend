@@ -56,6 +56,8 @@ type Props = {
   onTabPress: (tab: BottomTab) => void;
 };
 
+type RecordaMenu = "options" | "delete" | null;
+
 /** Share of the media area covered by the open comments sheet. */
 const SHEET_HEIGHT_RATIO = 0.55;
 /** Tallest the expanded description gets before it scrolls, as a share of the media height. */
@@ -331,6 +333,126 @@ function CommentsSheet({
   );
 }
 
+function ThirdPartyRecordaMenu({
+  isOwnPost,
+  menu,
+  onClose,
+  onReport
+}: Readonly<{
+  isOwnPost: boolean;
+  menu: RecordaMenu;
+  onClose: () => void;
+  onReport: () => void;
+}>) {
+  const { t } = useTranslation();
+
+  if (isOwnPost || menu !== "options") return null;
+
+  return (
+    <>
+      <Pressable
+        accessibilityLabel={t("publishedRecorda.cancel")}
+        onPress={onClose}
+        style={StyleSheet.absoluteFill}
+        testID="recorda-menu-backdrop"
+      />
+      <View style={styles.popover} testID="recorda-menu">
+        {/* Disabled until the backend has a "not interested" contract, so a tap
+            never looks like it did something. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: true }}
+          disabled
+          style={styles.popoverItem}
+        >
+          <Icon source="eye-off-outline" size={MENU_ICON_SIZE} color={colors.neutrals[200]} />
+          <AppText style={styles.popoverLabel}>{t("publishedRecorda.notInterested")}</AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            onClose();
+            onReport();
+          }}
+          style={styles.popoverItem}
+        >
+          <Icon source="message-alert-outline" size={MENU_ICON_SIZE} color={colors.error[200]} />
+          <AppText style={[styles.popoverLabel, styles.popoverDestructive]}>
+            {t("publishedRecorda.report")}
+          </AppText>
+        </Pressable>
+      </View>
+    </>
+  );
+}
+
+function OwnRecordaMenu({
+  deleteError,
+  deleteSubmitting,
+  isOwnPost,
+  menu,
+  onClose,
+  onDelete,
+  onRequestDelete
+}: Readonly<{
+  deleteError: boolean;
+  deleteSubmitting: boolean;
+  isOwnPost: boolean;
+  menu: RecordaMenu;
+  onClose: () => void;
+  onDelete: () => void;
+  onRequestDelete: () => void;
+}>) {
+  const { t } = useTranslation();
+
+  return (
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      transparent
+      visible={isOwnPost && menu !== null}
+    >
+      <View style={styles.scrim}>
+        <View accessibilityViewIsModal style={styles.dialog}>
+          {menu === "delete" ? (
+            <>
+              <AppText style={styles.bold}>{t("publishedRecorda.deleteTitle")}</AppText>
+              <AppText style={styles.text}>{t("publishedRecorda.deleteMessage")}</AppText>
+              {deleteError ? (
+                <AppText style={styles.submitError}>{t("publishedRecorda.deleteError")}</AppText>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                disabled={deleteSubmitting}
+                onPress={onDelete}
+                style={styles.dialogButton}
+              >
+                <AppText style={styles.destructive}>{t("publishedRecorda.confirmDelete")}</AppText>
+              </Pressable>
+            </>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onRequestDelete}
+              style={styles.dialogButton}
+            >
+              <AppText style={styles.destructive}>{t("publishedRecorda.delete")}</AppText>
+            </Pressable>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            disabled={deleteSubmitting}
+            onPress={onClose}
+            style={styles.dialogButton}
+          >
+            <AppText style={styles.text}>{t("publishedRecorda.cancel")}</AppText>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export function RecordaDetailView({
   post,
   commentsLoading = false,
@@ -353,7 +475,7 @@ export function RecordaDetailView({
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
-  const [menu, setMenu] = useState<"options" | "delete" | null>(null);
+  const [menu, setMenu] = useState<RecordaMenu>(null);
   const [mediaHeight, setMediaHeight] = useState(0);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -628,99 +750,25 @@ export function RecordaDetailView({
               </>
             ) : null}
 
-            {menu === "options" && !isOwnPost ? (
-              <>
-                <Pressable
-                  accessibilityLabel={t("publishedRecorda.cancel")}
-                  onPress={() => setMenu(null)}
-                  style={StyleSheet.absoluteFill}
-                  testID="recorda-menu-backdrop"
-                />
-                <View style={styles.popover} testID="recorda-menu">
-                  {/* Disabled until the backend has a "not interested" contract, so a tap
-                      never looks like it did something. */}
-                  <Pressable accessibilityRole="button" disabled style={styles.popoverItem}>
-                    <Icon
-                      source="eye-off-outline"
-                      size={MENU_ICON_SIZE}
-                      color={colors.neutrals[200]}
-                    />
-                    <AppText style={styles.popoverLabel}>
-                      {t("publishedRecorda.notInterested")}
-                    </AppText>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => {
-                      setMenu(null);
-                      onReport();
-                    }}
-                    style={styles.popoverItem}
-                  >
-                    <Icon
-                      source="message-alert-outline"
-                      size={MENU_ICON_SIZE}
-                      color={colors.error[200]}
-                    />
-                    <AppText style={[styles.popoverLabel, styles.popoverDestructive]}>
-                      {t("publishedRecorda.report")}
-                    </AppText>
-                  </Pressable>
-                </View>
-              </>
-            ) : null}
+            <ThirdPartyRecordaMenu
+              isOwnPost={isOwnPost}
+              menu={menu}
+              onClose={() => setMenu(null)}
+              onReport={onReport}
+            />
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={onTabPress} />
-      <Modal
-        visible={isOwnPost && menu !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenu(null)}
-      >
-        <View style={styles.scrim}>
-          <View accessibilityViewIsModal style={styles.dialog}>
-            {menu === "delete" ? (
-              <>
-                <AppText style={styles.bold}>{t("publishedRecorda.deleteTitle")}</AppText>
-                <AppText style={styles.text}>{t("publishedRecorda.deleteMessage")}</AppText>
-                {deleteError ? (
-                  <AppText style={styles.submitError}>{t("publishedRecorda.deleteError")}</AppText>
-                ) : null}
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={deleteSubmitting}
-                  onPress={() => {
-                    onDelete();
-                  }}
-                  style={styles.dialogButton}
-                >
-                  <AppText style={styles.destructive}>
-                    {t("publishedRecorda.confirmDelete")}
-                  </AppText>
-                </Pressable>
-              </>
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                style={styles.dialogButton}
-                onPress={() => setMenu("delete")}
-              >
-                <AppText style={styles.destructive}>{t("publishedRecorda.delete")}</AppText>
-              </Pressable>
-            )}
-            <Pressable
-              accessibilityRole="button"
-              disabled={deleteSubmitting}
-              onPress={() => setMenu(null)}
-              style={styles.dialogButton}
-            >
-              <AppText style={styles.text}>{t("publishedRecorda.cancel")}</AppText>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <OwnRecordaMenu
+        deleteError={deleteError}
+        deleteSubmitting={deleteSubmitting}
+        isOwnPost={isOwnPost}
+        menu={menu}
+        onClose={() => setMenu(null)}
+        onDelete={onDelete}
+        onRequestDelete={() => setMenu("delete")}
+      />
     </View>
   );
 }
