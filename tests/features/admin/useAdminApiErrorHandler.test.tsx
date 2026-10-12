@@ -7,6 +7,8 @@ import { clearSession } from "@/features/auth/session";
 import { useAdminApiErrorHandler } from "@/features/admin/hooks/useAdminApiErrorHandler";
 import { i18n } from "@/i18n";
 import { ApiError } from "@/services/api";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 
 const mockReset = jest.fn();
 const mockNavigation = { reset: mockReset };
@@ -21,13 +23,18 @@ jest.mock("@/features/auth/session", () => ({
 }));
 
 const mockClearSession = clearSession as jest.Mock;
+const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
 
 function apiError(status: number, code = "REQUEST_FAILED") {
   return new ApiError(code, "Request failed", status, null);
 }
 
 function I18nWrapper({ children }: PropsWithChildren) {
-  return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+    </QueryClientProvider>
+  );
 }
 
 function renderHandler() {
@@ -39,6 +46,8 @@ describe("useAdminApiErrorHandler", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    client.clear();
+    client.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "admin-1", role: "ADMIN" });
     alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
   });
 
@@ -99,12 +108,13 @@ describe("useAdminApiErrorHandler", () => {
       () => new Promise<void>((resolve) => (releaseClearSession = resolve))
     );
     const { result } = renderHandler();
+    const secondHandler = renderHandler().result;
 
     let first!: Promise<boolean>;
     let second!: Promise<boolean>;
     act(() => {
       first = result.current(apiError(401, "session_expired"));
-      second = result.current(apiError(403));
+      second = secondHandler.current(apiError(403));
     });
 
     releaseClearSession();
@@ -115,5 +125,16 @@ describe("useAdminApiErrorHandler", () => {
     expect(alert).toHaveBeenCalledTimes(1);
     expect(mockClearSession).toHaveBeenCalledTimes(1);
     expect(mockReset).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores an authorization failure belonging to a previous login", async () => {
+    const { result } = renderHandler();
+    client.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
+    client.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "admin-2", role: "ADMIN" });
+    await act(async () => {
+      await result.current(apiError(401));
+    });
+    expect(mockClearSession).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
   });
 });

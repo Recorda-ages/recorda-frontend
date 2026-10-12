@@ -13,7 +13,12 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { AppText, Button } from "@/components/ui";
-import { AdminAccessGuard, AdminHomeScreen, AdminPendingScreen } from "@/features/admin";
+import {
+  AdminAccessGuard,
+  AdminHomeScreen,
+  AdminPendingScreen,
+  AdminReportsScreen
+} from "@/features/admin";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
@@ -118,7 +123,11 @@ function AdminHomeRoute() {
 }
 
 function AdminReportsRoute() {
-  return <AdminHomeRoute />;
+  return (
+    <AdminAccessGuard>
+      <AdminReportsScreen />
+    </AdminAccessGuard>
+  );
 }
 
 function AdminUsersRoute() {
@@ -126,7 +135,7 @@ function AdminUsersRoute() {
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen title={t("admin.pending.users")} />
+      <AdminPendingScreen activeTab="users" title={t("admin.pending.users")} />
     </AdminAccessGuard>
   );
 }
@@ -136,7 +145,7 @@ function AdminReportDetailRoute() {
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen title={t("admin.pending.reportDetail")} />
+      <AdminPendingScreen activeTab="reports" title={t("admin.pending.reportDetail")} />
     </AdminAccessGuard>
   );
 }
@@ -146,7 +155,7 @@ function AdminUserDetailRoute() {
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen title={t("admin.pending.userDetail")} />
+      <AdminPendingScreen activeTab="users" title={t("admin.pending.userDetail")} />
     </AdminAccessGuard>
   );
 }
@@ -156,7 +165,7 @@ function AdminAuditLogRoute() {
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen title={t("admin.pending.auditLog")} />
+      <AdminPendingScreen activeTab="auditLog" title={t("admin.pending.auditLog")} />
     </AdminAccessGuard>
   );
 }

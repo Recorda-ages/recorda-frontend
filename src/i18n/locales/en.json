@@ -125,6 +125,8 @@
     },
     "signOut": "Sign out",
     "navigation": {
+      "home": "Admin home",
+      "auditLog": "Audit log",
       "reports": "Reports",
       "users": "Users"
     },
@@ -156,6 +158,7 @@
       }
     },
     "pending": {
+      "message": "This section is not available yet.",
       "users": "User management",
       "reportDetail": "Report details",
       "userDetail": "User details",

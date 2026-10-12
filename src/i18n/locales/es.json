@@ -125,6 +125,8 @@
     },
     "signOut": "Salir",
     "navigation": {
+      "home": "Inicio administrativo",
+      "auditLog": "Auditoría",
       "reports": "Denuncias",
       "users": "Usuarios"
     },
@@ -156,6 +158,7 @@
       }
     },
     "pending": {
+      "message": "Esta sección aún no está disponible.",
       "users": "Gestión de usuarios",
       "reportDetail": "Detalles de la denuncia",
       "userDetail": "Detalles del usuario",

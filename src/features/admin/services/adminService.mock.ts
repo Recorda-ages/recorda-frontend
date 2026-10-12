@@ -77,7 +77,7 @@ const USERS: readonly AdminUserSummary[] = [
   }
 ];
 
-export const adminServiceMock: AdminService = {
+export const adminServiceMock = {
   async listReportGroups(filters: AdminReportFilters = {}, signal?: AbortSignal) {
     throwIfAborted(signal);
     const query = filters.query?.trim().toLocaleLowerCase() ?? "";
@@ -91,7 +91,12 @@ export const adminServiceMock: AdminService = {
           group.targetLabel.toLocaleLowerCase().includes(query))
     );
 
-    return { items: clone(items), nextCursor: null };
+    const offset = Number(filters.cursor ?? 0);
+    const limit = filters.limit ?? 20;
+    return {
+      items: clone(items.slice(offset, offset + limit)),
+      nextCursor: offset + limit < items.length ? String(offset + limit) : null
+    };
   },
 
   async listUsers(filters: AdminUserFilters = {}, signal?: AbortSignal) {
@@ -106,7 +111,20 @@ export const adminServiceMock: AdminService = {
     );
 
     return { items: clone(items), nextCursor: null };
+  },
+  async listAdmins(signal?: AbortSignal) {
+    throwIfAborted(signal);
+    return [{ user_id: "admin-1", username: "admin" }];
+  },
+  async listAuditLog(_filters = {}, signal?: AbortSignal) {
+    throwIfAborted(signal);
+    return { items: [], total: 0 };
   }
+} satisfies AdminService & {
+  listUsers: (
+    filters?: AdminUserFilters,
+    signal?: AbortSignal
+  ) => Promise<{ items: AdminUserSummary[]; nextCursor: null }>;
 };
 
 function clone<TItem extends object>(items: readonly TItem[]): TItem[] {

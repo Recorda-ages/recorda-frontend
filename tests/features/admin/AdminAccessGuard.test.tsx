@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react-native";
+import { act, render, screen, waitFor } from "@testing-library/react-native";
 import { Text } from "react-native";
 
 import { AdminAccessGuard } from "@/features/admin/components/AdminAccessGuard";
@@ -27,19 +27,20 @@ function user(overrides: Partial<UserBasicResponse> = {}): UserBasicResponse {
 
 function renderGuard(currentUser?: UserBasicResponse) {
   const client = new QueryClient({
-    defaultOptions: { queries: { gcTime: 0, retry: false } }
+    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
   });
   if (currentUser) {
     client.setQueryData(AUTH_ME_QUERY_KEY, currentUser);
   }
 
-  return render(
+  const view = render(
     <QueryClientProvider client={client}>
       <AdminAccessGuard>
         <Text>conteúdo administrativo</Text>
       </AdminAccessGuard>
     </QueryClientProvider>
   );
+  return { ...view, client };
 }
 
 describe("AdminAccessGuard", () => {
@@ -67,5 +68,23 @@ describe("AdminAccessGuard", () => {
     await waitFor(() =>
       expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] })
     );
+  });
+
+  it("reacts to a role downgrade while the screen is mounted", () => {
+    const { client } = renderGuard(user({ role: "ADMIN" }));
+    act(() => {
+      client.setQueryData(AUTH_ME_QUERY_KEY, user());
+    });
+    expect(screen.queryByText("conteúdo administrativo")).toBeNull();
+    expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Feed" }] });
+  });
+
+  it("hides private content immediately when the cached session is removed", () => {
+    const { client } = renderGuard(user({ role: "ADMIN" }));
+    act(() => {
+      client.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
+    });
+    expect(screen.queryByText("conteúdo administrativo")).toBeNull();
+    expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   });
 });

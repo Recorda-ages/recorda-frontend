@@ -11,8 +11,10 @@ export { StatusBadge } from "./components/StatusBadge";
 export { useAdminApiErrorHandler } from "./hooks/useAdminApiErrorHandler";
 export { ADMIN_REPORTS_QUERY_KEY, useAdminReports } from "./hooks/useAdminReports";
 export { AdminHomeScreen } from "./screens/AdminHomeScreen";
+export { AdminReportsScreen } from "./screens/AdminReportsScreen";
 export { AdminPendingScreen } from "./screens/AdminPendingScreen";
 export { adminServiceMock } from "./services/adminService.mock";
+export { adminService } from "./services/adminService";
 export type {
   AdminActionReason,
   AdminPage,

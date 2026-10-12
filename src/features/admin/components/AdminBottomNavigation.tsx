@@ -5,15 +5,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "@/theme";
 
-export type AdminBottomTab = "reports" | "users";
+export type AdminBottomTab = "home" | "reports" | "users" | "auditLog";
 
 type AdminBottomNavigationProps = {
   activeTab: AdminBottomTab;
   onPress: (tab: AdminBottomTab) => void;
 };
 
-const tabs: readonly AdminBottomTab[] = ["users", "reports"];
+const tabs: readonly AdminBottomTab[] = ["home", "reports", "users", "auditLog"];
 const icons: Record<AdminBottomTab, string> = {
+  home: "view-dashboard-outline",
+  auditLog: "clipboard-text-clock-outline",
   reports: "flag-outline",
   users: "account-multiple-outline"
 };
@@ -70,6 +72,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     alignItems: "center",
+    minHeight: 48,
     minWidth: 64
   }
 });

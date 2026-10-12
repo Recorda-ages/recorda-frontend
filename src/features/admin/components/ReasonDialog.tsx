@@ -40,7 +40,8 @@ export function ReasonDialog({
   visible
 }: Readonly<ReasonDialogProps>) {
   const { t } = useTranslation();
-  const confirmDisabled = loading || reason.trim() === "";
+  const confirmDisabled =
+    loading || reason.trim() === "" || reason.length > ADMIN_REASON_MAX_LENGTH;
 
   const handleRequestClose = () => {
     if (!loading) {
@@ -77,7 +78,7 @@ export function ReasonDialog({
                 label={t("admin.reasonDialog.label")}
                 maxLength={ADMIN_REASON_MAX_LENGTH}
                 multiline
-                onChangeText={onChangeReason}
+                onChangeText={(value) => onChangeReason(value.slice(0, ADMIN_REASON_MAX_LENGTH))}
                 placeholder={t("admin.reasonDialog.placeholder")}
                 style={styles.input}
                 textAlignVertical="top"

@@ -12,14 +12,21 @@ const CONFIRM = "Suspender";
 const REASON = "Violação recorrente das regras";
 
 type HarnessProps = {
+  initialReason?: string;
   error?: string;
   loading?: boolean;
   onCancel?: () => void;
   onConfirm?: (reason: string) => void;
 };
 
-function Harness({ error, loading, onCancel = jest.fn(), onConfirm = jest.fn() }: HarnessProps) {
-  const [reason, setReason] = useState("");
+function Harness({
+  error,
+  loading,
+  initialReason = "",
+  onCancel = jest.fn(),
+  onConfirm = jest.fn()
+}: HarnessProps) {
+  const [reason, setReason] = useState(initialReason);
 
   return (
     <ReasonDialog
@@ -82,6 +89,23 @@ describe("ReasonDialog", () => {
     fireEvent.press(screen.getByRole("button", { name: CONFIRM }));
 
     expect(onConfirm).toHaveBeenCalledWith(REASON);
+  });
+
+  it("caps pasted text at 500 characters", () => {
+    renderDialog();
+    fireEvent.changeText(reasonInput(), "a".repeat(501));
+    expect(reasonInput().props.value).toHaveLength(500);
+    expect(screen.getByText("500/500")).toBeTruthy();
+  });
+
+  it("rejects a controlled value above the limit and accepts the exact boundary", () => {
+    const onConfirm = jest.fn();
+    renderDialog({ initialReason: "a".repeat(501), onConfirm });
+    fireEvent.press(screen.getByRole("button", { name: CONFIRM }));
+    expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.changeText(reasonInput(), "a".repeat(500));
+    fireEvent.press(screen.getByRole("button", { name: CONFIRM }));
+    expect(onConfirm).toHaveBeenCalledWith("a".repeat(500));
   });
 
   it("keeps the typed reason visible when an operation error is shown", () => {

@@ -1,19 +1,23 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
+import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { clearSession } from "@/features/auth/session";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { ApiError } from "@/services/api";
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
+const activeLogouts = new WeakMap<QueryClient, Promise<void>>();
 
 export function useAdminApiErrorHandler() {
   const navigation = useNavigation<Navigation>();
   const { t } = useTranslation();
-  const activeLogout = useRef<Promise<void> | null>(null);
+  const client = useQueryClient();
+  const session = client.getQueryCache().find({ queryKey: AUTH_ME_QUERY_KEY, exact: true });
 
   return useCallback(
     async (error: unknown): Promise<boolean> => {
@@ -21,10 +25,17 @@ export function useAdminApiErrorHandler() {
         return false;
       }
 
-      if (activeLogout.current) {
-        await activeLogout.current;
+      const activeLogout = activeLogouts.get(client);
+      if (activeLogout) {
+        await activeLogout;
         return true;
       }
+      // A late failure from an old session must not sign out the next account.
+      if (
+        !session ||
+        client.getQueryCache().find({ queryKey: AUTH_ME_QUERY_KEY, exact: true }) !== session
+      )
+        return true;
 
       const isExpired = error.status === 401;
       Alert.alert(
@@ -37,18 +48,18 @@ export function useAdminApiErrorHandler() {
         .then(() => {
           navigation.reset({ index: 0, routes: [{ name: "Login" }] });
         });
-      activeLogout.current = logout;
+      activeLogouts.set(client, logout);
 
       try {
         await logout;
       } finally {
-        if (activeLogout.current === logout) {
-          activeLogout.current = null;
+        if (activeLogouts.get(client) === logout) {
+          activeLogouts.delete(client);
         }
       }
 
       return true;
     },
-    [navigation, t]
+    [client, navigation, session, t]
   );
 }

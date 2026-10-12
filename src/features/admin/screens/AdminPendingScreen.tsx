@@ -1,19 +1,24 @@
 import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { AppText } from "@/components/ui";
 import { colors, spacing } from "@/theme";
+import { AdminScreenLayout } from "../components/AdminScreenLayout";
+import type { AdminBottomTab } from "../components/AdminBottomNavigation";
 
 type AdminPendingScreenProps = {
   title: string;
+  activeTab: AdminBottomTab;
 };
 
-export function AdminPendingScreen({ title }: Readonly<AdminPendingScreenProps>) {
+export function AdminPendingScreen({ title, activeTab }: Readonly<AdminPendingScreenProps>) {
+  const { t } = useTranslation();
   return (
-    <View style={styles.screen} testID="admin-pending-screen">
-      <AppText style={styles.title} variant="headline4">
-        {title}
-      </AppText>
-    </View>
+    <AdminScreenLayout activeTab={activeTab} title={title} testID="admin-pending-screen">
+      <View style={styles.screen}>
+        <AppText style={styles.title}>{t("admin.pending.message")}</AppText>
+      </View>
+    </AdminScreenLayout>
   );
 }
 
