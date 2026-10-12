@@ -3,10 +3,14 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { PropsWithChildren } from "react";
 
 import { useAdminApiErrorHandler } from "@/features/admin/hooks/useAdminApiErrorHandler";
-import { useAdminReports } from "@/features/admin/hooks/useAdminReports";
+import {
+  ADMIN_REPORTS_QUERY_KEY,
+  useAdminReportGroups
+} from "@/features/admin/reports/hooks/useAdminReportGroups";
 import { adminServiceMock } from "@/features/admin/services/adminService.mock";
 import { authApiClient, ApiError } from "@/services/api";
 import { adminAdapter } from "@/features/admin/services/adminAdapter";
+import type { AdminReportGroup } from "@/features/admin/types";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 
 jest.mock("@/features/admin/hooks/useAdminApiErrorHandler", () => ({
@@ -16,18 +20,35 @@ jest.mock("@/features/admin/hooks/useAdminApiErrorHandler", () => ({
 const mockHandleError = jest.fn(async () => false);
 const mockUseAdminApiErrorHandler = useAdminApiErrorHandler as jest.Mock;
 
-function createWrapper(role = "ADMIN") {
+function createClient(role = "ADMIN") {
   const client = new QueryClient({
     defaultOptions: { queries: { gcTime: Infinity, retry: false } }
   });
   client.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "admin-1", role });
+  return client;
+}
 
+function createWrapper(role = "ADMIN", client = createClient(role)) {
   return function Wrapper({ children }: PropsWithChildren) {
     return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
   };
 }
 
-describe("useAdminReports", () => {
+function group(id: string): AdminReportGroup {
+  return {
+    contentSummary: `Música ${id}`,
+    imageUrl: null,
+    latestReportedAt: "2026-10-01T12:00:00Z",
+    openReportCount: 1,
+    status: "OPEN",
+    targetId: id,
+    targetLabel: `Música ${id}`,
+    targetType: "RECORDA",
+    targetUsername: "autor"
+  };
+}
+
+describe("useAdminReportGroups", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAdminApiErrorHandler.mockReturnValue(mockHandleError);
@@ -41,7 +62,9 @@ describe("useAdminReports", () => {
       .mockRejectedValue(new Error("Unexpected HTTP request"));
     const listReports = jest.spyOn(adminServiceMock, "listReportGroups");
     const filters = { query: "marina", status: "OPEN", targetType: "RECORDA" } as const;
-    const { result } = renderHook(() => useAdminReports(filters), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useAdminReportGroups(filters), {
+      wrapper: createWrapper()
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -59,7 +82,7 @@ describe("useAdminReports", () => {
     async (status) => {
       const error = new ApiError("session_expired", "expired", status, null);
       const list = jest.spyOn(adminServiceMock, "listReportGroups").mockRejectedValue(error);
-      const { result } = renderHook(() => useAdminReports({}), { wrapper: createWrapper() });
+      const { result } = renderHook(() => useAdminReportGroups({}), { wrapper: createWrapper() });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
       await waitFor(() => expect(mockHandleError).toHaveBeenCalledWith(error));
@@ -69,12 +92,12 @@ describe("useAdminReports", () => {
 
   it("does not query for a common user", () => {
     const list = jest.spyOn(adminServiceMock, "listReportGroups");
-    renderHook(() => useAdminReports({}), { wrapper: createWrapper("USER") });
+    renderHook(() => useAdminReportGroups({}), { wrapper: createWrapper("USER") });
     expect(list).not.toHaveBeenCalled();
   });
 
   it("loads the next page without losing previous reports", async () => {
-    const { result } = renderHook(() => useAdminReports({ limit: 1 }), {
+    const { result } = renderHook(() => useAdminReportGroups({ limit: 1 }), {
       wrapper: createWrapper()
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -84,5 +107,51 @@ describe("useAdminReports", () => {
       await result.current.fetchNextPage();
     });
     await waitFor(() => expect(result.current.items).toHaveLength(2));
+  });
+
+  it("forwards the order and exposes the API total", async () => {
+    const list = jest.spyOn(adminServiceMock, "listReportGroups");
+    const { result } = renderHook(() => useAdminReportGroups({ order: "asc", status: "OPEN" }), {
+      wrapper: createWrapper()
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(list).toHaveBeenCalledWith(
+      { cursor: undefined, order: "asc", status: "OPEN" },
+      expect.any(AbortSignal)
+    );
+    expect(result.current.total).toBe(result.current.items.length);
+  });
+
+  it("does not repeat a group that moved between pages", async () => {
+    jest
+      .spyOn(adminServiceMock, "listReportGroups")
+      .mockResolvedValueOnce({ items: [group("a"), group("b")], nextCursor: "2", total: 3 })
+      .mockResolvedValueOnce({ items: [group("b"), group("c")], nextCursor: null, total: 3 });
+    const { result } = renderHook(() => useAdminReportGroups({}), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    await waitFor(() =>
+      expect(result.current.items.map((item) => item.targetId)).toEqual(["a", "b", "c"])
+    );
+  });
+
+  it("refetches when anything under admin/reports is invalidated", async () => {
+    const list = jest.spyOn(adminServiceMock, "listReportGroups");
+    const client = createClient();
+    const { result } = renderHook(() => useAdminReportGroups({ status: "OPEN" }), {
+      wrapper: createWrapper("ADMIN", client)
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: ADMIN_REPORTS_QUERY_KEY });
+    });
+
+    expect(list).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,22 +1,23 @@
 import { type InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
-import { adminAdapter } from "../services/adminAdapter";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { ADMIN_ROLE } from "@/features/auth/session";
 import { ApiError } from "@/services/api";
-import type { AdminPage, AdminReportGroup, AdminReportFilters } from "../types";
-import { useAdminApiErrorHandler } from "./useAdminApiErrorHandler";
+
+import { useAdminApiErrorHandler } from "../../hooks/useAdminApiErrorHandler";
+import { adminAdapter } from "../../services/adminAdapter";
+import type { AdminReportFilters, AdminReportGroup, AdminReportPage } from "../../types";
 
 export const ADMIN_REPORTS_QUERY_KEY = ["admin", "reports"] as const;
 
-export function useAdminReports(filters: AdminReportFilters) {
+export function useAdminReportGroups(filters: AdminReportFilters) {
   const handleAdminApiError = useAdminApiErrorHandler();
   const user = useCurrentUser();
   const query = useInfiniteQuery<
-    AdminPage<AdminReportGroup>,
+    AdminReportPage,
     Error,
-    InfiniteData<AdminPage<AdminReportGroup>>,
+    InfiniteData<AdminReportPage>,
     readonly unknown[],
     string | undefined
   >({
@@ -27,13 +28,7 @@ export function useAdminReports(filters: AdminReportFilters) {
       adminAdapter.listReportGroups({ ...filters, cursor: pageParam }, signal),
     retry: (count, error) =>
       !(error instanceof ApiError && (error.status === 401 || error.status === 403)) && count < 1,
-    queryKey: [
-      ...ADMIN_REPORTS_QUERY_KEY,
-      user?.user_id,
-      filters.query ?? "",
-      filters.targetType ?? "ALL",
-      filters.status ?? "ALL"
-    ],
+    queryKey: [...ADMIN_REPORTS_QUERY_KEY, user?.user_id, filters],
     staleTime: 0
   });
 
@@ -43,5 +38,26 @@ export function useAdminReports(filters: AdminReportFilters) {
     }
   }, [handleAdminApiError, query.error]);
 
-  return { ...query, items: query.data?.pages.flatMap((page) => page.items) ?? [] };
+  const items = useMemo(() => uniqueGroups(query.data?.pages ?? []), [query.data]);
+
+  return { ...query, items, total: query.data?.pages[0]?.total ?? 0 };
+}
+
+export function reportGroupKey(item: AdminReportGroup) {
+  return `${item.targetType}:${item.targetId}`;
+}
+
+function uniqueGroups(pages: readonly AdminReportPage[]) {
+  const seen = new Set<string>();
+
+  return pages
+    .flatMap((page) => page.items)
+    .filter((item) => {
+      const key = reportGroupKey(item);
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
 }

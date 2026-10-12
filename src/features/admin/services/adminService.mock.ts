@@ -8,48 +8,67 @@ import type {
 
 const REPORT_GROUPS: readonly AdminReportGroup[] = [
   {
-    contentSummary: "Erro ao postar Recorda",
+    contentSummary: "Levitating",
+    imageUrl:
+      "https://cdn-images.dzcdn.net/images/cover/2e018122cb56986277102d2041a592c8/500x500-000000-80-0-0.jpg",
     latestReportedAt: "2026-10-05T18:30:00Z",
     latestReporterUsername: "paulo",
     openReportCount: 3,
     status: "OPEN",
     targetId: "recorda-1042",
-    targetLabel: "Post de @marina",
+    targetLabel: "Levitating",
     targetType: "RECORDA",
     targetUsername: "marina"
   },
   {
-    contentSummary: "Perfil denunciado",
+    contentSummary: "Usuário Dois",
+    imageUrl: null,
     latestReportedAt: "2026-10-04T15:10:00Z",
     latestReporterUsername: "bia",
-    openReportCount: 2,
+    openReportCount: 4,
     status: "OPEN",
     targetId: "user-1088",
-    targetLabel: "@usuario2",
+    targetLabel: "Usuário Dois",
     targetType: "USER",
     targetUsername: "usuario2"
   },
   {
-    contentSummary: "Publicação denunciada",
-    latestReportedAt: "2026-09-28T12:00:00Z",
+    contentSummary: "Blinding Lights",
+    imageUrl:
+      "https://cdn-images.dzcdn.net/images/cover/fd00ebd6d30d7253f813dba3bb1c66a9/500x500-000000-80-0-0.jpg",
+    latestReportedAt: "2026-10-01T20:05:00Z",
     latestReporterUsername: "carol",
-    openReportCount: 0,
-    status: "RESOLVED",
+    openReportCount: 2,
+    status: "OPEN",
     targetId: "recorda-1124",
-    targetLabel: "Post de @lucas",
+    targetLabel: "Blinding Lights",
     targetType: "RECORDA",
     targetUsername: "lucas"
   },
   {
-    contentSummary: "Solicitação concluída",
+    contentSummary: "Usuário Um",
+    imageUrl: null,
     latestReportedAt: "2026-09-27T12:00:00Z",
     latestReporterUsername: "ana",
-    openReportCount: 0,
-    status: "DISMISSED",
+    openReportCount: 3,
+    status: "RESOLVED",
     targetId: "user-1201",
-    targetLabel: "@usuario1",
+    targetLabel: "Usuário Um",
     targetType: "USER",
     targetUsername: "usuario1"
+  },
+  {
+    contentSummary: "Yellow",
+    imageUrl:
+      "https://cdn-images.dzcdn.net/images/cover/970dce98eeea6729244c0ae71707a83d/500x500-000000-80-0-0.jpg",
+    latestReportedAt: "2026-09-20T16:00:00Z",
+    latestReporterUsername: "pedro",
+    openReportCount: 1,
+    status: "DISMISSED",
+    targetId: "recorda-1300",
+    targetLabel: "Yellow",
+    targetType: "RECORDA",
+    targetUsername: "gabriel"
   }
 ];
 
@@ -81,21 +100,29 @@ export const adminServiceMock = {
   async listReportGroups(filters: AdminReportFilters = {}, signal?: AbortSignal) {
     throwIfAborted(signal);
     const query = filters.query?.trim().toLocaleLowerCase() ?? "";
+    const status = filters.status ?? "OPEN";
+    const direction = filters.order === "asc" ? 1 : -1;
     const items = REPORT_GROUPS.filter(
       (group) =>
-        (filters.status === undefined || group.status === filters.status) &&
+        group.status === status &&
         (filters.targetType === undefined || group.targetType === filters.targetType) &&
         (query === "" ||
           group.targetUsername.toLocaleLowerCase().includes(query) ||
           group.contentSummary.toLocaleLowerCase().includes(query) ||
           group.targetLabel.toLocaleLowerCase().includes(query))
+    ).sort(
+      (a, b) =>
+        direction *
+        (a.latestReportedAt.localeCompare(b.latestReportedAt) ||
+          a.targetId.localeCompare(b.targetId))
     );
 
     const offset = Number(filters.cursor ?? 0);
     const limit = filters.limit ?? 20;
     return {
       items: clone(items.slice(offset, offset + limit)),
-      nextCursor: offset + limit < items.length ? String(offset + limit) : null
+      nextCursor: offset + limit < items.length ? String(offset + limit) : null,
+      total: items.length
     };
   },
 

@@ -15,8 +15,11 @@ export type AdminPage<TItem> = {
   nextCursor: string | null;
 };
 
+export type AdminReportOrder = "asc" | "desc";
+
 export type AdminReportGroup = {
   contentSummary: string;
+  imageUrl: string | null;
   latestReportedAt: string;
   latestReporterUsername?: string;
   openReportCount: number;
@@ -30,9 +33,14 @@ export type AdminReportGroup = {
 export type AdminReportFilters = {
   cursor?: string;
   limit?: number;
+  order?: AdminReportOrder;
   query?: string;
   status?: AdminReportStatus;
   targetType?: AdminTargetType;
+};
+
+export type AdminReportPage = AdminPage<AdminReportGroup> & {
+  total: number;
 };
 
 export type AdminUserSummary = {
@@ -89,7 +97,7 @@ export type AdminService = {
   listReportGroups: (
     filters?: AdminReportFilters,
     signal?: AbortSignal
-  ) => Promise<AdminPage<AdminReportGroup>>;
+  ) => Promise<AdminReportPage>;
   listAdmins: (signal?: AbortSignal) => Promise<AdminSummary[]>;
   listAuditLog: (filters?: AdminAuditFilters, signal?: AbortSignal) => Promise<AdminAuditPage>;
 };

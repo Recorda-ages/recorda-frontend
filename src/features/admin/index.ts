@@ -7,11 +7,15 @@ export {
   ReasonDialog,
   type ReasonDialogProps
 } from "./components/ReasonDialog";
-export { StatusBadge } from "./components/StatusBadge";
+export { STATUS_TRANSLATION_KEYS, StatusBadge } from "./components/StatusBadge";
 export { useAdminApiErrorHandler } from "./hooks/useAdminApiErrorHandler";
-export { ADMIN_REPORTS_QUERY_KEY, useAdminReports } from "./hooks/useAdminReports";
+export {
+  ADMIN_REPORTS_QUERY_KEY,
+  reportGroupKey,
+  useAdminReportGroups
+} from "./reports/hooks/useAdminReportGroups";
 export { AdminHomeScreen } from "./screens/AdminHomeScreen";
-export { AdminReportsScreen } from "./screens/AdminReportsScreen";
+export { AdminReportsScreen } from "./reports/screens/AdminReportsScreen";
 export { AdminPendingScreen } from "./screens/AdminPendingScreen";
 export { adminServiceMock } from "./services/adminService.mock";
 export { adminService } from "./services/adminService";
@@ -20,6 +24,8 @@ export type {
   AdminPage,
   AdminReportFilters,
   AdminReportGroup,
+  AdminReportOrder,
+  AdminReportPage,
   AdminReportStatus,
   AdminService,
   AdminStatus,
