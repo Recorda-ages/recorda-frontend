@@ -40,6 +40,7 @@ export type AdminUserAction = {
 };
 
 export type AdminUserRow = {
+  deleted_at?: string | null;
   email: string;
   name: string;
   profile_picture_url: string | null;
