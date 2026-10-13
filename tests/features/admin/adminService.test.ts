@@ -14,7 +14,7 @@ const group: AdminReportPageResponse["items"][number] = {
   report_count: 2,
   first_reported_at: "2026-10-01T12:00:00Z",
   last_reported_at: "2026-10-02T12:00:00Z",
-  preview: { title: "Song title", subtitle: "@marina", image_url: null }
+  preview: { title: "Song title", subtitle: "@marina", image_url: "/api/v1/recordas/media/a.jpg" }
 };
 
 describe("adminService HTTP contract", () => {
@@ -32,6 +32,7 @@ describe("adminService HTTP contract", () => {
       items: [
         {
           contentSummary: "Song title",
+          imageUrl: "/api/v1/recordas/media/a.jpg",
           latestReportedAt: group.last_reported_at,
           openReportCount: 2,
           status: "OPEN",
@@ -41,7 +42,8 @@ describe("adminService HTTP contract", () => {
           targetUsername: "marina"
         }
       ],
-      nextCursor: "1"
+      nextCursor: "1",
+      total: 2
     });
     expect(page.items[0].latestReporterUsername).toBeUndefined();
   });
@@ -57,6 +59,14 @@ describe("adminService HTTP contract", () => {
     });
     expect(page.nextCursor).toBeNull();
     expect(page.items[0].targetUsername).toBe("");
+  });
+
+  it("forwards the date order chosen on the screen", async () => {
+    mockGet.mockResolvedValue({ items: [group], total: 1 });
+    await adminService.listReportGroups({ order: "asc", status: "OPEN" });
+    expect(mockGet).toHaveBeenCalledWith("/admin/reports?status=OPEN&limit=20&offset=0&order=asc", {
+      signal: undefined
+    });
   });
 
   it("does not loop if a concurrently changed collection returns an empty page", async () => {

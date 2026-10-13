@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from "react-native";
+import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
 import { colors, radius, spacing } from "@/theme";
@@ -45,14 +46,24 @@ export function FilterChips<TValue extends string>({
               pressed ? styles.pressed : undefined
             ]}
           >
-            <AppText
-              style={[
-                selected ? styles.selectedLabel : styles.unselectedLabel,
-                columns ? styles.centeredLabel : undefined
-              ]}
-            >
-              {option.label}
-            </AppText>
+            <View style={[styles.content, columns ? styles.centeredContent : undefined]}>
+              {selected ? (
+                <Icon
+                  color={colors.neutrals[100]}
+                  size={16}
+                  source="check"
+                  testID="filter-chip-check"
+                />
+              ) : null}
+              <AppText
+                style={[
+                  selected ? styles.selectedLabel : styles.unselectedLabel,
+                  columns ? styles.centeredLabel : undefined
+                ]}
+              >
+                {option.label}
+              </AppText>
+            </View>
           </Pressable>
         );
       })}
@@ -68,8 +79,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2]
   },
+  centeredContent: {
+    justifyContent: "center"
+  },
   centeredLabel: {
     textAlign: "center"
+  },
+  content: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[1]
   },
   disabled: {
     opacity: 0.56
@@ -83,7 +102,7 @@ const styles = StyleSheet.create({
     opacity: 0.82
   },
   selectedChip: {
-    backgroundColor: colors.primary[700]
+    backgroundColor: colors.primary[800]
   },
   selectedLabel: {
     color: colors.neutrals[100]

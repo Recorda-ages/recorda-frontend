@@ -135,21 +135,32 @@
       "search": "Buscar por usuário ou conteúdo",
       "loading": "Carregando denúncias",
       "loadError": "Não foi possível carregar as denúncias.",
+      "loadMoreError": "Não foi possível carregar mais denúncias.",
       "retry": "Tentar novamente",
-      "empty": "Nenhuma denúncia encontrada.",
+      "empty": {
+        "open": "Nenhuma denúncia pendente",
+        "resolved": "Nenhuma denúncia resolvida",
+        "dismissed": "Nenhuma denúncia descartada",
+        "search": "Nenhuma denúncia encontrada para essa busca"
+      },
+      "groupedCount_zero": "0 denúncias agrupadas",
       "groupedCount_one": "{{count}} denúncia agrupada",
       "groupedCount_other": "{{count}} denúncias agrupadas",
-      "openTarget": "Abrir denúncias de @{{username}}",
-      "rowMetadata_one": "{{target}} • {{count}} denúncia",
-      "rowMetadata_other": "{{target}} • {{count}} denúncias",
-      "latestReport": "Por @{{username}} • {{date}}",
+      "count_one": "{{count}} denúncia",
+      "count_other": "{{count}} denúncias",
+      "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
+      "reportedBy": "Por @{{username}} • {{date}}",
       "target": {
         "recorda": "Recorda",
         "user": "Perfil"
       },
+      "order": {
+        "desc": "Mais recentes",
+        "asc": "Mais antigas",
+        "accessibilityLabel": "Ordem: {{order}}. Toque para inverter"
+      },
       "filters": {
-        "allTargets": "Todos os tipos",
-        "allStatuses": "Todos os status",
+        "allTargets": "Todas",
         "recordas": "Recordas",
         "profiles": "Perfis",
         "open": "Pendentes",

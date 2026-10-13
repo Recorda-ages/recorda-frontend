@@ -135,21 +135,32 @@
       "search": "Search by user or content",
       "loading": "Loading reports",
       "loadError": "Unable to load reports.",
+      "loadMoreError": "Unable to load more reports.",
       "retry": "Try again",
-      "empty": "No reports found.",
+      "empty": {
+        "open": "No open reports",
+        "resolved": "No resolved reports",
+        "dismissed": "No dismissed reports",
+        "search": "No reports match this search"
+      },
+      "groupedCount_zero": "0 grouped reports",
       "groupedCount_one": "{{count}} grouped report",
       "groupedCount_other": "{{count}} grouped reports",
-      "openTarget": "Open reports for @{{username}}",
-      "rowMetadata_one": "{{target}} • {{count}} report",
-      "rowMetadata_other": "{{target}} • {{count}} reports",
-      "latestReport": "By @{{username}} • {{date}}",
+      "count_one": "{{count}} report",
+      "count_other": "{{count}} reports",
+      "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
+      "reportedBy": "By @{{username}} • {{date}}",
       "target": {
         "recorda": "Recorda",
         "user": "Profile"
       },
+      "order": {
+        "desc": "Newest first",
+        "asc": "Oldest first",
+        "accessibilityLabel": "Order: {{order}}. Tap to reverse"
+      },
       "filters": {
-        "allTargets": "All types",
-        "allStatuses": "All statuses",
+        "allTargets": "All",
         "recordas": "Recordas",
         "profiles": "Profiles",
         "open": "Open",

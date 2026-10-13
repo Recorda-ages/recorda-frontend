@@ -24,6 +24,13 @@ describe("StatusBadge", () => {
     expect(screen.getByText(label)).toBeTruthy();
     expect(screen.getByLabelText(`Status: ${label}`)).toBeTruthy();
   });
+
+  it("renders the inline text variant in upper case without the badge", () => {
+    renderWithI18n(<StatusBadge status="OPEN" variant="text" />);
+
+    expect(screen.getByText("PENDENTE")).toBeTruthy();
+    expect(screen.queryByLabelText("Status: Pendente")).toBeNull();
+  });
 });
 
 describe("FilterChips", () => {

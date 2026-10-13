@@ -13,6 +13,7 @@ export const adminService: AdminService = {
       limit: String(filters.limit ?? 20),
       offset: String(offset)
     });
+    if (filters.order) params.set("order", filters.order);
     if (filters.targetType) params.set("target_type", filters.targetType);
     const response = await authApiClient.get<AdminReportPageResponse>(`/admin/reports?${params}`, {
       signal
@@ -21,6 +22,7 @@ export const adminService: AdminService = {
     return {
       items: response.items.map((item) => ({
         contentSummary: item.preview.title,
+        imageUrl: item.preview.image_url,
         latestReportedAt: item.last_reported_at,
         openReportCount: item.report_count,
         status: item.status,
@@ -30,7 +32,8 @@ export const adminService: AdminService = {
         targetUsername: item.preview.subtitle?.replace(/^@/, "") ?? ""
       })),
       nextCursor:
-        response.items.length > 0 && nextOffset < response.total ? String(nextOffset) : null
+        response.items.length > 0 && nextOffset < response.total ? String(nextOffset) : null,
+      total: response.total
     };
   },
   listAdmins: (signal) => authApiClient.get<AdminSummary[]>("/admin/admins", { signal }),
