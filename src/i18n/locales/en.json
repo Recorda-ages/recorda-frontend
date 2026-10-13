@@ -102,7 +102,79 @@
     }
   },
   "admin": {
-    "title": "Admin area"
+    "title": "Admin area",
+    "reasonDialog": {
+      "label": "Reason",
+      "placeholder": "Describe the reason",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel"
+    },
+    "status": {
+      "accessibilityLabel": "Status: {{status}}",
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "session": {
+      "expiredTitle": "Session ended",
+      "expiredMessage": "Your session has expired.",
+      "forbiddenTitle": "Administrative access removed",
+      "forbiddenMessage": "Your account does not have administrative access."
+    },
+    "signOut": "Sign out",
+    "navigation": {
+      "home": "Admin home",
+      "auditLog": "Audit log",
+      "reports": "Reports",
+      "users": "Users"
+    },
+    "reports": {
+      "title": "Reports",
+      "search": "Search by user or content",
+      "loading": "Loading reports",
+      "loadError": "Unable to load reports.",
+      "loadMoreError": "Unable to load more reports.",
+      "retry": "Try again",
+      "empty": {
+        "open": "No open reports",
+        "resolved": "No resolved reports",
+        "dismissed": "No dismissed reports",
+        "search": "No reports match this search"
+      },
+      "groupedCount_zero": "0 grouped reports",
+      "groupedCount_one": "{{count}} grouped report",
+      "groupedCount_other": "{{count}} grouped reports",
+      "count_one": "{{count}} report",
+      "count_other": "{{count}} reports",
+      "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
+      "reportedBy": "By @{{username}} • {{date}}",
+      "target": {
+        "recorda": "Recorda",
+        "user": "Profile"
+      },
+      "order": {
+        "desc": "Newest first",
+        "asc": "Oldest first",
+        "accessibilityLabel": "Order: {{order}}. Tap to reverse"
+      },
+      "filters": {
+        "allTargets": "All",
+        "recordas": "Recordas",
+        "profiles": "Profiles",
+        "open": "Open",
+        "resolved": "Resolved",
+        "dismissed": "Dismissed"
+      }
+    },
+    "pending": {
+      "message": "This section is not available yet.",
+      "users": "User management",
+      "reportDetail": "Report details",
+      "userDetail": "User details",
+      "auditLog": "Audit log"
+    }
   },
   "profile": {
     "title": "Profile"
@@ -154,6 +226,7 @@
     "send": "Send comment",
     "delete": "Delete",
     "report": "Report",
+    "notInterested": "Not interested",
     "cancel": "Cancel",
     "deleteTitle": "Delete Recorda?",
     "deleteMessage": "This action cannot be undone.",
