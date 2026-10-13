@@ -1,5 +1,8 @@
 import {
+  AdminUserAction,
   AdminIdentity,
+  AdminModerationResult,
+  AdminModerationService,
   AdminUserDetail,
   AdminUserRow,
   ReactivateUserRequest,
@@ -106,16 +109,28 @@ export const initialMockDetails: Record<string, AdminUserDetail> = {
   }
 };
 
-let mockStore: MockModerationStore = {
-  details: { ...initialMockDetails },
-  users: [...initialMockUsers]
-};
+function createMockStore(): MockModerationStore {
+  return {
+    details: Object.fromEntries(
+      Object.entries(initialMockDetails).map(([id, detail]) => [
+        id,
+        {
+          ...detail,
+          actions: detail.actions.map((action) => ({ ...action })),
+          reports_received: detail.reports_received.map((report) => ({ ...report }))
+        }
+      ])
+    ),
+    users: initialMockUsers.map((user) => ({ ...user }))
+  };
+}
+
+let mockStore = createMockStore();
+let nextActionId = 0;
 
 export const resetModerationMockStore = () => {
-  mockStore = {
-    details: JSON.parse(JSON.stringify(initialMockDetails)),
-    users: JSON.parse(JSON.stringify(initialMockUsers))
-  };
+  mockStore = createMockStore();
+  nextActionId = 0;
 };
 
 export const getModerationMockStore = (): MockModerationStore => mockStore;
@@ -130,132 +145,118 @@ export class AdminModerationError extends Error {
   }
 }
 
+function validateReason(reason: string): string {
+  const cleanReason = reason.trim();
+  if (cleanReason.length < 1 || cleanReason.length > 500) {
+    throw new AdminModerationError("INVALID_REASON", "Motivo deve ter entre 1 e 500 caracteres.");
+  }
+  return cleanReason;
+}
+
+function findTargetUser(
+  targetUserId: string,
+  admin: AdminIdentity,
+  actionType: "SUSPEND" | "REACTIVATE"
+) {
+  if (admin.role !== "ADMIN") {
+    throw new AdminModerationError("FORBIDDEN", "Apenas administradores podem moderar contas.");
+  }
+  if (targetUserId === admin.user_id) {
+    const action = actionType === "SUSPEND" ? "suspender" : "reativar";
+    throw new AdminModerationError(
+      "SELF_ACTION_NOT_ALLOWED",
+      `Você não pode ${action} a própria conta.`
+    );
+  }
+
+  const index = mockStore.users.findIndex((user) => user.user_id === targetUserId);
+  if (index === -1) {
+    throw new AdminModerationError("NOT_FOUND", "Usuário não encontrado.");
+  }
+  return { index, user: mockStore.users[index] };
+}
+
+function updateUser(
+  index: number,
+  status: AdminUserRow["status"],
+  actionType: "SUSPEND" | "REACTIVATE",
+  admin: AdminIdentity,
+  reason: string,
+  reports?: AdminUserDetail["reports_received"]
+): AdminModerationResult {
+  const user = { ...mockStore.users[index], status };
+  const currentDetail = mockStore.details[user.user_id];
+  const action: AdminUserAction = {
+    action_id: `act-${Date.now()}-${++nextActionId}`,
+    action_type: actionType,
+    admin_id: admin.user_id,
+    admin_username: admin.username,
+    created_at: new Date().toISOString(),
+    reason,
+    target_user_id: user.user_id
+  };
+  const detail = currentDetail
+    ? {
+        ...currentDetail,
+        status,
+        reports_received: reports ?? currentDetail.reports_received,
+        actions: [...currentDetail.actions, action]
+      }
+    : undefined;
+
+  mockStore = {
+    users: mockStore.users.map((item, itemIndex) => (itemIndex === index ? user : item)),
+    details: detail ? { ...mockStore.details, [user.user_id]: detail } : mockStore.details
+  };
+  return { user, detail };
+}
+
+function runMockMutation(operation: () => ReturnType<typeof updateUser>) {
+  return Promise.resolve().then(operation);
+}
+
 export const adminModerationMockService = {
-  async suspendUser(
+  suspendUser(
     targetUserId: string,
     admin: AdminIdentity,
     payload: SuspendUserRequest
-  ): Promise<{ detail?: AdminUserDetail; user: AdminUserRow }> {
-    const cleanReason = payload.reason.trim();
-    if (!cleanReason || cleanReason.length < 1 || cleanReason.length > 500) {
-      throw new AdminModerationError("INVALID_REASON", "Motivo deve ter entre 1 e 500 caracteres.");
-    }
+  ): Promise<AdminModerationResult> {
+    return runMockMutation(() => {
+      const reason = validateReason(payload.reason);
+      const { index, user } = findTargetUser(targetUserId, admin, "SUSPEND");
+      if (user.role === "ADMIN") {
+        throw new AdminModerationError(
+          "ADMIN_ACTION_NOT_ALLOWED",
+          "Não é permitido suspender outro administrador."
+        );
+      }
+      if (user.status === "SUSPENDED") {
+        throw new AdminModerationError("CONFLICT", "A conta já se encontra suspensa.");
+      }
 
-    if (targetUserId === admin.user_id) {
-      throw new AdminModerationError(
-        "SELF_ACTION_NOT_ALLOWED",
-        "Você não pode suspender a própria conta."
+      const reports = mockStore.details[targetUserId]?.reports_received.map((report) =>
+        (payload.resolve_open_reports ?? true) &&
+        report.target_type === "USER" &&
+        report.status === "OPEN"
+          ? { ...report, status: "RESOLVED" as const }
+          : report
       );
-    }
-
-    const userIndex = mockStore.users.findIndex((u) => u.user_id === targetUserId);
-    if (userIndex === -1) {
-      throw new AdminModerationError("NOT_FOUND", "Usuário não encontrado.");
-    }
-
-    const targetUser = mockStore.users[userIndex];
-
-    if (targetUser.role === "ADMIN") {
-      throw new AdminModerationError(
-        "ADMIN_ACTION_NOT_ALLOWED",
-        "Não é permitido suspender outro administrador."
-      );
-    }
-
-    if (targetUser.status === "SUSPENDED") {
-      throw new AdminModerationError("CONFLICT", "A conta já se encontra suspensa.");
-    }
-
-    const updatedUser: AdminUserRow = { ...targetUser, status: "SUSPENDED" };
-    mockStore.users[userIndex] = updatedUser;
-
-    let updatedDetail: AdminUserDetail | undefined;
-    if (mockStore.details[targetUserId]) {
-      const currentDetail = mockStore.details[targetUserId];
-      const resolveReports = payload.resolve_open_reports ?? true;
-      const updatedReports = currentDetail.reports_received.map((rep) => {
-        if (resolveReports && rep.target_type === "USER" && rep.status === "OPEN") {
-          return { ...rep, status: "RESOLVED" as const };
-        }
-        return rep;
-      });
-
-      updatedDetail = {
-        ...currentDetail,
-        status: "SUSPENDED",
-        reports_received: updatedReports,
-        actions: [
-          ...currentDetail.actions,
-          {
-            action_id: `act-${Date.now()}`,
-            action_type: "SUSPEND",
-            admin_id: admin.user_id,
-            admin_username: admin.username,
-            created_at: new Date().toISOString(),
-            reason: cleanReason,
-            target_user_id: targetUserId
-          }
-        ]
-      };
-      mockStore.details[targetUserId] = updatedDetail;
-    }
-
-    return { user: updatedUser, detail: updatedDetail };
+      return updateUser(index, "SUSPENDED", "SUSPEND", admin, reason, reports);
+    });
   },
 
-  async reactivateUser(
+  reactivateUser(
     targetUserId: string,
     admin: AdminIdentity,
     payload: ReactivateUserRequest
-  ): Promise<{ detail?: AdminUserDetail; user: AdminUserRow }> {
-    const cleanReason = payload.reason.trim();
-    if (!cleanReason || cleanReason.length < 1 || cleanReason.length > 500) {
-      throw new AdminModerationError("INVALID_REASON", "Motivo deve ter entre 1 e 500 caracteres.");
-    }
-
-    if (targetUserId === admin.user_id) {
-      throw new AdminModerationError(
-        "SELF_ACTION_NOT_ALLOWED",
-        "Você não pode reativar a própria conta."
-      );
-    }
-
-    const userIndex = mockStore.users.findIndex((u) => u.user_id === targetUserId);
-    if (userIndex === -1) {
-      throw new AdminModerationError("NOT_FOUND", "Usuário não encontrado.");
-    }
-
-    const targetUser = mockStore.users[userIndex];
-
-    if (targetUser.status === "ACTIVE") {
-      throw new AdminModerationError("CONFLICT", "A conta já se encontra ativa.");
-    }
-
-    const updatedUser: AdminUserRow = { ...targetUser, status: "ACTIVE" };
-    mockStore.users[userIndex] = updatedUser;
-
-    let updatedDetail: AdminUserDetail | undefined;
-    if (mockStore.details[targetUserId]) {
-      const currentDetail = mockStore.details[targetUserId];
-      updatedDetail = {
-        ...currentDetail,
-        status: "ACTIVE",
-        actions: [
-          ...currentDetail.actions,
-          {
-            action_id: `act-${Date.now()}`,
-            action_type: "REACTIVATE",
-            admin_id: admin.user_id,
-            admin_username: admin.username,
-            created_at: new Date().toISOString(),
-            reason: cleanReason,
-            target_user_id: targetUserId
-          }
-        ]
-      };
-      mockStore.details[targetUserId] = updatedDetail;
-    }
-
-    return { user: updatedUser, detail: updatedDetail };
+  ): Promise<AdminModerationResult> {
+    return runMockMutation(() => {
+      const reason = validateReason(payload.reason);
+      const { index, user } = findTargetUser(targetUserId, admin, "REACTIVATE");
+      if (user.status === "ACTIVE") {
+        throw new AdminModerationError("CONFLICT", "A conta já se encontra ativa.");
+      }
+      return updateUser(index, "ACTIVE", "REACTIVATE", admin, reason);
+    });
   }
-};
+} satisfies AdminModerationService;

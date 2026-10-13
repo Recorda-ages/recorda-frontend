@@ -1,21 +1,31 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { AdminIdentity, AdminUserDetail, AdminUserRow } from "../types";
+import { colors, withOpacity } from "@/theme";
 import {
-  adminModerationMockService,
-  AdminModerationError
-} from "../services/adminModerationMockService";
+  AdminIdentity,
+  AdminModerationResult,
+  AdminModerationService,
+  AdminUserRow
+} from "../types";
+import { adminModerationMockService } from "../services/adminModerationMockService";
 import { UserModerationForm, UserModerationFormSubmitData } from "./UserModerationForm";
 
 export type AdminUserActionsProps = {
   currentAdmin?: AdminIdentity | null;
+  moderationService?: AdminModerationService;
   onMutationError?: (error: Error) => void;
-  onMutationSuccess?: (result: { detail?: AdminUserDetail; user: AdminUserRow }) => void;
+  onMutationSuccess?: (result: AdminModerationResult) => void;
   targetUser: AdminUserRow;
 };
 
-export const AdminUserActions: React.FC<AdminUserActionsProps> = ({
+export function AdminUserActions(props: AdminUserActionsProps) {
+  const { targetUser } = props;
+  return <AdminUserActionsContent key={`${targetUser.user_id}:${targetUser.status}`} {...props} />;
+}
+
+const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
   currentAdmin,
+  moderationService = adminModerationMockService,
   onMutationError,
   onMutationSuccess,
   targetUser
@@ -23,8 +33,10 @@ export const AdminUserActions: React.FC<AdminUserActionsProps> = ({
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentStatus, setCurrentStatus] = useState(targetUser.status);
+  const submitting = useRef(false);
 
-  if (!currentAdmin) {
+  if (currentAdmin?.role !== "ADMIN") {
     return null;
   }
 
@@ -33,7 +45,7 @@ export const AdminUserActions: React.FC<AdminUserActionsProps> = ({
   }
 
   const isTargetAdmin = targetUser.role === "ADMIN";
-  const isTargetActive = targetUser.status === "ACTIVE";
+  const isTargetActive = currentStatus === "ACTIVE";
 
   if (isTargetAdmin && isTargetActive) {
     return (
@@ -51,43 +63,43 @@ export const AdminUserActions: React.FC<AdminUserActionsProps> = ({
   };
 
   const handleCloseForm = () => {
-    if (!isLoading) {
+    if (!submitting.current) {
       setIsFormVisible(false);
       setErrorMessage(null);
     }
   };
 
   const handleSubmit = async (data: UserModerationFormSubmitData) => {
+    if (submitting.current) return;
+    submitting.current = true;
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
       let result;
       if (actionType === "SUSPEND") {
-        result = await adminModerationMockService.suspendUser(targetUser.user_id, currentAdmin, {
+        result = await moderationService.suspendUser(targetUser.user_id, currentAdmin, {
           reason: data.reason,
           resolve_open_reports: data.resolve_open_reports
         });
       } else {
-        result = await adminModerationMockService.reactivateUser(targetUser.user_id, currentAdmin, {
+        result = await moderationService.reactivateUser(targetUser.user_id, currentAdmin, {
           reason: data.reason
         });
       }
 
+      setCurrentStatus(result.user.status);
       setIsFormVisible(false);
       onMutationSuccess?.(result);
     } catch (err: unknown) {
-      const message =
-        err instanceof AdminModerationError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : "Erro inesperado ao realizar moderação.";
-      setErrorMessage(message);
+      setErrorMessage(
+        err instanceof Error ? err.message : "Erro inesperado ao realizar moderação."
+      );
       if (err instanceof Error) {
         onMutationError?.(err);
       }
     } finally {
+      submitting.current = false;
       setIsLoading(false);
     }
   };
@@ -96,8 +108,12 @@ export const AdminUserActions: React.FC<AdminUserActionsProps> = ({
     <View style={styles.container} testID="admin-user-actions">
       {!isFormVisible ? (
         <TouchableOpacity
+          accessibilityRole="button"
           activeOpacity={0.7}
-          onPress={handleOpenForm}
+          onPress={(event) => {
+            event?.stopPropagation();
+            handleOpenForm();
+          }}
           style={[
             styles.actionButton,
             isTargetActive ? styles.suspendButton : styles.reactivateButton
@@ -135,25 +151,25 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   suspendButton: {
-    backgroundColor: "#E53935"
+    backgroundColor: colors.error[400]
   },
   reactivateButton: {
-    backgroundColor: "#43A047"
+    backgroundColor: colors.success[400]
   },
   actionButtonText: {
-    color: "#FFFFFF",
+    color: colors.neutrals[100],
     fontSize: 14,
     fontWeight: "bold"
   },
   noticeContainer: {
-    backgroundColor: "rgba(255, 193, 7, 0.15)",
-    borderColor: "#FFC107",
+    backgroundColor: withOpacity(colors.warning[300], 0.15),
+    borderColor: colors.warning[300],
     borderRadius: 8,
     borderWidth: 1,
     padding: 10
   },
   noticeText: {
-    color: "#FFC107",
+    color: colors.warning[300],
     fontSize: 13
   }
 });

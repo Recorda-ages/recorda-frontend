@@ -73,3 +73,18 @@ export type AdminIdentity = {
   user_id: string;
   username: string;
 };
+
+export type AdminModerationResult = { detail?: AdminUserDetail; user: AdminUserRow };
+
+export type AdminModerationService = {
+  suspendUser: (
+    targetUserId: string,
+    admin: AdminIdentity,
+    payload: SuspendUserRequest
+  ) => Promise<AdminModerationResult>;
+  reactivateUser: (
+    targetUserId: string,
+    admin: AdminIdentity,
+    payload: ReactivateUserRequest
+  ) => Promise<AdminModerationResult>;
+};

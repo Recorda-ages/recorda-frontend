@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Icon } from "react-native-paper";
+import { colors, withOpacity } from "@/theme";
 import { AdminUserRow } from "../types";
 
 export type ModerationActionType = "SUSPEND" | "REACTIVATE";
@@ -33,6 +35,8 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
   const trimmedReason = reason.trim();
   const isValidReason = trimmedReason.length >= 1 && trimmedReason.length <= 500;
   const isSubmitDisabled = isLoading || !isValidReason;
+  let submitLabel = isSuspend ? "Confirmar Suspensão" : "Confirmar Reativação";
+  if (isLoading) submitLabel = "Enviando...";
 
   const handleSubmit = () => {
     if (isSubmitDisabled) {
@@ -66,6 +70,7 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
 
       <Text style={styles.label}>Motivo (obrigatório):</Text>
       <TextInput
+        accessibilityLabel="Motivo da moderação"
         editable={!isLoading}
         multiline
         numberOfLines={4}
@@ -78,7 +83,7 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
       />
       <View style={styles.counterContainer}>
         <Text
-          style={[styles.counterText, reason.length > 500 && styles.counterError]}
+          style={[styles.counterText, trimmedReason.length > 500 && styles.counterError]}
           testID="moderation-char-counter"
         >
           {trimmedReason.length}/500
@@ -88,8 +93,13 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
       {isSuspend ? (
         <TouchableOpacity
           activeOpacity={0.7}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: resolveOpenReports, disabled: isLoading }}
           disabled={isLoading}
-          onPress={() => setResolveOpenReports((prev) => !prev)}
+          onPress={(event) => {
+            event?.stopPropagation();
+            setResolveOpenReports((prev) => !prev);
+          }}
           style={styles.checkboxRow}
           testID="resolve-reports-toggle"
         >
@@ -97,7 +107,9 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
             style={[styles.checkbox, resolveOpenReports && styles.checkboxChecked]}
             testID="resolve-reports-checkbox"
           >
-            {resolveOpenReports ? <Text style={styles.checkmark}>✓</Text> : null}
+            {resolveOpenReports ? (
+              <Icon color={colors.neutrals[900]} size={14} source="check" />
+            ) : null}
           </View>
           <Text style={styles.checkboxLabel}>
             Marcar denúncias abertas do perfil como resolvidas
@@ -108,8 +120,12 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
       <View style={styles.actionsRow}>
         <TouchableOpacity
           activeOpacity={0.7}
+          accessibilityRole="button"
           disabled={isLoading}
-          onPress={onCancel}
+          onPress={(event) => {
+            event?.stopPropagation();
+            onCancel();
+          }}
           style={[styles.button, styles.cancelButton]}
           testID="moderation-cancel-button"
         >
@@ -118,8 +134,13 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
 
         <TouchableOpacity
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isSubmitDisabled, busy: isLoading }}
           disabled={isSubmitDisabled}
-          onPress={handleSubmit}
+          onPress={(event) => {
+            event?.stopPropagation();
+            handleSubmit();
+          }}
           style={[
             styles.button,
             isSuspend ? styles.suspendButton : styles.reactivateButton,
@@ -127,9 +148,7 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
           ]}
           testID="moderation-submit-button"
         >
-          <Text style={styles.submitButtonText}>
-            {isLoading ? "Enviando..." : isSuspend ? "Confirmar Suspensão" : "Confirmar Reativação"}
-          </Text>
+          <Text style={styles.submitButtonText}>{submitLabel}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -138,19 +157,19 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#1E1E1E",
+    backgroundColor: colors.neutrals[800],
     borderRadius: 12,
     padding: 16,
     width: "100%"
   },
   title: {
-    color: "#FFFFFF",
+    color: colors.neutrals[100],
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 4
   },
   subtitle: {
-    color: "#CCCCCC",
+    color: colors.neutrals[200],
     fontSize: 14,
     marginBottom: 16
   },
@@ -158,29 +177,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold"
   },
   errorContainer: {
-    backgroundColor: "rgba(255, 75, 75, 0.15)",
-    borderColor: "#FF4B4B",
+    backgroundColor: withOpacity(colors.error[300], 0.15),
+    borderColor: colors.error[300],
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
     padding: 10
   },
   errorText: {
-    color: "#FF4B4B",
+    color: colors.error[200],
     fontSize: 13
   },
   label: {
-    color: "#FFFFFF",
+    color: colors.neutrals[100],
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 6
   },
   textInput: {
-    backgroundColor: "#2C2C2E",
-    borderColor: "#3A3A3C",
+    backgroundColor: colors.neutrals[700],
+    borderColor: colors.neutrals[600],
     borderRadius: 8,
     borderWidth: 1,
-    color: "#FFFFFF",
+    color: colors.neutrals[100],
     fontSize: 14,
     minHeight: 90,
     padding: 12,
@@ -191,11 +210,11 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   counterText: {
-    color: "#888888",
+    color: colors.neutrals[300],
     fontSize: 12
   },
   counterError: {
-    color: "#FF4B4B"
+    color: colors.error[200]
   },
   checkboxRow: {
     alignItems: "center",
@@ -204,7 +223,7 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     alignItems: "center",
-    borderColor: "#666666",
+    borderColor: colors.neutrals[400],
     borderRadius: 4,
     borderWidth: 1,
     height: 20,
@@ -213,16 +232,11 @@ const styles = StyleSheet.create({
     width: 20
   },
   checkboxChecked: {
-    backgroundColor: "#6200EE",
-    borderColor: "#6200EE"
-  },
-  checkmark: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "bold"
+    backgroundColor: colors.primary[500],
+    borderColor: colors.primary[500]
   },
   checkboxLabel: {
-    color: "#E0E0E0",
+    color: colors.neutrals[100],
     flex: 1,
     fontSize: 13
   },
@@ -238,25 +252,25 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   cancelButton: {
-    backgroundColor: "#3A3A3C",
+    backgroundColor: colors.neutrals[700],
     marginRight: 8
   },
   cancelButtonText: {
-    color: "#FFFFFF",
+    color: colors.neutrals[100],
     fontSize: 14,
     fontWeight: "600"
   },
   suspendButton: {
-    backgroundColor: "#E53935"
+    backgroundColor: colors.error[400]
   },
   reactivateButton: {
-    backgroundColor: "#43A047"
+    backgroundColor: colors.success[400]
   },
   disabledButton: {
     opacity: 0.5
   },
   submitButtonText: {
-    color: "#FFFFFF",
+    color: colors.neutrals[100],
     fontSize: 14,
     fontWeight: "bold"
   }
