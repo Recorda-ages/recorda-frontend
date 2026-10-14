@@ -4,6 +4,7 @@ import { I18nextProvider } from "react-i18next";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { shouldCloseCommentsSheet } from "@/features/feed/components/RecordaDetailView";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
@@ -12,6 +13,7 @@ import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
 import { i18n } from "@/i18n";
 import { authApiClient } from "@/services/api";
+import { fontFamily } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
@@ -148,6 +150,7 @@ describe("PublishedRecordaScreen", () => {
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     expect(screen.queryByText("Denunciar")).toBeNull();
+    expect(screen.queryByText("Não interessado")).toBeNull();
     fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
     expect(screen.getByText("Excluir Recorda?")).toBeTruthy();
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-1/);
@@ -202,15 +205,82 @@ describe("PublishedRecordaScreen", () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it("only offers Report for another author and opens the report dialog", () => {
+  it("only offers Not interested and Report for another author and opens the report dialog", () => {
     mockRoute.params.postId = "post-2";
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+    const menu = within(screen.getByTestId("recorda-menu"));
+    expect(menu.getAllByRole("button")).toHaveLength(2);
     expect(screen.queryByText("Excluir")).toBeNull();
-    fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
+    expect(screen.queryByText("Cancelar")).toBeNull();
+    // No backend contract yet: the item is shown but cannot be triggered.
+    expect(menu.getByRole("button", { name: "Não interessado" })).toBeDisabled();
+    expect(menu.getByText("Não interessado")).toHaveStyle({
+      fontFamily: fontFamily.display.medium,
+      fontSize: 14
+    });
+    expect(menu.getByText("Denunciar")).toHaveStyle({
+      fontFamily: fontFamily.display.medium,
+      fontSize: 14
+    });
+    fireEvent.press(menu.getByRole("button", { name: "Denunciar" }));
+    expect(screen.queryByTestId("recorda-menu")).toBeNull();
     expect(screen.getByText("Denunciar Recorda")).toBeTruthy();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByTestId("remaining-posts")).toHaveTextContent(/post-2/);
+  });
+
+  // The tests above only reach ownership through the demo-user fallback. These two go
+  // through the real path: the signed-in user's id against the author id from the API.
+  describe("with an authenticated user", () => {
+    const ownUserId = "22222222-2222-4222-8222-222222222222";
+    const otherUserId = "33333333-3333-4333-8333-333333333333";
+
+    function openApiRecordaBy(authorId: string) {
+      const item: FeedItem = {
+        author: { user_id: authorId, username: "jane", profile_picture_url: null },
+        created_at: "2026-01-01T12:00:00Z",
+        description: "Uma Recorda",
+        is_liked: false,
+        likes_count: 0,
+        media_type: "PHOTO",
+        media_url: "https://cdn.example.com/photo.jpg",
+        recorda_id: "11111111-1111-4111-8111-111111111111",
+        song_artist_name: "Artist",
+        song_cover_url: "",
+        song_preview_url: null,
+        song_title: "Song"
+      };
+      mockRoute.params.postId = item.recorda_id;
+      renderScreen(item);
+      queryClient.setQueryData(AUTH_ME_QUERY_KEY, {
+        name: "Lucas",
+        onboarding_completed: true,
+        role: "USER",
+        user_id: ownUserId,
+        username: "lucas"
+      });
+      fireEvent.press(screen.getByText("Open API item"));
+      fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+    }
+
+    it("offers only Delete when the author is the signed-in user", () => {
+      openApiRecordaBy(ownUserId);
+
+      expect(screen.getByRole("button", { name: "Excluir" })).toBeTruthy();
+      expect(screen.queryByTestId("recorda-menu")).toBeNull();
+      expect(screen.queryByText("Denunciar")).toBeNull();
+      expect(screen.queryByText("Não interessado")).toBeNull();
+    });
+
+    it("offers Not interested and Report when the author is someone else", () => {
+      openApiRecordaBy(otherUserId);
+
+      const menu = within(screen.getByTestId("recorda-menu"));
+      expect(menu.getByRole("button", { name: "Não interessado" })).toBeTruthy();
+      expect(menu.getByRole("button", { name: "Denunciar" })).toBeTruthy();
+      expect(screen.queryByText("Excluir")).toBeNull();
+    });
   });
 
   // Só o contrato da integração: que a tela entrega o id certo ao fluxo de

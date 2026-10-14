@@ -1,62 +1,82 @@
+export type ModerationTargetType = "USER" | "RECORDA" | "COMMENT";
+
+export type ReportStatus = "OPEN" | "RESOLVED" | "DISMISSED";
+
+export type ReportCategory =
+  "SPAM" | "INAPPROPRIATE_CONTENT" | "HARASSMENT" | "COPYRIGHT" | "OTHER";
+
 export type ReportTarget =
   { recordaId: string; type: "RECORDA" } | { type: "USER"; userId: string };
 
-export type ReportCreatedResponse = {
-  created_at: string;
-  report_id: string;
-  status: string;
-};
-
-export type ReportMutationInput = {
+export type CreateReportPayload = {
+  category?: ReportCategory;
   description: string;
+  details?: string;
   target: ReportTarget;
 };
 
-/**
- * Contrato US 46 — Moderação de Usuários (Suspensão e Reativação)
- */
-export type UserRole = "USER" | "ADMIN";
-export type UserModerationStatus = "ACTIVE" | "SUSPENDED";
-
-export type AdminUserReportGroup = {
-  first_reported_at: string;
-  last_reported_at: string;
-  report_count: number;
-  status: "OPEN" | "RESOLVED" | "DISMISSED";
-  target_id: string;
-  target_type: "USER" | "RECORDA";
+export type ReportMutationInput = {
+  category?: ReportCategory;
+  description?: string;
+  details?: string;
+  target: ReportTarget;
 };
 
-export type AdminUserAction = {
-  action_id: string;
-  action_type: string;
-  admin_id: string;
-  admin_username: string;
-  created_at: string;
-  details?: Record<string, unknown> | null;
-  reason: string;
-  target_recorda_id?: string | null;
-  target_user_id?: string | null;
+export type ReportResponse = {
+  created_at?: string;
+  id?: string;
+  report_id: string;
+  status: ReportStatus;
+  target_id?: string;
+  target_type?: ModerationTargetType;
 };
 
-export type AdminUserRow = {
-  deleted_at?: string | null;
-  email: string;
-  name: string;
-  profile_picture_url: string | null;
-  reports_count: number;
-  role: UserRole;
-  status: UserModerationStatus;
+export type ReportCreatedResponse = ReportResponse;
+
+export type AdminUserRole = "ADMIN" | "USER";
+
+export type AdminUserStatus = "ACTIVE" | "SUSPENDED";
+
+export type AdminIdentity = {
+  role: AdminUserRole;
   user_id: string;
   username: string;
 };
 
-export type AdminUserDetail = AdminUserRow & {
-  actions: AdminUserAction[];
+export type AdminUserRow = {
+  email: string;
+  name: string;
+  profile_picture_url: string | null;
+  reports_count: number;
+  role: AdminUserRole;
+  status: AdminUserStatus;
+  user_id: string;
+  username: string;
+};
+
+export type ModerationReportItem = {
   created_at: string;
-  is_private: boolean;
-  recordas_count: number;
-  reports_received: AdminUserReportGroup[];
+  id: string;
+  reason: string;
+  status: ReportStatus;
+  target_id: string;
+  target_type: ModerationTargetType;
+};
+
+export type UserModerationActionItem = {
+  action_type: "SUSPEND" | "REACTIVATE";
+  admin_id: string;
+  admin_username: string;
+  created_at: string;
+  id: string;
+  reason: string;
+  resolved_reports_count: number;
+};
+
+export type AdminUserDetail = AdminUserRow & {
+  actions: UserModerationActionItem[];
+  created_at: string;
+  reports_received: ModerationReportItem[];
 };
 
 export type SuspendUserRequest = {
@@ -68,8 +88,7 @@ export type ReactivateUserRequest = {
   reason: string;
 };
 
-export type AdminIdentity = {
-  role: UserRole;
-  user_id: string;
-  username: string;
+export type AdminModerationActionResult = {
+  detail?: AdminUserDetail;
+  user: AdminUserRow;
 };

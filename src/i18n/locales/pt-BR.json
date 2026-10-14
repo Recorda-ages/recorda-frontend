@@ -102,7 +102,79 @@
     }
   },
   "admin": {
-    "title": "Área administrativa"
+    "title": "Área administrativa",
+    "reasonDialog": {
+      "label": "Motivo",
+      "placeholder": "Descreva o motivo",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancelar"
+    },
+    "status": {
+      "accessibilityLabel": "Status: {{status}}",
+      "open": "Pendente",
+      "resolved": "Resolvida",
+      "dismissed": "Descartada",
+      "active": "Ativo",
+      "suspended": "Suspenso"
+    },
+    "session": {
+      "expiredTitle": "Sessão encerrada",
+      "expiredMessage": "Sua sessão expirou.",
+      "forbiddenTitle": "Acesso administrativo removido",
+      "forbiddenMessage": "Sua conta não tem acesso administrativo."
+    },
+    "signOut": "Sair",
+    "navigation": {
+      "home": "Início administrativo",
+      "auditLog": "Auditoria",
+      "reports": "Denúncias",
+      "users": "Usuários"
+    },
+    "reports": {
+      "title": "Denúncias",
+      "search": "Buscar por usuário ou conteúdo",
+      "loading": "Carregando denúncias",
+      "loadError": "Não foi possível carregar as denúncias.",
+      "loadMoreError": "Não foi possível carregar mais denúncias.",
+      "retry": "Tentar novamente",
+      "empty": {
+        "open": "Nenhuma denúncia pendente",
+        "resolved": "Nenhuma denúncia resolvida",
+        "dismissed": "Nenhuma denúncia descartada",
+        "search": "Nenhuma denúncia encontrada para essa busca"
+      },
+      "groupedCount_zero": "0 denúncias agrupadas",
+      "groupedCount_one": "{{count}} denúncia agrupada",
+      "groupedCount_other": "{{count}} denúncias agrupadas",
+      "count_one": "{{count}} denúncia",
+      "count_other": "{{count}} denúncias",
+      "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
+      "reportedBy": "Por @{{username}} • {{date}}",
+      "target": {
+        "recorda": "Recorda",
+        "user": "Perfil"
+      },
+      "order": {
+        "desc": "Mais recentes",
+        "asc": "Mais antigas",
+        "accessibilityLabel": "Ordem: {{order}}. Toque para inverter"
+      },
+      "filters": {
+        "allTargets": "Todas",
+        "recordas": "Recordas",
+        "profiles": "Perfis",
+        "open": "Pendentes",
+        "resolved": "Resolvidas",
+        "dismissed": "Descartadas"
+      }
+    },
+    "pending": {
+      "message": "Esta seção ainda não está disponível.",
+      "users": "Gestão de usuários",
+      "reportDetail": "Detalhes da denúncia",
+      "userDetail": "Detalhes do usuário",
+      "auditLog": "Auditoria"
+    }
   },
   "profile": {
     "title": "Perfil"
@@ -155,6 +227,7 @@
     "send": "Enviar comentário",
     "delete": "Excluir",
     "report": "Denunciar",
+    "notInterested": "Não interessado",
     "cancel": "Cancelar",
     "deleteTitle": "Excluir Recorda?",
     "deleteMessage": "Esta ação não pode ser desfeita.",

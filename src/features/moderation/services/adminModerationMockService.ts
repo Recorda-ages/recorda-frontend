@@ -1,17 +1,27 @@
 import {
   AdminIdentity,
+  AdminModerationActionResult,
   AdminUserDetail,
   AdminUserRow,
   ReactivateUserRequest,
-  SuspendUserRequest
+  ReportStatus,
+  SuspendUserRequest,
+  UserModerationActionItem
 } from "../types";
 
-export type MockModerationStore = {
+export class AdminModerationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AdminModerationError";
+  }
+}
+
+type ModerationStore = {
   details: Record<string, AdminUserDetail>;
   users: AdminUserRow[];
 };
 
-export const initialMockUsers: AdminUserRow[] = [
+const initialUsers: AdminUserRow[] = [
   {
     email: "user1@recorda.app",
     name: "User Normal",
@@ -26,7 +36,7 @@ export const initialMockUsers: AdminUserRow[] = [
     email: "user2@recorda.app",
     name: "User Suspenso",
     profile_picture_url: null,
-    reports_count: 1,
+    reports_count: 0,
     role: "USER",
     status: "SUSPENDED",
     user_id: "user-2",
@@ -34,7 +44,7 @@ export const initialMockUsers: AdminUserRow[] = [
   },
   {
     email: "admin2@recorda.app",
-    name: "Outro Admin Ativo",
+    name: "Outro Admin",
     profile_picture_url: null,
     reports_count: 0,
     role: "ADMIN",
@@ -44,7 +54,7 @@ export const initialMockUsers: AdminUserRow[] = [
   },
   {
     email: "admin3@recorda.app",
-    name: "Outro Admin Suspenso",
+    name: "Admin Suspenso",
     profile_picture_url: null,
     reports_count: 0,
     role: "ADMIN",
@@ -54,208 +64,181 @@ export const initialMockUsers: AdminUserRow[] = [
   }
 ];
 
-export const initialMockDetails: Record<string, AdminUserDetail> = {
+const initialDetails: Record<string, AdminUserDetail> = {
   "user-1": {
-    ...initialMockUsers[0],
     actions: [],
-    created_at: new Date().toISOString(),
-    is_private: false,
-    recordas_count: 5,
+    created_at: "2026-01-01T00:00:00.000Z",
+    email: "user1@recorda.app",
+    name: "User Normal",
+    profile_picture_url: null,
+    reports_count: 2,
     reports_received: [
       {
-        first_reported_at: new Date().toISOString(),
-        last_reported_at: new Date().toISOString(),
-        report_count: 2,
+        created_at: "2026-02-01T00:00:00.000Z",
+        id: "rep-1",
+        reason: "Spam em comentários",
         status: "OPEN",
         target_id: "user-1",
         target_type: "USER"
       },
       {
-        first_reported_at: new Date().toISOString(),
-        last_reported_at: new Date().toISOString(),
-        report_count: 1,
+        created_at: "2026-02-02T00:00:00.000Z",
+        id: "rep-2",
+        reason: "Foto inadequada",
         status: "OPEN",
         target_id: "rec-1",
         target_type: "RECORDA"
       }
-    ]
+    ],
+    role: "USER",
+    status: "ACTIVE",
+    user_id: "user-1",
+    username: "usernormal"
   },
   "user-2": {
-    ...initialMockUsers[1],
     actions: [],
-    created_at: new Date().toISOString(),
-    is_private: false,
-    recordas_count: 2,
-    reports_received: []
-  },
-  "admin-2": {
-    ...initialMockUsers[2],
-    actions: [],
-    created_at: new Date().toISOString(),
-    is_private: false,
-    recordas_count: 0,
-    reports_received: []
-  },
-  "admin-3": {
-    ...initialMockUsers[3],
-    actions: [],
-    created_at: new Date().toISOString(),
-    is_private: false,
-    recordas_count: 0,
-    reports_received: []
+    created_at: "2026-01-05T00:00:00.000Z",
+    email: "user2@recorda.app",
+    name: "User Suspenso",
+    profile_picture_url: null,
+    reports_count: 0,
+    reports_received: [],
+    role: "USER",
+    status: "SUSPENDED",
+    user_id: "user-2",
+    username: "usersuspenso"
   }
 };
 
-let mockStore: MockModerationStore = {
-  details: { ...initialMockDetails },
-  users: [...initialMockUsers]
+let store: ModerationStore = {
+  details: JSON.parse(JSON.stringify(initialDetails)),
+  users: JSON.parse(JSON.stringify(initialUsers))
 };
 
 export const resetModerationMockStore = () => {
-  mockStore = {
-    details: JSON.parse(JSON.stringify(initialMockDetails)),
-    users: JSON.parse(JSON.stringify(initialMockUsers))
+  store = {
+    details: JSON.parse(JSON.stringify(initialDetails)),
+    users: JSON.parse(JSON.stringify(initialUsers))
   };
 };
 
-export const getModerationMockStore = (): MockModerationStore => mockStore;
+export const getModerationMockStore = () => store;
 
-export class AdminModerationError extends Error {
-  constructor(
-    public code: string,
-    message: string
-  ) {
-    super(message);
-    this.name = "AdminModerationError";
+const validateModerationRules = (
+  targetUserId: string,
+  admin: AdminIdentity,
+  reason: string,
+  isSuspend: boolean
+): { targetIndex: number; targetUser: AdminUserRow } => {
+  if (admin.user_id === targetUserId) {
+    throw new AdminModerationError(
+      isSuspend
+        ? "Você não pode suspender a própria conta."
+        : "Você não pode reativar a própria conta."
+    );
   }
-}
+
+  const trimmedReason = reason.trim();
+  if (!trimmedReason || trimmedReason.length > 500) {
+    throw new AdminModerationError("Motivo deve ter entre 1 e 500 caracteres.");
+  }
+
+  const targetIndex = store.users.findIndex((u) => u.user_id === targetUserId);
+  if (targetIndex === -1) {
+    throw new AdminModerationError("Usuário não encontrado.");
+  }
+
+  const targetUser = store.users[targetIndex];
+  if (isSuspend && targetUser.role === "ADMIN") {
+    throw new AdminModerationError("Não é permitido suspender outro administrador.");
+  }
+
+  return { targetIndex, targetUser };
+};
 
 export const adminModerationMockService = {
   async suspendUser(
-    targetUserId: string,
+    userId: string,
     admin: AdminIdentity,
     payload: SuspendUserRequest
-  ): Promise<{ detail?: AdminUserDetail; user: AdminUserRow }> {
-    const cleanReason = payload.reason.trim();
-    if (!cleanReason || cleanReason.length < 1 || cleanReason.length > 500) {
-      throw new AdminModerationError("INVALID_REASON", "Motivo deve ter entre 1 e 500 caracteres.");
-    }
-
-    if (targetUserId === admin.user_id) {
-      throw new AdminModerationError(
-        "SELF_ACTION_NOT_ALLOWED",
-        "Você não pode suspender a própria conta."
-      );
-    }
-
-    const userIndex = mockStore.users.findIndex((u) => u.user_id === targetUserId);
-    if (userIndex === -1) {
-      throw new AdminModerationError("NOT_FOUND", "Usuário não encontrado.");
-    }
-
-    const targetUser = mockStore.users[userIndex];
-
-    if (targetUser.role === "ADMIN") {
-      throw new AdminModerationError(
-        "ADMIN_ACTION_NOT_ALLOWED",
-        "Não é permitido suspender outro administrador."
-      );
-    }
-
-    if (targetUser.status === "SUSPENDED") {
-      throw new AdminModerationError("CONFLICT", "A conta já se encontra suspensa.");
-    }
+  ): Promise<AdminModerationActionResult> {
+    const { targetIndex, targetUser } = validateModerationRules(
+      userId,
+      admin,
+      payload.reason,
+      true
+    );
 
     const updatedUser: AdminUserRow = { ...targetUser, status: "SUSPENDED" };
-    mockStore.users[userIndex] = updatedUser;
+    store.users[targetIndex] = updatedUser;
 
-    let updatedDetail: AdminUserDetail | undefined;
-    if (mockStore.details[targetUserId]) {
-      const currentDetail = mockStore.details[targetUserId];
-      const resolveReports = payload.resolve_open_reports ?? true;
-      const updatedReports = currentDetail.reports_received.map((rep) => {
-        if (resolveReports && rep.target_type === "USER" && rep.status === "OPEN") {
-          return { ...rep, status: "RESOLVED" as const };
-        }
-        return rep;
-      });
+    const actionItem: UserModerationActionItem = {
+      action_type: "SUSPEND",
+      admin_id: admin.user_id,
+      admin_username: admin.username,
+      created_at: new Date().toISOString(),
+      id: `act-${Date.now()}`,
+      reason: payload.reason.trim(),
+      resolved_reports_count: payload.resolve_open_reports ? 1 : 0
+    };
 
-      updatedDetail = {
-        ...currentDetail,
-        status: "SUSPENDED",
+    let detail = store.details[userId];
+    if (detail) {
+      const updatedReports = payload.resolve_open_reports
+        ? detail.reports_received.map((rep) =>
+            rep.target_type === "USER" && rep.status === "OPEN"
+              ? { ...rep, status: "RESOLVED" as ReportStatus }
+              : rep
+          )
+        : detail.reports_received;
+
+      detail = {
+        ...detail,
+        actions: [actionItem, ...detail.actions],
         reports_received: updatedReports,
-        actions: [
-          ...currentDetail.actions,
-          {
-            action_id: `act-${Date.now()}`,
-            action_type: "SUSPEND",
-            admin_id: admin.user_id,
-            admin_username: admin.username,
-            created_at: new Date().toISOString(),
-            reason: cleanReason,
-            target_user_id: targetUserId
-          }
-        ]
+        status: "SUSPENDED"
       };
-      mockStore.details[targetUserId] = updatedDetail;
+      store.details[userId] = detail;
     }
 
-    return { user: updatedUser, detail: updatedDetail };
+    return { detail, user: updatedUser };
   },
 
   async reactivateUser(
-    targetUserId: string,
+    userId: string,
     admin: AdminIdentity,
     payload: ReactivateUserRequest
-  ): Promise<{ detail?: AdminUserDetail; user: AdminUserRow }> {
-    const cleanReason = payload.reason.trim();
-    if (!cleanReason || cleanReason.length < 1 || cleanReason.length > 500) {
-      throw new AdminModerationError("INVALID_REASON", "Motivo deve ter entre 1 e 500 caracteres.");
-    }
-
-    if (targetUserId === admin.user_id) {
-      throw new AdminModerationError(
-        "SELF_ACTION_NOT_ALLOWED",
-        "Você não pode reativar a própria conta."
-      );
-    }
-
-    const userIndex = mockStore.users.findIndex((u) => u.user_id === targetUserId);
-    if (userIndex === -1) {
-      throw new AdminModerationError("NOT_FOUND", "Usuário não encontrado.");
-    }
-
-    const targetUser = mockStore.users[userIndex];
-
-    if (targetUser.status === "ACTIVE") {
-      throw new AdminModerationError("CONFLICT", "A conta já se encontra ativa.");
-    }
+  ): Promise<AdminModerationActionResult> {
+    const { targetIndex, targetUser } = validateModerationRules(
+      userId,
+      admin,
+      payload.reason,
+      false
+    );
 
     const updatedUser: AdminUserRow = { ...targetUser, status: "ACTIVE" };
-    mockStore.users[userIndex] = updatedUser;
+    store.users[targetIndex] = updatedUser;
 
-    let updatedDetail: AdminUserDetail | undefined;
-    if (mockStore.details[targetUserId]) {
-      const currentDetail = mockStore.details[targetUserId];
-      updatedDetail = {
-        ...currentDetail,
-        status: "ACTIVE",
-        actions: [
-          ...currentDetail.actions,
-          {
-            action_id: `act-${Date.now()}`,
-            action_type: "REACTIVATE",
-            admin_id: admin.user_id,
-            admin_username: admin.username,
-            created_at: new Date().toISOString(),
-            reason: cleanReason,
-            target_user_id: targetUserId
-          }
-        ]
+    const actionItem: UserModerationActionItem = {
+      action_type: "REACTIVATE",
+      admin_id: admin.user_id,
+      admin_username: admin.username,
+      created_at: new Date().toISOString(),
+      id: `act-${Date.now()}`,
+      reason: payload.reason.trim(),
+      resolved_reports_count: 0
+    };
+
+    let detail = store.details[userId];
+    if (detail) {
+      detail = {
+        ...detail,
+        actions: [actionItem, ...detail.actions],
+        status: "ACTIVE"
       };
-      mockStore.details[targetUserId] = updatedDetail;
+      store.details[userId] = detail;
     }
 
-    return { user: updatedUser, detail: updatedDetail };
+    return { detail, user: updatedUser };
   }
 };

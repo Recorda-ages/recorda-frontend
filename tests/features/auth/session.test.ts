@@ -49,8 +49,29 @@ describe("auth session", () => {
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
   });
 
+  // Nothing observes the cached user, so React Query's default 5-minute garbage
+  // collection would drop it mid-session and every screen would lose the user's id.
+  it("keeps the current user for the whole session and still removes it on sign out", async () => {
+    jest.useFakeTimers();
+    try {
+      const user = buildUser();
+
+      await saveSession({ access_token: "jwt", token_type: "bearer", user });
+      jest.advanceTimersByTime(6 * 60_000);
+
+      expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
+
+      await clearSession();
+
+      expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it("clears credentials and user-scoped notification data even if storage fails", async () => {
     queryClient.setQueryData(AUTH_ME_QUERY_KEY, buildUser());
+    queryClient.setQueryData(["admin", "reports", "admin-1"], { items: [{ targetId: "private" }] });
     queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, {
       pageParams: [0],
       pages: [{ items: [{ notification_id: "private-notification" }], unread_count: 1 }]
@@ -74,6 +95,7 @@ describe("auth session", () => {
     expect(queryClient.getQueryData(["feed", "general"])).toBeUndefined();
     expect(queryClient.getQueryData(privateRecordaKey)).toBeUndefined();
     expect(queryClient.getQueryData(privateCommentsKey)).toBeUndefined();
+    expect(queryClient.getQueryData(["admin", "reports", "admin-1"])).toBeUndefined();
   });
 
   it.each([
