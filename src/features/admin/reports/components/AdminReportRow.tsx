@@ -9,13 +9,12 @@ import { colors, fontFamily, radius, spacing } from "@/theme";
 
 import { STATUS_TRANSLATION_KEYS, StatusBadge } from "../../components/StatusBadge";
 import type { AdminReportGroup } from "../../types";
+import { formatReportDate } from "../formatReportDate";
 
 type AdminReportRowProps = Readonly<{
   item: AdminReportGroup;
   onPress: (item: AdminReportGroup) => void;
 }>;
-
-const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 
 export function AdminReportRow({ item, onPress }: AdminReportRowProps) {
   const { i18n, t } = useTranslation();
@@ -86,27 +85,6 @@ export function AdminReportRow({ item, onPress }: AdminReportRowProps) {
       </View>
     </Pressable>
   );
-}
-
-export function formatReportDate(isoDate: string, language: string) {
-  const date = new Date(isoDate);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  let formatter = dateFormatters.get(language);
-
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat(language, {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    });
-    dateFormatters.set(language, formatter);
-  }
-
-  return formatter.format(date);
 }
 
 const styles = StyleSheet.create({

@@ -17,6 +17,7 @@ import {
   AdminAccessGuard,
   AdminHomeScreen,
   AdminPendingScreen,
+  AdminReportDetailScreen,
   AdminReportsScreen
 } from "@/features/admin";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
@@ -141,11 +142,14 @@ function AdminUsersRoute() {
 }
 
 function AdminReportDetailRoute() {
-  const { t } = useTranslation();
+  const route = useRoute<RouteProp<RootStackParamList, "AdminReportDetail">>();
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen activeTab="reports" title={t("admin.pending.reportDetail")} />
+      <AdminReportDetailScreen
+        targetId={route.params.targetId}
+        targetType={route.params.targetType}
+      />
     </AdminAccessGuard>
   );
 }

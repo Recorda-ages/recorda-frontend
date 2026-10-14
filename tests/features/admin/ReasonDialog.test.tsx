@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { useState } from "react";
+import { Keyboard, Platform } from "react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 
@@ -137,5 +138,27 @@ describe("ReasonDialog", () => {
 
     fireEvent.press(cancel);
     expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it("closes the keyboard when the backdrop is tapped on the phone", () => {
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    renderDialog();
+
+    fireEvent.press(screen.getByTestId("reason-dialog-backdrop"));
+
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    dismiss.mockRestore();
+  });
+
+  it("keeps the reason field focusable on the web", () => {
+    const platform = jest.replaceProperty(Platform, "OS", "web");
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    renderDialog();
+
+    fireEvent.press(screen.getByTestId("reason-dialog-backdrop"));
+
+    expect(dismiss).not.toHaveBeenCalled();
+    dismiss.mockRestore();
+    platform.restore();
   });
 });
