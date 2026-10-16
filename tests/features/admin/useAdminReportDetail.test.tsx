@@ -13,6 +13,10 @@ import {
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { ApiError } from "@/services/api";
 
+jest.mock("@/features/admin/services/adminAdapter", () => ({
+  adminAdapter: jest.requireActual("@/features/admin/services/adminService.mock").adminServiceMock
+}));
+
 jest.mock("@/features/admin/hooks/useAdminApiErrorHandler", () => ({
   useAdminApiErrorHandler: jest.fn()
 }));

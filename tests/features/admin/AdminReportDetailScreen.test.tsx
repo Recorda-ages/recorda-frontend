@@ -24,6 +24,10 @@ const mockReset = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 
+jest.mock("@/features/admin/services/adminAdapter", () => ({
+  adminAdapter: jest.requireActual("@/features/admin/services/adminService.mock").adminServiceMock
+}));
+
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
   useNavigation: () => ({
