@@ -57,7 +57,12 @@ export function ReasonDialog({
       transparent
       visible={visible}
     >
-      <Pressable accessible={false} onPress={Keyboard.dismiss} style={styles.backdrop}>
+      <Pressable
+        accessible={false}
+        onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
+        style={styles.backdrop}
+        testID="reason-dialog-backdrop"
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={styles.keyboardAvoiding}

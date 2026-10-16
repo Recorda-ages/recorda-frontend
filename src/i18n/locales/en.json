@@ -168,10 +168,69 @@
         "dismissed": "Dismissed"
       }
     },
+    "reportDetail": {
+      "title": "Report details",
+      "loading": "Loading report",
+      "loadError": "We couldn't load this report.",
+      "notFound": "This report no longer exists.",
+      "retry": "Try again",
+      "back": "Back to reports",
+      "dateTime": "{{date}} at {{time}}",
+      "recordaLabel": "Reported Recorda",
+      "userLabel": "Reported profile",
+      "musicLabel": "Linked song",
+      "author": "Author: @{{username}}",
+      "removedAt": "Removed on {{date}}",
+      "accountDeletedAt": "Account deleted on {{date}}",
+      "privateAccount": "Private account",
+      "createdAt": "Account created on {{date}}",
+      "openUser": "Open user",
+      "photo": "Photo from @{{username}}'s Recorda",
+      "video": "Video from @{{username}}'s Recorda",
+      "reportsTitle": "Reports ({{count}})",
+      "noDescription": "No description",
+      "historyTitle": "History",
+      "historyEmpty": "No actions recorded.",
+      "historyBy": "By @{{username}} • {{date}}",
+      "historyReason": "Reason: {{reason}}",
+      "history": {
+        "REMOVE_RECORDA": "Content removed",
+        "CHANGE_REPORT_STATUS": "Report status changed",
+        "SUSPEND_USER": "Account suspended",
+        "REACTIVATE_USER": "Account reactivated",
+        "statusChangedTo": {
+          "OPEN": "Reports reopened",
+          "RESOLVED": "Reports marked as resolved",
+          "DISMISSED": "Reports dismissed"
+        }
+      },
+      "statusActions": {
+        "DISMISSED": {
+          "button": "Dismiss report",
+          "title": "Dismiss reports",
+          "confirm": "Dismiss",
+          "success": "Reports dismissed."
+        },
+        "RESOLVED": {
+          "button": "Mark as resolved",
+          "title": "Mark reports as resolved",
+          "confirm": "Resolve",
+          "success": "Reports marked as resolved."
+        },
+        "OPEN": {
+          "button": "Reopen reports",
+          "title": "Reopen reports",
+          "confirm": "Reopen",
+          "success": "Reports reopened."
+        },
+        "error": "We couldn't change the status. Try again.",
+        "conflictTitle": "Reports already changed",
+        "conflictMessage": "Someone else changed these reports. The data has been reloaded."
+      }
+    },
     "pending": {
       "message": "This section is not available yet.",
       "users": "User management",
-      "reportDetail": "Report details",
       "userDetail": "User details",
       "auditLog": "Audit log"
     }

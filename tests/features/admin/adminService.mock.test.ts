@@ -1,6 +1,11 @@
-import { adminServiceMock } from "@/features/admin/services/adminService.mock";
+import {
+  adminServiceMock,
+  resetAdminServiceMock
+} from "@/features/admin/services/adminService.mock";
 
 describe("adminServiceMock", () => {
+  beforeEach(() => resetAdminServiceMock());
+
   it("returns isolated report data and filters it by status and target", async () => {
     const firstRead = await adminServiceMock.listReportGroups({
       status: "OPEN",
@@ -75,5 +80,96 @@ describe("adminServiceMock", () => {
     await expect(adminServiceMock.listUsers({}, controller.signal)).rejects.toMatchObject({
       name: "AbortError"
     });
+  });
+
+  it("has a detail for every listed report group", async () => {
+    const statuses = ["OPEN", "RESOLVED", "DISMISSED"] as const;
+
+    for (const status of statuses) {
+      const page = await adminServiceMock.listReportGroups({ status });
+      for (const group of page.items) {
+        const detail = await adminServiceMock.getReportDetail(group.targetType, group.targetId);
+        expect(detail.target.type).toBe(group.targetType);
+        expect(detail.reports.filter((report) => report.status === status)).toHaveLength(
+          group.openReportCount
+        );
+      }
+    }
+  });
+
+  it("answers 404 for a target without reports", async () => {
+    await expect(adminServiceMock.getReportDetail("USER", "user-x")).rejects.toMatchObject({
+      status: 404
+    });
+  });
+
+  it("resolves the open reports and moves the group between the list filters", async () => {
+    const result = await adminServiceMock.updateReportStatus("RECORDA", "recorda-1042", {
+      reason: "Confirmado",
+      status: "RESOLVED"
+    });
+
+    expect(result).toEqual({ status: "RESOLVED", updatedCount: 3 });
+    const detail = await adminServiceMock.getReportDetail("RECORDA", "recorda-1042");
+    expect(detail.reports.every((report) => report.status === "RESOLVED")).toBe(true);
+    expect(detail.reports.every((report) => report.resolvedAt !== null)).toBe(true);
+    expect(detail.actions[0]).toMatchObject({
+      actionType: "CHANGE_REPORT_STATUS",
+      adminUsername: "admin",
+      reason: "Confirmado",
+      toStatus: "RESOLVED"
+    });
+
+    const open = await adminServiceMock.listReportGroups({ status: "OPEN" });
+    const resolved = await adminServiceMock.listReportGroups({ status: "RESOLVED" });
+    expect(open.items.map((group) => group.targetId)).not.toContain("recorda-1042");
+    expect(resolved.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          openReportCount: 3,
+          status: "RESOLVED",
+          targetId: "recorda-1042"
+        })
+      ])
+    );
+  });
+
+  it("reopens closed reports", async () => {
+    const result = await adminServiceMock.updateReportStatus("USER", "user-1201", {
+      reason: "Novo contexto",
+      status: "OPEN"
+    });
+
+    expect(result).toEqual({ status: "OPEN", updatedCount: 3 });
+    const detail = await adminServiceMock.getReportDetail("USER", "user-1201");
+    expect(detail.reports.every((report) => report.resolvedAt === null)).toBe(true);
+    const open = await adminServiceMock.listReportGroups({ status: "OPEN" });
+    expect(open.items.map((group) => group.targetId)).toContain("user-1201");
+  });
+
+  it("answers 409 when there is no report in the status being changed", async () => {
+    await expect(
+      adminServiceMock.updateReportStatus("RECORDA", "recorda-1300", {
+        reason: "Repetido",
+        status: "DISMISSED"
+      })
+    ).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("isolates the detail returned to callers and restores the fixtures on reset", async () => {
+    const detail = await adminServiceMock.getReportDetail("RECORDA", "recorda-1042");
+    detail.reports[0].status = "DISMISSED";
+    await adminServiceMock.updateReportStatus("USER", "user-1088", {
+      reason: "Confirmado",
+      status: "DISMISSED"
+    });
+
+    resetAdminServiceMock();
+
+    const marina = await adminServiceMock.getReportDetail("RECORDA", "recorda-1042");
+    const usuario2 = await adminServiceMock.getReportDetail("USER", "user-1088");
+    expect(marina.reports[0].status).toBe("OPEN");
+    expect(usuario2.reports.every((report) => report.status === "OPEN")).toBe(true);
+    expect(usuario2.actions).toHaveLength(1);
   });
 });

@@ -22,9 +22,14 @@ const destinations = {
   auditLog: "AdminAuditLog"
 } as const;
 
-type Props = PropsWithChildren<{ activeTab: AdminBottomTab; title: string; testID?: string }>;
+type Props = PropsWithChildren<{
+  activeTab: AdminBottomTab;
+  back?: { label: string; onPress: () => void };
+  title: string;
+  testID?: string;
+}>;
 
-export function AdminScreenLayout({ activeTab, children, title, testID }: Readonly<Props>) {
+export function AdminScreenLayout({ activeTab, back, children, title, testID }: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const user = useCurrentUser();
@@ -48,9 +53,9 @@ export function AdminScreenLayout({ activeTab, children, title, testID }: Readon
             <View style={styles.action} />
           ) : (
             <Pressable
-              accessibilityLabel={t("admin.navigation.home")}
+              accessibilityLabel={back?.label ?? t("admin.navigation.home")}
               accessibilityRole="button"
-              onPress={() => navigation.navigate("Admin")}
+              onPress={back?.onPress ?? (() => navigation.navigate("Admin"))}
               style={styles.action}
             >
               <Icon source="arrow-left" size={24} color={colors.neutrals[100]} />

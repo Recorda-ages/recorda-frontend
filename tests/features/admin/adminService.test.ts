@@ -1,12 +1,56 @@
 import { adminService } from "@/features/admin/services/adminService";
-import type { AdminReportPageResponse } from "@/features/admin/types";
+import type { AdminReportDetailResponse, AdminReportPageResponse } from "@/features/admin/types";
 import { authApiClient, ApiError } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
   ...jest.requireActual("@/services/api"),
-  authApiClient: { get: jest.fn() }
+  authApiClient: { get: jest.fn(), patch: jest.fn() }
 }));
 const mockGet = authApiClient.get as jest.Mock;
+const mockPatch = authApiClient.patch as jest.Mock;
+const author = {
+  deleted_at: null,
+  profile_picture_url: "/media/avatars/marina.jpg",
+  status: "ACTIVE" as const,
+  user_id: "user-1",
+  username: "marina"
+};
+const detailBase = {
+  actions: [
+    {
+      action_id: "action-1",
+      action_type: "CHANGE_REPORT_STATUS" as const,
+      admin: { user_id: "admin-1", username: "admin" },
+      created_at: "2026-10-03T12:00:00Z",
+      details: { from: "OPEN", report_count: 2, target_type: "RECORDA", to: "RESOLVED" },
+      reason: "Confirmado",
+      target_label: "Levitating",
+      target_recorda_id: "recorda/1",
+      target_user_id: null
+    },
+    {
+      action_id: "action-2",
+      action_type: "REMOVE_RECORDA" as const,
+      admin: { user_id: "admin-2", username: "moderador" },
+      created_at: "2026-10-02T12:00:00Z",
+      details: null,
+      reason: "Conteúdo ofensivo",
+      target_label: "Levitating",
+      target_recorda_id: "recorda/1",
+      target_user_id: null
+    }
+  ],
+  reports: [
+    {
+      created_at: "2026-10-01T12:00:00Z",
+      description: null,
+      report_id: "report-1",
+      reporter: { user_id: "user-2", username: "paulo" },
+      resolved_at: "2026-10-03T12:00:00Z",
+      status: "RESOLVED" as const
+    }
+  ]
+};
 const group: AdminReportPageResponse["items"][number] = {
   target_type: "RECORDA",
   target_id: "recorda-1",
@@ -117,5 +161,141 @@ describe("adminService HTTP contract", () => {
     await expect(adminService.listReportGroups()).rejects.toBe(error);
     await expect(adminService.listAuditLog()).rejects.toBe(error);
     await expect(adminService.listAdmins()).rejects.toBe(error);
+  });
+
+  it("reads the full detail of a reported Recorda and maps it for the screen", async () => {
+    const response: AdminReportDetailResponse = {
+      ...detailBase,
+      target: {
+        author,
+        created_at: "2026-09-30T12:00:00Z",
+        deleted_at: "2026-10-02T12:00:00Z",
+        description: "Legenda",
+        media_type: "VIDEO",
+        media_url: "/media/recordas/1.mp4",
+        recorda_id: "recorda/1",
+        song_artist_name: "Dua Lipa",
+        song_cover_url: "https://cdn.example.com/cover.jpg",
+        song_title: "Levitating"
+      },
+      target_type: "RECORDA"
+    };
+    mockGet.mockResolvedValue(response);
+    const signal = new AbortController().signal;
+
+    const detail = await adminService.getReportDetail("RECORDA", "recorda/1", signal);
+
+    expect(mockGet).toHaveBeenCalledWith("/admin/reports/RECORDA/recorda%2F1", { signal });
+    expect(detail).toEqual({
+      actions: [
+        {
+          actionId: "action-1",
+          actionType: "CHANGE_REPORT_STATUS",
+          adminUsername: "admin",
+          createdAt: "2026-10-03T12:00:00Z",
+          reason: "Confirmado",
+          toStatus: "RESOLVED"
+        },
+        {
+          actionId: "action-2",
+          actionType: "REMOVE_RECORDA",
+          adminUsername: "moderador",
+          createdAt: "2026-10-02T12:00:00Z",
+          reason: "Conteúdo ofensivo",
+          toStatus: null
+        }
+      ],
+      reports: [
+        {
+          createdAt: "2026-10-01T12:00:00Z",
+          description: null,
+          reportId: "report-1",
+          reporterUsername: "paulo",
+          resolvedAt: "2026-10-03T12:00:00Z",
+          status: "RESOLVED"
+        }
+      ],
+      target: {
+        recorda: {
+          author: {
+            avatarUrl: "/media/avatars/marina.jpg",
+            deletedAt: null,
+            status: "ACTIVE",
+            userId: "user-1",
+            username: "marina"
+          },
+          createdAt: "2026-09-30T12:00:00Z",
+          deletedAt: "2026-10-02T12:00:00Z",
+          description: "Legenda",
+          mediaType: "VIDEO",
+          mediaUrl: "/media/recordas/1.mp4",
+          recordaId: "recorda/1",
+          songArtist: "Dua Lipa",
+          songCoverUrl: "https://cdn.example.com/cover.jpg",
+          songTitle: "Levitating"
+        },
+        type: "RECORDA"
+      }
+    });
+  });
+
+  it("reads the detail of a reported profile", async () => {
+    const response: AdminReportDetailResponse = {
+      ...detailBase,
+      target: {
+        ...author,
+        created_at: "2025-01-01T12:00:00Z",
+        email: "marina@example.com",
+        is_private: true,
+        name: "Marina",
+        status: "SUSPENDED"
+      },
+      target_type: "USER"
+    };
+    mockGet.mockResolvedValue(response);
+
+    const detail = await adminService.getReportDetail("USER", "user-1");
+
+    expect(mockGet).toHaveBeenCalledWith("/admin/reports/USER/user-1", { signal: undefined });
+    expect(detail.target).toEqual({
+      type: "USER",
+      user: {
+        avatarUrl: "/media/avatars/marina.jpg",
+        createdAt: "2025-01-01T12:00:00Z",
+        deletedAt: null,
+        email: "marina@example.com",
+        isPrivate: true,
+        name: "Marina",
+        status: "SUSPENDED",
+        userId: "user-1",
+        username: "marina"
+      }
+    });
+  });
+
+  it("changes the status of every report of a target with the admin reason", async () => {
+    mockPatch.mockResolvedValue({ status: "DISMISSED", updated_count: 3 });
+
+    const result = await adminService.updateReportStatus("RECORDA", "recorda/1", {
+      reason: "Não viola as regras",
+      status: "DISMISSED"
+    });
+
+    expect(mockPatch).toHaveBeenCalledWith("/admin/reports/RECORDA/recorda%2F1/status", {
+      reason: "Não viola as regras",
+      status: "DISMISSED"
+    });
+    expect(result).toEqual({ status: "DISMISSED", updatedCount: 3 });
+  });
+
+  it.each([404, 409])("preserves a %s error from the detail endpoints", async (status) => {
+    const error = new ApiError("ERROR", "failure", status, null);
+    mockGet.mockRejectedValue(error);
+    mockPatch.mockRejectedValue(error);
+
+    await expect(adminService.getReportDetail("USER", "user-1")).rejects.toBe(error);
+    await expect(
+      adminService.updateReportStatus("USER", "user-1", { reason: "x", status: "OPEN" })
+    ).rejects.toBe(error);
   });
 });

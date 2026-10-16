@@ -168,10 +168,69 @@
         "dismissed": "Descartadas"
       }
     },
+    "reportDetail": {
+      "title": "Detalles de la denuncia",
+      "loading": "Cargando denuncia",
+      "loadError": "No fue posible cargar la denuncia.",
+      "notFound": "Esta denuncia ya no existe.",
+      "retry": "Intentar de nuevo",
+      "back": "Volver a las denuncias",
+      "dateTime": "{{date}} a las {{time}}",
+      "recordaLabel": "Recorda denunciada",
+      "userLabel": "Perfil denunciado",
+      "musicLabel": "Canción asociada",
+      "author": "Autor: @{{username}}",
+      "removedAt": "Eliminada el {{date}}",
+      "accountDeletedAt": "Cuenta eliminada el {{date}}",
+      "privateAccount": "Cuenta privada",
+      "createdAt": "Cuenta creada el {{date}}",
+      "openUser": "Abrir usuario",
+      "photo": "Foto de la Recorda de @{{username}}",
+      "video": "Video de la Recorda de @{{username}}",
+      "reportsTitle": "Denuncias ({{count}})",
+      "noDescription": "Sin descripción",
+      "historyTitle": "Historial",
+      "historyEmpty": "Ninguna acción registrada.",
+      "historyBy": "Por @{{username}} • {{date}}",
+      "historyReason": "Motivo: {{reason}}",
+      "history": {
+        "REMOVE_RECORDA": "Contenido eliminado",
+        "CHANGE_REPORT_STATUS": "Estado de las denuncias cambiado",
+        "SUSPEND_USER": "Cuenta suspendida",
+        "REACTIVATE_USER": "Cuenta reactivada",
+        "statusChangedTo": {
+          "OPEN": "Denuncias reabiertas",
+          "RESOLVED": "Denuncias marcadas como resueltas",
+          "DISMISSED": "Denuncias descartadas"
+        }
+      },
+      "statusActions": {
+        "DISMISSED": {
+          "button": "Descartar denuncia",
+          "title": "Descartar denuncias",
+          "confirm": "Descartar",
+          "success": "Denuncias descartadas."
+        },
+        "RESOLVED": {
+          "button": "Marcar como resuelta",
+          "title": "Marcar denuncias como resueltas",
+          "confirm": "Resolver",
+          "success": "Denuncias marcadas como resueltas."
+        },
+        "OPEN": {
+          "button": "Reabrir denuncias",
+          "title": "Reabrir denuncias",
+          "confirm": "Reabrir",
+          "success": "Denuncias reabiertas."
+        },
+        "error": "No fue posible cambiar el estado. Inténtalo de nuevo.",
+        "conflictTitle": "Denuncias ya modificadas",
+        "conflictMessage": "Otra persona modificó estas denuncias. Los datos se volvieron a cargar."
+      }
+    },
     "pending": {
       "message": "Esta sección aún no está disponible.",
       "users": "Gestión de usuarios",
-      "reportDetail": "Detalles de la denuncia",
       "userDetail": "Detalles del usuario",
       "auditLog": "Auditoría"
     }
