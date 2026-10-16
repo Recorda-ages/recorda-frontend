@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { I18nextProvider } from "react-i18next";
 import { Dimensions } from "react-native";
 
+import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
 import { FeedProvider, FeedScreen } from "@/features/feed";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { useFollowingFeed } from "@/features/feed/hooks/useFollowingFeed";
@@ -10,6 +11,7 @@ import { useGeneralFeed } from "@/features/feed/hooks/useGeneralFeed";
 import { feedService } from "@/features/feed/services/feedService";
 import type { FeedItem, FeedPage } from "@/features/feed/types";
 import { i18n } from "@/i18n";
+import { authApiClient } from "@/services/api";
 
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
@@ -165,11 +167,12 @@ function switchTab(name: keyof typeof TAB_PAGES) {
   });
 }
 
-function renderScreen() {
+function renderScreen(currentUser?: CurrentUser) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
   });
   queryClients.push(queryClient);
+  if (currentUser) queryClient.setQueryData(AUTH_ME_QUERY_KEY, currentUser);
 
   return render(
     <I18nextProvider i18n={i18n}>
@@ -202,6 +205,98 @@ describe("FeedScreen", () => {
     mockedUseGeneralFeed.mockReset();
     mockFollowing(pendingResult(followingHandlers));
     mockGeneral(pendingResult(generalHandlers));
+  });
+
+  // Ownership through the real ids: the signed-in user's against each card's author.
+  describe("three-dots menu", () => {
+    const viewer: CurrentUser = {
+      name: "Lucas",
+      onboarding_completed: true,
+      role: "USER",
+      user_id: "22222222-2222-4222-8222-222222222222",
+      username: "lucas_almeida"
+    };
+    const ownRecorda = buildItem({
+      author: { profile_picture_url: null, user_id: viewer.user_id, username: viewer.username },
+      recorda_id: "44444444-4444-4444-8444-444444444444"
+    });
+    const otherRecorda = buildItem({
+      author: {
+        profile_picture_url: null,
+        user_id: "33333333-3333-4333-8333-333333333333",
+        username: "maria.silva"
+      },
+      recorda_id: "55555555-5555-4555-8555-555555555555"
+    });
+
+    function pressMoreOn(item: FeedItem) {
+      fireEvent.press(
+        within(screen.getByTestId(`feed-post-${item.recorda_id}`)).getByLabelText("Mais opções")
+      );
+    }
+
+    beforeEach(() => {
+      mockGeneral(
+        successResult(
+          { items: [ownRecorda, otherRecorda], next_cursor: null },
+          false,
+          generalHandlers
+        )
+      );
+    });
+
+    it("reports another user's Recorda through the shared report dialog", async () => {
+      const reportPost = jest.spyOn(authApiClient, "post").mockResolvedValue({
+        created_at: "2026-10-16T12:00:00Z",
+        report_id: "66666666-6666-4666-8666-666666666666",
+        status: "OPEN"
+      });
+      renderScreen(viewer);
+
+      pressMoreOn(otherRecorda);
+      const menu = within(screen.getByTestId("recorda-card-menu"));
+      expect(menu.getAllByRole("button")).toHaveLength(2);
+      expect(menu.getByRole("button", { name: "Não interessado" })).toBeDisabled();
+      expect(screen.queryByText("Excluir")).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      fireEvent.press(menu.getByRole("button", { name: "Denunciar" }));
+      expect(screen.getByText("Denunciar Recorda")).toBeTruthy();
+      fireEvent.press(screen.getByRole("button", { name: "Denunciar" }));
+
+      await waitFor(() =>
+        expect(reportPost).toHaveBeenCalledWith(`/recordas/${otherRecorda.recorda_id}/reports`, {
+          description: null
+        })
+      );
+    });
+
+    it("offers only a disabled Delete on the signed-in user's own Recorda", () => {
+      renderScreen(viewer);
+
+      pressMoreOn(ownRecorda);
+
+      const menu = within(screen.getByTestId("recorda-card-menu"));
+      expect(menu.getAllByRole("button")).toHaveLength(1);
+      expect(menu.getByRole("button", { name: "Excluir" })).toBeDisabled();
+      expect(screen.queryByText("Denunciar")).toBeNull();
+      expect(screen.queryByText("Não interessado")).toBeNull();
+    });
+
+    it("offers no report while the signed-in user is unknown", () => {
+      renderScreen();
+
+      for (const item of [ownRecorda, otherRecorda]) {
+        const more = within(screen.getByTestId(`feed-post-${item.recorda_id}`)).getByLabelText(
+          "Mais opções"
+        );
+        expect(more).toBeDisabled();
+        fireEvent.press(more);
+      }
+
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+      expect(screen.queryByText("Denunciar")).toBeNull();
+    });
   });
 
   describe("Para Você tab (general feed)", () => {

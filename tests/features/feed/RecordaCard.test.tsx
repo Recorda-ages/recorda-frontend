@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useEffect } from "react";
 import { I18nextProvider } from "react-i18next";
+import { Modal } from "react-native";
 
-import { RecordaCard } from "@/features/feed/components/RecordaCard";
+import { RecordaCard, type RecordaOwnership } from "@/features/feed/components/RecordaCard";
 import { FeedAudioProvider, useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
 import type { FeedItem } from "@/features/feed/types";
 import { i18n } from "@/i18n";
+import { fontFamily } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 
@@ -43,7 +45,9 @@ function renderCard(
   onPress = jest.fn(),
   onShare?: () => void,
   onToggleLike = jest.fn(),
-  focused = false
+  focused = false,
+  ownership: RecordaOwnership = "other",
+  onReport = jest.fn()
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
@@ -57,14 +61,22 @@ function renderCard(
           <RecordaCard
             item={item}
             onPress={onPress}
+            onReport={onReport}
             onShare={onShare}
             onToggleLike={onToggleLike}
+            ownership={ownership}
           />
         </FeedAudioProvider>
       </QueryClientProvider>
     </I18nextProvider>
   );
-  return { onPress };
+  return { onPress, onReport };
+}
+
+function renderMenu(ownership: RecordaOwnership) {
+  const result = renderCard(BASE_ITEM, jest.fn(), undefined, jest.fn(), false, ownership);
+  fireEvent.press(screen.getByLabelText("Mais opções"));
+  return result;
 }
 
 describe("RecordaCard", () => {
@@ -154,13 +166,17 @@ describe("RecordaCard", () => {
               focusKey="geral:recorda-1"
               item={item}
               onPress={jest.fn()}
+              onReport={jest.fn()}
               onToggleLike={jest.fn()}
+              ownership="other"
             />
             <RecordaCard
               focusKey="following:recorda-1"
               item={item}
               onPress={jest.fn()}
+              onReport={jest.fn()}
               onToggleLike={jest.fn()}
+              ownership="other"
             />
           </FeedAudioProvider>
         </QueryClientProvider>
@@ -263,11 +279,70 @@ describe("RecordaCard", () => {
     expect(onShare).toHaveBeenCalledTimes(1);
   });
 
-  it("opens the detail from the comment and more controls", () => {
+  it("opens the detail from the comment control", () => {
     const { onPress } = renderCard(BASE_ITEM);
     fireEvent.press(screen.getByLabelText("Comentar"));
-    fireEvent.press(screen.getByLabelText("Mais opções"));
-    expect(onPress).toHaveBeenCalledTimes(2);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  describe("three-dots menu", () => {
+    it("offers only Not interested and Report on another user's Recorda", () => {
+      const { onPress, onReport } = renderMenu("other");
+
+      const menu = within(screen.getByTestId("recorda-card-menu"));
+      expect(onPress).not.toHaveBeenCalled();
+      expect(menu.getAllByRole("button")).toHaveLength(2);
+      expect(screen.queryByText("Excluir")).toBeNull();
+      // No backend contract yet: shown but cannot be triggered.
+      expect(menu.getByRole("button", { name: "Não interessado" })).toBeDisabled();
+      for (const label of ["Não interessado", "Denunciar"]) {
+        expect(menu.getByText(label)).toHaveStyle({
+          fontFamily: fontFamily.display.medium,
+          fontSize: 14
+        });
+      }
+
+      fireEvent.press(menu.getByRole("button", { name: "Denunciar" }));
+
+      expect(onReport).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+    });
+
+    it("offers only a disabled Delete on the user's own Recorda", () => {
+      const { onReport } = renderMenu("own");
+
+      const menu = within(screen.getByTestId("recorda-card-menu"));
+      expect(menu.getAllByRole("button")).toHaveLength(1);
+      expect(menu.getByRole("button", { name: "Excluir" })).toBeDisabled();
+      expect(menu.getByText("Excluir")).toHaveStyle({
+        fontFamily: fontFamily.display.medium,
+        fontSize: 14
+      });
+      expect(screen.queryByText("Denunciar")).toBeNull();
+      expect(screen.queryByText("Não interessado")).toBeNull();
+      expect(onReport).not.toHaveBeenCalled();
+    });
+
+    it("stays closed while the signed-in user is unknown", () => {
+      renderCard(BASE_ITEM, jest.fn(), undefined, jest.fn(), false, "unknown");
+
+      const more = screen.getByLabelText("Mais opções");
+      expect(more).toBeDisabled();
+      fireEvent.press(more);
+
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+      expect(screen.queryByText("Denunciar")).toBeNull();
+    });
+
+    it("closes on a tap outside it and on the Android back button", () => {
+      renderMenu("other");
+      fireEvent.press(screen.getByTestId("recorda-card-menu-backdrop"));
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+
+      fireEvent.press(screen.getByLabelText("Mais opções"));
+      fireEvent(screen.UNSAFE_getByType(Modal), "requestClose");
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+    });
   });
 
   it("renders an empty date when created_at is not a valid ISO string", () => {
