@@ -40,7 +40,12 @@ export function useAdminReportGroups(filters: AdminReportFilters) {
 
   const items = useMemo(() => uniqueGroups(query.data?.pages ?? []), [query.data]);
 
-  return { ...query, items, total: query.data?.pages[0]?.total ?? 0 };
+  return {
+    ...query,
+    canSearch: adminAdapter.supportsReportSearch,
+    items,
+    total: query.data?.pages[0]?.total ?? 0
+  };
 }
 
 export function reportGroupKey(item: AdminReportGroup) {

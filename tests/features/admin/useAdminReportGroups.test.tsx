@@ -7,11 +7,11 @@ import {
   ADMIN_REPORTS_QUERY_KEY,
   useAdminReportGroups
 } from "@/features/admin/reports/hooks/useAdminReportGroups";
-import { adminServiceMock } from "@/features/admin/services/adminService.mock";
-import { authApiClient, ApiError } from "@/services/api";
 import { adminAdapter } from "@/features/admin/services/adminAdapter";
-import type { AdminReportGroup } from "@/features/admin/types";
+import { adminService } from "@/features/admin/services/adminService";
+import type { AdminReportPageResponse } from "@/features/admin/types";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import { ApiError, authApiClient } from "@/services/api";
 
 jest.mock("@/features/admin/hooks/useAdminApiErrorHandler", () => ({
   useAdminApiErrorHandler: jest.fn()
@@ -22,7 +22,7 @@ const mockUseAdminApiErrorHandler = useAdminApiErrorHandler as jest.Mock;
 
 function createClient(role = "ADMIN") {
   const client = new QueryClient({
-    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
+    defaultOptions: { mutations: { gcTime: Infinity }, queries: { gcTime: Infinity } }
   });
   client.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "admin-1", role });
   return client;
@@ -34,18 +34,26 @@ function createWrapper(role = "ADMIN", client = createClient(role)) {
   };
 }
 
-function group(id: string): AdminReportGroup {
+type ApiGroup = AdminReportPageResponse["items"][number];
+
+function apiGroup(id: string): ApiGroup {
   return {
-    contentSummary: `Música ${id}`,
-    imageUrl: null,
-    latestReportedAt: "2026-10-01T12:00:00Z",
-    openReportCount: 1,
+    first_reported_at: "2026-10-01T12:00:00Z",
+    last_reported_at: "2026-10-02T12:00:00Z",
+    preview: { image_url: null, subtitle: "@autor", title: `Música ${id}` },
+    report_count: 1,
     status: "OPEN",
-    targetId: id,
-    targetLabel: `Música ${id}`,
-    targetType: "RECORDA",
-    targetUsername: "autor"
+    target_id: id,
+    target_type: "RECORDA"
   };
+}
+
+function page(items: ApiGroup[], total = items.length): AdminReportPageResponse {
+  return { items, total };
+}
+
+function mockGet() {
+  return jest.spyOn(authApiClient, "get");
 }
 
 describe("useAdminReportGroups", () => {
@@ -56,79 +64,81 @@ describe("useAdminReportGroups", () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  it("queries the administrative adapter with filters and an abort signal", async () => {
-    const httpGet = jest
-      .spyOn(authApiClient, "get")
-      .mockRejectedValue(new Error("Unexpected HTTP request"));
-    const listReports = jest.spyOn(adminServiceMock, "listReportGroups");
-    const filters = { query: "marina", status: "OPEN", targetType: "RECORDA" } as const;
+  it("reads the groups from the real API through the authenticated client", async () => {
+    const get = mockGet().mockResolvedValue(page([apiGroup("a")]));
+    const filters = { order: "asc", status: "RESOLVED", targetType: "USER" } as const;
     const { result } = renderHook(() => useAdminReportGroups(filters), {
       wrapper: createWrapper()
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(listReports).toHaveBeenCalledWith(
-      { ...filters, cursor: undefined },
-      expect.any(AbortSignal)
+    expect(adminAdapter).toBe(adminService);
+    expect(get).toHaveBeenCalledWith(
+      "/admin/reports?status=RESOLVED&limit=20&offset=0&order=asc&target_type=USER",
+      { signal: expect.any(AbortSignal) }
     );
+    expect(result.current.items).toEqual([
+      expect.objectContaining({
+        contentSummary: "Música a",
+        targetId: "a",
+        targetUsername: "autor"
+      })
+    ]);
+    expect(result.current.canSearch).toBe(false);
     expect(mockHandleError).not.toHaveBeenCalled();
-    expect(adminAdapter).toBe(adminServiceMock);
-    expect(httpGet).not.toHaveBeenCalled();
   });
 
   it.each([401, 403])(
     "does not retry %s and delegates it to the shared handler",
     async (status) => {
       const error = new ApiError("session_expired", "expired", status, null);
-      const list = jest.spyOn(adminServiceMock, "listReportGroups").mockRejectedValue(error);
+      const get = mockGet().mockRejectedValue(error);
       const { result } = renderHook(() => useAdminReportGroups({}), { wrapper: createWrapper() });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
       await waitFor(() => expect(mockHandleError).toHaveBeenCalledWith(error));
-      expect(list).toHaveBeenCalledTimes(1);
+      expect(get).toHaveBeenCalledTimes(1);
     }
   );
 
   it("does not query for a common user", () => {
-    const list = jest.spyOn(adminServiceMock, "listReportGroups");
+    const get = mockGet();
     renderHook(() => useAdminReportGroups({}), { wrapper: createWrapper("USER") });
-    expect(list).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
   });
 
-  it("loads the next page without losing previous reports", async () => {
-    const { result } = renderHook(() => useAdminReportGroups({ limit: 1 }), {
+  it("walks the pages by offset without skipping or repeating groups", async () => {
+    const get = mockGet()
+      .mockResolvedValueOnce(page([apiGroup("a"), apiGroup("b")], 3))
+      .mockResolvedValueOnce(page([apiGroup("c")], 3));
+    const { result } = renderHook(() => useAdminReportGroups({ limit: 2 }), {
       wrapper: createWrapper()
     });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.items).toHaveLength(1);
-    expect(result.current.hasNextPage).toBe(true);
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
     await act(async () => {
       await result.current.fetchNextPage();
     });
-    await waitFor(() => expect(result.current.items).toHaveLength(2));
-  });
 
-  it("forwards the order and exposes the API total", async () => {
-    const list = jest.spyOn(adminServiceMock, "listReportGroups");
-    const { result } = renderHook(() => useAdminReportGroups({ order: "asc", status: "OPEN" }), {
-      wrapper: createWrapper()
-    });
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(list).toHaveBeenCalledWith(
-      { cursor: undefined, order: "asc", status: "OPEN" },
-      expect.any(AbortSignal)
+    await waitFor(() =>
+      expect(result.current.items.map((item) => item.targetId)).toEqual(["a", "b", "c"])
     );
-    expect(result.current.total).toBe(result.current.items.length);
+    expect(get.mock.calls.map(([path]) => path)).toEqual([
+      "/admin/reports?status=OPEN&limit=2&offset=0",
+      "/admin/reports?status=OPEN&limit=2&offset=2"
+    ]);
+    expect(result.current.hasNextPage).toBe(false);
+    expect(result.current.total).toBe(3);
   });
 
   it("does not repeat a group that moved between pages", async () => {
-    jest
-      .spyOn(adminServiceMock, "listReportGroups")
-      .mockResolvedValueOnce({ items: [group("a"), group("b")], nextCursor: "2", total: 3 })
-      .mockResolvedValueOnce({ items: [group("b"), group("c")], nextCursor: null, total: 3 });
-    const { result } = renderHook(() => useAdminReportGroups({}), { wrapper: createWrapper() });
+    mockGet()
+      .mockResolvedValueOnce(page([apiGroup("a"), apiGroup("b")], 4))
+      .mockResolvedValueOnce(page([apiGroup("b"), apiGroup("c")], 4));
+    const { result } = renderHook(() => useAdminReportGroups({ limit: 2 }), {
+      wrapper: createWrapper()
+    });
 
     await waitFor(() => expect(result.current.hasNextPage).toBe(true));
     await act(async () => {
@@ -141,7 +151,7 @@ describe("useAdminReportGroups", () => {
   });
 
   it("refetches when anything under admin/reports is invalidated", async () => {
-    const list = jest.spyOn(adminServiceMock, "listReportGroups");
+    const get = mockGet().mockResolvedValue(page([apiGroup("a")]));
     const client = createClient();
     const { result } = renderHook(() => useAdminReportGroups({ status: "OPEN" }), {
       wrapper: createWrapper("ADMIN", client)
@@ -152,6 +162,6 @@ describe("useAdminReportGroups", () => {
       await client.invalidateQueries({ queryKey: ADMIN_REPORTS_QUERY_KEY });
     });
 
-    expect(list).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(2);
   });
 });

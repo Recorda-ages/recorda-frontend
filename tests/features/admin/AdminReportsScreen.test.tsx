@@ -23,6 +23,10 @@ jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: mockNavigate, reset: mockReset })
 }));
 
+jest.mock("@/features/admin/services/adminAdapter", () => ({
+  adminAdapter: jest.requireActual("@/features/admin/services/adminService.mock").adminServiceMock
+}));
+
 jest.mock("@/features/auth/session", () => ({
   ...jest.requireActual("@/features/auth/session"),
   clearSession: jest.fn(async () => undefined)

@@ -29,6 +29,8 @@ describe("adminServiceMock", () => {
   });
 
   it("searches report groups by target username or content", async () => {
+    expect(adminServiceMock.supportsReportSearch).toBe(true);
+
     const byUsername = await adminServiceMock.listReportGroups({ query: "MARINA" });
     const byContent = await adminServiceMock.listReportGroups({ query: "usuário dois" });
 

@@ -97,6 +97,7 @@ const USERS: readonly AdminUserSummary[] = [
 ];
 
 export const adminServiceMock = {
+  supportsReportSearch: true,
   async listReportGroups(filters: AdminReportFilters = {}, signal?: AbortSignal) {
     throwIfAborted(signal);
     const query = filters.query?.trim().toLocaleLowerCase() ?? "";
