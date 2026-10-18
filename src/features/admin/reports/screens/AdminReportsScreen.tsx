@@ -76,7 +76,7 @@ export function AdminReportsScreen() {
     [debouncedSearch, order, status, targetFilter]
   );
   const reports = useAdminReportGroups(filters);
-  const { items, total } = reports;
+  const { canSearch, items, total } = reports;
 
   const openReport = (item: AdminReportGroup) => {
     navigation.navigate("AdminReportDetail", {
@@ -123,21 +123,23 @@ export function AdminReportsScreen() {
       title={t("admin.reports.title")}
       testID="admin-reports-screen"
     >
-      <View style={styles.search}>
-        <TextInput
-          accessibilityLabel={t("admin.reports.search")}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setSearch}
-          placeholder={t("admin.reports.search")}
-          placeholderTextColor={colors.neutrals[300]}
-          returnKeyType="search"
-          style={styles.searchInput}
-          testID="admin-reports-search"
-          value={search}
-        />
-        <Icon color={colors.neutrals[300]} size={22} source="magnify" />
-      </View>
+      {canSearch ? (
+        <View style={styles.search}>
+          <TextInput
+            accessibilityLabel={t("admin.reports.search")}
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={setSearch}
+            placeholder={t("admin.reports.search")}
+            placeholderTextColor={colors.neutrals[300]}
+            returnKeyType="search"
+            style={styles.searchInput}
+            testID="admin-reports-search"
+            value={search}
+          />
+          <Icon color={colors.neutrals[300]} size={22} source="magnify" />
+        </View>
+      ) : null}
 
       <View style={styles.filters}>
         <FilterChips

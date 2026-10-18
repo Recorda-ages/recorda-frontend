@@ -74,6 +74,10 @@ describe("adminService HTTP contract", () => {
     expect((await adminService.listReportGroups()).nextCursor).toBeNull();
   });
 
+  it("tells the screen that the API cannot search yet", () => {
+    expect(adminService.supportsReportSearch).toBe(false);
+  });
+
   it("does not silently ignore an unsupported search", async () => {
     await expect(adminService.listReportGroups({ query: "marina" })).rejects.toThrow(
       "not supported"

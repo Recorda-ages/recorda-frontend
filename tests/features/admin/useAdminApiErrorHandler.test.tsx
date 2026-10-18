@@ -1,10 +1,11 @@
-import { act, renderHook } from "@testing-library/react-native";
+import { act, renderHook, screen } from "@testing-library/react-native";
 import type { PropsWithChildren } from "react";
 import { I18nextProvider } from "react-i18next";
-import { Alert } from "react-native";
+import { PaperProvider } from "react-native-paper";
 
-import { clearSession } from "@/features/auth/session";
 import { useAdminApiErrorHandler } from "@/features/admin/hooks/useAdminApiErrorHandler";
+import { ToastProvider } from "@/components/ui/ToastProvider";
+import { clearSession } from "@/features/auth/session";
 import { i18n } from "@/i18n";
 import { ApiError } from "@/services/api";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -32,7 +33,11 @@ function apiError(status: number, code = "REQUEST_FAILED") {
 function I18nWrapper({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={client}>
-      <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+      <I18nextProvider i18n={i18n}>
+        <PaperProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </PaperProvider>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 }
@@ -42,16 +47,11 @@ function renderHandler() {
 }
 
 describe("useAdminApiErrorHandler", () => {
-  let alert: jest.SpyInstance;
-
   beforeEach(() => {
     jest.clearAllMocks();
     client.clear();
     client.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "admin-1", role: "ADMIN" });
-    alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
   });
-
-  afterEach(() => alert.mockRestore());
 
   it("ends the session and resets to Login for a 401", async () => {
     const { result } = renderHandler();
@@ -60,7 +60,7 @@ describe("useAdminApiErrorHandler", () => {
       await expect(result.current(apiError(401, "session_expired"))).resolves.toBe(true);
     });
 
-    expect(alert).toHaveBeenCalledWith("Sessão encerrada", "Sua sessão expirou.");
+    expect(screen.getByText("Sessão encerrada. Sua sessão expirou.")).toBeTruthy();
     expect(mockClearSession).toHaveBeenCalledTimes(1);
     expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   });
@@ -72,10 +72,9 @@ describe("useAdminApiErrorHandler", () => {
       await expect(result.current(apiError(403))).resolves.toBe(true);
     });
 
-    expect(alert).toHaveBeenCalledWith(
-      "Acesso administrativo removido",
-      "Sua conta não tem acesso administrativo."
-    );
+    expect(
+      screen.getByText("Acesso administrativo removido. Sua conta não tem acesso administrativo.")
+    ).toBeTruthy();
     expect(mockClearSession).toHaveBeenCalledTimes(1);
     expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   });
@@ -88,7 +87,7 @@ describe("useAdminApiErrorHandler", () => {
       await expect(result.current(new Error("offline"))).resolves.toBe(false);
     });
 
-    expect(alert).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("app-toast")).toBeNull();
     expect(mockClearSession).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
   });
@@ -108,13 +107,12 @@ describe("useAdminApiErrorHandler", () => {
       () => new Promise<void>((resolve) => (releaseClearSession = resolve))
     );
     const { result } = renderHandler();
-    const secondHandler = renderHandler().result;
 
     let first!: Promise<boolean>;
     let second!: Promise<boolean>;
     act(() => {
       first = result.current(apiError(401, "session_expired"));
-      second = secondHandler.current(apiError(403));
+      second = result.current(apiError(403));
     });
 
     releaseClearSession();
@@ -122,7 +120,7 @@ describe("useAdminApiErrorHandler", () => {
       await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
     });
 
-    expect(alert).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByText("Sessão encerrada. Sua sessão expirou.")).toHaveLength(1);
     expect(mockClearSession).toHaveBeenCalledTimes(1);
     expect(mockReset).toHaveBeenCalledTimes(1);
   });

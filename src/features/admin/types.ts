@@ -94,6 +94,7 @@ export type AdminReportPageResponse = {
 
 // Only endpoints already published by the backend are exposed here.
 export type AdminService = {
+  supportsReportSearch: boolean;
   listReportGroups: (
     filters?: AdminReportFilters,
     signal?: AbortSignal

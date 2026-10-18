@@ -3,6 +3,7 @@ import { authApiClient } from "@/services/api";
 import type { AdminAuditPage, AdminReportPageResponse, AdminService, AdminSummary } from "../types";
 
 export const adminService: AdminService = {
+  supportsReportSearch: false,
   async listReportGroups(filters = {}, signal) {
     // The current API has neither free-text search nor an ALL status value.
     if (filters.query?.trim())

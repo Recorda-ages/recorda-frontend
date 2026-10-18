@@ -8,6 +8,7 @@ import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContex
 import { FeedProvider } from "@/features/feed";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { RecordaDraftProvider } from "@/features/recorda-creation/context/RecordaDraftContext";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import { i18n } from "@/i18n";
 import { paperTheme } from "@/theme";
 
@@ -19,13 +20,15 @@ export function AppProviders({ children }: PropsWithChildren) {
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <PaperProvider theme={paperTheme}>
-            <RecordaDraftProvider>
-              <OnboardingProvider>
-                <FeedProvider>
-                  <FeedAudioProvider>{children}</FeedAudioProvider>
-                </FeedProvider>
-              </OnboardingProvider>
-            </RecordaDraftProvider>
+            <ToastProvider>
+              <RecordaDraftProvider>
+                <OnboardingProvider>
+                  <FeedProvider>
+                    <FeedAudioProvider>{children}</FeedAudioProvider>
+                  </FeedProvider>
+                </OnboardingProvider>
+              </RecordaDraftProvider>
+            </ToastProvider>
           </PaperProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
