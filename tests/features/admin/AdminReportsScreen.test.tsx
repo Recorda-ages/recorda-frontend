@@ -7,6 +7,7 @@ import {
   ADMIN_REPORTS_SEARCH_DEBOUNCE_MS,
   AdminReportsScreen
 } from "@/features/admin/reports/screens/AdminReportsScreen";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import { adminServiceMock } from "@/features/admin/services/adminService.mock";
 import type { AdminReportGroup, AdminReportPage } from "@/features/admin/types";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
@@ -17,10 +18,11 @@ import { paperTheme } from "@/theme";
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockNavigation = { navigate: mockNavigate, reset: mockReset };
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
-  useNavigation: () => ({ navigate: mockNavigate, reset: mockReset })
+  useNavigation: () => mockNavigation
 }));
 
 jest.mock("@/features/admin/services/adminAdapter", () => ({
@@ -88,7 +90,9 @@ function renderScreen() {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <AdminReportsScreen />
+          <ToastProvider>
+            <AdminReportsScreen />
+          </ToastProvider>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

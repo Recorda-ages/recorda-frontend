@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import { Alert } from "react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 
 import { AdminReportsScreen } from "@/features/admin/reports/screens/AdminReportsScreen";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import type { AdminReportGroup, AdminReportPageResponse } from "@/features/admin/types";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { clearSession } from "@/features/auth/session";
@@ -15,10 +15,11 @@ import { paperTheme } from "@/theme";
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockNavigation = { navigate: mockNavigate, reset: mockReset };
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
-  useNavigation: () => ({ navigate: mockNavigate, reset: mockReset })
+  useNavigation: () => mockNavigation
 }));
 
 jest.mock("@/features/auth/session", () => ({
@@ -84,7 +85,9 @@ function renderScreen() {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <AdminReportsScreen />
+          <ToastProvider>
+            <AdminReportsScreen />
+          </ToastProvider>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>
@@ -168,31 +171,28 @@ describe("AdminReportsScreen with the real API", () => {
   });
 
   it("ends the session and returns to Login when the API answers 401", async () => {
-    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     fetchMock.mockResolvedValue(
       response(401, { error: { code: "UNAUTHORIZED", details: null, message: "expired" } })
     );
     renderScreen();
 
     await waitFor(() => expect(mockClearSession).toHaveBeenCalledTimes(1));
-    expect(alert).toHaveBeenCalledWith("Sessão encerrada", "Sua sessão expirou.");
+    expect(screen.getByText("Sessão encerrada. Sua sessão expirou.")).toBeTruthy();
     expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("warns that access is not allowed when the API answers 403", async () => {
-    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     fetchMock.mockResolvedValue(
       response(403, { error: { code: "FORBIDDEN", details: null, message: "denied" } })
     );
     renderScreen();
 
-    await waitFor(() =>
-      expect(alert).toHaveBeenCalledWith(
-        "Acesso administrativo removido",
-        "Sua conta não tem acesso administrativo."
+    expect(
+      await screen.findByText(
+        "Acesso administrativo removido. Sua conta não tem acesso administrativo."
       )
-    );
+    ).toBeTruthy();
     await waitFor(() => expect(mockClearSession).toHaveBeenCalledTimes(1));
     expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   });
@@ -204,7 +204,6 @@ describe("AdminReportsScreen with the real API", () => {
     fail();
     fail();
     fetchMock.mockResolvedValueOnce(page([apiGroup("recorda-1")]));
-    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     renderScreen();
 
     expect(
@@ -214,7 +213,7 @@ describe("AdminReportsScreen with the real API", () => {
 
     expect(await screen.findByText("@marina — Levitating recorda-1")).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(alert).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("app-toast")).toBeNull();
     expect(mockClearSession).not.toHaveBeenCalled();
   });
 

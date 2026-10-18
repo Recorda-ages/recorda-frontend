@@ -6,4 +6,5 @@ export { AnimatedHeart } from "./AnimatedHeart";
 export { LikeButton } from "./LikeButton";
 export { Loading } from "./Loading";
 export { Screen } from "./Screen";
+export { ToastProvider, useToast } from "./ToastProvider";
 export { AppText, Text } from "./Text";

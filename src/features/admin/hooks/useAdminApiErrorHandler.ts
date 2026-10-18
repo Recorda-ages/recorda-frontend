@@ -2,10 +2,10 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCallback } from "react";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
-import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
+import { useToast } from "@/components/ui/ToastProvider";
 import { clearSession } from "@/features/auth/session";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { ApiError } from "@/services/api";
@@ -16,6 +16,7 @@ const activeLogouts = new WeakMap<QueryClient, Promise<void>>();
 export function useAdminApiErrorHandler() {
   const navigation = useNavigation<Navigation>();
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const client = useQueryClient();
   const session = client.getQueryCache().find({ queryKey: AUTH_ME_QUERY_KEY, exact: true });
 
@@ -38,9 +39,10 @@ export function useAdminApiErrorHandler() {
         return true;
 
       const isExpired = error.status === 401;
-      Alert.alert(
-        t(isExpired ? "admin.session.expiredTitle" : "admin.session.forbiddenTitle"),
-        t(isExpired ? "admin.session.expiredMessage" : "admin.session.forbiddenMessage")
+      showToast(
+        `${t(isExpired ? "admin.session.expiredTitle" : "admin.session.forbiddenTitle")}. ${t(
+          isExpired ? "admin.session.expiredMessage" : "admin.session.forbiddenMessage"
+        )}`
       );
 
       const logout = clearSession()
@@ -60,6 +62,6 @@ export function useAdminApiErrorHandler() {
 
       return true;
     },
-    [client, navigation, session, t]
+    [client, navigation, session, showToast, t]
   );
 }

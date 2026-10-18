@@ -4,6 +4,7 @@ import { Pressable, Text } from "react-native";
 import { useTheme } from "react-native-paper";
 
 import { AppProviders } from "@/app/providers/AppProviders";
+import { useToast } from "@/components/ui/ToastProvider";
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { useFeed } from "@/features/feed/state/FeedContext";
@@ -52,6 +53,26 @@ function FeedSessionConsumer() {
   );
 }
 
+function SessionExpiryFlow() {
+  const [screenName, setScreenName] = useState("Admin");
+  const { showToast } = useToast();
+
+  if (screenName === "Login") {
+    return <Text testID="current-screen">Login</Text>;
+  }
+
+  return (
+    <Pressable
+      onPress={() => {
+        showToast("Sessão encerrada. Sua sessão expirou.");
+        setScreenName("Login");
+      }}
+    >
+      <Text>Expire session</Text>
+    </Pressable>
+  );
+}
+
 describe("AppProviders", () => {
   beforeEach(() => {
     feedConsumerMounts = 0;
@@ -69,6 +90,19 @@ describe("AppProviders", () => {
     expect(screen.getByTestId("paper-primary-color")).toHaveTextContent(
       semanticColors.actionPrimary
     );
+  });
+
+  it("keeps a toast visible after navigation replaces the current screen", () => {
+    render(
+      <AppProviders>
+        <SessionExpiryFlow />
+      </AppProviders>
+    );
+
+    fireEvent.press(screen.getByText("Expire session"));
+
+    expect(screen.getByTestId("current-screen")).toHaveTextContent("Login");
+    expect(screen.getByText("Sessão encerrada. Sua sessão expirou.")).toBeTruthy();
   });
 
   it("resets the local Feed state when the authenticated session ends", async () => {
