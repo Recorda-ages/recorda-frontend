@@ -43,6 +43,73 @@ export type AdminReportPage = AdminPage<AdminReportGroup> & {
   total: number;
 };
 
+export type AdminMediaType = "PHOTO" | "VIDEO";
+
+export type AdminReportAccount = {
+  avatarUrl: string | null;
+  deletedAt: string | null;
+  status: AdminUserStatus;
+  userId: string;
+  username: string;
+};
+
+export type AdminReportedRecorda = {
+  author: AdminReportAccount;
+  createdAt: string;
+  deletedAt: string | null;
+  description: string | null;
+  mediaType: AdminMediaType;
+  mediaUrl: string;
+  recordaId: string;
+  songArtist: string;
+  songCoverUrl: string;
+  songTitle: string;
+};
+
+export type AdminReportedUser = AdminReportAccount & {
+  createdAt: string;
+  email: string;
+  isPrivate: boolean;
+  name: string;
+};
+
+export type AdminReportTarget =
+  { recorda: AdminReportedRecorda; type: "RECORDA" } | { type: "USER"; user: AdminReportedUser };
+
+export type AdminReportEntry = {
+  createdAt: string;
+  description: string | null;
+  reportId: string;
+  reporterUsername: string;
+  resolvedAt: string | null;
+  status: AdminReportStatus;
+};
+
+export type AdminReportHistoryEntry = {
+  actionId: string;
+  actionType: AdminActionType;
+  adminUsername: string;
+  createdAt: string;
+  reason: string;
+  toStatus: AdminReportStatus | null;
+};
+
+export type AdminReportDetail = {
+  actions: AdminReportHistoryEntry[];
+  reports: AdminReportEntry[];
+  target: AdminReportTarget;
+};
+
+export type AdminReportStatusChange = {
+  reason: string;
+  status: AdminReportStatus;
+};
+
+export type AdminReportStatusChangeResult = {
+  status: AdminReportStatus;
+  updatedCount: number;
+};
+
 export type AdminUserSummary = {
   email: string;
   reportCount: number;
@@ -92,13 +159,72 @@ export type AdminReportPageResponse = {
   }[];
 };
 
-// Only endpoints already published by the backend are exposed here.
+export type AdminReportAccountResponse = {
+  deleted_at: string | null;
+  profile_picture_url: string | null;
+  status: AdminUserStatus;
+  user_id: string;
+  username: string;
+};
+
+export type AdminReportDetailResponse = {
+  actions: AdminAuditEntry[];
+  reports: {
+    created_at: string;
+    description: string | null;
+    report_id: string;
+    reporter: AdminSummary;
+    resolved_at: string | null;
+    status: AdminReportStatus;
+  }[];
+} & (
+  | {
+      target: {
+        author: AdminReportAccountResponse;
+        created_at: string;
+        deleted_at: string | null;
+        description: string | null;
+        media_type: AdminMediaType;
+        media_url: string;
+        recorda_id: string;
+        song_artist_name: string;
+        song_cover_url: string;
+        song_title: string;
+      };
+      target_type: "RECORDA";
+    }
+  | {
+      target: AdminReportAccountResponse & {
+        created_at: string;
+        email: string;
+        is_private: boolean;
+        name: string;
+      };
+      target_type: "USER";
+    }
+);
+
+export type AdminReportStatusChangeResponse = {
+  status: AdminReportStatus;
+  updated_count: number;
+};
+
 export type AdminService = {
   supportsReportSearch: boolean;
   listReportGroups: (
     filters?: AdminReportFilters,
     signal?: AbortSignal
   ) => Promise<AdminReportPage>;
+  getReportDetail: (
+    targetType: AdminTargetType,
+    targetId: string,
+    signal?: AbortSignal
+  ) => Promise<AdminReportDetail>;
+  updateReportStatus: (
+    targetType: AdminTargetType,
+    targetId: string,
+    change: AdminReportStatusChange
+  ) => Promise<AdminReportStatusChangeResult>;
   listAdmins: (signal?: AbortSignal) => Promise<AdminSummary[]>;
   listAuditLog: (filters?: AdminAuditFilters, signal?: AbortSignal) => Promise<AdminAuditPage>;
 };

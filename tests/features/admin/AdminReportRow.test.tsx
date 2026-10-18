@@ -3,10 +3,8 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 
-import {
-  AdminReportRow,
-  formatReportDate
-} from "@/features/admin/reports/components/AdminReportRow";
+import { AdminReportRow } from "@/features/admin/reports/components/AdminReportRow";
+import { formatReportDate } from "@/features/admin/reports/formatReportDate";
 import type { AdminReportGroup } from "@/features/admin/types";
 import { i18n } from "@/i18n";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api";
@@ -26,7 +24,7 @@ const GROUP: AdminReportGroup = {
 };
 
 function renderRow(item: AdminReportGroup, onPress = jest.fn()) {
-  const client = new QueryClient();
+  const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
   client.setQueryData(AUTH_TOKEN_QUERY_KEY, null);
   render(
     <QueryClientProvider client={client}>
