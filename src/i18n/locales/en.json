@@ -224,7 +224,8 @@
           "success": "Reports reopened."
         },
         "error": "We couldn't change the status. Try again.",
-        "conflictTitle": "Reports already changed",
+        "invalidReason": "Enter a reason between 1 and 500 characters.",
+        "conflictTitle": "This content has already been handled",
         "conflictMessage": "Someone else changed these reports. The data has been reloaded."
       }
     },
