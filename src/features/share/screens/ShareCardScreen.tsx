@@ -467,7 +467,7 @@ export function ShareCardScreen() {
                   </AppText>
                 </View>
               </View>
-              <AppText style={styles.logoText}>recorda.</AppText>
+              <AppText style={styles.logoText}>{t("shareCard.logo")}</AppText>
             </View>
           </View>
         </View>
@@ -613,7 +613,7 @@ export function ShareCardScreen() {
                   </AppText>
                 </View>
               </View>
-              <AppText style={styles.exportLogoText}>recorda.</AppText>
+              <AppText style={styles.exportLogoText}>{t("shareCard.logo")}</AppText>
             </View>
           </View>
         </ViewShot>

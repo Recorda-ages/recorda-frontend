@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Icon } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, ErrorState, Loading } from "@/components/ui";
@@ -19,6 +20,7 @@ const MIN_ARTISTS = 3;
 
 export function OnboardingArtistsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
   const { selectedArtists, setSelectedArtists } = useOnboarding();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -75,28 +77,28 @@ export function OnboardingArtistsScreen() {
   return (
     <OnboardingStepLayout
       activeStep={1}
-      backAccessibilityLabel="Voltar"
+      backAccessibilityLabel={t("onboarding.artists.back")}
       backButtonTestID="onboarding-artists-back-button"
       continueDisabled={!canAdvance}
-      continueLabel="Próximo"
+      continueLabel={t("onboarding.artists.continue")}
       continueTestID="onboarding-artists-next-button"
-      headerTitle="Artistas"
+      headerTitle={t("onboarding.artists.header")}
       keyboardShouldPersistTaps="handled"
       onBack={() => void goBack()}
       onContinue={() => navigation.navigate("OnboardingGenres")}
       selectionCount={selectedArtists.length}
-      stepLabel="ETAPA 1 DE 3"
-      subtitle="Escolha pelo menos 3 artistas para personalizar suas recordações."
+      stepLabel={t("onboarding.artists.step")}
+      subtitle={t("onboarding.artists.subtitle")}
       testID="onboarding-artists-screen"
-      title="Quem faz parte da sua história?"
+      title={t("onboarding.artists.title")}
     >
       <View style={styles.search}>
         <TextInput
-          accessibilityLabel="Buscar artistas"
+          accessibilityLabel={t("onboarding.artists.search")}
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={setQuery}
-          placeholder="Buscar artistas"
+          placeholder={t("onboarding.artists.search")}
           placeholderTextColor={colors.neutrals[200]}
           returnKeyType="search"
           style={styles.input}
@@ -106,7 +108,7 @@ export function OnboardingArtistsScreen() {
           <ActivityIndicator color={colors.primary[500]} size="small" />
         ) : query.length > 0 ? (
           <Pressable
-            accessibilityLabel="Limpar busca"
+            accessibilityLabel={t("onboarding.artists.clearSearch")}
             accessibilityRole="button"
             hitSlop={8}
             onPress={() => {
@@ -121,11 +123,9 @@ export function OnboardingArtistsScreen() {
         )}
       </View>
 
-      {showPopularLoading ? <Loading label="Carregando artistas populares" /> : null}
+      {showPopularLoading ? <Loading label={t("onboarding.artists.popularLoading")} /> : null}
 
-      {showPopularError ? (
-        <ErrorState message="Não foi possível carregar artistas populares." />
-      ) : null}
+      {showPopularError ? <ErrorState message={t("onboarding.artists.popularError")} /> : null}
 
       {showPopularLoading || showPopularError ? null : (
         <View style={styles.grid}>
@@ -142,12 +142,12 @@ export function OnboardingArtistsScreen() {
 
       {search.isError ? (
         <AppText accessibilityRole="alert" style={styles.error}>
-          Não foi possível buscar artistas. Verifique sua conexão.
+          {t("onboarding.artists.searchError")}
         </AppText>
       ) : null}
 
       {hasSearched && search.isSuccess && artistOptions.length === 0 ? (
-        <AppText style={styles.empty}>Nenhum artista encontrado.</AppText>
+        <AppText style={styles.empty}>{t("onboarding.artists.empty")}</AppText>
       ) : null}
     </OnboardingStepLayout>
   );

@@ -97,7 +97,7 @@ describe("PasswordRecoveryScreen", () => {
 
     fireEvent.changeText(screen.getByLabelText("Nova Senha"), "1234567");
 
-    expect(await screen.findByText("A senha deve ter pelo menos 8 caracteres.")).toBeTruthy();
+    expect(await screen.findByText("A senha deve ter no mínimo 8 caracteres.")).toBeTruthy();
     expect(submitButton).toBeDisabled();
 
     fireEvent.changeText(screen.getByLabelText("Nova Senha"), "senha-segura");

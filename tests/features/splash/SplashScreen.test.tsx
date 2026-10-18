@@ -6,6 +6,7 @@ import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
 import { ROLE_KEY } from "@/features/auth/session";
 import { SPLASH_MIN_DURATION_MS, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
+import "@/i18n";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { ApiError } from "@/services/api/errors";

@@ -10,6 +10,7 @@ import {
   AdminModerationService,
   AdminUserRow
 } from "@/features/moderation";
+import "@/i18n";
 
 const currentAdmin: AdminIdentity = {
   role: "ADMIN",

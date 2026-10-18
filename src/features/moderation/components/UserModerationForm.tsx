@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Icon } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { colors, withOpacity } from "@/theme";
 import { AdminUserRow } from "../types";
 
@@ -28,6 +29,7 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
   onSubmit,
   targetUser
 }) => {
+  const { t } = useTranslation();
   const isSuspend = action === "SUSPEND";
   const [reason, setReason] = useState("");
   const [resolveOpenReports, setResolveOpenReports] = useState(true);
@@ -35,8 +37,10 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
   const trimmedReason = reason.trim();
   const isValidReason = trimmedReason.length >= 1 && trimmedReason.length <= 500;
   const isSubmitDisabled = isLoading || !isValidReason;
-  let submitLabel = isSuspend ? "Confirmar Suspensão" : "Confirmar Reativação";
-  if (isLoading) submitLabel = "Enviando...";
+  let submitLabel = isSuspend
+    ? t("moderation.account.confirmSuspend")
+    : t("moderation.account.confirmReactivate");
+  if (isLoading) submitLabel = t("moderation.account.submitting");
 
   const handleSubmit = () => {
     if (isSubmitDisabled) {
@@ -57,9 +61,11 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
 
   return (
     <View style={styles.container} testID="user-moderation-form">
-      <Text style={styles.title}>{isSuspend ? "Suspender Conta" : "Reativar Conta"}</Text>
+      <Text style={styles.title}>
+        {isSuspend ? t("moderation.account.suspendTitle") : t("moderation.account.reactivateTitle")}
+      </Text>
       <Text style={styles.subtitle}>
-        Usuário: <Text style={styles.bold}>{targetUser.username}</Text>
+        {t("moderation.account.userLabel")} <Text style={styles.bold}>{targetUser.username}</Text>
       </Text>
 
       {errorMessage ? (
@@ -68,14 +74,14 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
         </View>
       ) : null}
 
-      <Text style={styles.label}>Motivo (obrigatório):</Text>
+      <Text style={styles.label}>{t("moderation.account.reasonLabel")}</Text>
       <TextInput
-        accessibilityLabel="Motivo da moderação"
+        accessibilityLabel={t("moderation.account.reasonInput")}
         editable={!isLoading}
         multiline
         numberOfLines={4}
         onChangeText={setReason}
-        placeholder="Informe o motivo da ação (máx. 500 caracteres)..."
+        placeholder={t("moderation.account.reasonPlaceholder", { max: 500 })}
         placeholderTextColor="#888"
         style={styles.textInput}
         testID="moderation-reason-input"
@@ -111,9 +117,7 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
               <Icon color={colors.neutrals[900]} size={14} source="check" />
             ) : null}
           </View>
-          <Text style={styles.checkboxLabel}>
-            Marcar denúncias abertas do perfil como resolvidas
-          </Text>
+          <Text style={styles.checkboxLabel}>{t("moderation.account.resolveReports")}</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -129,7 +133,7 @@ export const UserModerationForm: React.FC<UserModerationFormProps> = ({
           style={[styles.button, styles.cancelButton]}
           testID="moderation-cancel-button"
         >
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
+          <Text style={styles.cancelButtonText}>{t("moderation.account.cancel")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

@@ -3,6 +3,8 @@ import * as Sharing from "expo-sharing";
 import { Linking, Platform } from "react-native";
 import type { Social } from "react-native-share";
 
+import { i18n } from "@/i18n";
+
 const INSTAGRAM_ANDROID_PACKAGE = "com.instagram.android";
 const INSTAGRAM_STORIES_SCHEME = "instagram-stories://share";
 
@@ -33,7 +35,7 @@ export async function shareCardGeneric(uri: string): Promise<void> {
   await Sharing.shareAsync(uri, {
     mimeType: "image/png",
     UTI: "public.png",
-    dialogTitle: "Share Recorda card"
+    dialogTitle: i18n.t("shareCard.shareDialogTitle")
   });
 }
 

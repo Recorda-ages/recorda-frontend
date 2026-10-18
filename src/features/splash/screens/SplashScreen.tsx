@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import { Image, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -29,6 +30,7 @@ export const SPLASH_TIMEOUT_MS = 5000;
 export const SPLASH_MIN_DURATION_MS = 1500;
 
 export function SplashScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NavigationProp>();
   const hasNavigated = useRef(false);
 
@@ -136,7 +138,7 @@ export function SplashScreen() {
         source={require("@/assets/images/glow.png")}
         style={styles.radialGlowBottom}
       />
-      <Text style={styles.logoText}>recorda.</Text>
+      <Text style={styles.logoText}>{t("splash.logo")}</Text>
     </View>
   );
 }
