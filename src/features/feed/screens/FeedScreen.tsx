@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useQuery } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,6 +19,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
+import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
+import { useReportDialog } from "@/features/moderation";
 import { resolveApiAssetUrl } from "@/services/api";
 import { useNotifications } from "@/features/notifications";
 import { colors, spacing } from "@/theme";
@@ -27,7 +30,7 @@ import { FeedEmptyState } from "../components/FeedEmptyState";
 import { FeedGlow } from "../components/FeedGlow";
 import { FeedHeader } from "../components/FeedHeader";
 import { FEED_TABS, FeedTabs } from "../components/FeedTabs";
-import { RecordaCard } from "../components/RecordaCard";
+import { RecordaCard, type RecordaOwnership } from "../components/RecordaCard";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
 import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
@@ -53,23 +56,41 @@ function previewOptions(tab: FeedTab, item: FeedItem) {
 }
 
 type FeedRowProps = Readonly<{
+  /** Undefined while the signed-in user isn't in the cache. */
+  currentUserId: string | undefined;
   item: FeedItem;
   onOpen: (item: FeedItem) => void;
+  onReport: (item: FeedItem) => void;
   onShare: (item: FeedItem) => void;
   onToggleLike: (recordaId: string, liked: boolean) => Promise<void>;
   tab: FeedTab;
 }>;
 
+function ownershipOf(item: FeedItem, currentUserId: string | undefined): RecordaOwnership {
+  if (!currentUserId) return "unknown";
+  return item.author.user_id === currentUserId ? "own" : "other";
+}
+
 // Memoized with stable callbacks so a screen re-render (tab change, new notification,
 // query update) doesn't re-render every visible card in both lists.
-const FeedRow = memo(function FeedRow({ item, onOpen, onShare, onToggleLike, tab }: FeedRowProps) {
+const FeedRow = memo(function FeedRow({
+  currentUserId,
+  item,
+  onOpen,
+  onReport,
+  onShare,
+  onToggleLike,
+  tab
+}: FeedRowProps) {
   return (
     <RecordaCard
       focusKey={focusKeyFor(tab, item)}
       item={item}
       onPress={() => onOpen(item)}
+      onReport={() => onReport(item)}
       onShare={() => onShare(item)}
       onToggleLike={(liked) => onToggleLike(item.recorda_id, liked)}
+      ownership={ownershipOf(item, currentUserId)}
     />
   );
 });
@@ -89,6 +110,12 @@ export function FeedScreen() {
   const followingFeedQuery = useFollowingFeed(activeTab === "following" || isSwiping);
   const { mutateAsync: toggleRecordaLike } = useRecordaLikeMutation();
   const unreadCount = useNotifications().data?.pages[0]?.unread_count ?? 0;
+  const { data: currentUser } = useQuery<CurrentUser>({
+    enabled: false,
+    queryKey: AUTH_ME_QUERY_KEY
+  });
+  const currentUserId = currentUser?.user_id;
+  const { openReport, reportDialog } = useReportDialog();
 
   const pagerRef = useRef<ScrollView>(null);
   // Horizontal offset of the pager, read by the tab indicator on the native thread.
@@ -153,13 +180,20 @@ export function FeedScreen() {
     [toggleRecordaLike]
   );
 
+  const handleCardReport = useCallback(
+    (item: FeedItem) => openReport({ recordaId: item.recorda_id, type: "RECORDA" }),
+    [openReport]
+  );
+
   const renderItemByTab = useMemo(() => {
     const renderFor = (tab: FeedTab) =>
       function renderItem({ item }: { item: FeedItem }) {
         return (
           <FeedRow
+            currentUserId={currentUserId}
             item={item}
             onOpen={handleCardPress}
+            onReport={handleCardReport}
             onShare={handleCardShare}
             onToggleLike={handleToggleLike}
             tab={tab}
@@ -167,7 +201,7 @@ export function FeedScreen() {
         );
       };
     return { following: renderFor("following"), geral: renderFor("geral") };
-  }, [handleCardPress, handleCardShare, handleToggleLike]);
+  }, [currentUserId, handleCardPress, handleCardReport, handleCardShare, handleToggleLike]);
 
   const applyFocus = useCallback(
     (focused: FeedItem | null) => {
@@ -441,6 +475,7 @@ export function FeedScreen() {
         </Animated.ScrollView>
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={handleTabBarPress} />
+      {reportDialog}
     </View>
   );
 }
