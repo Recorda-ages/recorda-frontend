@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { AppText, Button } from "@/components/ui";
 import {
   AdminAccessGuard,
+  AdminAuditLogScreen,
   AdminHomeScreen,
   AdminPendingScreen,
   AdminReportDetailScreen,
@@ -165,11 +166,9 @@ function AdminUserDetailRoute() {
 }
 
 function AdminAuditLogRoute() {
-  const { t } = useTranslation();
-
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen activeTab="auditLog" title={t("admin.pending.auditLog")} />
+      <AdminAuditLogScreen />
     </AdminAccessGuard>
   );
 }

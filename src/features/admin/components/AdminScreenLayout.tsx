@@ -11,7 +11,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { clearSession } from "@/features/auth/session";
-import { colors, spacing } from "@/theme";
+import { colors, fontFamily, spacing } from "@/theme";
 
 import { AdminBottomNavigation, type AdminBottomTab } from "./AdminBottomNavigation";
 
@@ -107,6 +107,6 @@ const styles = StyleSheet.create({
   },
   action: { width: 48, minHeight: 48, alignItems: "center", justifyContent: "center" },
   copy: { flex: 1, alignItems: "center", paddingVertical: spacing[3] },
-  title: { color: colors.neutrals[100], textAlign: "center" },
+  title: { color: colors.neutrals[100], textAlign: "center", fontFamily: fontFamily.primary.bold },
   username: { color: colors.neutrals[300] }
 });

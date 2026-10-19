@@ -1,4 +1,3 @@
-import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import { Linking, Platform } from "react-native";
 import type { Social } from "react-native-share";
@@ -93,9 +92,10 @@ export async function saveCardToGallery(uri: string): Promise<"saved" | "permiss
     return "saved";
   }
 
+  const MediaLibrary = await import("expo-media-library");
   const permission = await MediaLibrary.requestPermissionsAsync(true, ["photo"]);
   if (!permission.granted) return "permission-denied";
 
-  await MediaLibrary.Asset.create(uri);
+  await MediaLibrary.createAssetAsync(uri);
   return "saved";
 }

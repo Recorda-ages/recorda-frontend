@@ -233,6 +233,33 @@
       "users": "User management",
       "userDetail": "User details",
       "auditLog": "Audit log"
+    },
+    "auditLog": {
+      "title": "Audit Log",
+      "search": "Search by user or content",
+      "loading": "Loading records",
+      "loadError": "Could not load records.",
+      "loadMoreError": "Could not load more records.",
+      "retry": "Try again",
+      "empty": "No records found.",
+      "count_one": "{{count}} record found",
+      "count_other": "{{count}} records found",
+      "filters": {
+        "all": "All",
+        "today": "Today",
+        "lastMonth": "Last month"
+      },
+      "actions": {
+        "REMOVE_RECORDA": "removed the Recorda of",
+        "CHANGE_REPORT_STATUS": "updated access of",
+        "SUSPEND_USER": "suspended account of",
+        "REACTIVATE_USER": "reactivated account of"
+      },
+      "statusLabel": {
+        "OPEN": "Open",
+        "RESOLVED": "Resolved",
+        "DISMISSED": "Dismissed"
+      }
     }
   },
   "profile": {
