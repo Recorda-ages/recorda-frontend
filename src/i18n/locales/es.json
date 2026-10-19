@@ -261,7 +261,6 @@
     },
     "auditLog": {
       "title": "Registro de Auditoría",
-      "search": "Buscar por usuario o contenido",
       "loading": "Cargando registros",
       "loadError": "No se pudieron cargar los registros.",
       "loadMoreError": "No se pudieron cargar más registros.",
@@ -272,19 +271,18 @@
       "filters": {
         "all": "Todas",
         "today": "Hoy",
-        "lastMonth": "Último mes"
+        "lastMonth": "Último mes",
+        "allAdmins": "Todos los admins"
       },
       "actions": {
         "REMOVE_RECORDA": "eliminó la Recorda de",
-        "CHANGE_REPORT_STATUS": "actualizó el acceso de",
+        "CHANGE_REPORT_STATUS": "cambió las denuncias de",
         "SUSPEND_USER": "suspendió la cuenta de",
         "REACTIVATE_USER": "reactivó la cuenta de"
       },
-      "statusLabel": {
-        "OPEN": "Abierto",
-        "RESOLVED": "Resuelto",
-        "DISMISSED": "Descartado"
-      }
+      "statusChange": "(de {{from}} a {{to}})",
+      "reason": "Motivo: {{reason}}",
+      "dateTime": "{{date}} • {{time}}"
     }
   },
   "profile": {

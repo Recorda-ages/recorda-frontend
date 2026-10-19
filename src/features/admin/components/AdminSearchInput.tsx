@@ -17,7 +17,7 @@ export function AdminSearchInput({
   placeholder,
   testID,
   value
-}: AdminSearchInputProps) {
+}: Readonly<AdminSearchInputProps>) {
   return (
     <View style={styles.container}>
       <TextInput

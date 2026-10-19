@@ -7,7 +7,13 @@ import { ApiError } from "@/services/api";
 
 import { useAdminApiErrorHandler } from "../../hooks/useAdminApiErrorHandler";
 import { adminAdapter } from "../../services/adminAdapter";
-import type { AdminAuditEntry, AdminAuditFilters, AdminAuditPage, AdminSummary } from "../../types";
+import type {
+  AdminActionType,
+  AdminAuditEntry,
+  AdminAuditFilters,
+  AdminAuditPage,
+  AdminSummary
+} from "../../types";
 
 export const ADMIN_AUDIT_LOG_QUERY_KEY = ["admin", "audit-log"] as const;
 export const ADMIN_ADMINS_QUERY_KEY = ["admin", "admins"] as const;
@@ -16,7 +22,7 @@ const PAGE_SIZE = 20;
 
 export type AuditLogFilters = {
   adminId?: string;
-  actionType?: string;
+  actionType?: AdminActionType;
   dateFrom?: string;
   dateTo?: string;
 };
@@ -27,9 +33,7 @@ export function useAuditLog(filters: AuditLogFilters) {
 
   const apiFilters: AdminAuditFilters = {
     ...(filters.adminId ? { admin_id: filters.adminId } : {}),
-    ...(filters.actionType
-      ? { action_type: filters.actionType as AdminAuditFilters["action_type"] }
-      : {}),
+    ...(filters.actionType ? { action_type: filters.actionType } : {}),
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
     ...(filters.dateTo ? { date_to: filters.dateTo } : {}),
     limit: PAGE_SIZE

@@ -261,7 +261,6 @@
     },
     "auditLog": {
       "title": "Audit Log",
-      "search": "Search by user or content",
       "loading": "Loading records",
       "loadError": "Could not load records.",
       "loadMoreError": "Could not load more records.",
@@ -272,19 +271,18 @@
       "filters": {
         "all": "All",
         "today": "Today",
-        "lastMonth": "Last month"
+        "lastMonth": "Last month",
+        "allAdmins": "All admins"
       },
       "actions": {
         "REMOVE_RECORDA": "removed the Recorda of",
-        "CHANGE_REPORT_STATUS": "updated access of",
+        "CHANGE_REPORT_STATUS": "changed the reports on",
         "SUSPEND_USER": "suspended account of",
         "REACTIVATE_USER": "reactivated account of"
       },
-      "statusLabel": {
-        "OPEN": "Open",
-        "RESOLVED": "Resolved",
-        "DISMISSED": "Dismissed"
-      }
+      "statusChange": "(from {{from}} to {{to}})",
+      "reason": "Reason: {{reason}}",
+      "dateTime": "{{date}} • {{time}}"
     }
   },
   "profile": {

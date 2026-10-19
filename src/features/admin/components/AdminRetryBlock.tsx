@@ -9,7 +9,7 @@ type AdminRetryBlockProps = {
   retryLabel: string;
 };
 
-export function AdminRetryBlock({ message, onRetry, retryLabel }: AdminRetryBlockProps) {
+export function AdminRetryBlock({ message, onRetry, retryLabel }: Readonly<AdminRetryBlockProps>) {
   return (
     <View style={styles.container}>
       <ErrorState message={message} />

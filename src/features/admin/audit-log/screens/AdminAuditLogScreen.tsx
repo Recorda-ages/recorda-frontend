@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -7,175 +7,104 @@ import { colors, radius, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
 import { AdminRetryBlock } from "../../components/AdminRetryBlock";
-import { AdminSearchInput } from "../../components/AdminSearchInput";
 import { FilterChips, type FilterChipOption } from "../../components/FilterChips";
+import { formatReportDate, formatReportTime } from "../../reports/formatReportDate";
 import type { AdminAuditEntry } from "../../types";
-import { useAuditLog, type AuditLogFilters } from "../hooks/useAuditLog";
+import { auditLogPeriodRange, type AuditLogPeriod } from "../auditLogPeriod";
+import { useAdminList, useAuditLog, type AuditLogFilters } from "../hooks/useAuditLog";
 
-type PeriodFilter = "all" | "today" | "lastMonth";
+const ALL_ADMINS = "all";
+const REPORT_STATUSES = new Set(["OPEN", "RESOLVED", "DISMISSED"]);
 
-const periodOptions: readonly FilterChipOption<PeriodFilter>[] = [
+const periodOptions: readonly FilterChipOption<AuditLogPeriod>[] = [
   { label: "admin.auditLog.filters.all", value: "all" },
   { label: "admin.auditLog.filters.today", value: "today" },
   { label: "admin.auditLog.filters.lastMonth", value: "lastMonth" }
 ];
 
-function toDateString(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
+type Translate = (key: string, options?: Record<string, unknown>) => string;
 
-function todayRange(): { dateFrom: string; dateTo: string } {
-  const now = new Date();
-  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  return {
-    dateFrom: toDateString(from),
-    dateTo: toDateString(to)
-  };
-}
-
-function lastMonthRange(): { dateFrom: string; dateTo: string } {
-  const now = new Date();
-  const from = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-  return {
-    dateFrom: toDateString(from),
-    dateTo: toDateString(now)
-  };
-}
-
-function periodToFilter(period: PeriodFilter): Pick<AuditLogFilters, "dateFrom" | "dateTo"> {
-  if (period === "today") return todayRange();
-  if (period === "lastMonth") return lastMonthRange();
-  return {};
-}
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  const date = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const time = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  return `${date} • ${time}`;
-}
-
-type AuditEntryRowProps = {
-  item: AdminAuditEntry;
-};
-
-function AuditEntryRow({ item }: AuditEntryRowProps) {
-  const { t } = useTranslation();
-
-  const actionLabel = buildActionLabel(item, t);
+function AuditEntryRow({ item }: Readonly<{ item: AdminAuditEntry }>) {
+  const { i18n, t } = useTranslation();
+  const statusChange = statusChangeLabel(item, t);
+  const date = formatReportDate(item.created_at, i18n.language);
 
   return (
-    <View style={rowStyles.row}>
-      <AppText style={rowStyles.action} variant="body2">
-        {actionLabel}
+    <View style={styles.row} testID={`admin-audit-log-entry-${item.action_id}`}>
+      <AppText style={styles.action} variant="body2">
+        <AppText style={styles.admin} variant="body2">
+          {item.admin.username}
+        </AppText>{" "}
+        {t(`admin.auditLog.actions.${item.action_type}`, { defaultValue: item.action_type })}{" "}
+        <AppText style={styles.target} variant="body2">
+          {item.target_label}
+        </AppText>
+        {statusChange ? ` ${statusChange}` : null}
       </AppText>
-      <AppText style={rowStyles.meta} variant="caption">
-        {formatDateTime(item.created_at)}
+      <AppText style={styles.reason} variant="caption">
+        {t("admin.auditLog.reason", { reason: item.reason })}
       </AppText>
+      {date ? (
+        <AppText style={styles.meta} variant="caption">
+          {t("admin.auditLog.dateTime", {
+            date,
+            time: formatReportTime(item.created_at, i18n.language)
+          })}
+        </AppText>
+      ) : null}
     </View>
   );
 }
 
-function buildActionLabel(
-  item: AdminAuditEntry,
-  t: (key: string, opts?: Record<string, unknown>) => string
-): React.ReactNode {
-  const adminName = item.admin.username;
-  const targetLabel = item.target_label;
-
-  if (item.action_type === "CHANGE_REPORT_STATUS" && item.details) {
-    const from = item.details["from"] as string | undefined;
-    const to = item.details["to"] as string | undefined;
-    const fromLabel = from ? t(`admin.auditLog.statusLabel.${from}`, { defaultValue: from }) : null;
-    const toLabel = to ? t(`admin.auditLog.statusLabel.${to}`, { defaultValue: to }) : null;
-
-    return (
-      <ActionText
-        admin={adminName}
-        action={t("admin.auditLog.actions.CHANGE_REPORT_STATUS")}
-        target={targetLabel}
-        detail={fromLabel && toLabel ? `${fromLabel} → ${toLabel}` : undefined}
-      />
-    );
+function statusChangeLabel(item: AdminAuditEntry, t: Translate) {
+  if (item.action_type !== "CHANGE_REPORT_STATUS") {
+    return null;
   }
 
-  return (
-    <ActionText
-      admin={adminName}
-      action={t(`admin.auditLog.actions.${item.action_type}`, { defaultValue: item.action_type })}
-      target={targetLabel}
-    />
-  );
-}
+  const from = reportStatusKey(item.details?.from);
+  const to = reportStatusKey(item.details?.to);
 
-type ActionTextProps = {
-  admin: string;
-  action: string;
-  target: string;
-  detail?: string;
-};
-
-function ActionText({ admin, action, target, detail }: ActionTextProps) {
-  return (
-    <AppText style={rowStyles.action} variant="body2">
-      <AppText style={rowStyles.highlight} variant="body2">
-        {admin}
-      </AppText>{" "}
-      {action}{" "}
-      <AppText style={rowStyles.targetHighlight} variant="body2">
-        {target}
-      </AppText>
-      {detail ? ` (${detail})` : ""}
-    </AppText>
-  );
-}
-
-const rowStyles = StyleSheet.create({
-  row: {
-    backgroundColor: colors.neutrals[800],
-    borderRadius: radius.lg,
-    gap: spacing[1],
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3]
-  },
-  action: {
-    color: colors.neutrals[100]
-  },
-  highlight: {
-    color: colors.primary[500]
-  },
-  targetHighlight: {
-    color: colors.error[300]
-  },
-  meta: {
-    color: colors.neutrals[400]
+  if (!from || !to) {
+    return null;
   }
-});
+
+  return t("admin.auditLog.statusChange", {
+    from: t(`admin.status.${from}`),
+    to: t(`admin.status.${to}`)
+  });
+}
+
+function reportStatusKey(value: unknown) {
+  return typeof value === "string" && REPORT_STATUSES.has(value) ? value.toLowerCase() : null;
+}
 
 function EntrySeparator() {
-  return <View style={screenStyles.separator} />;
+  return <View style={styles.separator} />;
 }
 
 export function AdminAuditLogScreen() {
   const { t } = useTranslation();
-  const [search, setSearch] = useState("");
-  const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [period, setPeriod] = useState<AuditLogPeriod>("all");
+  const [adminId, setAdminId] = useState(ALL_ADMINS);
+  const admins = useAdminList();
 
-  const filters = useMemo<AuditLogFilters>(() => periodToFilter(period), [period]);
+  const filters = useMemo<AuditLogFilters>(
+    () => ({
+      ...auditLogPeriodRange(period),
+      ...(adminId === ALL_ADMINS ? {} : { adminId })
+    }),
+    [adminId, period]
+  );
 
   const auditLog = useAuditLog(filters);
 
-  const filteredItems = useMemo(() => {
-    if (!search.trim()) return auditLog.items;
-    const q = search.toLowerCase();
-    return auditLog.items.filter(
-      (item) =>
-        item.admin.username.toLowerCase().includes(q) ||
-        item.target_label.toLowerCase().includes(q) ||
-        item.reason?.toLowerCase().includes(q)
-    );
-  }, [auditLog.items, search]);
+  const adminOptions = useMemo<FilterChipOption<string>[]>(
+    () => [
+      { label: t("admin.auditLog.filters.allAdmins"), value: ALL_ADMINS },
+      ...(admins.data ?? []).map((admin) => ({ label: admin.username, value: admin.user_id }))
+    ],
+    [admins.data, t]
+  );
 
   const handleEndReached = () => {
     if (
@@ -210,25 +139,20 @@ export function AdminAuditLogScreen() {
       title={t("admin.auditLog.title")}
       testID="admin-audit-log-screen"
     >
-      <AdminSearchInput
-        accessibilityLabel={t("admin.auditLog.search")}
-        onChangeText={setSearch}
-        placeholder={t("admin.auditLog.search")}
-        testID="admin-audit-log-search"
-        value={search}
-      />
-
-      <View style={screenStyles.filters}>
+      <View style={styles.filters}>
         <FilterChips
           onChange={setPeriod}
-          options={periodOptions.map((o) => ({ ...o, label: t(o.label) }))}
+          options={periodOptions.map((option) => ({ ...option, label: t(option.label) }))}
           value={period}
         />
+        {admins.data?.length ? (
+          <FilterChips onChange={setAdminId} options={adminOptions} value={adminId} />
+        ) : null}
       </View>
 
-      <View style={screenStyles.listHeader}>
+      <View style={styles.listHeader}>
         {auditLog.data ? (
-          <AppText style={screenStyles.count} variant="caption" testID="admin-audit-log-count">
+          <AppText style={styles.count} variant="caption" testID="admin-audit-log-count">
             {t("admin.auditLog.count", { count: auditLog.total })}
           </AppText>
         ) : null}
@@ -246,15 +170,12 @@ export function AdminAuditLogScreen() {
 
       {auditLog.data ? (
         <FlatList
-          contentContainerStyle={
-            filteredItems.length === 0 ? screenStyles.emptyList : screenStyles.list
-          }
-          data={filteredItems}
+          contentContainerStyle={auditLog.items.length === 0 ? styles.emptyList : styles.list}
+          data={auditLog.items}
           ItemSeparatorComponent={EntrySeparator}
-          keyboardShouldPersistTaps="handled"
           keyExtractor={(item) => item.action_id}
           ListEmptyComponent={
-            <AppText style={screenStyles.empty} testID="admin-audit-log-empty">
+            <AppText style={styles.empty} testID="admin-audit-log-empty">
               {t("admin.auditLog.empty")}
             </AppText>
           }
@@ -278,7 +199,13 @@ export function AdminAuditLogScreen() {
   );
 }
 
-const screenStyles = StyleSheet.create({
+const styles = StyleSheet.create({
+  action: {
+    color: colors.neutrals[100]
+  },
+  admin: {
+    color: colors.primary[500]
+  },
   count: {
     color: colors.primary[500]
   },
@@ -304,7 +231,23 @@ const screenStyles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3]
   },
+  meta: {
+    color: colors.neutrals[400]
+  },
+  reason: {
+    color: colors.neutrals[300]
+  },
+  row: {
+    backgroundColor: colors.neutrals[800],
+    borderRadius: radius.lg,
+    gap: spacing[1],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3]
+  },
   separator: {
     height: spacing[3]
+  },
+  target: {
+    color: colors.error[300]
   }
 });

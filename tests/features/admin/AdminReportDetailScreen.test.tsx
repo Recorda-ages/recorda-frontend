@@ -17,7 +17,6 @@ import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { paperTheme } from "@/theme";
-import { ToastProvider } from "@/components/ui";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 
