@@ -16,6 +16,7 @@ import { clearSession } from "@/features/auth/session";
 import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { paperTheme } from "@/theme";
+import { ToastProvider } from "@/components/ui";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
 
@@ -62,7 +63,9 @@ function renderDetail(targetType: AdminTargetType, targetId: string) {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <AdminReportDetailScreen targetId={targetId} targetType={targetType} />
+          <ToastProvider>
+            <AdminReportDetailScreen targetId={targetId} targetType={targetType} />
+          </ToastProvider>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>
