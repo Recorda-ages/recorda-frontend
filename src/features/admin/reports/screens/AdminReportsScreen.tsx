@@ -6,10 +6,11 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { AppText, Button, ErrorState, Loading } from "@/components/ui";
+import { AppText, Loading } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
+import { AdminRetryBlock } from "../../components/AdminRetryBlock";
 import { AdminSearchInput } from "../../components/AdminSearchInput";
 import { FilterChips, type FilterChipOption } from "../../components/FilterChips";
 import type {
@@ -104,14 +105,11 @@ export function AdminReportsScreen() {
 
     if (reports.isFetchNextPageError) {
       return (
-        <View style={styles.feedback}>
-          <ErrorState message={t("admin.reports.loadMoreError")} />
-          <Button
-            label={t("admin.reports.retry")}
-            onPress={() => void reports.fetchNextPage()}
-            variant="secondary"
-          />
-        </View>
+        <AdminRetryBlock
+          message={t("admin.reports.loadMoreError")}
+          onRetry={() => void reports.fetchNextPage()}
+          retryLabel={t("admin.reports.retry")}
+        />
       );
     }
 
@@ -173,14 +171,11 @@ export function AdminReportsScreen() {
       {reports.isPending ? <Loading label={t("admin.reports.loading")} /> : null}
 
       {(reports.isError && !reports.data) || reports.isRefetchError ? (
-        <View style={styles.feedback}>
-          <ErrorState message={t("admin.reports.loadError")} />
-          <Button
-            label={t("admin.reports.retry")}
-            onPress={() => void reports.refetch()}
-            variant="secondary"
-          />
-        </View>
+        <AdminRetryBlock
+          message={t("admin.reports.loadError")}
+          onRetry={() => void reports.refetch()}
+          retryLabel={t("admin.reports.retry")}
+        />
       ) : null}
 
       {reports.data ? (
@@ -237,10 +232,6 @@ const styles = StyleSheet.create({
   emptyList: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: spacing[4]
-  },
-  feedback: {
-    gap: spacing[3],
     padding: spacing[4]
   },
   filters: {

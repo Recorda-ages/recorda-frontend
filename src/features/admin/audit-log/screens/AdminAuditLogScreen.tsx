@@ -2,10 +2,11 @@ import React, { useMemo, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { AppText, Button, ErrorState, Loading } from "@/components/ui";
+import { AppText, Loading } from "@/components/ui";
 import { colors, radius, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
+import { AdminRetryBlock } from "../../components/AdminRetryBlock";
 import { AdminSearchInput } from "../../components/AdminSearchInput";
 import { FilterChips, type FilterChipOption } from "../../components/FilterChips";
 import type { AdminAuditEntry } from "../../types";
@@ -193,14 +194,11 @@ export function AdminAuditLogScreen() {
     }
     if (auditLog.isFetchNextPageError) {
       return (
-        <View style={screenStyles.feedback}>
-          <ErrorState message={t("admin.auditLog.loadMoreError")} />
-          <Button
-            label={t("admin.auditLog.retry")}
-            onPress={() => void auditLog.fetchNextPage()}
-            variant="secondary"
-          />
-        </View>
+        <AdminRetryBlock
+          message={t("admin.auditLog.loadMoreError")}
+          onRetry={() => void auditLog.fetchNextPage()}
+          retryLabel={t("admin.auditLog.retry")}
+        />
       );
     }
     return null;
@@ -239,14 +237,11 @@ export function AdminAuditLogScreen() {
       {auditLog.isPending ? <Loading label={t("admin.auditLog.loading")} /> : null}
 
       {(auditLog.isError && !auditLog.data) || auditLog.isRefetchError ? (
-        <View style={screenStyles.feedback}>
-          <ErrorState message={t("admin.auditLog.loadError")} />
-          <Button
-            label={t("admin.auditLog.retry")}
-            onPress={() => void auditLog.refetch()}
-            variant="secondary"
-          />
-        </View>
+        <AdminRetryBlock
+          message={t("admin.auditLog.loadError")}
+          onRetry={() => void auditLog.refetch()}
+          retryLabel={t("admin.auditLog.retry")}
+        />
       ) : null}
 
       {auditLog.data ? (
@@ -294,10 +289,6 @@ const screenStyles = StyleSheet.create({
   emptyList: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: spacing[4]
-  },
-  feedback: {
-    gap: spacing[3],
     padding: spacing[4]
   },
   filters: {
