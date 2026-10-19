@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Image,
@@ -20,6 +21,7 @@ import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraf
 import { baseColors, colors, radius, spacing } from "@/theme";
 
 export function PreviewScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, "Preview">>();
   const { type, uri } = route.params;
@@ -120,7 +122,7 @@ export function PreviewScreen() {
         </View>
 
         <Pressable
-          accessibilityLabel="Avançar"
+          accessibilityLabel={t("preview.confirm")}
           accessibilityRole="button"
           accessibilityState={{ busy: isConfirming, disabled: isConfirming }}
           disabled={isConfirming}
@@ -136,7 +138,7 @@ export function PreviewScreen() {
           ) : (
             <>
               <AppText style={styles.confirmLabel} variant="buttonLarge">
-                Avançar
+                {t("preview.confirm")}
               </AppText>
               <Ionicons color={colors.neutrals[900]} name="chevron-forward" size={20} />
             </>

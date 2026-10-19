@@ -50,9 +50,33 @@
       "username": "Usuario",
       "invalidCredentials": "Usuario o contraseña inválidos."
     },
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "validation": {
+      "usernameRequired": "Ingresa tu usuario.",
+      "usernameNoSpaces": "El usuario no puede contener espacios.",
+      "nameRequired": "Ingresa tu nombre.",
+      "emailRequired": "Ingresa tu correo electrónico.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "passwordRequired": "Ingresa tu contraseña.",
+      "passwordMinLength": "La contraseña debe tener al menos {{min}} caracteres.",
+      "passwordMismatch": "Las contraseñas deben coincidir."
+    }
   },
   "onboarding": {
+    "artists": {
+      "header": "Artistas",
+      "back": "Volver",
+      "continue": "Siguiente",
+      "step": "PASO 1 DE 3",
+      "title": "¿Quién forma parte de tu historia?",
+      "subtitle": "Elige al menos 3 artistas para personalizar tus recuerdos.",
+      "search": "Buscar artistas",
+      "clearSearch": "Limpiar búsqueda",
+      "popularLoading": "Cargando artistas populares",
+      "popularError": "No se pudieron cargar los artistas populares.",
+      "searchError": "No se pudieron buscar artistas. Verifica tu conexión.",
+      "empty": "No se encontraron artistas."
+    },
     "music": {
       "header": "Canción favorita",
       "back": "Volver a géneros",
@@ -366,7 +390,8 @@
     "shareMessage": "¡Mira mi nuevo Recorda! <enlace de la app próximamente>",
     "shareDialogTitle": "Compartir Recorda",
     "shareErrorTitle": "Error al compartir",
-    "shareErrorMessage": "No fue posible compartir. Intenta nuevamente."
+    "shareErrorMessage": "No fue posible compartir. Intenta nuevamente.",
+    "logo": "recorda."
   },
   "notifications": {
     "title": "Notificaciones",
@@ -439,6 +464,36 @@
       "error": {
         "generic": "No se pudo enviar la denuncia. Inténtalo de nuevo."
       }
+    },
+    "account": {
+      "suspendTitle": "Suspender cuenta",
+      "reactivateTitle": "Reactivar cuenta",
+      "userLabel": "Usuario:",
+      "reasonLabel": "Motivo (obligatorio):",
+      "reasonInput": "Motivo de la moderación",
+      "reasonPlaceholder": "Indica el motivo de la acción (máx. {{max}} caracteres)...",
+      "resolveReports": "Marcar las denuncias abiertas del perfil como resueltas",
+      "cancel": "Cancelar",
+      "confirmSuspend": "Confirmar suspensión",
+      "confirmReactivate": "Confirmar reactivación",
+      "submitting": "Enviando...",
+      "adminNotice": "No está permitido suspender a otro administrador.",
+      "unexpectedError": "Error inesperado al realizar la moderación."
     }
+  },
+  "camera": {
+    "permissionMessage": "Necesitamos la cámara y el micrófono para crear tu Recorda.",
+    "permissionAction": "Permitir acceso",
+    "capture": "Tomar foto",
+    "galleryPermissionTitle": "Permiso necesario",
+    "galleryPermissionMessage": "Permite el acceso a la galería para elegir una foto o un video.",
+    "videoTooLongTitle": "Video demasiado largo",
+    "videoTooLongMessage": "Elige un video de hasta {{seconds}} segundos."
+  },
+  "preview": {
+    "confirm": "Siguiente"
+  },
+  "splash": {
+    "logo": "recorda."
   }
 }

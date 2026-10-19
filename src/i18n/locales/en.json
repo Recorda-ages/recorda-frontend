@@ -50,9 +50,33 @@
       "username": "Username",
       "invalidCredentials": "Invalid username or password."
     },
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "validation": {
+      "usernameRequired": "Enter your username.",
+      "usernameNoSpaces": "Your username can't contain spaces.",
+      "nameRequired": "Enter your name.",
+      "emailRequired": "Enter your email.",
+      "emailInvalid": "Enter a valid email.",
+      "passwordRequired": "Enter your password.",
+      "passwordMinLength": "Your password must be at least {{min}} characters long.",
+      "passwordMismatch": "The passwords must match."
+    }
   },
   "onboarding": {
+    "artists": {
+      "header": "Artists",
+      "back": "Back",
+      "continue": "Next",
+      "step": "STEP 1 OF 3",
+      "title": "Who is part of your story?",
+      "subtitle": "Choose at least 3 artists to personalize your memories.",
+      "search": "Search artists",
+      "clearSearch": "Clear search",
+      "popularLoading": "Loading popular artists",
+      "popularError": "Could not load popular artists.",
+      "searchError": "Could not search artists. Check your connection.",
+      "empty": "No artists found."
+    },
     "music": {
       "header": "Favorite song",
       "back": "Back to genres",
@@ -366,7 +390,8 @@
     "shareMessage": "Check out my new Recorda! <app link coming soon>",
     "shareDialogTitle": "Share Recorda",
     "shareErrorTitle": "Share error",
-    "shareErrorMessage": "Could not share. Please try again."
+    "shareErrorMessage": "Could not share. Please try again.",
+    "logo": "recorda."
   },
   "notifications": {
     "title": "Notifications",
@@ -439,6 +464,36 @@
       "error": {
         "generic": "We could not send the report. Please try again."
       }
+    },
+    "account": {
+      "suspendTitle": "Suspend Account",
+      "reactivateTitle": "Reactivate Account",
+      "userLabel": "User:",
+      "reasonLabel": "Reason (required):",
+      "reasonInput": "Moderation reason",
+      "reasonPlaceholder": "Enter the reason for this action (max. {{max}} characters)...",
+      "resolveReports": "Mark the profile's open reports as resolved",
+      "cancel": "Cancel",
+      "confirmSuspend": "Confirm Suspension",
+      "confirmReactivate": "Confirm Reactivation",
+      "submitting": "Sending...",
+      "adminNotice": "Suspending another administrator is not allowed.",
+      "unexpectedError": "Unexpected error while moderating."
     }
+  },
+  "camera": {
+    "permissionMessage": "We need the camera and microphone to create your Recorda.",
+    "permissionAction": "Allow access",
+    "capture": "Take photo",
+    "galleryPermissionTitle": "Permission needed",
+    "galleryPermissionMessage": "Allow gallery access to choose a photo or video.",
+    "videoTooLongTitle": "Video too long",
+    "videoTooLongMessage": "Choose a video up to {{seconds}} seconds long."
+  },
+  "preview": {
+    "confirm": "Next"
+  },
+  "splash": {
+    "logo": "recorda."
   }
 }

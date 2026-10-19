@@ -5,6 +5,7 @@ import * as ExpoMediaLibrary from "expo-media-library/legacy";
 import { Alert } from "react-native";
 
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
+import "@/i18n";
 
 import type * as ExpoCameraMock from "../../../mocks/expoCamera";
 import type * as ExpoImagePickerMock from "../../../mocks/expoImagePicker";
@@ -108,7 +109,7 @@ describe("CameraScreen", () => {
     render(<CameraScreen />);
 
     expect(
-      screen.getByText("Precisamos da camera e do microfone pra criar sua Recorda.")
+      screen.getByText("Precisamos da câmera e do microfone pra criar sua Recorda.")
     ).toBeTruthy();
   });
 
@@ -301,8 +302,8 @@ describe("CameraScreen", () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "Permissao necessaria",
-        "Permita acesso a galeria para escolher uma midia."
+        "Permissão necessária",
+        "Permita acesso à galeria para escolher uma mídia."
       );
     });
     expect(expoImagePickerMock.mockLaunchImageLibraryAsync).not.toHaveBeenCalled();
@@ -386,8 +387,8 @@ describe("CameraScreen", () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "Video muito longo",
-        "Escolha um video de ate 60 segundos."
+        "Vídeo muito longo",
+        "Escolha um vídeo de até 60 segundos."
       );
     });
     expect(mockNavigate).not.toHaveBeenCalled();
