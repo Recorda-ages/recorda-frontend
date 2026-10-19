@@ -8,7 +8,7 @@ import {
   adminServiceMock,
   resetAdminServiceMock
 } from "@/features/admin/services/adminService.mock";
-import type { AdminAuditEntry, AdminAuditPage } from "@/features/admin/types";
+import type { AdminAuditEntry } from "@/features/admin/types";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { i18n } from "@/i18n";
 import { ApiError } from "@/services/api";
@@ -90,7 +90,7 @@ describe("AdminAuditLogScreen", () => {
   it("shows loaded entries in the list", async () => {
     jest
       .spyOn(adminServiceMock, "listAuditLog")
-      .mockResolvedValue({ items: [MOCK_ENTRY], total: 1 } satisfies AdminAuditPage);
+      .mockResolvedValue({ items: [MOCK_ENTRY], total: 1 });
     renderScreen();
 
     await waitFor(() => expect(screen.getByTestId("admin-audit-log-list")).toBeTruthy());
@@ -108,7 +108,7 @@ describe("AdminAuditLogScreen", () => {
     };
     jest
       .spyOn(adminServiceMock, "listAuditLog")
-      .mockResolvedValue({ items: [MOCK_ENTRY, otherEntry], total: 2 } satisfies AdminAuditPage);
+      .mockResolvedValue({ items: [MOCK_ENTRY, otherEntry], total: 2 });
     renderScreen();
 
     await waitFor(() => expect(screen.getByTestId("admin-audit-log-list")).toBeTruthy());

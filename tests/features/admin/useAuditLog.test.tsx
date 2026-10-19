@@ -8,7 +8,7 @@ import {
   adminServiceMock,
   resetAdminServiceMock
 } from "@/features/admin/services/adminService.mock";
-import type { AdminAuditEntry, AdminAuditPage } from "@/features/admin/types";
+import type { AdminAuditEntry } from "@/features/admin/types";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { ApiError } from "@/services/api";
 
@@ -114,7 +114,7 @@ describe("useAuditLog", () => {
     };
     jest
       .spyOn(adminServiceMock, "listAuditLog")
-      .mockResolvedValue({ items: [mockEntry, mockEntry], total: 1 } satisfies AdminAuditPage);
+      .mockResolvedValue({ items: [mockEntry, mockEntry], total: 1 });
 
     const client = createClient();
     const { result } = renderHook(() => useAuditLog({}), {
