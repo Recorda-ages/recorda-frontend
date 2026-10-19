@@ -1,11 +1,5 @@
 import React, { useMemo, useState } from "react";
-import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  TextInput,
-  View
-} from "react-native";
+import { FlatList, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
@@ -126,10 +120,8 @@ function ActionText({ admin, action, target, detail }: ActionTextProps) {
     <AppText style={rowStyles.action} variant="body2">
       <AppText style={rowStyles.highlight} variant="body2">
         {admin}
-      </AppText>
-      {" "}
-      {action}
-      {" "}
+      </AppText>{" "}
+      {action}{" "}
       <AppText style={rowStyles.targetHighlight} variant="body2">
         {target}
       </AppText>
@@ -169,10 +161,7 @@ export function AdminAuditLogScreen() {
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState<PeriodFilter>("all");
 
-  const filters = useMemo<AuditLogFilters>(
-    () => periodToFilter(period),
-    [period]
-  );
+  const filters = useMemo<AuditLogFilters>(() => periodToFilter(period), [period]);
 
   const auditLog = useAuditLog(filters);
 

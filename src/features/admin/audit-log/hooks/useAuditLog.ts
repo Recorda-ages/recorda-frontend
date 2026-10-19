@@ -27,7 +27,9 @@ export function useAuditLog(filters: AuditLogFilters) {
 
   const apiFilters: AdminAuditFilters = {
     ...(filters.adminId ? { admin_id: filters.adminId } : {}),
-    ...(filters.actionType ? { action_type: filters.actionType as AdminAuditFilters["action_type"] } : {}),
+    ...(filters.actionType
+      ? { action_type: filters.actionType as AdminAuditFilters["action_type"] }
+      : {}),
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
     ...(filters.dateTo ? { date_to: filters.dateTo } : {}),
     limit: PAGE_SIZE
@@ -60,10 +62,7 @@ export function useAuditLog(filters: AuditLogFilters) {
     }
   }, [handleAdminApiError, query.error]);
 
-  const items = useMemo(
-    () => uniqueEntries(query.data?.pages ?? []),
-    [query.data]
-  );
+  const items = useMemo(() => uniqueEntries(query.data?.pages ?? []), [query.data]);
 
   return {
     ...query,
