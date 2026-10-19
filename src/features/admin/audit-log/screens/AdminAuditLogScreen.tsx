@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { Icon } from "react-native-paper";
 
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
-import { colors, fontFamily, radius, spacing } from "@/theme";
+import { colors, radius, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
+import { AdminSearchInput } from "../../components/AdminSearchInput";
 import { FilterChips, type FilterChipOption } from "../../components/FilterChips";
 import type { AdminAuditEntry } from "../../types";
 import { useAuditLog, type AuditLogFilters } from "../hooks/useAuditLog";
@@ -212,21 +212,13 @@ export function AdminAuditLogScreen() {
       title={t("admin.auditLog.title")}
       testID="admin-audit-log-screen"
     >
-      <View style={screenStyles.search}>
-        <TextInput
-          accessibilityLabel={t("admin.auditLog.search")}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setSearch}
-          placeholder={t("admin.auditLog.search")}
-          placeholderTextColor={colors.neutrals[300]}
-          returnKeyType="search"
-          style={screenStyles.searchInput}
-          testID="admin-audit-log-search"
-          value={search}
-        />
-        <Icon color={colors.neutrals[300]} size={22} source="magnify" />
-      </View>
+      <AdminSearchInput
+        accessibilityLabel={t("admin.auditLog.search")}
+        onChangeText={setSearch}
+        placeholder={t("admin.auditLog.search")}
+        testID="admin-audit-log-search"
+        value={search}
+      />
 
       <View style={screenStyles.filters}>
         <FilterChips
@@ -319,24 +311,6 @@ const screenStyles = StyleSheet.create({
   listHeader: {
     alignItems: "flex-end",
     paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3]
-  },
-  search: {
-    alignItems: "center",
-    backgroundColor: colors.neutrals[800],
-    borderRadius: radius.md,
-    flexDirection: "row",
-    marginBottom: spacing[3],
-    marginHorizontal: spacing[4],
-    minHeight: 52,
-    paddingHorizontal: spacing[4]
-  },
-  searchInput: {
-    color: colors.neutrals[100],
-    flex: 1,
-    fontFamily: fontFamily.primary.regular,
-    fontSize: 13,
-    minWidth: 0,
     paddingVertical: spacing[3]
   },
   separator: {
