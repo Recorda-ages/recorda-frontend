@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { colors, withOpacity } from "@/theme";
 import {
   AdminIdentity,
@@ -30,6 +31,7 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
   onMutationSuccess,
   targetUser
 }) => {
+  const { t } = useTranslation();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -50,7 +52,7 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
   if (isTargetAdmin && isTargetActive) {
     return (
       <View style={styles.noticeContainer} testID="admin-action-notice">
-        <Text style={styles.noticeText}>Não é permitido suspender outro administrador.</Text>
+        <Text style={styles.noticeText}>{t("moderation.account.adminNotice")}</Text>
       </View>
     );
   }
@@ -92,9 +94,7 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
       setIsFormVisible(false);
       onMutationSuccess?.(result);
     } catch (err: unknown) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "Erro inesperado ao realizar moderação."
-      );
+      setErrorMessage(err instanceof Error ? err.message : t("moderation.account.unexpectedError"));
       if (err instanceof Error) {
         onMutationError?.(err);
       }
@@ -121,7 +121,9 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
           testID={isTargetActive ? "suspend-action-trigger" : "reactivate-action-trigger"}
         >
           <Text style={styles.actionButtonText}>
-            {isTargetActive ? "Suspender Conta" : "Reativar Conta"}
+            {isTargetActive
+              ? t("moderation.account.suspendTitle")
+              : t("moderation.account.reactivateTitle")}
           </Text>
         </TouchableOpacity>
       ) : (

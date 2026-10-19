@@ -1,13 +1,17 @@
 import { z } from "zod";
 
+import { i18n } from "@/i18n";
+
+import { emailSchema, passwordSchema } from "./signUpSchema";
+
 export const passwordRecoverySchema = z
   .object({
-    email: z.string().trim().min(1, "Informe seu email.").email("Informe um email válido."),
-    newPassword: z.string().min(8, "A senha deve ter pelo menos 8 caracteres."),
-    confirmPassword: z.string().min(8, "A senha deve ter pelo menos 8 caracteres.")
+    email: emailSchema,
+    newPassword: passwordSchema,
+    confirmPassword: passwordSchema
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
-    message: "As senhas devem ser idênticas.",
+    error: () => i18n.t("auth.validation.passwordMismatch"),
     path: ["confirmPassword"]
   });
 

@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-18",
+  "backend_reference": "origin/dev (7d9b3b2)",
+  "environment": "Isolated Docker Compose project recorda239; API localhost:8001; PostgreSQL 16",
+  "transport": "HTTP requests to running API; database assertions through SQLAlchemy PostgreSQL session",
+  "report_checks": {
+    "RECORDA_RESOLVED": "passed",
+    "RECORDA_DISMISSED": "passed",
+    "USER_RESOLVED": "passed",
+    "GET_detail": "passed",
+    "PATCH_status": "passed",
+    "reason_trimmed_and_persisted": "passed",
+    "report_status_and_resolved_at_in_database": "passed",
+    "single_audit_action_with_admin_reason_target_and_details": "passed",
+    "filtered_list_after_status_change": "passed",
+    "second_admin_attempt_409": "passed",
+    "empty_whitespace_and_501_character_reason_422": "passed"
+  },
+  "media_checks": [
+    {
+      "type": "PHOTO",
+      "upload": 201,
+      "detail": 200,
+      "media_get": 200,
+      "range_get": null,
+      "bytes": 67,
+      "private_author_admin_access": "passed",
+      "recorda_id": "96190f62-6f7e-41ab-9e63-eab74b06c6a4"
+    },
+    {
+      "type": "VIDEO",
+      "upload": 201,
+      "detail": 200,
+      "media_get": 200,
+      "range_get": 206,
+      "bytes": 1128375,
+      "private_author_admin_access": "passed",
+      "recorda_id": "bad75c89-8f9c-490a-a80b-e2132e6f0797"
+    }
+  ],
+  "remaining": "PR screenshots must be attached by the author; absence of video autoplay was not explicitly confirmed in the manual feedback.",
+  "main_environment_review": {
+    "api": "http://localhost:8000",
+    "health": 200,
+    "GET_and_PATCH_in_openapi": "passed",
+    "authenticated_list": 200,
+    "database_users": 5,
+    "migration_before_from_backup": "0005_notification",
+    "migration_current": "0009_content_removed",
+    "code_migration_head": "0009_content_removed",
+    "migrations_authored_for_this_task": false,
+    "existing_migrations_applied": [
+      "0006_recorda_comment",
+      "0007_report",
+      "0008_moderation_action",
+      "0009_content_removed"
+    ],
+    "backend_worktree_matches_origin_dev": true
+  },
+  "manual_ios_validation": {
+    "profile_data_and_reports": "confirmed_by_user_screenshots",
+    "photo_loaded": "confirmed_by_user_screenshot",
+    "video_starts_muted": "confirmed_by_user",
+    "resolved_status": "confirmed_by_user",
+    "dismissed_status_and_audit_history": "confirmed_by_user_screenshot",
+    "list_filters_after_change": "confirmed_by_user",
+    "persistence_after_app_restart": "confirmed_by_user"
+  }
+}

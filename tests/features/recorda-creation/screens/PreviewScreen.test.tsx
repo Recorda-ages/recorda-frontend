@@ -3,6 +3,7 @@ import * as ExpoImageManipulator from "expo-image-manipulator";
 import * as ExpoVideo from "expo-video";
 
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
+import "@/i18n";
 
 import type * as ExpoImageManipulatorMock from "../../../mocks/expoImageManipulator";
 import type * as ExpoVideoMock from "../../../mocks/expoVideo";

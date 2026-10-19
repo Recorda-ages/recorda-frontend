@@ -1,10 +1,14 @@
 import { z } from "zod";
 
+import { i18n } from "@/i18n";
+
+export const MIN_PASSWORD_LENGTH = 8;
+
 const usernameSchema = z.string().superRefine((value, context) => {
   if (value.trim().length === 0) {
     context.addIssue({
       code: "custom",
-      message: "Informe seu usuário."
+      message: i18n.t("auth.validation.usernameRequired")
     });
     return;
   }
@@ -12,16 +16,29 @@ const usernameSchema = z.string().superRefine((value, context) => {
   if (/\s/.test(value)) {
     context.addIssue({
       code: "custom",
-      message: "O usuário não pode conter espaços."
+      message: i18n.t("auth.validation.usernameNoSpaces")
     });
   }
 });
 
+export const emailSchema = z
+  .string()
+  .trim()
+  .min(1, { error: () => i18n.t("auth.validation.emailRequired") })
+  .email({ error: () => i18n.t("auth.validation.emailInvalid") });
+
+export const passwordSchema = z.string().min(MIN_PASSWORD_LENGTH, {
+  error: () => i18n.t("auth.validation.passwordMinLength", { min: MIN_PASSWORD_LENGTH })
+});
+
 export const signUpSchema = z.object({
-  name: z.string().trim().min(1, "Informe seu nome."),
+  name: z
+    .string()
+    .trim()
+    .min(1, { error: () => i18n.t("auth.validation.nameRequired") }),
   username: usernameSchema,
-  email: z.string().trim().min(1, "Informe seu email.").email("Informe um email válido."),
-  password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres.")
+  email: emailSchema,
+  password: passwordSchema
 });
 
 export type SignUpFormValues = z.infer<typeof signUpSchema>;

@@ -50,9 +50,33 @@
       "username": "Usuário",
       "invalidCredentials": "Usuário ou senha inválidos."
     },
-    "signOut": "Sair"
+    "signOut": "Sair",
+    "validation": {
+      "usernameRequired": "Informe seu usuário.",
+      "usernameNoSpaces": "O usuário não pode conter espaços.",
+      "nameRequired": "Informe seu nome.",
+      "emailRequired": "Informe seu email.",
+      "emailInvalid": "Informe um email válido.",
+      "passwordRequired": "Informe sua senha.",
+      "passwordMinLength": "A senha deve ter no mínimo {{min}} caracteres.",
+      "passwordMismatch": "As senhas devem ser idênticas."
+    }
   },
   "onboarding": {
+    "artists": {
+      "header": "Artistas",
+      "back": "Voltar",
+      "continue": "Próximo",
+      "step": "ETAPA 1 DE 3",
+      "title": "Quem faz parte da sua história?",
+      "subtitle": "Escolha pelo menos 3 artistas para personalizar suas recordações.",
+      "search": "Buscar artistas",
+      "clearSearch": "Limpar busca",
+      "popularLoading": "Carregando artistas populares",
+      "popularError": "Não foi possível carregar artistas populares.",
+      "searchError": "Não foi possível buscar artistas. Verifique sua conexão.",
+      "empty": "Nenhum artista encontrado."
+    },
     "music": {
       "header": "Música favorita",
       "back": "Voltar para gêneros",
@@ -224,7 +248,8 @@
           "success": "Denúncias reabertas."
         },
         "error": "Não foi possível alterar o status. Tente novamente.",
-        "conflictTitle": "Denúncias já alteradas",
+        "invalidReason": "Informe um motivo de 1 a 500 caracteres.",
+        "conflictTitle": "Este conteúdo já foi tratado",
         "conflictMessage": "Essas denúncias foram alteradas por outra pessoa. Os dados foram recarregados."
       }
     },
@@ -394,7 +419,8 @@
     "shareMessage": "Veja só a minha nova Recorda! <link do app ainda não existente>",
     "shareDialogTitle": "Compartilhar Recorda",
     "shareErrorTitle": "Erro ao compartilhar",
-    "shareErrorMessage": "Não foi possível compartilhar. Tente novamente."
+    "shareErrorMessage": "Não foi possível compartilhar. Tente novamente.",
+    "logo": "recorda."
   },
   "notifications": {
     "title": "Notificações",
@@ -467,6 +493,36 @@
       "error": {
         "generic": "Não foi possível enviar a denúncia. Tente novamente."
       }
+    },
+    "account": {
+      "suspendTitle": "Suspender Conta",
+      "reactivateTitle": "Reativar Conta",
+      "userLabel": "Usuário:",
+      "reasonLabel": "Motivo (obrigatório):",
+      "reasonInput": "Motivo da moderação",
+      "reasonPlaceholder": "Informe o motivo da ação (máx. {{max}} caracteres)...",
+      "resolveReports": "Marcar denúncias abertas do perfil como resolvidas",
+      "cancel": "Cancelar",
+      "confirmSuspend": "Confirmar Suspensão",
+      "confirmReactivate": "Confirmar Reativação",
+      "submitting": "Enviando...",
+      "adminNotice": "Não é permitido suspender outro administrador.",
+      "unexpectedError": "Erro inesperado ao realizar moderação."
     }
+  },
+  "camera": {
+    "permissionMessage": "Precisamos da câmera e do microfone pra criar sua Recorda.",
+    "permissionAction": "Permitir acesso",
+    "capture": "Tirar foto",
+    "galleryPermissionTitle": "Permissão necessária",
+    "galleryPermissionMessage": "Permita acesso à galeria para escolher uma mídia.",
+    "videoTooLongTitle": "Vídeo muito longo",
+    "videoTooLongMessage": "Escolha um vídeo de até {{seconds}} segundos."
+  },
+  "preview": {
+    "confirm": "Avançar"
+  },
+  "splash": {
+    "logo": "recorda."
   }
 }

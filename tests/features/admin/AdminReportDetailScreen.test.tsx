@@ -15,6 +15,7 @@ import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { clearSession } from "@/features/auth/session";
 import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import { paperTheme } from "@/theme";
 import { ToastProvider } from "@/components/ui";
 
@@ -221,7 +222,7 @@ describe("AdminReportDetailScreen", () => {
 
     await waitFor(() =>
       expect(alert).toHaveBeenCalledWith(
-        "Denúncias já alteradas",
+        "Este conteúdo já foi tratado",
         "Essas denúncias foram alteradas por outra pessoa. Os dados foram recarregados."
       )
     );

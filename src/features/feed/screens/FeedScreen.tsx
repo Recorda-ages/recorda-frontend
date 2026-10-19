@@ -443,6 +443,9 @@ export function FeedScreen() {
     );
   };
 
+  const generalFeed = renderFeed("geral", generalFeedQuery);
+  const followingFeed = renderFeed("following", followingFeedQuery);
+
   return (
     <View style={styles.screen} testID="feed-screen">
       <StatusBar style="light" />
@@ -470,8 +473,8 @@ export function FeedScreen() {
           style={styles.pager}
           testID="feed-pager"
         >
-          {renderFeed("geral", generalFeedQuery)}
-          {renderFeed("following", followingFeedQuery)}
+          {generalFeed}
+          {followingFeed}
         </Animated.ScrollView>
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={handleTabBarPress} />

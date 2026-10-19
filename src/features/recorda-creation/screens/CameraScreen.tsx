@@ -5,6 +5,7 @@ import type { CameraMode, PermissionResponse } from "expo-camera";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
@@ -48,6 +49,7 @@ const MAX_VIDEO_DURATION_SECONDS = 60;
 const MAX_VIDEO_DURATION_MS = MAX_VIDEO_DURATION_SECONDS * 1000;
 
 export function CameraScreen() {
+  const { t } = useTranslation();
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = useMediaLibraryPermissions();
@@ -188,9 +190,9 @@ export function CameraScreen() {
   if (!cameraPermission.granted || !microphonePermission.granted) {
     return (
       <Screen>
-        <AppText>Precisamos da camera e do microfone pra criar sua Recorda.</AppText>
+        <AppText>{t("camera.permissionMessage")}</AppText>
         <Button
-          label="Permitir acesso"
+          label={t("camera.permissionAction")}
           onPress={async () => {
             await requestCameraPermission();
             await requestMicrophonePermission();
@@ -451,7 +453,7 @@ export function CameraScreen() {
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!galleryPermission.granted) {
-        Alert.alert("Permissao necessaria", "Permita acesso a galeria para escolher uma midia.");
+        Alert.alert(t("camera.galleryPermissionTitle"), t("camera.galleryPermissionMessage"));
         return;
       }
 
@@ -479,7 +481,10 @@ export function CameraScreen() {
         asset.duration > MAX_VIDEO_DURATION_SECONDS * 1000;
 
       if (isVideoTooLong) {
-        Alert.alert("Video muito longo", "Escolha um video de ate 60 segundos.");
+        Alert.alert(
+          t("camera.videoTooLongTitle"),
+          t("camera.videoTooLongMessage", { seconds: MAX_VIDEO_DURATION_SECONDS })
+        );
         return;
       }
 
@@ -543,7 +548,7 @@ export function CameraScreen() {
           </TouchableOpacity>
 
           <Pressable
-            accessibilityLabel="Tirar foto"
+            accessibilityLabel={t("camera.capture")}
             accessibilityRole="button"
             onPressIn={() => {
               animateCaptureButtonPressIn();

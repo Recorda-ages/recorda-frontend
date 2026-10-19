@@ -11,7 +11,7 @@ import { ApiError } from "@/services/api";
 import { colors, fontFamily, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
-import { ReasonDialog } from "../../components/ReasonDialog";
+import { ADMIN_REASON_MAX_LENGTH, ReasonDialog } from "../../components/ReasonDialog";
 import { StatusBadge } from "../../components/StatusBadge";
 import { useAdminApiErrorHandler } from "../../hooks/useAdminApiErrorHandler";
 import type { AdminReportDetail, AdminReportStatus, AdminTargetType } from "../../types";
@@ -74,10 +74,16 @@ export function AdminReportDetailScreen({
       return;
     }
 
+    const trimmedReason = reason.trim();
+    if (!trimmedReason || trimmedReason.length > ADMIN_REASON_MAX_LENGTH) {
+      setDialogError(t("admin.reportDetail.statusActions.invalidReason"));
+      return;
+    }
+
     const status = pendingStatus;
 
     try {
-      await updateStatus.mutateAsync({ reason: reason.trim(), status });
+      await updateStatus.mutateAsync({ reason: trimmedReason, status });
       setPendingStatus(null);
       setReason("");
       setFeedback(t(`admin.reportDetail.statusActions.${status}.success`));
@@ -95,7 +101,13 @@ export function AdminReportDetailScreen({
         return;
       }
 
-      setDialogError(t("admin.reportDetail.statusActions.error"));
+      setDialogError(
+        t(
+          error instanceof ApiError && error.status === 422
+            ? "admin.reportDetail.statusActions.invalidReason"
+            : "admin.reportDetail.statusActions.error"
+        )
+      );
     }
   };
 
