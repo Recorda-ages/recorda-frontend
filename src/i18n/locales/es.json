@@ -248,7 +248,8 @@
           "success": "Denuncias reabiertas."
         },
         "error": "No fue posible cambiar el estado. Inténtalo de nuevo.",
-        "conflictTitle": "Denuncias ya modificadas",
+        "invalidReason": "Introduce un motivo de entre 1 y 500 caracteres.",
+        "conflictTitle": "Este contenido ya fue tratado",
         "conflictMessage": "Otra persona modificó estas denuncias. Los datos se volvieron a cargar."
       }
     },

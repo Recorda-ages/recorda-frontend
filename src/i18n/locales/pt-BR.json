@@ -248,7 +248,8 @@
           "success": "Denúncias reabertas."
         },
         "error": "Não foi possível alterar o status. Tente novamente.",
-        "conflictTitle": "Denúncias já alteradas",
+        "invalidReason": "Informe um motivo de 1 a 500 caracteres.",
+        "conflictTitle": "Este conteúdo já foi tratado",
         "conflictMessage": "Essas denúncias foram alteradas por outra pessoa. Os dados foram recarregados."
       }
     },
