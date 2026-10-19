@@ -258,6 +258,32 @@
       "users": "Gestão de usuários",
       "userDetail": "Detalhes do usuário",
       "auditLog": "Auditoria"
+    },
+    "auditLog": {
+      "title": "Registro de Auditoria",
+      "loading": "Carregando registros",
+      "loadError": "Não foi possível carregar os registros.",
+      "loadMoreError": "Não foi possível carregar mais registros.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhum registro encontrado.",
+      "count_zero": "{{count}} registros encontrados",
+      "count_one": "{{count}} registro encontrado",
+      "count_other": "{{count}} registros encontrados",
+      "filters": {
+        "all": "Todas",
+        "today": "Hoje",
+        "lastMonth": "Último mês",
+        "allAdmins": "Todos os admins"
+      },
+      "actions": {
+        "REMOVE_RECORDA": "removeu a Recorda de",
+        "CHANGE_REPORT_STATUS": "alterou as denúncias de",
+        "SUSPEND_USER": "suspendeu a conta de",
+        "REACTIVATE_USER": "reativou a conta de"
+      },
+      "statusChange": "(de {{from}} para {{to}})",
+      "reason": "Motivo: {{reason}}",
+      "dateTime": "{{date}} • {{time}}"
     }
   },
   "profile": {

@@ -258,6 +258,31 @@
       "users": "User management",
       "userDetail": "User details",
       "auditLog": "Audit log"
+    },
+    "auditLog": {
+      "title": "Audit Log",
+      "loading": "Loading records",
+      "loadError": "Could not load records.",
+      "loadMoreError": "Could not load more records.",
+      "retry": "Try again",
+      "empty": "No records found.",
+      "count_one": "{{count}} record found",
+      "count_other": "{{count}} records found",
+      "filters": {
+        "all": "All",
+        "today": "Today",
+        "lastMonth": "Last month",
+        "allAdmins": "All admins"
+      },
+      "actions": {
+        "REMOVE_RECORDA": "removed the Recorda of",
+        "CHANGE_REPORT_STATUS": "changed the reports on",
+        "SUSPEND_USER": "suspended account of",
+        "REACTIVATE_USER": "reactivated account of"
+      },
+      "statusChange": "(from {{from}} to {{to}})",
+      "reason": "Reason: {{reason}}",
+      "dateTime": "{{date}} • {{time}}"
     }
   },
   "profile": {

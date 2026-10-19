@@ -1,15 +1,17 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { AppText, Button, ErrorState, Loading } from "@/components/ui";
-import { colors, fontFamily, radius, spacing } from "@/theme";
+import { AppText, Loading } from "@/components/ui";
+import { colors, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
+import { AdminRetryBlock } from "../../components/AdminRetryBlock";
+import { AdminSearchInput } from "../../components/AdminSearchInput";
 import { FilterChips, type FilterChipOption } from "../../components/FilterChips";
 import type {
   AdminReportFilters,
@@ -103,14 +105,11 @@ export function AdminReportsScreen() {
 
     if (reports.isFetchNextPageError) {
       return (
-        <View style={styles.feedback}>
-          <ErrorState message={t("admin.reports.loadMoreError")} />
-          <Button
-            label={t("admin.reports.retry")}
-            onPress={() => void reports.fetchNextPage()}
-            variant="secondary"
-          />
-        </View>
+        <AdminRetryBlock
+          message={t("admin.reports.loadMoreError")}
+          onRetry={() => void reports.fetchNextPage()}
+          retryLabel={t("admin.reports.retry")}
+        />
       );
     }
 
@@ -124,21 +123,13 @@ export function AdminReportsScreen() {
       testID="admin-reports-screen"
     >
       {canSearch ? (
-        <View style={styles.search}>
-          <TextInput
-            accessibilityLabel={t("admin.reports.search")}
-            autoCapitalize="none"
-            autoCorrect={false}
-            onChangeText={setSearch}
-            placeholder={t("admin.reports.search")}
-            placeholderTextColor={colors.neutrals[300]}
-            returnKeyType="search"
-            style={styles.searchInput}
-            testID="admin-reports-search"
-            value={search}
-          />
-          <Icon color={colors.neutrals[300]} size={22} source="magnify" />
-        </View>
+        <AdminSearchInput
+          accessibilityLabel={t("admin.reports.search")}
+          onChangeText={setSearch}
+          placeholder={t("admin.reports.search")}
+          testID="admin-reports-search"
+          value={search}
+        />
       ) : null}
 
       <View style={styles.filters}>
@@ -180,14 +171,11 @@ export function AdminReportsScreen() {
       {reports.isPending ? <Loading label={t("admin.reports.loading")} /> : null}
 
       {(reports.isError && !reports.data) || reports.isRefetchError ? (
-        <View style={styles.feedback}>
-          <ErrorState message={t("admin.reports.loadError")} />
-          <Button
-            label={t("admin.reports.retry")}
-            onPress={() => void reports.refetch()}
-            variant="secondary"
-          />
-        </View>
+        <AdminRetryBlock
+          message={t("admin.reports.loadError")}
+          onRetry={() => void reports.refetch()}
+          retryLabel={t("admin.reports.retry")}
+        />
       ) : null}
 
       {reports.data ? (
@@ -246,10 +234,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: spacing[4]
   },
-  feedback: {
-    gap: spacing[3],
-    padding: spacing[4]
-  },
   filters: {
     gap: spacing[3],
     paddingHorizontal: spacing[4]
@@ -272,24 +256,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing[1]
-  },
-  search: {
-    alignItems: "center",
-    backgroundColor: colors.neutrals[800],
-    borderRadius: radius.md,
-    flexDirection: "row",
-    marginBottom: spacing[3],
-    marginHorizontal: spacing[4],
-    minHeight: 52,
-    paddingHorizontal: spacing[4]
-  },
-  searchInput: {
-    color: colors.neutrals[100],
-    flex: 1,
-    fontFamily: fontFamily.primary.regular,
-    fontSize: 13,
-    minWidth: 0,
-    paddingVertical: spacing[3]
   },
   separator: {
     height: spacing[3]

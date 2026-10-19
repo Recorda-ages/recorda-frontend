@@ -1,5 +1,5 @@
 import { Image as ExpoImage } from "expo-image";
-import { Image as RNImage } from "react-native";
+import { Image as RNImage, Platform } from "react-native";
 
 /** Background glow used from the very first screens (splash, auth, onboarding, feed). */
 const STARTUP_IMAGES = [require("@/assets/images/glow.png")];
@@ -14,6 +14,8 @@ export const IMAGE_PRELOAD_TIMEOUT_MS = 3000;
  * both React Native's `Image` and expo-image's. Never rejects.
  */
 export async function preloadStartupImages() {
+  if (Platform.OS === "web") return;
+
   const uris = STARTUP_IMAGES.map((image) => RNImage.resolveAssetSource(image).uri);
   const preload = Promise.allSettled(
     uris.flatMap((uri) => [RNImage.prefetch(uri), ExpoImage.prefetch(uri)])

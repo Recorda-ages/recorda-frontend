@@ -1,6 +1,7 @@
 import { ApiError } from "@/services/api";
 
 import type {
+  AdminAuditPage,
   AdminReportDetail,
   AdminReportFilters,
   AdminReportGroup,
@@ -460,7 +461,7 @@ export const adminServiceMock = {
     throwIfAborted(signal);
     return [{ user_id: "admin-1", username: "admin" }];
   },
-  async listAuditLog(_filters = {}, signal?: AbortSignal) {
+  async listAuditLog(_filters = {}, signal?: AbortSignal): Promise<AdminAuditPage> {
     throwIfAborted(signal);
     return { items: [], total: 0 };
   }
