@@ -32,6 +32,7 @@ export async function clearSession() {
     secureStorage.removeItem(LEGACY_ACCOUNT_TYPE_KEY)
   ]);
   queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
+  queryClient.removeQueries({ queryKey: ["settings"] });
   queryClient.removeQueries({ queryKey: ["admin"] });
   queryClient.removeQueries({ queryKey: RECORDA_DETAILS_QUERY_KEY });
   queryClient.removeQueries({ queryKey: RECORDA_COMMENTS_QUERY_KEY });

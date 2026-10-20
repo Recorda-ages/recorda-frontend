@@ -520,5 +520,45 @@
   },
   "splash": {
     "logo": "recorda."
+  },
+  "settings": {
+    "title": "Configuración",
+    "back": "Volver",
+    "accountSection": "Cuenta",
+    "account": "Mi cuenta",
+    "privateAccount": "Cuenta privada",
+    "privateSupport": "Solo los seguidores aprobados ven tus Recordas",
+    "publicSupport": "Cualquier persona ve tus Recordas",
+    "preferencesSection": "Preferencias",
+    "music": "Preferencias musicales",
+    "musicSupport": "Artistas, géneros y canción favorita",
+    "language": "Idioma",
+    "sessionSection": "Sesión",
+    "signOut": "Cerrar sesión",
+    "loading": "Cargando configuración…",
+    "saving": "Guardando privacidad…",
+    "loadError": "No se pudo cargar tu configuración.",
+    "updateError": "No se pudo cambiar la privacidad. Se restauró tu configuración anterior. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo",
+    "accepted_one": "Se aceptó {{count}} solicitud",
+    "accepted_other": "Se aceptaron {{count}} solicitudes",
+    "pending": "Esta configuración está en construcción. Pronto podrás cambiarla aquí.",
+    "signOutError": "No se pudo cerrar la sesión. Inténtalo de nuevo.",
+    "cancel": "Cancelar",
+    "confirmAction": "Confirmar",
+    "confirm": {
+      "private": {
+        "title": "¿Hacer privada tu cuenta?",
+        "message": "Tus Recordas, incluidas las antiguas, solo serán visibles para seguidores aprobados. Tus seguidores actuales siguen aprobados."
+      },
+      "public": {
+        "title": "¿Hacer pública tu cuenta?",
+        "message": "Cualquier persona podrá ver tus Recordas, incluidas las antiguas. Se aceptarán todas las solicitudes de seguimiento pendientes."
+      },
+      "signOut": {
+        "title": "¿Cerrar sesión?",
+        "message": "Tendrás que iniciar sesión de nuevo para acceder a tus Recordas."
+      }
+    }
   }
 }

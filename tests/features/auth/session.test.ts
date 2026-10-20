@@ -71,6 +71,7 @@ describe("auth session", () => {
 
   it("clears credentials and user-scoped notification data even if storage fails", async () => {
     queryClient.setQueryData(AUTH_ME_QUERY_KEY, buildUser());
+    queryClient.setQueryData(["settings"], { is_private: true, language: "pt-BR" });
     queryClient.setQueryData(["admin", "reports", "admin-1"], { items: [{ targetId: "private" }] });
     queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, {
       pageParams: [0],
@@ -91,6 +92,7 @@ describe("auth session", () => {
     expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
     expect(secureStorage.removeItem).toHaveBeenCalledWith(LEGACY_ACCOUNT_TYPE_KEY);
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+    expect(queryClient.getQueryData(["settings"])).toBeUndefined();
     expect(queryClient.getQueryData(NOTIFICATIONS_QUERY_KEY)).toBeUndefined();
     expect(queryClient.getQueryData(["feed", "general"])).toBeUndefined();
     expect(queryClient.getQueryData(privateRecordaKey)).toBeUndefined();

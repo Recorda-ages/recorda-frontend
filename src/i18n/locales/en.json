@@ -520,5 +520,45 @@
   },
   "splash": {
     "logo": "recorda."
+  },
+  "settings": {
+    "title": "Settings",
+    "back": "Back",
+    "accountSection": "Account",
+    "account": "My account",
+    "privateAccount": "Private account",
+    "privateSupport": "Only approved followers can see your Recordas",
+    "publicSupport": "Anyone can see your Recordas",
+    "preferencesSection": "Preferences",
+    "music": "Music preferences",
+    "musicSupport": "Artists, genres and favorite song",
+    "language": "Language",
+    "sessionSection": "Session",
+    "signOut": "Sign out",
+    "loading": "Loading settings…",
+    "saving": "Saving privacy…",
+    "loadError": "Unable to load your settings.",
+    "updateError": "Unable to change privacy. Your previous setting was restored. Please try again.",
+    "retry": "Try again",
+    "accepted_one": "{{count}} request was accepted",
+    "accepted_other": "{{count}} requests were accepted",
+    "pending": "This setting is under construction. You will be able to change it here soon.",
+    "signOutError": "Unable to sign out. Please try again.",
+    "cancel": "Cancel",
+    "confirmAction": "Confirm",
+    "confirm": {
+      "private": {
+        "title": "Make your account private?",
+        "message": "Your Recordas, including older ones, will only be visible to approved followers. Your current followers stay approved."
+      },
+      "public": {
+        "title": "Make your account public?",
+        "message": "Anyone will be able to see your Recordas, including older ones. All pending follow requests will be accepted."
+      },
+      "signOut": {
+        "title": "Sign out?",
+        "message": "You will need to sign in again to access your Recordas."
+      }
+    }
   }
 }

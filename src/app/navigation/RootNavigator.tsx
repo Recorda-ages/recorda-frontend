@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import {
   NavigationContainer,
   useNavigationContainerRef,
@@ -11,6 +11,8 @@ import {
   type NativeStackNavigationProp
 } from "@react-navigation/native-stack";
 import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
+import type { PropsWithChildren } from "react";
 
 import { AppText, Button } from "@/components/ui";
 import {
@@ -40,6 +42,7 @@ import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaM
 import { FriendsScreen } from "@/features/friends";
 import { RecordaViewScreen } from "@/features/recorda-view";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
+import { SettingsScreen, SettingsPendingScreen } from "@/features/settings";
 import { SplashScreen } from "@/features/splash";
 import { UserSearchScreen } from "@/features/user-search";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
@@ -75,6 +78,8 @@ export type RootStackParamList = {
     artistName: string;
     coverUrl: string | null;
   };
+  Settings: undefined;
+  SettingsPending: { destination: "account" | "music" | "language" };
   SignUp: undefined;
   UserProfile: { userId: string };
   UserSearch: undefined;
@@ -82,29 +87,38 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type SessionPlaceholderScreenProps = {
+type SessionPlaceholderScreenProps = PropsWithChildren<{
   testID: string;
   title: string;
-};
+}>;
 
-function SessionPlaceholderScreen({ testID, title }: SessionPlaceholderScreenProps) {
-  const { t } = useTranslation();
+function useSignOut() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const onboarding = useOnboarding();
   const recordaDraft = useRecordaDraft();
 
-  const signOut = async () => {
+  return async () => {
     await clearSession();
     onboarding.reset();
     recordaDraft.reset();
     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   };
+}
 
+function SettingsRoute() {
+  const signOut = useSignOut();
+  return <SettingsScreen onSignOut={signOut} />;
+}
+
+function SessionPlaceholderScreen({ children, testID, title }: SessionPlaceholderScreenProps) {
+  const { t } = useTranslation();
+  const signOut = useSignOut();
   return (
     <View style={styles.placeholder} testID={testID}>
       <AppText style={styles.placeholderTitle} variant="headline3">
         {title}
       </AppText>
+      {children}
       <Button label={t("auth.signOut")} onPress={() => void signOut()} testID="sign-out-button" />
     </View>
   );
@@ -113,7 +127,20 @@ function SessionPlaceholderScreen({ testID, title }: SessionPlaceholderScreenPro
 function ProfilePlaceholderScreen() {
   const { t } = useTranslation();
 
-  return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  return (
+    <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")}>
+      <Pressable
+        accessibilityLabel={t("settings.title")}
+        accessibilityRole="button"
+        hitSlop={8}
+        onPress={() => navigation.navigate("Settings")}
+        style={styles.settingsButton}
+      >
+        <Icon color={colors.neutrals[100]} size={28} source="cog-outline" />
+      </Pressable>
+    </SessionPlaceholderScreen>
+  );
 }
 
 function AdminHomeRoute() {
@@ -216,6 +243,8 @@ export function RootNavigator() {
         <Stack.Screen name="PublishedRecorda" component={PublishedRecordaScreen} />
         <Stack.Screen name="RecordaShare" component={RecordaIntegrationScreen} />
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
+        <Stack.Screen name="Settings" component={SettingsRoute} />
+        <Stack.Screen name="SettingsPending" component={SettingsPendingScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminHomeRoute} />
         <Stack.Screen name="AdminReports" component={AdminReportsRoute} />
@@ -244,6 +273,15 @@ const styles = StyleSheet.create({
     gap: spacing[6],
     justifyContent: "center",
     paddingHorizontal: spacing[6]
+  },
+  settingsButton: {
+    position: "absolute",
+    top: spacing[8],
+    right: spacing[5],
+    minHeight: 48,
+    minWidth: 48,
+    alignItems: "center",
+    justifyContent: "center"
   },
   placeholderTitle: {
     color: colors.neutrals[100]

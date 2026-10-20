@@ -523,5 +523,45 @@
   },
   "splash": {
     "logo": "recorda."
+  },
+  "settings": {
+    "title": "Configurações",
+    "back": "Voltar",
+    "accountSection": "Conta",
+    "account": "Minha conta",
+    "privateAccount": "Conta privada",
+    "privateSupport": "Só seguidores aprovados veem suas Recordas",
+    "publicSupport": "Qualquer pessoa vê suas Recordas",
+    "preferencesSection": "Preferências",
+    "music": "Preferências musicais",
+    "musicSupport": "Artistas, gêneros e música favorita",
+    "language": "Idioma",
+    "sessionSection": "Sessão",
+    "signOut": "Sair",
+    "loading": "Carregando configurações…",
+    "saving": "Salvando privacidade…",
+    "loadError": "Não foi possível carregar suas configurações.",
+    "updateError": "Não foi possível alterar a privacidade. Sua configuração anterior foi restaurada. Tente novamente.",
+    "retry": "Tentar novamente",
+    "accepted_one": "{{count}} pedido foi aceito",
+    "accepted_other": "{{count}} pedidos foram aceitos",
+    "pending": "Esta configuração está em construção. Em breve você poderá alterá-la aqui.",
+    "signOutError": "Não foi possível sair. Tente novamente.",
+    "cancel": "Cancelar",
+    "confirmAction": "Confirmar",
+    "confirm": {
+      "private": {
+        "title": "Tornar a conta privada?",
+        "message": "Suas Recordas, inclusive as antigas, passam a aparecer só para seguidores aprovados. Seus seguidores atuais continuam aprovados."
+      },
+      "public": {
+        "title": "Tornar a conta pública?",
+        "message": "Qualquer pessoa poderá ver suas Recordas, inclusive as antigas. Todos os pedidos pendentes para seguir você serão aceitos."
+      },
+      "signOut": {
+        "title": "Sair da conta?",
+        "message": "Você precisará entrar novamente para acessar suas Recordas."
+      }
+    }
   }
 }
