@@ -12,7 +12,9 @@ notifyManager.setScheduler((cb) => cb());
 let client: QueryClient;
 const original = { is_private: true, language: "pt-BR" };
 function setup() {
-  client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity, retry: false } } });
+  client = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity, retry: false, staleTime: 30_000 } }
+  });
   client.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "a" });
   jest.spyOn(service, "getSettings").mockResolvedValue(original);
   const wrapper = ({ children }: PropsWithChildren) => (

@@ -25,7 +25,10 @@ const signOut = jest.fn();
 
 function renderScreen(cached?: UserSettings) {
   queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } }
+    defaultOptions: {
+      queries: { retry: false, gcTime: Infinity, staleTime: 30_000 },
+      mutations: { retry: false }
+    }
   });
   if (cached) queryClient.setQueryData(SETTINGS_QUERY_KEY, cached);
   queryClient.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "test-user" });
@@ -172,6 +175,40 @@ it("invalidates profile, feed and notifications only after successful persistenc
   await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(3));
   for (const queryKey of [["profile"], ["feed"], ["notifications"]])
     expect(invalidate).toHaveBeenCalledWith({ queryKey });
+});
+
+it("keeps privacy edits blocked after leaving and reopening while a save is pending", async () => {
+  let finish!: (response: SettingsUpdateResponse) => void;
+  patch.mockImplementation(
+    () =>
+      new Promise<SettingsUpdateResponse>((resolve) => {
+        finish = resolve;
+      })
+  );
+  const firstVisit = renderScreen();
+  await ready();
+  toggle(true);
+  fireEvent.press(screen.getByRole("button", { name: "Confirmar" }));
+  await waitFor(() => expect(patch).toHaveBeenCalledTimes(1));
+  firstVisit.unmount();
+  get.mockClear();
+  render(
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <SettingsScreen onSignOut={signOut} />
+      </QueryClientProvider>
+    </I18nextProvider>
+  );
+  expect(screen.getByRole("switch")).toBeDisabled();
+  expect(screen.getByText("Salvando privacidade…")).toBeTruthy();
+  expect(get).not.toHaveBeenCalled();
+  await act(async () => {
+    serverSettings.is_private = true;
+    finish({ ...serverSettings, accepted_requests: 0 });
+  });
+  await ready();
+  expect(screen.getByRole("switch")).toHaveProp("value", true);
+  expect(patch).toHaveBeenCalledTimes(1);
 });
 
 it("shows loading, handles failure without inventing privacy, and allows retry", async () => {

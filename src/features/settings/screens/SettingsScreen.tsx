@@ -19,12 +19,12 @@ type Confirmation = "private" | "public" | "signOut";
 export function SettingsScreen({ onSignOut }: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { settings, update } = useSettings();
+  const { settings, update, isUpdating } = useSettings();
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState(false);
   const confirmLock = useRef(false);
-  const busy = update.isPending || signingOut;
+  const busy = isUpdating || signingOut;
 
   const confirm = async () => {
     if (!confirmation || confirmLock.current || busy) return;
@@ -73,6 +73,10 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
     </Pressable>
   );
 
+  const accountRow = row("account", "account-outline");
+  const musicRow = row("music", "music-note-outline");
+  const languageRow = row("language", "web");
+
   return (
     <SafeAreaView style={styles.screen} testID="settings-screen">
       <StatusBar style="light" />
@@ -91,7 +95,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <AppText style={styles.section}>{t("settings.accountSection")}</AppText>
-        {row("account", "account-outline")}
+        {accountRow}
         {settings.isPending ? <Loading label={t("settings.loading")} /> : null}
         {settings.isError ? (
           <View style={styles.feedback}>
@@ -135,7 +139,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
             />
           </View>
         ) : null}
-        {update.isPending ? <Loading label={t("settings.saving")} /> : null}
+        {isUpdating ? <Loading label={t("settings.saving")} /> : null}
         {update.isError ? <ErrorState message={t("settings.updateError")} /> : null}
         {update.isSuccess && !update.data.is_private && update.data.accepted_requests > 0 ? (
           <AppText accessibilityLiveRegion="polite" style={styles.success}>
@@ -143,8 +147,8 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
           </AppText>
         ) : null}
         <AppText style={styles.section}>{t("settings.preferencesSection")}</AppText>
-        {row("music", "music-note-outline")}
-        {row("language", "web")}
+        {musicRow}
+        {languageRow}
         <AppText style={styles.section}>{t("settings.sessionSection")}</AppText>
         <Pressable
           accessibilityRole="button"

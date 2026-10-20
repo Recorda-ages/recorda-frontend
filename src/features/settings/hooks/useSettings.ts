@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
@@ -10,8 +10,9 @@ import type { SettingsUpdate, UserSettings } from "../types";
 export function useSettings() {
   const queryClient = useQueryClient();
   const user = useCurrentUser();
+  const isUpdating = useIsMutating({ mutationKey: SETTINGS_QUERY_KEY }) > 0;
   const settings = useQuery({
-    enabled: Boolean(user?.user_id),
+    enabled: Boolean(user?.user_id) && !isUpdating,
     queryKey: SETTINGS_QUERY_KEY,
     queryFn: ({ signal }) => getSettings(signal),
     refetchOnMount: "always"
@@ -20,6 +21,7 @@ export function useSettings() {
     queryClient.getQueryCache().find({ queryKey: AUTH_ME_QUERY_KEY, exact: true });
 
   const update = useMutation({
+    mutationKey: SETTINGS_QUERY_KEY,
     mutationFn: updateSettings,
     retry: false,
     onMutate: async (partial: SettingsUpdate) => {
@@ -49,5 +51,5 @@ export function useSettings() {
     }
   });
 
-  return { settings, update };
+  return { settings, update, isUpdating };
 }

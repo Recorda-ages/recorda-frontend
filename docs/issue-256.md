@@ -1,6 +1,8 @@
 # #256 — Configurações e privacidade
 
 Branch `feat/256-settings-privacy`, criada a partir de `origin/dev` (`dcc27ca`).
+Sincronizada por rebase em 20/10/2026 com `origin/dev` (`0e7418c`), preservando
+as novas telas administrativas e todas as traduções existentes.
 
 ## Comportamento
 
@@ -20,6 +22,9 @@ Branch `feat/256-settings-privacy`, criada a partir de `origin/dev` (`dcc27ca`).
 - Sair pede confirmação e reutiliza a limpeza local de sessão, onboarding e
   rascunho já existente. O cache de configurações é removido ao sair, e respostas
   de mutações antigas não podem sobrescrever uma nova sessão.
+- O bloqueio de gravação é compartilhado entre montagens: sair e reabrir a tela
+  durante um PATCH mantém o interruptor bloqueado até a resposta, evitando
+  alterações simultâneas e refetch que sobrescreva o valor otimista.
 
 ## Integração e limites
 
@@ -54,6 +59,7 @@ A verificação real do app revelou dois bloqueios preexistentes de inicializaç
 - O pré-carregamento chamava `Image.resolveAssetSource`, ausente em React Native Web.
   A Web agora usa o cache normal do navegador; o aquecimento dos caches nativos
   foi preservado. Há teste do cenário sem o resolvedor nativo.
+  Essa correção já chegou pela `dev` durante o rebase e foi preservada.
 
 ## Evidências
 
@@ -85,21 +91,25 @@ somente o `App.web.tsx` temporário. Ele não faz parte da entrega.
 
 ## Validação
 
-- Suíte completa: **86 suítes e 710 testes aprovados**, com os parâmetros da CI:
+- Suíte completa após rebase: **95 suítes e 807 testes aprovados**, com os parâmetros da CI:
   `npm test -- --coverage --maxWorkers=50% --forceExit --testTimeout=30000`.
-- 24 testes da feature: confirmações, cancelamento, estado real e refetch, rollback
+- 25 testes da feature: confirmações, cancelamento, estado real e refetch, rollback
   nas duas direções, bloqueio durante gravação, contagem de pedidos, invalidações,
-  falha de leitura/retry, navegação real, saída e proteção entre sessões.
-- Cobertura da feature: **98,55% de linhas**, **93,54% de branches** e **96% de
-  funções**. Tela principal: **97,36% de linhas**. Hook, serviço e destinos
-  provisórios: **100% de linhas**. Cobertura global de linhas: **91,58%**.
+  falha de leitura/retry, navegação real, saída, proteção entre sessões e
+  reabertura durante uma gravação pendente.
+- Cobertura da feature: **98,63% de linhas**, **93,75% de branches** e **96% de
+  funções**. Tela principal: **97,56% de linhas**. Hook, serviço e destinos
+  provisórios: **100% de linhas**. Cobertura global de linhas: **92,51%**.
 - Lint, formatação, typecheck e exportação Expo de Android/iOS/Web validados.
 - O cache do Jest foi direcionado a `../tmp/jest-256` por restrições do diretório
   temporário do sandbox. A execução final ocorreu fora do sandbox no Node 24.14.1.
 - O Prettier normalizou CRLF do checkout Windows; essas normalizações não
   acrescentaram alterações de conteúdo fora dos arquivos da tarefa.
-- O Jest ainda emite avisos de `act` em testes existentes do feed/detalhes e usa
+- O Jest ainda emite avisos de `act`/atualização durante renderização nos testes e usa
   `--forceExit`, como a CI. O log preserva esses avisos.
+- A revisão independente identificou a concorrência ao reabrir a tela durante
+  PATCH. Um teste de regressão falhou antes da correção e passou após compartilhar
+  o estado de gravação pelo TanStack Query. A correção foi reavaliada e aprovada.
 
 Revisão visual aprovada pelo usuário em 20/10/2026, com autorização de commit,
 sincronização com `dev`, push e PR. Merge permanece fora do escopo.
