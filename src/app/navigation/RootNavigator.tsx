@@ -38,6 +38,7 @@ import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
+import { UserProfileScreen } from "@/features/profile";
 import { RecordaViewScreen } from "@/features/recorda-view";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 import { SplashScreen } from "@/features/splash";
@@ -173,22 +174,6 @@ function AdminAuditLogRoute() {
   );
 }
 
-function UserProfilePlaceholderScreen() {
-  const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, "UserProfile">>();
-
-  return (
-    <View style={styles.placeholder} testID="user-profile-screen">
-      <AppText style={styles.placeholderTitle} variant="headline3">
-        {t("profile.title")}
-      </AppText>
-      <AppText style={styles.placeholderTitle}>{route.params.userId}</AppText>
-      <Button label={t("userSearch.back")} onPress={() => navigation.goBack()} />
-    </View>
-  );
-}
-
 export function RootNavigator() {
   const { setActiveRoute } = useFeedAudioActions();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
@@ -230,7 +215,7 @@ export function RootNavigator() {
         <Stack.Screen name="RecordaView" component={RecordaViewScreen} />
         <Stack.Screen name="ShareCard" component={ShareCardScreen} />
         <Stack.Screen name="UserSearch" component={UserSearchScreen} />
-        <Stack.Screen name="UserProfile" component={UserProfilePlaceholderScreen} />
+        <Stack.Screen name="UserProfile" component={UserProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

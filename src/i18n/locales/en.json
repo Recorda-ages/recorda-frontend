@@ -306,7 +306,14 @@
     "private": {
       "title": "This account is private",
       "message": "Follow this profile to see their Recordas."
-    }
+    },
+    "comingSoon": "Coming soon",
+    "back": "Back",
+    "loading": "Loading profile",
+    "loadError": "We couldn't load this profile.",
+    "retry": "Try again",
+    "unavailable": "This profile isn't available.",
+    "report": "Report profile"
   },
   "friends": {
     "title": "Friends",

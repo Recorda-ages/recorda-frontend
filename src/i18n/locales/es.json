@@ -306,7 +306,14 @@
     "private": {
       "title": "Esta cuenta es privada",
       "message": "Sigue este perfil para ver sus Recordas."
-    }
+    },
+    "comingSoon": "Próximamente",
+    "back": "Volver",
+    "loading": "Cargando perfil",
+    "loadError": "No se pudo cargar el perfil.",
+    "retry": "Intentar de nuevo",
+    "unavailable": "Este perfil no está disponible.",
+    "report": "Denunciar perfil"
   },
   "friends": {
     "title": "Amigos",

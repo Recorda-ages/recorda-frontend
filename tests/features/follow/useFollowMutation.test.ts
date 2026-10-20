@@ -266,6 +266,25 @@ describe("useFollowMutation", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["suggestions", "users"] });
   });
 
+  it.each([
+    ["follow", () => mockFollow.mockResolvedValueOnce({ follow_status: "solicitado" })],
+    ["unfollow", () => mockUnfollow.mockResolvedValueOnce({ follow_status: "nenhuma" })]
+  ] as const)(
+    "refreshes only the target's profile after a successful %s",
+    async (action, arrange) => {
+      arrange();
+      const { client, result } = setup(action === "follow" ? "nenhuma" : "seguindo");
+      const invalidateSpy = jest.spyOn(client, "invalidateQueries");
+
+      await act(async () => {
+        await result.current.mutateAsync({ action, userId: "user-1" });
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["profile", "user-1"] });
+      expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ["profile", "user-2"] });
+    }
+  );
+
   it("keeps suggestions as they are after a follow", async () => {
     mockFollow.mockResolvedValueOnce({ follow_status: "seguindo" });
     const { client, result } = setup("nenhuma");

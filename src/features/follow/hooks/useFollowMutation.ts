@@ -1,5 +1,7 @@
 import { type QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { profileQueryKey } from "@/features/profile/queryKeys";
+
 import { USER_SUGGESTIONS_QUERY_KEY } from "../queryKeys";
 import { followService } from "../services/followService";
 import type { FollowMutationInput, FollowMutationResult, FollowStatus } from "../types";
@@ -45,9 +47,11 @@ export function useFollowMutation() {
       return { snapshot };
     },
 
-    onSettled: (_result, _error, { action }: FollowMutationInput) => {
+    onSettled: (_result, _error, { action, userId }: FollowMutationInput) => {
       void queryClient.invalidateQueries({ queryKey: USERS_QUERY_PREFIX });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      // The profile screen reads follow_status, counts and can_view_content from the server.
+      void queryClient.invalidateQueries({ queryKey: profileQueryKey(userId) });
       // Suggestions skip followed profiles, so an unfollow can bring one back. Follows
       // don't refresh them: the just-followed profile stays visible with its check mark.
       if (action === "unfollow") {
