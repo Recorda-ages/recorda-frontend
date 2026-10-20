@@ -120,6 +120,26 @@ describe("FriendsScreen", () => {
     });
   });
 
+  it("opens the pressed follower's profile", async () => {
+    renderScreen();
+
+    fireEvent.press(await screen.findByText("Anne Wilson"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("UserProfile", { userId: "2" });
+  });
+
+  it("opens the pressed following's profile", async () => {
+    mockListFollowing.mockResolvedValue([
+      { avatarUrl: null, displayName: "Kim Lee", id: "following-7", username: "kimlee" }
+    ]);
+    renderScreen();
+
+    fireEvent.press(screen.getByText("Seguindo"));
+    fireEvent.press(await screen.findByText("Kim Lee"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("UserProfile", { userId: "following-7" });
+  });
+
   it("navigates back when the back button is pressed", async () => {
     renderScreen();
     await waitFor(() => expect(screen.getByText("Amigos")).toBeTruthy());

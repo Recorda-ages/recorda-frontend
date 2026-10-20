@@ -47,7 +47,8 @@ function renderCard(
   onToggleLike = jest.fn(),
   focused = false,
   ownership: RecordaOwnership = "other",
-  onReport = jest.fn()
+  onReport = jest.fn(),
+  onAuthorPress = jest.fn()
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
@@ -60,6 +61,7 @@ function renderCard(
           {focused ? <FocusCard recordaId={item.recorda_id} /> : null}
           <RecordaCard
             item={item}
+            onAuthorPress={onAuthorPress}
             onPress={onPress}
             onReport={onReport}
             onShare={onShare}
@@ -70,7 +72,7 @@ function renderCard(
       </QueryClientProvider>
     </I18nextProvider>
   );
-  return { onPress, onReport };
+  return { onAuthorPress, onPress, onReport };
 }
 
 function renderMenu(ownership: RecordaOwnership) {
@@ -165,6 +167,7 @@ describe("RecordaCard", () => {
             <RecordaCard
               focusKey="geral:recorda-1"
               item={item}
+              onAuthorPress={jest.fn()}
               onPress={jest.fn()}
               onReport={jest.fn()}
               onToggleLike={jest.fn()}
@@ -173,6 +176,7 @@ describe("RecordaCard", () => {
             <RecordaCard
               focusKey="following:recorda-1"
               item={item}
+              onAuthorPress={jest.fn()}
               onPress={jest.fn()}
               onReport={jest.fn()}
               onToggleLike={jest.fn()}
@@ -256,10 +260,28 @@ describe("RecordaCard", () => {
     );
   });
 
-  it("exposes the card, menu and like controls as interactive buttons", () => {
+  it("exposes the card, author, menu and like controls as interactive buttons", () => {
     renderCard(BASE_ITEM);
 
-    expect(screen.getAllByRole("button")).toHaveLength(5);
+    expect(screen.getAllByRole("button")).toHaveLength(6);
+  });
+
+  it("opens the author's profile from the username without opening the card", () => {
+    const { onAuthorPress, onPress } = renderCard(BASE_ITEM);
+
+    fireEvent.press(screen.getByLabelText("Abrir perfil de lucas_almeida"));
+
+    expect(onAuthorPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("opens the author's profile from the avatar without opening the card", () => {
+    const { onAuthorPress, onPress } = renderCard(BASE_ITEM);
+
+    fireEvent.press(screen.getByTestId("recorda-author-avatar-button"));
+
+    expect(onAuthorPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
   });
 
   it("calls onPress with the whole card when tapped", () => {

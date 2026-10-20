@@ -2,6 +2,7 @@ import { followService } from "@/features/follow/services/followService";
 import { authApiClient } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
+  ...jest.requireActual("@/services/api"),
   authApiClient: { delete: jest.fn(), post: jest.fn() }
 }));
 
@@ -47,4 +48,15 @@ describe("followService", () => {
 
     expect(getMock().mock.calls[0][0]).toBe("/users/a%2Fb%3Fc/follow");
   });
+
+  it.each(["follow", "unfollow"] as const)(
+    "never sends a %s for a development mock profile",
+    async (action) => {
+      await expect(followService[action]("mock-profile-public")).rejects.toMatchObject({
+        code: "MOCK_PROFILE"
+      });
+      expect(mockPost).not.toHaveBeenCalled();
+      expect(mockDelete).not.toHaveBeenCalled();
+    }
+  );
 });

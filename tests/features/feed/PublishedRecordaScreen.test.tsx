@@ -487,6 +487,71 @@ describe("PublishedRecordaScreen", () => {
     expect(input.props.value).toBe("");
   });
 
+  describe("profile links", () => {
+    const item: FeedItem = {
+      author: { user_id: "user-2", username: "jane", profile_picture_url: null },
+      created_at: "2026-01-01T12:00:00Z",
+      description: "Show ao vivo",
+      is_liked: false,
+      likes_count: 1,
+      media_type: "PHOTO",
+      media_url: "https://cdn.example.com/live.jpg",
+      recorda_id: "11111111-1111-4111-8111-111111111111",
+      song_artist_name: "Artist",
+      song_cover_url: "",
+      song_preview_url: null,
+      song_title: "Song"
+    };
+    const comment = {
+      comment_id: "comment-1",
+      user_id: "user-3",
+      username: "ana",
+      avatar_url: null,
+      content: "Eu estava lá!",
+      created_at: "2026-09-27T12:00:00Z"
+    };
+
+    function openApiItem() {
+      getComments.mockResolvedValue([comment]);
+      mockRoute.params.postId = item.recorda_id;
+      renderScreen(item);
+      fireEvent.press(screen.getByText("Open API item"));
+    }
+
+    it("opens the author's profile from the username and the avatar", () => {
+      openApiItem();
+
+      fireEvent.press(screen.getByLabelText("Abrir perfil de jane"));
+      fireEvent.press(screen.getByTestId("recorda-author-avatar-button"));
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, "UserProfile", { userId: "user-2" });
+      expect(mockNavigate).toHaveBeenNthCalledWith(2, "UserProfile", { userId: "user-2" });
+    });
+
+    it("opens a commenter's profile from the username and the avatar", async () => {
+      openApiItem();
+      fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
+
+      fireEvent.press(await screen.findByText("ana"));
+      fireEvent.press(screen.getByLabelText("Abrir perfil de ana"));
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, "UserProfile", { userId: "user-3" });
+      expect(mockNavigate).toHaveBeenNthCalledWith(2, "UserProfile", { userId: "user-3" });
+    });
+
+    it("leaves local comments without an author id unlinked", () => {
+      renderScreen();
+      fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
+
+      fireEvent.press(screen.getByText("jane_smith"));
+
+      expect(screen.queryByLabelText("Abrir perfil de jane_smith")).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
   it("opens an API video with its existing like count", () => {
     const item: FeedItem = {
       author: { user_id: "user-2", username: "jane_smith", profile_picture_url: null },

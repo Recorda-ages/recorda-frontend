@@ -2,6 +2,7 @@ import { reportService } from "@/features/moderation/services/reportService";
 import { authApiClient } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
+  ...jest.requireActual("@/services/api"),
   authApiClient: { post: jest.fn() }
 }));
 
@@ -69,5 +70,11 @@ describe("reportService", () => {
     await call();
 
     expect(mockPost.mock.calls[0][0]).toBe(expectedPath);
+  });
+  it("never reports a development mock profile to the backend", async () => {
+    await expect(reportService.reportUser("mock-profile-public", "teste")).rejects.toMatchObject({
+      code: "MOCK_PROFILE"
+    });
+    expect(mockPost).not.toHaveBeenCalled();
   });
 });

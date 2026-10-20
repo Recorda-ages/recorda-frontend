@@ -286,7 +286,34 @@
     }
   },
   "profile": {
-    "title": "Perfil"
+    "title": "Perfil",
+    "openA11y": "Abrir el perfil de {{username}}",
+    "avatarA11y": "Foto de perfil de {{name}}",
+    "editAvatarA11y": "Cambiar foto de perfil",
+    "favoriteSongA11y": "Canción favorita: {{title}}, de {{artist}}",
+    "counts": {
+      "recordas_one": "Recorda",
+      "recordas_other": "Recordas",
+      "followers_one": "Seguidor",
+      "followers_other": "Seguidores",
+      "following": "Siguiendo"
+    },
+    "tabs": {
+      "recordas": "Recordas",
+      "metrics": "Métricas",
+      "calendar": "Calendario"
+    },
+    "private": {
+      "title": "Esta cuenta es privada",
+      "message": "Sigue este perfil para ver sus Recordas."
+    },
+    "comingSoon": "Próximamente",
+    "back": "Volver",
+    "loading": "Cargando perfil",
+    "loadError": "No se pudo cargar el perfil.",
+    "retry": "Intentar de nuevo",
+    "unavailable": "Este perfil no está disponible.",
+    "report": "Denunciar perfil"
   },
   "friends": {
     "title": "Amigos",
@@ -464,7 +491,7 @@
     "followA11y": "Seguir a {{username}}",
     "requestedA11y": "Cancelar la solicitud para seguir a {{username}}",
     "followingA11y": "Dejar de seguir a {{username}}",
-    "unfollowTitle": "Dejar de seguir",
+    "unfollowTitle": "¿Dejar de seguir?",
     "unfollowMessage": "¿Seguro que quieres dejar de seguir a {{username}}?",
     "unfollowCancel": "Cancelar",
     "unfollowConfirm": "Dejar de seguir"
