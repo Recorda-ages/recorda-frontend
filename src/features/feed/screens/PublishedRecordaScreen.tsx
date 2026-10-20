@@ -29,6 +29,7 @@ function toFeedComment(comment: RecordaCommentResponse): FeedComment {
   return {
     id: comment.comment_id,
     text: comment.content,
+    userId: comment.user_id,
     username: comment.username,
     avatarUrl: comment.avatar_url ? resolveApiAssetUrl(comment.avatar_url) : null,
     createdAt: comment.created_at
@@ -193,6 +194,7 @@ export function PublishedRecordaScreen() {
             navigation.goBack();
           }
         }}
+        onOpenProfile={(userId) => navigation.navigate("UserProfile", { userId })}
         onReport={() => openReport({ recordaId: post.id, type: "RECORDA" })}
         onShare={() =>
           navigation.navigate("ShareCard", {

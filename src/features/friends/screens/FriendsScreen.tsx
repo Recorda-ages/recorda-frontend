@@ -57,8 +57,8 @@ export function FriendsScreen() {
     }
   };
 
-  const handleProfilePress = (_profile: FriendProfile) => {
-    navigation.navigate("Profile");
+  const handleProfilePress = (profile: FriendProfile) => {
+    navigation.navigate("UserProfile", { userId: profile.id });
   };
 
   return (

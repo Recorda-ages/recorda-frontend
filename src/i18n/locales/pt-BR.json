@@ -288,6 +288,7 @@
   },
   "profile": {
     "title": "Perfil",
+    "openA11y": "Abrir perfil de {{username}}",
     "avatarA11y": "Foto de perfil de {{name}}",
     "editAvatarA11y": "Alterar foto de perfil",
     "favoriteSongA11y": "Música favorita: {{title}}, de {{artist}}",
