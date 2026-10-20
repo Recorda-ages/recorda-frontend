@@ -11,12 +11,14 @@ import { signUpSchema } from "@/features/auth/validation/signUpSchema";
 import { AdminUserActions, UserModerationForm, type AdminUserRow } from "@/features/moderation";
 import { musicService } from "@/features/music/services/musicService";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
+import { ProfileHeader, ProfilePrivateNotice, ProfileTabs } from "@/features/profile";
 import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { i18n } from "@/i18n";
 import en from "@/i18n/locales/en.json";
 import ptBR from "@/i18n/locales/pt-BR.json";
+import { AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 
 import type * as ExpoCameraMock from "../mocks/expoCamera";
 import type * as ExpoImagePickerMock from "../mocks/expoImagePicker";
@@ -272,6 +274,36 @@ describe("screens with the app in English", () => {
 
     expect(screen.getByRole("button", { name: "Next" })).toBeTruthy();
     expect(screen.getByText("Next")).toBeTruthy();
+    expectNoPortuguese();
+  });
+
+  it("shows the profile header, tabs and private notice in English", () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { gcTime: Infinity, retry: false } }
+    });
+    client.setQueryData(AUTH_TOKEN_QUERY_KEY, null);
+    render(
+      <I18nextProvider i18n={i18n}>
+        <QueryClientProvider client={client}>
+          <ProfileHeader
+            avatarUrl={null}
+            counts={{ followers: 1, following: 2, recordas: 3 }}
+            favoriteSong={{ artistName: "Muse", coverUrl: null, title: "Starlight" }}
+            name="Lucas Almeida"
+            username="lucas_almeida"
+          />
+          <ProfileTabs activeTab="recordas" onChange={jest.fn()} />
+          <ProfilePrivateNotice />
+        </QueryClientProvider>
+      </I18nextProvider>
+    );
+
+    expect(screen.getByLabelText("1 Follower")).toBeTruthy();
+    expect(screen.getByLabelText("3 Recordas")).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Metrics" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Calendar" })).toBeTruthy();
+    expect(screen.getByText("This account is private")).toBeTruthy();
+    expect(screen.getByText("Follow this profile to see their Recordas.")).toBeTruthy();
     expectNoPortuguese();
   });
 
