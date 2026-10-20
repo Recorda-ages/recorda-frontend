@@ -484,7 +484,7 @@
     "followA11y": "Follow {{username}}",
     "requestedA11y": "Cancel follow request for {{username}}",
     "followingA11y": "Unfollow {{username}}",
-    "unfollowTitle": "Unfollow",
+    "unfollowTitle": "Unfollow?",
     "unfollowMessage": "Are you sure you want to unfollow {{username}}?",
     "unfollowCancel": "Cancel",
     "unfollowConfirm": "Unfollow"

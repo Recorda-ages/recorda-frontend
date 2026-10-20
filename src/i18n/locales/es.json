@@ -484,7 +484,7 @@
     "followA11y": "Seguir a {{username}}",
     "requestedA11y": "Cancelar la solicitud para seguir a {{username}}",
     "followingA11y": "Dejar de seguir a {{username}}",
-    "unfollowTitle": "Dejar de seguir",
+    "unfollowTitle": "¿Dejar de seguir?",
     "unfollowMessage": "¿Seguro que quieres dejar de seguir a {{username}}?",
     "unfollowCancel": "Cancelar",
     "unfollowConfirm": "Dejar de seguir"
