@@ -354,7 +354,26 @@
     }
   },
   "profile": {
-    "title": "Perfil"
+    "title": "Perfil",
+    "avatarA11y": "Foto de perfil de {{name}}",
+    "editAvatarA11y": "Cambiar foto de perfil",
+    "favoriteSongA11y": "Canción favorita: {{title}}, de {{artist}}",
+    "counts": {
+      "recordas_one": "Recorda",
+      "recordas_other": "Recordas",
+      "followers_one": "Seguidor",
+      "followers_other": "Seguidores",
+      "following": "Siguiendo"
+    },
+    "tabs": {
+      "recordas": "Recordas",
+      "metrics": "Métricas",
+      "calendar": "Calendario"
+    },
+    "private": {
+      "title": "Esta cuenta es privada",
+      "message": "Sigue este perfil para ver sus Recordas."
+    }
   },
   "settings": {
     "title": "Configuración",
