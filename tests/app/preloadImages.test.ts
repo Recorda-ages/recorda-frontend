@@ -1,9 +1,18 @@
 import { Image as ExpoImage } from "expo-image";
-import { Image as RNImage } from "react-native";
+import { Image as RNImage, Platform } from "react-native";
 
 import { IMAGE_PRELOAD_TIMEOUT_MS, preloadStartupImages } from "@/app/preloadImages";
 
 describe("preloadStartupImages", () => {
+  it("starts on web without invoking the unavailable native asset resolver", async () => {
+    const platform = jest.replaceProperty(Platform, "OS", "web");
+    const resolver = jest.spyOn(RNImage, "resolveAssetSource").mockImplementation(() => {
+      throw new Error("native resolver unavailable");
+    });
+    await expect(preloadStartupImages()).resolves.toBeUndefined();
+    expect(resolver).not.toHaveBeenCalled();
+    platform.restore();
+  });
   afterEach(() => {
     jest.restoreAllMocks();
     jest.useRealTimers();
