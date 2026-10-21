@@ -15,67 +15,39 @@ import { useSettings } from "../hooks/useSettings";
 
 type Props = { onSignOut: () => Promise<void> };
 type Confirmation = "private" | "public" | "signOut";
+type Destination = RootStackParamList["SettingsPending"]["destination"];
+
+const CONFIRMATION_ICONS: Record<Confirmation, string> = {
+  private: "lock-outline",
+  public: "lock-open-outline",
+  signOut: "logout"
+};
 
 export function SettingsScreen({ onSignOut }: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { settings, update, isUpdating } = useSettings();
+  const signOut = useSignOutFlow(onSignOut);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState(false);
   const confirmLock = useRef(false);
-  const busy = isUpdating || signingOut;
+  const busy = isUpdating || signOut.signingOut;
 
-  const confirm = async () => {
+  const confirm = () => {
     if (!confirmation || confirmLock.current || busy) return;
     confirmLock.current = true;
     setConfirmation(null);
+    const release = () => {
+      confirmLock.current = false;
+    };
     if (confirmation === "signOut") {
-      setSigningOut(true);
-      setSignOutError(false);
-      try {
-        await onSignOut();
-      } catch {
-        setSignOutError(true);
-      } finally {
-        setSigningOut(false);
-        confirmLock.current = false;
-      }
+      void signOut.run().finally(release);
       return;
     }
-    update.mutate(
-      { is_private: confirmation === "private" },
-      {
-        onSettled: () => {
-          confirmLock.current = false;
-        }
-      }
-    );
+    update.mutate({ is_private: confirmation === "private" }, { onSettled: release });
   };
 
-  const row = (destination: "account" | "music" | "language", icon: string) => (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={() => navigation.navigate("SettingsPending", { destination })}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-    >
-      <View style={styles.icon}>
-        <Icon color={colors.primary[500]} size={22} source={icon} />
-      </View>
-      <View style={styles.copy}>
-        <AppText style={styles.label}>{t(`settings.${destination}`)}</AppText>
-        {destination === "music" ? (
-          <AppText style={styles.support}>{t("settings.musicSupport")}</AppText>
-        ) : null}
-      </View>
-      <Icon color={colors.primary[500]} size={24} source="chevron-right" />
-    </Pressable>
-  );
-
-  const accountRow = row("account", "account-outline");
-  const musicRow = row("music", "music-note-outline");
-  const languageRow = row("language", "web");
+  const openPending = (destination: Destination) =>
+    navigation.navigate("SettingsPending", { destination });
 
   return (
     <SafeAreaView style={styles.screen} testID="settings-screen">
@@ -95,7 +67,12 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <AppText style={styles.section}>{t("settings.accountSection")}</AppText>
-        {accountRow}
+        <NavigationRow
+          destination="account"
+          disabled={busy}
+          icon="account-outline"
+          onPress={openPending}
+        />
         {settings.isPending ? <Loading label={t("settings.loading")} /> : null}
         {settings.isError ? (
           <View style={styles.feedback}>
@@ -108,47 +85,26 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
           </View>
         ) : null}
         {settings.data ? (
-          <View style={styles.row}>
-            <View style={styles.icon}>
-              <Icon color={colors.primary[500]} size={22} source="lock-outline" />
-            </View>
-            <View style={styles.copy}>
-              <AppText style={styles.label}>{t("settings.privateAccount")}</AppText>
-              <AppText style={styles.support}>
-                {t(settings.data.is_private ? "settings.privateSupport" : "settings.publicSupport")}
-              </AppText>
-            </View>
-            <Switch
-              accessibilityState={{
-                checked: settings.data.is_private,
-                disabled: busy || settings.isFetching || settings.isError,
-                busy
-              }}
-              accessibilityLabel={t("settings.privateAccount")}
-              accessibilityHint={t(
-                settings.data.is_private ? "settings.privateSupport" : "settings.publicSupport"
-              )}
-              disabled={busy || settings.isFetching || settings.isError}
-              onValueChange={(value) => {
-                update.reset();
-                setConfirmation(value ? "private" : "public");
-              }}
-              trackColor={{ false: colors.neutrals[600], true: colors.primary[700] }}
-              thumbColor={colors.neutrals[100]}
-              value={settings.data.is_private}
-            />
-          </View>
+          <PrivacyRow
+            busy={busy}
+            disabled={busy || settings.isFetching || settings.isError}
+            isPrivate={settings.data.is_private}
+            onChange={(value) => {
+              update.reset();
+              setConfirmation(value ? "private" : "public");
+            }}
+          />
         ) : null}
-        {isUpdating ? <Loading label={t("settings.saving")} /> : null}
-        {update.isError ? <ErrorState message={t("settings.updateError")} /> : null}
-        {update.isSuccess && !update.data.is_private && update.data.accepted_requests > 0 ? (
-          <AppText accessibilityLiveRegion="polite" style={styles.success}>
-            {t("settings.accepted", { count: update.data.accepted_requests })}
-          </AppText>
-        ) : null}
+        <PrivacyFeedback isUpdating={isUpdating} update={update} />
         <AppText style={styles.section}>{t("settings.preferencesSection")}</AppText>
-        {musicRow}
-        {languageRow}
+        <NavigationRow
+          destination="music"
+          disabled={busy}
+          icon="music-note-outline"
+          onPress={openPending}
+          support={t("settings.musicSupport")}
+        />
+        <NavigationRow destination="language" disabled={busy} icon="web" onPress={openPending} />
         <AppText style={styles.section}>{t("settings.sessionSection")}</AppText>
         <Pressable
           accessibilityRole="button"
@@ -160,45 +116,158 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
           <AppText style={styles.signOutLabel}>{t("settings.signOut")}</AppText>
           <Icon color={colors.error[300]} size={24} source="chevron-right" />
         </Pressable>
-        {signOutError ? <ErrorState message={t("settings.signOutError")} /> : null}
+        {signOut.failed ? <ErrorState message={t("settings.signOutError")} /> : null}
       </ScrollView>
-      {confirmation !== null ? (
-        <Modal
-          animationType="fade"
-          onRequestClose={() => setConfirmation(null)}
-          transparent
-          visible
-        >
-          <View style={styles.backdrop}>
-            <View accessibilityViewIsModal style={styles.dialog}>
-              <Icon
-                color={colors.primary[500]}
-                size={32}
-                source={
-                  confirmation === "private"
-                    ? "lock-outline"
-                    : confirmation === "public"
-                      ? "lock-open-outline"
-                      : "logout"
-                }
-              />
-              <AppText style={styles.title}>{t(`settings.confirm.${confirmation}.title`)}</AppText>
-              <AppText style={styles.message}>
-                {t(`settings.confirm.${confirmation}.message`)}
-              </AppText>
-              <Button label={t("settings.confirmAction")} onPress={() => void confirm()} />
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setConfirmation(null)}
-                style={styles.cancel}
-              >
-                <AppText style={styles.label}>{t("settings.cancel")}</AppText>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
-      ) : null}
+      {confirmation === null ? null : (
+        <ConfirmationDialog
+          confirmation={confirmation}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={confirm}
+        />
+      )}
     </SafeAreaView>
+  );
+}
+
+function useSignOutFlow(onSignOut: () => Promise<void>) {
+  const [signingOut, setSigningOut] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const run = async () => {
+    setSigningOut(true);
+    setFailed(false);
+    try {
+      await onSignOut();
+    } catch {
+      setFailed(true);
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  return { failed, run, signingOut };
+}
+
+type PrivacyFeedbackProps = {
+  isUpdating: boolean;
+  update: ReturnType<typeof useSettings>["update"];
+};
+
+function PrivacyFeedback({ isUpdating, update }: Readonly<PrivacyFeedbackProps>) {
+  const { t } = useTranslation();
+  const acceptedRequests =
+    update.isSuccess && !update.data.is_private ? update.data.accepted_requests : 0;
+
+  return (
+    <>
+      {isUpdating ? <Loading label={t("settings.saving")} /> : null}
+      {update.isError ? <ErrorState message={t("settings.updateError")} /> : null}
+      {acceptedRequests > 0 ? (
+        <AppText accessibilityLiveRegion="polite" style={styles.success}>
+          {t("settings.accepted", { count: acceptedRequests })}
+        </AppText>
+      ) : null}
+    </>
+  );
+}
+
+type NavigationRowProps = {
+  destination: Destination;
+  disabled: boolean;
+  icon: string;
+  onPress: (destination: Destination) => void;
+  support?: string;
+};
+
+function NavigationRow({
+  destination,
+  disabled,
+  icon,
+  onPress,
+  support
+}: Readonly<NavigationRowProps>) {
+  const { t } = useTranslation();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={() => onPress(destination)}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+    >
+      <View style={styles.icon}>
+        <Icon color={colors.primary[500]} size={22} source={icon} />
+      </View>
+      <View style={styles.copy}>
+        <AppText style={styles.label}>{t(`settings.${destination}`)}</AppText>
+        {support ? <AppText style={styles.support}>{support}</AppText> : null}
+      </View>
+      <Icon color={colors.primary[500]} size={24} source="chevron-right" />
+    </Pressable>
+  );
+}
+
+type PrivacyRowProps = {
+  busy: boolean;
+  disabled: boolean;
+  isPrivate: boolean;
+  onChange: (value: boolean) => void;
+};
+
+function PrivacyRow({ busy, disabled, isPrivate, onChange }: Readonly<PrivacyRowProps>) {
+  const { t } = useTranslation();
+  const support = t(isPrivate ? "settings.privateSupport" : "settings.publicSupport");
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.icon}>
+        <Icon color={colors.primary[500]} size={22} source="lock-outline" />
+      </View>
+      <View style={styles.copy}>
+        <AppText style={styles.label}>{t("settings.privateAccount")}</AppText>
+        <AppText style={styles.support}>{support}</AppText>
+      </View>
+      <Switch
+        accessibilityState={{ checked: isPrivate, disabled, busy }}
+        accessibilityLabel={t("settings.privateAccount")}
+        accessibilityHint={support}
+        disabled={disabled}
+        onValueChange={onChange}
+        trackColor={{ false: colors.neutrals[600], true: colors.primary[700] }}
+        thumbColor={colors.neutrals[100]}
+        value={isPrivate}
+      />
+    </View>
+  );
+}
+
+type ConfirmationDialogProps = {
+  confirmation: Confirmation;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+function ConfirmationDialog({
+  confirmation,
+  onCancel,
+  onConfirm
+}: Readonly<ConfirmationDialogProps>) {
+  const { t } = useTranslation();
+
+  return (
+    <Modal animationType="fade" onRequestClose={onCancel} transparent visible>
+      <View style={styles.backdrop}>
+        <View accessibilityViewIsModal style={styles.dialog}>
+          <Icon color={colors.primary[500]} size={32} source={CONFIRMATION_ICONS[confirmation]} />
+          <AppText style={styles.title}>{t(`settings.confirm.${confirmation}.title`)}</AppText>
+          <AppText style={styles.message}>{t(`settings.confirm.${confirmation}.message`)}</AppText>
+          <Button label={t("settings.confirmAction")} onPress={onConfirm} />
+          <Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancel}>
+            <AppText style={styles.label}>{t("settings.cancel")}</AppText>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 

@@ -39,8 +39,8 @@ O cliente central acrescenta `/api/v1` e o bearer token. O frontend não aceita
 pedidos de seguidores localmente; essa transação pertence ao backend.
 
 A issue backend #111 estava aberta e a rota não existia no backend local durante
-esta implementação. O usuário autorizou dados de exemplo exclusivamente para
-testes e prévia. As evidências comprovam a interface e o fluxo HTTP com respostas
+esta implementação. Dados de exemplo são usados apenas nos testes e na prévia.
+As evidências comprovam a interface e o fluxo HTTP com respostas
 simuladas; a persistência, a aceitação transacional e a retroatividade no servidor
 ainda precisam ser validadas quando essa integração estiver disponível.
 
@@ -101,15 +101,7 @@ somente o `App.web.tsx` temporário. Ele não faz parte da entrega.
   funções**. Tela principal: **97,56% de linhas**. Hook, serviço e destinos
   provisórios: **100% de linhas**. Cobertura global de linhas: **92,51%**.
 - Lint, formatação, typecheck e exportação Expo de Android/iOS/Web validados.
-- O cache do Jest foi direcionado a `../tmp/jest-256` por restrições do diretório
-  temporário do sandbox. A execução final ocorreu fora do sandbox no Node 24.14.1.
-- O Prettier normalizou CRLF do checkout Windows; essas normalizações não
-  acrescentaram alterações de conteúdo fora dos arquivos da tarefa.
 - O Jest ainda emite avisos de `act`/atualização durante renderização nos testes e usa
   `--forceExit`, como a CI. O log preserva esses avisos.
-- A revisão independente identificou a concorrência ao reabrir a tela durante
-  PATCH. Um teste de regressão falhou antes da correção e passou após compartilhar
-  o estado de gravação pelo TanStack Query. A correção foi reavaliada e aprovada.
-
-Revisão visual aprovada pelo usuário em 20/10/2026, com autorização de commit,
-sincronização com `dev`, push e PR. Merge permanece fora do escopo.
+- Um teste de regressão cobre a reabertura da tela durante um PATCH: o estado de
+  gravação é compartilhado pelo TanStack Query.
