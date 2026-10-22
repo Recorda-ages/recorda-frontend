@@ -121,13 +121,14 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
       </ScrollView>
       {confirmation === "signOut" ? (
         <SignOutDialog onCancel={() => setConfirmation(null)} onConfirm={confirm} />
-      ) : confirmation === null ? null : (
+      ) : null}
+      {confirmation !== null && confirmation !== "signOut" ? (
         <ConfirmationDialog
           confirmation={confirmation}
           onCancel={() => setConfirmation(null)}
           onConfirm={confirm}
         />
-      )}
+      ) : null}
     </SafeAreaView>
   );
 }
