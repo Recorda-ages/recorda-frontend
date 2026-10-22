@@ -49,6 +49,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
 
   const openPending = (destination: Destination) =>
     navigation.navigate("SettingsPending", { destination });
+  const openAccount = () => navigation.navigate("Account");
 
   return (
     <SafeAreaView style={styles.screen} testID="settings-screen">
@@ -72,7 +73,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
           destination="account"
           disabled={busy}
           icon="account-outline"
-          onPress={openPending}
+          onPress={openAccount}
         />
         {settings.isPending ? <Loading label={t("settings.loading")} /> : null}
         {settings.isError ? (

@@ -232,8 +232,9 @@ it("shows loading, handles failure without inventing privacy, and allows retry",
 it("opens the account, music and language destinations and goes back", async () => {
   renderScreen();
   await ready();
+  fireEvent.press(screen.getByText("Minha conta"));
+  expect(mockNavigate).toHaveBeenCalledWith("Account");
   for (const [name, destination] of [
-    ["Minha conta", "account"],
     ["Preferências musicais", "music"],
     ["Idioma", "language"]
   ]) {

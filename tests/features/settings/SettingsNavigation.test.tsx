@@ -51,7 +51,7 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-it("opens Settings through the profile gear and navigates to every pending destination", async () => {
+it("opens Settings through the profile gear and navigates to every destination", async () => {
   render(
     <AppProviders>
       <RootNavigator />
@@ -60,7 +60,11 @@ it("opens Settings through the profile gear and navigates to every pending desti
   fireEvent.press(screen.getByRole("button", { name: "Open profile" }));
   fireEvent.press(await screen.findByRole("button", { name: "Configurações" }));
   expect(await screen.findByTestId("settings-screen")).toBeTruthy();
-  for (const name of ["Minha conta", "Preferências musicais", "Idioma"]) {
+  fireEvent.press(await screen.findByText("Minha conta"));
+  expect(await screen.findByTestId("account-screen")).toBeTruthy();
+  fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+  expect(await screen.findByTestId("settings-screen")).toBeTruthy();
+  for (const name of ["Preferências musicais", "Idioma"]) {
     fireEvent.press(await screen.findByText(name));
     expect(
       await screen.findByText(

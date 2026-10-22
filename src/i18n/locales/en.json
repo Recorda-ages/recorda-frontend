@@ -560,5 +560,37 @@
         "message": "Do you want to sign out of your account?"
       }
     }
+  },
+  "account": {
+    "title": "Account",
+    "back": "Back",
+    "infoSection": "Information",
+    "name": "Name",
+    "username": "Username",
+    "email": "Email",
+    "passwordSection": "Change Password",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat new password",
+    "passwordPairRequired": "Fill in both fields to change your password.",
+    "usernameTaken": "This username is already taken.",
+    "emailTaken": "This email is already in use.",
+    "invalidField": "Invalid field.",
+    "save": "Save",
+    "saveSuccess": "Your account was updated.",
+    "saveError": "Could not save. Please try again.",
+    "noChanges": "There are no changes to save.",
+    "loading": "Loading your account",
+    "loadError": "Could not load your account.",
+    "retry": "Try again",
+    "sessionExpired": "Your session expired. Please sign in again.",
+    "deleteAccount": "Delete Account",
+    "deleteSuccess": "Your account was deleted.",
+    "deleteDialog": {
+      "title": "Delete account",
+      "message": "Are you sure you want to delete your account? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "error": "Could not delete your account. Please try again."
+    }
   }
 }
