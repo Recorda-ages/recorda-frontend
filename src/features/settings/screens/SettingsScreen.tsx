@@ -12,6 +12,7 @@ import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { colors, fontFamily, spacing } from "@/theme";
 
 import { useSettings } from "../hooks/useSettings";
+import { SignOutDialog } from "../components/SignOutDialog";
 
 type Props = { onSignOut: () => Promise<void> };
 type Confirmation = "private" | "public" | "signOut";
@@ -118,7 +119,9 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
         </Pressable>
         {signOut.failed ? <ErrorState message={t("settings.signOutError")} /> : null}
       </ScrollView>
-      {confirmation === null ? null : (
+      {confirmation === "signOut" ? (
+        <SignOutDialog onCancel={() => setConfirmation(null)} onConfirm={confirm} />
+      ) : confirmation === null ? null : (
         <ConfirmationDialog
           confirmation={confirmation}
           onCancel={() => setConfirmation(null)}

@@ -1,3 +1,4 @@
+import { SessionProviders } from "../../providers/SessionProviders";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Alert } from "react-native";
@@ -98,9 +99,11 @@ function renderDetail(type: AdminTargetType = "RECORDA") {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <ToastProvider>
-            <AdminReportDetailScreen targetType={type} targetId="target-1" />
-          </ToastProvider>
+          <SessionProviders>
+            <ToastProvider>
+              <AdminReportDetailScreen targetType={type} targetId="target-1" />
+            </ToastProvider>
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

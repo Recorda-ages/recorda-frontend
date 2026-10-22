@@ -557,7 +557,7 @@
       },
       "signOut": {
         "title": "Sign out?",
-        "message": "You will need to sign in again to access your Recordas."
+        "message": "Do you want to sign out of your account?"
       }
     }
   }

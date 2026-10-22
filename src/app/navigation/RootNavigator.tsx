@@ -26,15 +26,13 @@ import {
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
-import { clearSession } from "@/features/auth/session";
+import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
 import { NotificationsScreen } from "@/features/notifications";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
-import { useOnboarding } from "@/features/onboarding/state/OnboardingContext";
-import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
@@ -91,19 +89,6 @@ type SessionPlaceholderScreenProps = PropsWithChildren<{
   testID: string;
   title: string;
 }>;
-
-function useSignOut() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const onboarding = useOnboarding();
-  const recordaDraft = useRecordaDraft();
-
-  return async () => {
-    await clearSession();
-    onboarding.reset();
-    recordaDraft.reset();
-    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-  };
-}
 
 function SettingsRoute() {
   const signOut = useSignOut();

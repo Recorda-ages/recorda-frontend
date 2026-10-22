@@ -240,11 +240,12 @@ it("cancels sign out and signs out only after confirmation", async () => {
   renderScreen();
   await ready();
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
+  expect(screen.getByText("Deseja sair da sua conta?")).toBeTruthy();
   expect(signOut).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole("button", { name: "Cancelar" }));
   expect(signOut).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
-  fireEvent.press(screen.getByRole("button", { name: "Confirmar" }));
+  fireEvent.press(screen.getAllByRole("button", { name: "Sair" }).at(-1)!);
   await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
 });
 
@@ -253,7 +254,7 @@ it("handles sign out failure and re-enables the actions", async () => {
   renderScreen();
   await ready();
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
-  fireEvent.press(screen.getByRole("button", { name: "Confirmar" }));
+  fireEvent.press(screen.getAllByRole("button", { name: "Sair" }).at(-1)!);
   expect(await screen.findByText("Não foi possível sair. Tente novamente.")).toBeTruthy();
   expect(screen.getByRole("button", { name: "Sair" })).toBeEnabled();
 });

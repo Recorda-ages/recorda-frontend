@@ -557,7 +557,7 @@
       },
       "signOut": {
         "title": "¿Cerrar sesión?",
-        "message": "Tendrás que iniciar sesión de nuevo para acceder a tus Recordas."
+        "message": "¿Quieres cerrar la sesión de tu cuenta?"
       }
     }
   }

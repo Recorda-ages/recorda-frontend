@@ -559,8 +559,8 @@
         "message": "Qualquer pessoa poderá ver suas Recordas, inclusive as antigas. Todos os pedidos pendentes para seguir você serão aceitos."
       },
       "signOut": {
-        "title": "Sair da conta?",
-        "message": "Você precisará entrar novamente para acessar suas Recordas."
+        "title": "Sair da conta",
+        "message": "Deseja sair da sua conta?"
       }
     }
   }

@@ -1,3 +1,4 @@
+import { SessionProviders } from "../../providers/SessionProviders";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { i18n } from "@/i18n";
@@ -27,11 +28,13 @@ function renderHome(pending = false) {
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          {pending ? (
-            <AdminPendingScreen activeTab="users" title="Gestão de usuários" />
-          ) : (
-            <AdminHomeScreen />
-          )}
+          <SessionProviders>
+            {pending ? (
+              <AdminPendingScreen activeTab="users" title="Gestão de usuários" />
+            ) : (
+              <AdminHomeScreen />
+            )}
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

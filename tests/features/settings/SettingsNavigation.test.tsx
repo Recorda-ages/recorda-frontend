@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import type { NavigationContainerRefWithCurrent } from "@react-navigation/native";
 
 import { RootNavigator } from "@/app/navigation/RootNavigator";
+import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppProviders } from "@/app/providers/AppProviders";
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
@@ -8,6 +10,18 @@ import { SETTINGS_QUERY_KEY } from "@/features/settings/queryKeys";
 import * as service from "@/features/settings/services/settingsService";
 import { i18n } from "@/i18n";
 import { secureStorage } from "@/services/storage";
+
+let mockNavigationRef: NavigationContainerRefWithCurrent<RootStackParamList>;
+jest.mock("@react-navigation/native", () => {
+  const actual = jest.requireActual("@react-navigation/native");
+  return {
+    ...actual,
+    useNavigationContainerRef: () => {
+      mockNavigationRef = actual.useNavigationContainerRef();
+      return mockNavigationRef;
+    }
+  };
+});
 
 jest.mock("@/features/splash", () => ({
   SplashScreen: function Entry() {
@@ -60,8 +74,9 @@ it("opens Settings through the profile gear and navigates to every pending desti
   expect(await screen.findByTestId("profile-screen")).toBeTruthy();
 });
 
-it("signs out from Settings, clears settings and session, and returns to login", async () => {
+it("signs out from Settings, clears private data and removes logged-in routes from history", async () => {
   queryClient.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "example" });
+  queryClient.setQueryData(["profile", "example"], { name: "Previous account" });
   render(
     <AppProviders>
       <RootNavigator />
@@ -71,9 +86,12 @@ it("signs out from Settings, clears settings and session, and returns to login",
   fireEvent.press(await screen.findByRole("button", { name: "Configurações" }));
   await screen.findByRole("switch");
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
-  await act(async () => fireEvent.press(screen.getByRole("button", { name: "Confirmar" })));
+  await act(async () => fireEvent.press(screen.getAllByRole("button", { name: "Sair" }).at(-1)!));
   expect(await screen.findByTestId("sign-in-screen")).toBeTruthy();
   expect(secureStorage.removeItem).toHaveBeenCalledWith("auth_token");
   expect(queryClient.getQueryData(SETTINGS_QUERY_KEY)).toBeUndefined();
   expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+  expect(queryClient.getQueryData(["profile", "example"])).toBeUndefined();
+  expect(mockNavigationRef.getRootState()?.routes.map((route) => route.name)).toEqual(["Login"]);
+  expect(mockNavigationRef.canGoBack()).toBe(false);
 });
