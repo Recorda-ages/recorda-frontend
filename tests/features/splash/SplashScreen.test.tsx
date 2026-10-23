@@ -6,7 +6,7 @@ import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
 import { ROLE_KEY } from "@/features/auth/session";
 import { SPLASH_MIN_DURATION_MS, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
-import "@/i18n";
+import { i18n } from "@/i18n";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { ApiError } from "@/services/api/errors";
@@ -24,7 +24,8 @@ jest.mock("@/features/auth/api/getCurrentUser", () => ({
 jest.mock("@/services/storage/secureStorage", () => ({
   secureStorage: {
     getItem: jest.fn(),
-    removeItem: jest.fn()
+    removeItem: jest.fn(),
+    setItem: jest.fn()
   }
 }));
 
@@ -55,8 +56,9 @@ describe("SplashScreen", () => {
     (useNavigation as jest.Mock).mockReturnValue({ replace: mockReplace });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.useRealTimers();
+    await i18n.changeLanguage("pt-BR");
   });
 
   it("renders correctly with branding text", () => {
@@ -199,4 +201,41 @@ describe("SplashScreen", () => {
     },
     SPLASH_TIMEOUT_MS + 5000
   );
+  it("applies the language saved on the device before leaving the splash", async () => {
+    mockGetItem.mockImplementation(async (key: string) => (key === "app_language" ? "es" : null));
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Login");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(i18n.language).toBe("es");
+  });
+
+  it("follows the language saved on the account when the session is restored", async () => {
+    mockGetItem.mockImplementation(async (key: string) =>
+      key === AUTH_TOKEN_KEY ? "valid-token" : null
+    );
+    mockGetCurrentUser.mockResolvedValueOnce({
+      language: "en",
+      onboarding_completed: true,
+      role: "USER",
+      user_id: "user-1",
+      username: "gabriel"
+    });
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Feed");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(i18n.language).toBe("en");
+    expect(secureStorage.setItem).toHaveBeenCalledWith("app_language", "en");
+  });
 });

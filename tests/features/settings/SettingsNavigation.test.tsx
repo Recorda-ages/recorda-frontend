@@ -83,11 +83,7 @@ it("opens Settings through the profile gear and navigates to every destination",
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
   expect(await screen.findByTestId("settings-screen")).toBeTruthy();
   fireEvent.press(await screen.findByText("Idioma"));
-  expect(
-    await screen.findByText(
-      "Esta configuração está em construção. Em breve você poderá alterá-la aqui."
-    )
-  ).toBeTruthy();
+  expect(await screen.findByTestId("language-settings-screen")).toBeTruthy();
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
   expect(await screen.findByTestId("settings-screen")).toBeTruthy();
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));

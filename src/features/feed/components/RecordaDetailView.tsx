@@ -29,6 +29,7 @@ import { useAuthImageSource, type AuthImageSource } from "@/services/api";
 import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 import type { FeedComment, FeedPost } from "../types";
+import { formatFeedDate } from "../utils/formatFeedDate";
 import { BottomTabBar, type BottomTab } from "./BottomTabBar";
 import { FeedGlow } from "./FeedGlow";
 import { useFeedAudioActions } from "../state/FeedAudioContext";
@@ -473,7 +474,7 @@ export function RecordaDetailView({
   onShare,
   onTabPress
 }: Readonly<Props>) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
   const [menu, setMenu] = useState<RecordaMenu>(null);
   const [mediaHeight, setMediaHeight] = useState(0);
@@ -722,7 +723,11 @@ export function RecordaDetailView({
                       {t("publishedRecorda.likes", { count: post.likesCount + (liked ? 1 : 0) })}
                     </AppText>
                   </View>
-                  <AppText style={styles.date}>{post.publishedAt}</AppText>
+                  <AppText style={styles.date}>
+                    {post.createdAt
+                      ? formatFeedDate(post.createdAt, i18n.language)
+                      : post.publishedAt}
+                  </AppText>
                 </View>
               </View>
             </Animated.View>

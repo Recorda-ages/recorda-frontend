@@ -241,8 +241,9 @@ it("opens the account, music and language destinations and goes back", async () 
   expect(mockNavigate).toHaveBeenCalledWith("Account");
   fireEvent.press(screen.getByText("Preferências musicais"));
   expect(mockNavigate).toHaveBeenCalledWith("EditMusicPreferences");
+  expect(screen.getByText("Português")).toBeTruthy();
   fireEvent.press(screen.getByText("Idioma"));
-  expect(mockNavigate).toHaveBeenCalledWith("SettingsPending", { destination: "language" });
+  expect(mockNavigate).toHaveBeenCalledWith("LanguageSettings");
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
   expect(mockGoBack).toHaveBeenCalled();
 });

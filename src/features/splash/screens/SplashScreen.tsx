@@ -9,6 +9,10 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
 import {
+  restoreSavedLanguage,
+  syncLanguageWithAccount
+} from "@/features/language/languagePreference";
+import {
   clearSession,
   getPostAuthDestination,
   type PostAuthDestination
@@ -77,6 +81,7 @@ export function SplashScreen() {
     async function checkSession() {
       try {
         const token = await secureStorage.getItem(AUTH_TOKEN_KEY);
+        await restoreSavedLanguage();
 
         if (!token) {
           finish("Login");
@@ -97,6 +102,12 @@ export function SplashScreen() {
         // Same as a fresh login: media requests on the first screen go out with the token
         // instead of 401-ing until the cached token query loads.
         queryClient.setQueryData(AUTH_TOKEN_QUERY_KEY, token);
+        await syncLanguageWithAccount(user);
+
+        if (!isActive) {
+          return;
+        }
+
         finish(getPostAuthDestination(user));
       } catch (error) {
         if (!isActive) {
