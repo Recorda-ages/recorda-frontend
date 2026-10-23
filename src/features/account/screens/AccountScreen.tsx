@@ -29,7 +29,7 @@ import { useDeleteAccount } from "../hooks/useDeleteAccount";
 import { useLeaveToLogin } from "../hooks/useLeaveToLogin";
 import { useUpdateAccount } from "../hooks/useUpdateAccount";
 import type { Account, AccountChanges } from "../types";
-import { type AccountFormValues, accountSchema } from "../validation/accountSchema";
+import { type AccountFormValues, createAccountSchema } from "../validation/accountSchema";
 
 type AccountField = keyof AccountFormValues;
 
@@ -157,7 +157,7 @@ function AccountForm({ account }: Readonly<{ account: Account }>) {
   } = useForm<AccountFormValues>({
     defaultValues: toFormValues(account),
     mode: "onBlur",
-    resolver: zodResolver(accountSchema)
+    resolver: zodResolver(createAccountSchema(account.email !== ""))
   });
 
   const fieldMessage = (field: AccountField, status: number) => {

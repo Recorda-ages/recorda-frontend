@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useCallback } from "react";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
@@ -10,16 +11,16 @@ import { clearSession } from "../session";
 
 export function useSignOut() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const onboarding = useOnboarding();
-  const recordaDraft = useRecordaDraft();
-  const audio = useFeedAudioActions();
+  const { reset: resetOnboarding } = useOnboarding();
+  const { reset: resetRecordaDraft } = useRecordaDraft();
+  const { setActivePreview, setActiveRoute } = useFeedAudioActions();
 
-  return async () => {
-    audio.setActiveRoute("Login");
-    audio.setActivePreview("", null);
+  return useCallback(async () => {
+    setActiveRoute("Login");
+    setActivePreview("", null);
     await clearSession();
-    onboarding.reset();
-    recordaDraft.reset();
+    resetOnboarding();
+    resetRecordaDraft();
     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-  };
+  }, [navigation, resetOnboarding, resetRecordaDraft, setActivePreview, setActiveRoute]);
 }

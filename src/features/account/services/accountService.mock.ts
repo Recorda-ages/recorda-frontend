@@ -3,8 +3,8 @@ import { ApiError, authApiClient } from "@/services/api";
 
 import type { Account, AccountChanges } from "../types";
 
-const TAKEN_USERNAMES = ["admin", "recorda"];
-const TAKEN_EMAILS = ["admin@recorda.app"];
+const TAKEN_USERNAMES = new Set(["admin", "recorda"]);
+const TAKEN_EMAILS = new Set(["admin@recorda.app"]);
 
 const accounts = new Map<string, Account>();
 
@@ -24,15 +24,11 @@ function findConflicts(current: Account, changes: AccountChanges) {
   const username = changes.username?.toLowerCase();
   const email = changes.email?.toLowerCase();
 
-  if (
-    username &&
-    username !== current.username.toLowerCase() &&
-    TAKEN_USERNAMES.includes(username)
-  ) {
+  if (username && username !== current.username.toLowerCase() && TAKEN_USERNAMES.has(username)) {
     fields.push({ field: "username", message: "Username já está em uso." });
   }
 
-  if (email && email !== current.email.toLowerCase() && TAKEN_EMAILS.includes(email)) {
+  if (email && email !== current.email.toLowerCase() && TAKEN_EMAILS.has(email)) {
     fields.push({ field: "email", message: "Email já está em uso." });
   }
 

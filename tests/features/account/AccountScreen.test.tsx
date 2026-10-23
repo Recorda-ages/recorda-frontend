@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 
@@ -9,11 +9,11 @@ import { accountAdapter } from "@/features/account/services/accountAdapter";
 import { resetAccountMock, seedAccountMock } from "@/features/account/services/accountService.mock";
 import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
 import { clearSession } from "@/features/auth/session";
-import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
-import { RecordaDraftProvider } from "@/features/recorda-creation/context/RecordaDraftContext";
 import { i18n } from "@/i18n";
 import { ApiError, authApiClient } from "@/services/api";
 import { paperTheme } from "@/theme";
+
+import { SessionProviders } from "../../providers/SessionProviders";
 
 const mockNavigation = { goBack: jest.fn(), navigate: jest.fn(), reset: jest.fn() };
 
@@ -48,11 +48,9 @@ function renderScreen() {
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
           <ToastProvider>
-            <OnboardingProvider>
-              <RecordaDraftProvider>
-                <AccountScreen />
-              </RecordaDraftProvider>
-            </OnboardingProvider>
+            <SessionProviders>
+              <AccountScreen />
+            </SessionProviders>
           </ToastProvider>
         </PaperProvider>
       </I18nextProvider>
@@ -126,6 +124,30 @@ describe("AccountScreen", () => {
     });
     expect(screen.getByDisplayValue("@john_silva")).toBeTruthy();
     expect(saveButton()).toBeDisabled();
+  });
+
+  it("saves the name when no email is known for the account yet", async () => {
+    resetAccountMock();
+    const update = jest.spyOn(accountAdapter, "updateAccount");
+    await renderLoaded();
+    expect(screen.getByLabelText("Email").props.value).toBe("");
+
+    fireEvent.changeText(screen.getByLabelText("Nome"), "John Silva");
+    fireEvent.press(saveButton());
+
+    expect(await screen.findByText("Dados atualizados.")).toBeTruthy();
+    expect(update).toHaveBeenCalledWith({ name: "John Silva" });
+  });
+
+  it("does not let a known email be cleared", async () => {
+    const update = jest.spyOn(accountAdapter, "updateAccount");
+    await renderLoaded();
+
+    fireEvent.changeText(screen.getByLabelText("Email"), "");
+    fireEvent.press(saveButton());
+
+    expect(await screen.findByText("Informe seu email.")).toBeTruthy();
+    expect(update).not.toHaveBeenCalled();
   });
 
   it("keeps what was typed and does not save when the format is invalid", async () => {
@@ -223,6 +245,8 @@ describe("AccountScreen", () => {
     await waitFor(() => expect(mockClearSession).toHaveBeenCalledTimes(1));
     expect(mockNavigation.reset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
     expect(await screen.findByText("Sua sessão expirou. Entre novamente.")).toBeTruthy();
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
+    expect(mockNavigation.reset).toHaveBeenCalledTimes(1);
   });
 
   it("closes the delete dialog without deleting when cancelled", async () => {
@@ -284,7 +308,9 @@ describe("AccountScreen", () => {
       expect(screen.getByText("Delete Account")).toBeTruthy();
       expect(screen.getByText("Save")).toBeTruthy();
     } finally {
-      await i18n.changeLanguage("pt-BR");
+      await act(async () => {
+        await i18n.changeLanguage("pt-BR");
+      });
     }
   });
 });
