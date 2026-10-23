@@ -25,7 +25,7 @@ const CONFIRMATION_ICONS: Record<PrivacyConfirmation, string> = {
 };
 
 export function SettingsScreen({ onSignOut }: Readonly<Props>) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { settings, update, isUpdating } = useSettings();
   const signOut = useSignOutFlow(onSignOut);
@@ -50,6 +50,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
   const openPending = (destination: Destination) =>
     navigation.navigate("SettingsPending", { destination });
   const openAccount = () => navigation.navigate("Account");
+  const openLanguage = () => navigation.navigate("LanguageSettings");
 
   return (
     <SafeAreaView style={styles.screen} testID="settings-screen">
@@ -106,7 +107,13 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
           onPress={openPending}
           support={t("settings.musicSupport")}
         />
-        <NavigationRow destination="language" disabled={busy} icon="web" onPress={openPending} />
+        <NavigationRow
+          destination="language"
+          disabled={busy}
+          icon="web"
+          onPress={openLanguage}
+          support={t(`language.names.${i18n.language}`)}
+        />
         <AppText style={styles.section}>{t("settings.sessionSection")}</AppText>
         <Pressable
           accessibilityRole="button"
