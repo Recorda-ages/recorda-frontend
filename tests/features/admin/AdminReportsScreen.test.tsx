@@ -1,4 +1,3 @@
-import { SessionProviders } from "../../providers/SessionProviders";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
@@ -16,6 +15,8 @@ import { clearSession } from "@/features/auth/session";
 import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { paperTheme } from "@/theme";
+
+import { SessionProviders } from "../../providers/SessionProviders";
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();

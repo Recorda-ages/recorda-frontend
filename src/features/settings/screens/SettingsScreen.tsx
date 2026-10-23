@@ -11,17 +11,17 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { colors, fontFamily, spacing } from "@/theme";
 
-import { useSettings } from "../hooks/useSettings";
 import { SignOutDialog } from "../components/SignOutDialog";
+import { useSettings } from "../hooks/useSettings";
 
 type Props = { onSignOut: () => Promise<void> };
-type Confirmation = "private" | "public" | "signOut";
+type PrivacyConfirmation = "private" | "public";
+type Confirmation = PrivacyConfirmation | "signOut";
 type Destination = RootStackParamList["SettingsPending"]["destination"];
 
-const CONFIRMATION_ICONS: Record<Confirmation, string> = {
+const CONFIRMATION_ICONS: Record<PrivacyConfirmation, string> = {
   private: "lock-outline",
-  public: "lock-open-outline",
-  signOut: "logout"
+  public: "lock-open-outline"
 };
 
 export function SettingsScreen({ onSignOut }: Readonly<Props>) {
@@ -122,7 +122,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
       {confirmation === "signOut" ? (
         <SignOutDialog onCancel={() => setConfirmation(null)} onConfirm={confirm} />
       ) : null}
-      {confirmation !== null && confirmation !== "signOut" ? (
+      {confirmation === "private" || confirmation === "public" ? (
         <ConfirmationDialog
           confirmation={confirmation}
           onCancel={() => setConfirmation(null)}
@@ -246,7 +246,7 @@ function PrivacyRow({ busy, disabled, isPrivate, onChange }: Readonly<PrivacyRow
 }
 
 type ConfirmationDialogProps = {
-  confirmation: Confirmation;
+  confirmation: PrivacyConfirmation;
   onCancel: () => void;
   onConfirm: () => void;
 };

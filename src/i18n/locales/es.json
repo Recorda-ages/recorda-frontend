@@ -556,7 +556,7 @@
         "message": "Cualquier persona podrá ver tus Recordas, incluidas las antiguas. Se aceptarán todas las solicitudes de seguimiento pendientes."
       },
       "signOut": {
-        "title": "¿Cerrar sesión?",
+        "title": "Cerrar sesión",
         "message": "¿Quieres cerrar la sesión de tu cuenta?"
       }
     }

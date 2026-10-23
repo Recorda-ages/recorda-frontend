@@ -1,4 +1,3 @@
-import { SessionProviders } from "../../providers/SessionProviders";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Alert } from "react-native";
@@ -16,6 +15,7 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import { paperTheme } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
+import { SessionProviders } from "../../providers/SessionProviders";
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),

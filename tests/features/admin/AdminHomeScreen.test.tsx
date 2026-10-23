@@ -1,4 +1,3 @@
-import { SessionProviders } from "../../providers/SessionProviders";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 import { i18n } from "@/i18n";
@@ -11,6 +10,8 @@ import { AdminPendingScreen } from "@/features/admin/screens/AdminPendingScreen"
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { clearSession } from "@/features/auth/session";
 import { paperTheme } from "@/theme";
+
+import { SessionProviders } from "../../providers/SessionProviders";
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();

@@ -556,7 +556,7 @@
         "message": "Anyone will be able to see your Recordas, including older ones. All pending follow requests will be accepted."
       },
       "signOut": {
-        "title": "Sign out?",
+        "title": "Sign out",
         "message": "Do you want to sign out of your account?"
       }
     }

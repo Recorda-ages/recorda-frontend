@@ -13,7 +13,7 @@ export function SignOutDialog({ onCancel, onConfirm }: Readonly<Props>) {
   return (
     <Modal animationType="fade" onRequestClose={onCancel} statusBarTranslucent transparent visible>
       <View style={styles.backdrop}>
-        <View accessibilityViewIsModal style={styles.dialog}>
+        <View accessibilityViewIsModal style={styles.dialog} testID="sign-out-dialog">
           <View style={styles.iconBox}>
             <Icon color={baseColors.white} size={28} source="logout" />
           </View>

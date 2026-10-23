@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { NavigationContainerRefWithCurrent } from "@react-navigation/native";
 
 import { RootNavigator } from "@/app/navigation/RootNavigator";
@@ -86,7 +86,11 @@ it("signs out from Settings, clears private data and removes logged-in routes fr
   fireEvent.press(await screen.findByRole("button", { name: "Configurações" }));
   await screen.findByRole("switch");
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
-  await act(async () => fireEvent.press(screen.getAllByRole("button", { name: "Sair" }).at(-1)!));
+  await act(async () =>
+    fireEvent.press(
+      within(screen.getByTestId("sign-out-dialog")).getByRole("button", { name: "Sair" })
+    )
+  );
   expect(await screen.findByTestId("sign-in-screen")).toBeTruthy();
   expect(secureStorage.removeItem).toHaveBeenCalledWith("auth_token");
   expect(queryClient.getQueryData(SETTINGS_QUERY_KEY)).toBeUndefined();

@@ -5,6 +5,7 @@ import { queryClient } from "@/app/providers/queryClient";
 import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { saveSession } from "@/features/auth/session";
 import { useFeedAudioActions, useFeedFocusKey } from "@/features/feed/state/FeedAudioContext";
+import { useFeed } from "@/features/feed/state/FeedContext";
 import { useOnboarding } from "@/features/onboarding/state/OnboardingContext";
 import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
 import { i18n } from "@/i18n";
@@ -58,7 +59,8 @@ it("resets real contexts, stops audio and clears the previous account before res
       onboarding: useOnboarding(),
       draft: useRecordaDraft(),
       audio: useFeedAudioActions(),
-      focusKey: useFeedFocusKey()
+      focusKey: useFeedFocusKey(),
+      feed: useFeed()
     }),
     { wrapper: AppProviders }
   );
@@ -76,7 +78,11 @@ it("resets real contexts, stops audio and clears the previous account before res
     });
     result.current.audio.setActiveRoute("Feed");
     result.current.audio.setActivePreview("old-recorda", "https://example.com/preview.mp3");
+    result.current.feed.toggleLike("old-recorda");
+    result.current.feed.deletePost("old-deleted-recorda");
   });
+  expect(result.current.feed.likedIds).toEqual(["old-recorda"]);
+  expect(result.current.feed.deletedIds).toEqual(["old-deleted-recorda"]);
   expect(mockAudioPlayer.play).toHaveBeenCalled();
   mockAudioPlayer.pause.mockClear();
   mockReset.mockImplementationOnce(() => {
@@ -91,6 +97,8 @@ it("resets real contexts, stops audio and clears the previous account before res
   expect(result.current.onboarding.selectedGenres).toEqual([]);
   expect(result.current.draft).toMatchObject({ description: "", media: null, song: null });
   expect(result.current.focusKey).toBeNull();
+  expect(result.current.feed.likedIds).toEqual([]);
+  expect(result.current.feed.deletedIds).toEqual([]);
   expect(mockAudioPlayer.pause).toHaveBeenCalled();
   expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   expect(mockStorage.get("app_language")).toBe("es");
