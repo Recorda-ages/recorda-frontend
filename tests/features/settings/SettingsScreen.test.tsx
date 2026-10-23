@@ -1,5 +1,13 @@
 import { notifyManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { SettingsScreen } from "@/features/settings";
@@ -240,11 +248,14 @@ it("cancels sign out and signs out only after confirmation", async () => {
   renderScreen();
   await ready();
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
+  expect(screen.getByText("Deseja sair da sua conta?")).toBeTruthy();
   expect(signOut).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole("button", { name: "Cancelar" }));
   expect(signOut).not.toHaveBeenCalled();
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
-  fireEvent.press(screen.getByRole("button", { name: "Confirmar" }));
+  fireEvent.press(
+    within(screen.getByTestId("sign-out-dialog")).getByRole("button", { name: "Sair" })
+  );
   await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
 });
 
@@ -253,7 +264,9 @@ it("handles sign out failure and re-enables the actions", async () => {
   renderScreen();
   await ready();
   fireEvent.press(screen.getByRole("button", { name: "Sair" }));
-  fireEvent.press(screen.getByRole("button", { name: "Confirmar" }));
+  fireEvent.press(
+    within(screen.getByTestId("sign-out-dialog")).getByRole("button", { name: "Sair" })
+  );
   expect(await screen.findByText("Não foi possível sair. Tente novamente.")).toBeTruthy();
   expect(screen.getByRole("button", { name: "Sair" })).toBeEnabled();
 });

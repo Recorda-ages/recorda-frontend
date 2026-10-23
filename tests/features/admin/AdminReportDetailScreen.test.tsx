@@ -19,6 +19,7 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import { paperTheme } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
+import { SessionProviders } from "../../providers/SessionProviders";
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -63,9 +64,11 @@ function renderDetail(targetType: AdminTargetType, targetId: string) {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <ToastProvider>
-            <AdminReportDetailScreen targetId={targetId} targetType={targetType} />
-          </ToastProvider>
+          <SessionProviders>
+            <ToastProvider>
+              <AdminReportDetailScreen targetId={targetId} targetType={targetType} />
+            </ToastProvider>
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

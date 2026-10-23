@@ -100,6 +100,19 @@ describe("auth session", () => {
     expect(queryClient.getQueryData(["admin", "reports", "admin-1"])).toBeUndefined();
   });
 
+  it("clears every query and mutation without deleting the saved language", async () => {
+    for (const key of [["profile", "user-1"], ["user-search", "ana"], ["follow"], ["settings"]]) {
+      queryClient.setQueryData(key, { private: "previous account" });
+    }
+    queryClient.getMutationCache().build(queryClient, { mutationKey: ["settings"] });
+
+    await clearSession();
+
+    expect(queryClient.getQueryCache().getAll()).toHaveLength(0);
+    expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
+    expect(secureStorage.removeItem).not.toHaveBeenCalledWith("app_language");
+  });
+
   it.each([
     [buildUser({ role: "ADMIN" }), "Admin"],
     [buildUser({ onboarding_completed: true }), "Feed"],

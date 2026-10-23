@@ -1,6 +1,4 @@
 import { queryClient } from "@/app/providers/queryClient";
-import { RECORDA_COMMENTS_QUERY_KEY, RECORDA_DETAILS_QUERY_KEY } from "@/features/feed/queryKeys";
-import { NOTIFICATIONS_QUERY_KEY } from "@/features/notifications/queryKeys";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { secureStorage } from "@/services/storage";
@@ -31,14 +29,7 @@ export async function clearSession() {
     secureStorage.removeItem(ROLE_KEY),
     secureStorage.removeItem(LEGACY_ACCOUNT_TYPE_KEY)
   ]);
-  queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY });
-  queryClient.removeQueries({ queryKey: ["settings"] });
-  queryClient.removeQueries({ queryKey: ["admin"] });
-  queryClient.removeQueries({ queryKey: RECORDA_DETAILS_QUERY_KEY });
-  queryClient.removeQueries({ queryKey: RECORDA_COMMENTS_QUERY_KEY });
-  queryClient.removeQueries({ queryKey: ["feed"] });
-  queryClient.removeQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-  queryClient.removeQueries({ queryKey: AUTH_TOKEN_QUERY_KEY });
+  queryClient.clear();
 }
 
 export function getPostAuthDestination(user: UserBasicResponse): PostAuthDestination {

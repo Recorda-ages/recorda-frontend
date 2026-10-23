@@ -15,6 +15,7 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import { paperTheme } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
+import { SessionProviders } from "../../providers/SessionProviders";
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
@@ -98,9 +99,11 @@ function renderDetail(type: AdminTargetType = "RECORDA") {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <ToastProvider>
-            <AdminReportDetailScreen targetType={type} targetId="target-1" />
-          </ToastProvider>
+          <SessionProviders>
+            <ToastProvider>
+              <AdminReportDetailScreen targetType={type} targetId="target-1" />
+            </ToastProvider>
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

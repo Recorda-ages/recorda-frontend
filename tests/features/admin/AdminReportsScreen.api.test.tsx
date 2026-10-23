@@ -13,6 +13,8 @@ import { AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { secureStorage } from "@/services/storage";
 import { paperTheme } from "@/theme";
 
+import { SessionProviders } from "../../providers/SessionProviders";
+
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockNavigation = { navigate: mockNavigate, reset: mockReset };
@@ -85,9 +87,11 @@ function renderScreen() {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <ToastProvider>
-            <AdminReportsScreen />
-          </ToastProvider>
+          <SessionProviders>
+            <ToastProvider>
+              <AdminReportsScreen />
+            </ToastProvider>
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

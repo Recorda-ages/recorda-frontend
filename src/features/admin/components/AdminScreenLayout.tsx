@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
-import { clearSession } from "@/features/auth/session";
+import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { colors, fontFamily, spacing } from "@/theme";
 
 import { AdminBottomNavigation, type AdminBottomTab } from "./AdminBottomNavigation";
@@ -33,6 +33,7 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const user = useCurrentUser();
+  const endSession = useSignOut();
   const logoutStarted = useRef(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -40,8 +41,7 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
     if (logoutStarted.current) return;
     logoutStarted.current = true;
     setSigningOut(true);
-    await clearSession();
-    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+    await endSession();
   };
 
   return (

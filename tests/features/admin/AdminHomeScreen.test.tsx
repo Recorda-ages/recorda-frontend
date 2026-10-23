@@ -11,6 +11,8 @@ import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { clearSession } from "@/features/auth/session";
 import { paperTheme } from "@/theme";
 
+import { SessionProviders } from "../../providers/SessionProviders";
+
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 jest.mock("@react-navigation/native", () => ({
@@ -27,11 +29,13 @@ function renderHome(pending = false) {
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          {pending ? (
-            <AdminPendingScreen activeTab="users" title="Gestão de usuários" />
-          ) : (
-            <AdminHomeScreen />
-          )}
+          <SessionProviders>
+            {pending ? (
+              <AdminPendingScreen activeTab="users" title="Gestão de usuários" />
+            ) : (
+              <AdminHomeScreen />
+            )}
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

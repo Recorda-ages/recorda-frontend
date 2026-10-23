@@ -15,6 +15,8 @@ import { i18n } from "@/i18n";
 import { ApiError } from "@/services/api";
 import { paperTheme } from "@/theme";
 
+import { SessionProviders } from "../../providers/SessionProviders";
+
 jest.mock("@/features/admin/services/adminAdapter", () => ({
   adminAdapter: jest.requireActual("@/features/admin/services/adminService.mock").adminServiceMock
 }));
@@ -61,9 +63,11 @@ function renderScreen() {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <ToastProvider>
-            <AdminAuditLogScreen />
-          </ToastProvider>
+          <SessionProviders>
+            <ToastProvider>
+              <AdminAuditLogScreen />
+            </ToastProvider>
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>

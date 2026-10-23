@@ -1,0 +1,78 @@
+// Local evidence harness only. Copy to App.web.tsx and remove after capturing.
+// Uses the real AppRoot, navigation, screens, hooks and HTTP client.
+import { View } from "react-native";
+import { AppRoot } from "@/app/AppRoot";
+import { secureStorage } from "@/services/storage";
+import { i18n } from "@/i18n";
+
+const params = new URLSearchParams(window.location.search);
+void i18n.changeLanguage(params.get("language") || "pt-BR");
+let isPrivate = params.get("private") !== "0";
+let failPatch = params.get("failPatch") === "1";
+const values = new Map([
+  ["auth_token", "local-preview-token"],
+  ["role", "USER"],
+  ["app_language", "pt-BR"]
+]);
+secureStorage.getItem = async (key) => values.get(key) ?? null;
+secureStorage.setItem = async (key, value) => {
+  values.set(key, value);
+};
+secureStorage.removeItem = async (key) => {
+  values.delete(key);
+};
+
+globalThis.fetch = async (input, options) => {
+  const url = String(input);
+  const json = (value: unknown, status = 200) =>
+    Promise.resolve(
+      new Response(JSON.stringify(value), {
+        status,
+        headers: { "content-type": "application/json" }
+      })
+    );
+  if (url.includes("/auth/me"))
+    return json({
+      user_id: "preview-user",
+      name: "Conta de exemplo",
+      username: "exemplo",
+      role: "USER",
+      onboarding_completed: true
+    });
+  if (url.includes("/users/me/settings")) {
+    if (options?.method === "PATCH") {
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      if (failPatch) {
+        failPatch = false;
+        return json({ detail: "Falha simulada" }, 503);
+      }
+      isPrivate = JSON.parse(String(options.body)).is_private;
+      return json({
+        is_private: isPrivate,
+        language: "pt-BR",
+        accepted_requests: isPrivate ? 0 : 3
+      });
+    }
+    return json({ is_private: isPrivate, language: "pt-BR" });
+  }
+  if (url.includes("/feed/")) return json({ items: [], next_cursor: null });
+  if (url.includes("/notifications")) return json({ items: [], unread_count: 0 });
+  throw new Error(`Unmocked preview request: ${url}`);
+};
+
+export default function PreviewApp() {
+  return (
+    <View
+      style={{
+        backgroundColor: "#151515",
+        alignSelf: "center",
+        width: "100%",
+        maxWidth: 393,
+        height: 720,
+        maxHeight: "100%"
+      }}
+    >
+      <AppRoot />
+    </View>
+  );
+}
