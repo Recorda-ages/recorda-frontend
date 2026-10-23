@@ -73,6 +73,7 @@ export type FeedComment = {
 export type FeedPost = {
   author: { id: string; avatarUrl: string; username: string };
   comments: FeedComment[];
+  createdAt?: string;
   description: string;
   id: string;
   likedBy: { avatarUrl: string; username: string };

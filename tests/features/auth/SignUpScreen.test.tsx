@@ -200,6 +200,7 @@ describe("SignUpScreen", () => {
     await waitFor(() => {
       expect(registerSpy).toHaveBeenCalledWith({
         email: "eduardo@example.com",
+        language: "pt-BR",
         name: "Eduardo de Bastiani",
         password: "senhaForte123",
         username: "eduardobastiani"

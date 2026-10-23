@@ -592,5 +592,14 @@
       "confirm": "Eliminar",
       "error": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
     }
+  },
+  "language": {
+    "title": "Idioma",
+    "back": "Volver",
+    "names": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    }
   }
 }
