@@ -4,7 +4,7 @@ import { i18n } from "@/i18n";
 
 export const MIN_PASSWORD_LENGTH = 8;
 
-const usernameSchema = z.string().superRefine((value, context) => {
+export const usernameSchema = z.string().superRefine((value, context) => {
   if (value.trim().length === 0) {
     context.addIssue({
       code: "custom",

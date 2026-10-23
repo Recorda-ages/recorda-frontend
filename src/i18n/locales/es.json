@@ -560,5 +560,37 @@
         "message": "¿Quieres cerrar la sesión de tu cuenta?"
       }
     }
+  },
+  "account": {
+    "title": "Cuenta",
+    "back": "Volver",
+    "infoSection": "Información",
+    "name": "Nombre",
+    "username": "Usuario",
+    "email": "Correo electrónico",
+    "passwordSection": "Cambiar contraseña",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Repetir nueva contraseña",
+    "passwordPairRequired": "Completa los dos campos para cambiar la contraseña.",
+    "usernameTaken": "Ese usuario ya está en uso.",
+    "emailTaken": "Ese correo electrónico ya está en uso.",
+    "invalidField": "Campo inválido.",
+    "save": "Guardar",
+    "saveSuccess": "Tus datos se actualizaron.",
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
+    "noChanges": "No hay cambios para guardar.",
+    "loading": "Cargando tu cuenta",
+    "loadError": "No se pudo cargar tu cuenta.",
+    "retry": "Intentar de nuevo",
+    "sessionExpired": "Tu sesión expiró. Inicia sesión de nuevo.",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteSuccess": "Tu cuenta fue eliminada.",
+    "deleteDialog": {
+      "title": "Eliminar cuenta",
+      "message": "¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar",
+      "error": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+    }
   }
 }
