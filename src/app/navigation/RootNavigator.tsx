@@ -10,6 +10,7 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationProp
 } from "@react-navigation/native-stack";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 import type { PropsWithChildren } from "react";
@@ -20,13 +21,19 @@ import {
   AdminAccessGuard,
   AdminAuditLogScreen,
   AdminHomeScreen,
-  AdminPendingScreen,
   AdminReportDetailScreen,
   AdminReportsScreen
 } from "@/features/admin";
+import type { AdminUserRow } from "@/features/admin/types";
+import { AdminScreenLayout } from "@/features/admin/components/AdminScreenLayout";
+import { AdminUserDetailScreen } from "@/features/admin/users/screens/AdminUserDetailScreen";
+import { AdminUsersScreen } from "@/features/admin/users/screens/AdminUsersScreen";
+import { ADMIN_USERS_QUERY_KEY } from "@/features/admin/users/queryKeys";
+import { adminUsersServiceMock } from "@/features/admin/users/services/adminUsersService.mock";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
@@ -40,6 +47,7 @@ import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
+import { AdminUserActions } from "@/features/moderation/components/AdminUserActions";
 import { RecordaViewScreen } from "@/features/recorda-view";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 import { SettingsScreen, SettingsPendingScreen } from "@/features/settings";
@@ -150,10 +158,50 @@ function AdminReportsRoute() {
 
 function AdminUsersRoute() {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const queryClient = useQueryClient();
+  const currentUser = useCurrentUser();
+
+  const renderModerationActions = (user: AdminUserRow) => (
+    <View style={styles.userModerationActions}>
+      <AdminUserActions
+        compact
+        currentAdmin={
+          currentUser
+            ? {
+                role: currentUser.role,
+                user_id: currentUser.user_id,
+                username: currentUser.username
+              }
+            : null
+        }
+        moderationService={adminUsersServiceMock}
+        onMutationSuccess={() => {
+          void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY });
+          void queryClient.invalidateQueries({
+            queryKey: [...ADMIN_USERS_QUERY_KEY, "detail"]
+          });
+        }}
+        targetUser={user}
+      />
+    </View>
+  );
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen activeTab="users" title={t("admin.pending.users")} />
+      <AdminScreenLayout
+        activeTab="users"
+        showBackButton={false}
+        showUsername={false}
+        title={t("admin.users.title")}
+        testID="admin-users-route"
+        visibleTabs={["users", "reports"]}
+      >
+        <AdminUsersScreen
+          onViewHistory={(userId) => navigation.navigate("AdminUserDetail", { userId })}
+          renderModerationActions={renderModerationActions}
+        />
+      </AdminScreenLayout>
     </AdminAccessGuard>
   );
 }
@@ -173,10 +221,63 @@ function AdminReportDetailRoute() {
 
 function AdminUserDetailRoute() {
   const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, "AdminUserDetail">>();
+  const queryClient = useQueryClient();
+  const currentUser = useCurrentUser();
+
+  const goBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate("AdminUsers");
+  };
+  const renderModerationActions = (user: AdminUserRow) => (
+    <View style={styles.userModerationActions}>
+      <AdminUserActions
+        currentAdmin={
+          currentUser
+            ? {
+                role: currentUser.role,
+                user_id: currentUser.user_id,
+                username: currentUser.username
+              }
+            : null
+        }
+        moderationService={adminUsersServiceMock}
+        onMutationSuccess={() => {
+          void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY });
+          void queryClient.invalidateQueries({
+            queryKey: [...ADMIN_USERS_QUERY_KEY, "detail"]
+          });
+        }}
+        targetUser={user}
+      />
+    </View>
+  );
 
   return (
     <AdminAccessGuard>
-      <AdminPendingScreen activeTab="users" title={t("admin.pending.userDetail")} />
+      <AdminScreenLayout
+        activeTab="users"
+        back={{ label: t("admin.userDetail.back"), onPress: goBack }}
+        showUsername={false}
+        title={t("admin.userDetail.title")}
+        testID="admin-user-detail-route"
+        visibleTabs={["users", "reports"]}
+      >
+        <AdminUserDetailScreen
+          onBack={goBack}
+          onCopyUserId={async (userId) => {
+            const { setStringAsync } = await import("expo-clipboard");
+            const copied = await setStringAsync(userId);
+            if (!copied) throw new Error("Clipboard unavailable.");
+          }}
+          renderModerationActions={renderModerationActions}
+          userId={route.params.userId}
+        />
+      </AdminScreenLayout>
     </AdminAccessGuard>
   );
 }
@@ -276,5 +377,6 @@ const styles = StyleSheet.create({
   },
   placeholderTitle: {
     color: colors.neutrals[100]
-  }
+  },
+  userModerationActions: { width: "100%" }
 });
