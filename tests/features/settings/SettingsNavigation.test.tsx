@@ -6,6 +6,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppProviders } from "@/app/providers/AppProviders";
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import * as musicApi from "@/features/onboarding/api/music";
 import { SETTINGS_QUERY_KEY } from "@/features/settings/queryKeys";
 import * as service from "@/features/settings/services/settingsService";
 import { i18n } from "@/i18n";
@@ -44,6 +45,19 @@ beforeEach(async () => {
   queryClient.clear();
   jest.clearAllMocks();
   jest.spyOn(service, "getSettings").mockResolvedValue({ is_private: true, language: "pt-BR" });
+  jest.spyOn(musicApi, "getMusicPreferences").mockResolvedValue({
+    artists: [
+      { id: 10, name: "Artist One" },
+      { id: 20, name: "Artist Two" },
+      { id: 30, name: "Artist Three" }
+    ],
+    genres: [
+      { id: 110, name: "Genre One" },
+      { id: 120, name: "Genre Two" },
+      { id: 130, name: "Genre Three" }
+    ],
+    track: { id: 1, title: "Saved song", artist: "Saved artist" }
+  });
 });
 afterEach(() => {
   cleanup();
@@ -64,16 +78,18 @@ it("opens Settings through the profile gear and navigates to every destination",
   expect(await screen.findByTestId("account-screen")).toBeTruthy();
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
   expect(await screen.findByTestId("settings-screen")).toBeTruthy();
-  for (const name of ["Preferências musicais", "Idioma"]) {
-    fireEvent.press(await screen.findByText(name));
-    expect(
-      await screen.findByText(
-        "Esta configuração está em construção. Em breve você poderá alterá-la aqui."
-      )
-    ).toBeTruthy();
-    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-    expect(await screen.findByTestId("settings-screen")).toBeTruthy();
-  }
+  fireEvent.press(await screen.findByText("Preferências musicais"));
+  expect(await screen.findByTestId("onboarding-artists-screen")).toBeTruthy();
+  fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+  expect(await screen.findByTestId("settings-screen")).toBeTruthy();
+  fireEvent.press(await screen.findByText("Idioma"));
+  expect(
+    await screen.findByText(
+      "Esta configuração está em construção. Em breve você poderá alterá-la aqui."
+    )
+  ).toBeTruthy();
+  fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+  expect(await screen.findByTestId("settings-screen")).toBeTruthy();
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
   expect(await screen.findByTestId("profile-screen")).toBeTruthy();
 });

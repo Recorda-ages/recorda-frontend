@@ -1,4 +1,9 @@
-import { getPopularTracks, saveMusicPreferences, searchTracks } from "@/features/onboarding";
+import {
+  getMusicPreferences,
+  getPopularTracks,
+  saveMusicPreferences,
+  searchTracks
+} from "@/features/onboarding";
 
 jest.mock("@/services/storage", () => ({
   secureStorage: {
@@ -21,6 +26,67 @@ function jsonResponse(body: unknown) {
 }
 
 beforeEach(() => fetchMock.mockReset());
+
+it("reads and maps the saved preferences using the authenticated client and abort signal", async () => {
+  fetchMock.mockResolvedValue(
+    jsonResponse({
+      genres: [{ deezer_id: 132, name: "Pop", picture_url: "https://cdn/pop.jpg" }],
+      artists: [{ deezer_id: 27, name: "Daft Punk", picture_url: null }],
+      favorite_track: {
+        deezer_id: 3135556,
+        title: "Harder, Better, Faster, Stronger",
+        artist_name: "Daft Punk",
+        cover_url: "https://cdn/cover.jpg",
+        preview_url: "/api/v1/music/tracks/3135556/preview"
+      },
+      onboarding_completed: true
+    })
+  );
+  const controller = new AbortController();
+
+  await expect(getMusicPreferences(controller.signal)).resolves.toEqual({
+    genres: [{ id: 132, name: "Pop", pictureUrl: "https://cdn/pop.jpg" }],
+    artists: [{ id: 27, name: "Daft Punk", pictureUrl: undefined }],
+    track: {
+      id: 3135556,
+      title: "Harder, Better, Faster, Stronger",
+      artist: "Daft Punk",
+      artworkUrl: "https://cdn/cover.jpg",
+      previewUrl: "/api/v1/music/tracks/3135556/preview"
+    }
+  });
+
+  const [url, init] = fetchMock.mock.calls[0] ?? [];
+  expect(url).toBe("http://localhost:8000/api/v1/users/me/music-preferences");
+  expect(init.method).toBe("GET");
+  expect(init.headers.Authorization).toBe("Bearer token-123");
+  expect(init.signal).toBeDefined();
+});
+
+it("cancels the authenticated preference request when its signal is aborted", async () => {
+  fetchMock.mockImplementation(
+    (_url: string, init: RequestInit) =>
+      new Promise((_resolve, reject) => {
+        init.signal?.addEventListener("abort", () => {
+          const error = new Error("aborted");
+          error.name = "AbortError";
+          reject(error);
+        });
+      })
+  );
+  const controller = new AbortController();
+  const request = getMusicPreferences(controller.signal);
+
+  for (let attempt = 0; attempt < 5 && fetchMock.mock.calls.length === 0; attempt += 1) {
+    await Promise.resolve();
+  }
+
+  const [, init] = fetchMock.mock.calls[0] ?? [];
+  controller.abort();
+
+  await expect(request).rejects.toMatchObject({ name: "AbortError" });
+  expect(init.signal.aborted).toBe(true);
+});
 
 it("maps the track search response to the screen model", async () => {
   fetchMock.mockResolvedValue(

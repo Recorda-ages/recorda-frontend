@@ -562,6 +562,15 @@
         "title": "Sair da conta",
         "message": "Deseja sair da sua conta?"
       }
+    },
+    "musicPreferences": {
+      "title": "Editar preferências musicais",
+      "save": "Salvar",
+      "loading": "Carregando preferências musicais",
+      "loadError": "Não foi possível carregar suas preferências.",
+      "discardTitle": "Descartar alterações?",
+      "discardMessage": "Suas escolhas ainda não foram salvas.",
+      "updated": "Preferências atualizadas"
     }
   },
   "account": {

@@ -20,9 +20,12 @@ import { i18n } from "@/i18n";
 notifyManager.setScheduler((cb) => cb());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetParams = jest.fn();
+let mockRouteParams: { notice?: string } = {};
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
-  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack })
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack, setParams: mockSetParams }),
+  useRoute: () => ({ params: mockRouteParams })
 }));
 
 let queryClient: QueryClient;
@@ -61,6 +64,8 @@ beforeEach(async () => {
   await i18n.changeLanguage("pt-BR");
   mockNavigate.mockReset();
   mockGoBack.mockReset();
+  mockSetParams.mockReset();
+  mockRouteParams = {};
   signOut.mockReset();
   signOut.mockResolvedValue(undefined);
   serverSettings = { is_private: false, language: "pt-BR" };
@@ -234,13 +239,10 @@ it("opens the account, music and language destinations and goes back", async () 
   await ready();
   fireEvent.press(screen.getByText("Minha conta"));
   expect(mockNavigate).toHaveBeenCalledWith("Account");
-  for (const [name, destination] of [
-    ["Preferências musicais", "music"],
-    ["Idioma", "language"]
-  ]) {
-    fireEvent.press(screen.getByText(name));
-    expect(mockNavigate).toHaveBeenCalledWith("SettingsPending", { destination });
-  }
+  fireEvent.press(screen.getByText("Preferências musicais"));
+  expect(mockNavigate).toHaveBeenCalledWith("EditMusicPreferences");
+  fireEvent.press(screen.getByText("Idioma"));
+  expect(mockNavigate).toHaveBeenCalledWith("SettingsPending", { destination: "language" });
   fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
   expect(mockGoBack).toHaveBeenCalled();
 });
@@ -281,4 +283,19 @@ it.each([
   await ready();
   expect(screen.getByText(title)).toBeTruthy();
   expect(screen.getByRole("switch", { name: label })).toBeTruthy();
+});
+
+it("opens the music preference editor from Settings", () => {
+  renderScreen();
+
+  fireEvent.press(screen.getByRole("button", { name: /Preferências musicais/ }));
+
+  expect(mockNavigate).toHaveBeenCalledWith("EditMusicPreferences");
+});
+
+it("shows the success notice returned by the editor", async () => {
+  mockRouteParams = { notice: "Preferências atualizadas" };
+  renderScreen();
+
+  expect(await screen.findByText("Preferências atualizadas")).toBeTruthy();
 });

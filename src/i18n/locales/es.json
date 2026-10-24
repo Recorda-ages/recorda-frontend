@@ -559,6 +559,15 @@
         "title": "Cerrar sesión",
         "message": "¿Quieres cerrar la sesión de tu cuenta?"
       }
+    },
+    "musicPreferences": {
+      "title": "Editar preferencias musicales",
+      "save": "Guardar",
+      "loading": "Cargando preferencias musicales",
+      "loadError": "No se pudieron cargar tus preferencias.",
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Tus cambios aún no han sido guardados.",
+      "updated": "Preferencias actualizadas"
     }
   },
   "account": {

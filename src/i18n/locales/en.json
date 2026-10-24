@@ -559,6 +559,15 @@
         "title": "Sign out",
         "message": "Do you want to sign out of your account?"
       }
+    },
+    "musicPreferences": {
+      "title": "Edit music preferences",
+      "save": "Save",
+      "loading": "Loading music preferences",
+      "loadError": "Could not load your preferences.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your changes have not been saved.",
+      "updated": "Preferences updated"
     }
   },
   "account": {
