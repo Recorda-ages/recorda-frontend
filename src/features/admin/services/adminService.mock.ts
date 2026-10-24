@@ -1,6 +1,7 @@
 import { ApiError } from "@/services/api";
 
 import type {
+  AdminActionReason,
   AdminAuditPage,
   AdminReportDetail,
   AdminReportFilters,
@@ -333,6 +334,7 @@ const REPORT_DETAILS: Readonly<Record<string, AdminReportDetail>> = {
 };
 
 const NO_REPORTS_TO_UPDATE_MESSAGE = "Não há denúncias neste status para alterar.";
+const RECORDA_ALREADY_REMOVED_MESSAGE = "Esta Recorda já foi removida.";
 const MOCK_ADMIN_USERNAME = "admin";
 
 type MockState = {
@@ -442,6 +444,37 @@ export const adminServiceMock = {
     syncGroup(targetType, targetId, detail, change.status);
 
     return { status: change.status, updatedCount: affected.length };
+  },
+  async removeRecorda(recordaId: string, payload: AdminActionReason) {
+    const detail = findDetail("RECORDA", recordaId);
+    const { target } = detail;
+
+    if (target.type !== "RECORDA") {
+      throw new ApiError("NOT_FOUND", "Recorda não encontrada.", 404, null);
+    }
+    if (target.recorda.deletedAt) {
+      throw new ApiError("CONFLICT", RECORDA_ALREADY_REMOVED_MESSAGE, 409, null);
+    }
+
+    const now = new Date().toISOString();
+    const openReports = detail.reports.filter((report) => report.status === "OPEN");
+    for (const report of openReports) {
+      report.status = "RESOLVED";
+      report.resolvedAt = now;
+    }
+    target.recorda.deletedAt = now;
+    state.actionCount += 1;
+    detail.actions.unshift({
+      actionId: `mock-action-${state.actionCount}`,
+      actionType: "REMOVE_RECORDA",
+      adminUsername: MOCK_ADMIN_USERNAME,
+      createdAt: now,
+      reason: payload.reason,
+      toStatus: null
+    });
+    syncGroup("RECORDA", recordaId, detail, "RESOLVED");
+
+    return { deletedAt: now, recordaId, resolvedReports: openReports.length };
   },
 
   async listUsers(filters: AdminUserFilters = {}, signal?: AbortSignal) {

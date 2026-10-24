@@ -228,6 +228,16 @@
           "DISMISSED": "Denúncias descartadas"
         }
       },
+      "removeRecorda": {
+        "button": "Remover conteúdo",
+        "title": "Remover esta Recorda?",
+        "warning": "Esta ação retira a publicação de todo o aplicativo (feed, buscas e perfil) e fica registrada na auditoria.",
+        "confirm": "Remover",
+        "success": "Conteúdo removido",
+        "error": "Não foi possível remover o conteúdo. Tente novamente.",
+        "conflictTitle": "Este conteúdo já foi tratado",
+        "conflictMessage": "Esta Recorda já foi removida. Os dados foram recarregados."
+      },
       "statusActions": {
         "DISMISSED": {
           "button": "Descartar denúncia",
