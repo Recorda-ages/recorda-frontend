@@ -228,6 +228,16 @@
           "DISMISSED": "Reports dismissed"
         }
       },
+      "removeRecorda": {
+        "button": "Remove content",
+        "title": "Remove this Recorda?",
+        "warning": "This action takes the post down from the entire app (feed, search and profile) and is recorded in the audit log.",
+        "confirm": "Remove",
+        "success": "Content removed",
+        "error": "Could not remove the content. Please try again.",
+        "conflictTitle": "This content has already been handled",
+        "conflictMessage": "This Recorda has already been removed. The data was reloaded."
+      },
       "statusActions": {
         "DISMISSED": {
           "button": "Dismiss report",

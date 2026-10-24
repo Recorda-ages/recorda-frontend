@@ -204,12 +204,25 @@ export type AdminReportDetailResponse = {
     }
 );
 
+export type AdminRecordaRemoval = {
+  deletedAt: string;
+  recordaId: string;
+  resolvedReports: number;
+};
+
+export type AdminRecordaRemovalResponse = {
+  deleted_at: string;
+  recorda_id: string;
+  resolved_reports: number;
+};
+
 export type AdminReportStatusChangeResponse = {
   status: AdminReportStatus;
   updated_count: number;
 };
 
 export type AdminService = {
+  removeRecorda: (recordaId: string, payload: AdminActionReason) => Promise<AdminRecordaRemoval>;
   supportsReportSearch: boolean;
   listReportGroups: (
     filters?: AdminReportFilters,

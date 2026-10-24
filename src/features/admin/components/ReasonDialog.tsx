@@ -20,6 +20,7 @@ export type ReasonDialogProps = {
   confirmLabel: string;
   error?: string;
   loading?: boolean;
+  message?: string;
   onCancel: () => void;
   onChangeReason: (reason: string) => void;
   onConfirm: () => void;
@@ -32,6 +33,7 @@ export function ReasonDialog({
   confirmLabel,
   error,
   loading = false,
+  message,
   onCancel,
   onChangeReason,
   onConfirm,
@@ -74,6 +76,11 @@ export function ReasonDialog({
             <AppText style={styles.title} variant="headline4">
               {title}
             </AppText>
+            {message && (
+              <AppText style={styles.message} variant="body2">
+                {message}
+              </AppText>
+            )}
             <View style={styles.field}>
               <Input
                 accessibilityLabel={t("admin.reasonDialog.label")}
@@ -174,6 +181,10 @@ const styles = {
     keyboardAvoiding: {
       alignItems: "center",
       width: "100%"
+    },
+    message: {
+      color: colors.neutrals[200],
+      textAlign: "center"
     },
     title: {
       color: colors.neutrals[100],
