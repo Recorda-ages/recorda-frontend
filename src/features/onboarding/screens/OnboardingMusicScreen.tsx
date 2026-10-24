@@ -26,10 +26,14 @@ export type OnboardingMusicScreenProps = {
   selectedGenres: MusicSelection[];
   onSelectTrack: (track: MusicTrack) => void;
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
   searchTracks: (query: string, signal: AbortSignal) => Promise<MusicTrack[]>;
   getPopularTracks: (signal: AbortSignal) => Promise<MusicTrack[]>;
   savePreferences: (preferences: MusicPreferences) => Promise<void>;
+  finishLabel?: string;
+  headerTitle?: string;
+  title?: string;
+  subtitle?: string;
 };
 
 export function OnboardingMusicScreen({
@@ -41,31 +45,46 @@ export function OnboardingMusicScreen({
   onComplete,
   searchTracks,
   getPopularTracks,
-  savePreferences
+  savePreferences,
+  finishLabel,
+  headerTitle,
+  title,
+  subtitle
 }: OnboardingMusicScreenProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const submitting = useRef(false);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350);
     return () => clearTimeout(timer);
   }, [query]);
+
   const results = useQuery({
-    queryKey: ["music", "tracks", debouncedQuery],
+    queryKey: ["music", "tracks", "search", debouncedQuery],
     queryFn: ({ signal }) => searchTracks(debouncedQuery, signal),
     enabled: debouncedQuery.length > 0,
     retry: false
   });
+
   const popular = useQuery({
     queryKey: ["music", "tracks", "popular"],
     queryFn: ({ signal }) => getPopularTracks(signal),
     retry: false
   });
-  const save = useMutation({ mutationFn: savePreferences, onSuccess: onComplete });
+
+  const save = useMutation({
+    mutationFn: savePreferences,
+    onSuccess: async () => {
+      await onComplete();
+    }
+  });
+
   const rawQuery = query.trim();
   const waiting = rawQuery !== debouncedQuery;
   const disabled = !selectedTrack || save.isPending;
+
   const submit = async () => {
     if (!selectedTrack || submitting.current) return;
     submitting.current = true;
@@ -75,182 +94,149 @@ export function OnboardingMusicScreen({
         genres: selectedGenres,
         track: selectedTrack
       });
-    } catch {
-      // Mutation state displays the error; the host keeps all selections intact.
     } finally {
       submitting.current = false;
     }
   };
 
+  const tracks = debouncedQuery.length > 0 ? (results.data ?? []) : (popular.data ?? []);
+  const loading = debouncedQuery.length > 0 ? waiting || results.isPending : popular.isPending;
+  const isError = debouncedQuery.length > 0 ? results.isError : popular.isError;
+
   return (
-    <SafeAreaView style={styles.screen} testID="onboarding-music-screen">
+    <SafeAreaView style={styles.safe}>
       <StatusBar style="light" />
-      <Image
-        accessibilityElementsHidden
-        contentFit="contain"
-        importantForAccessibility="no-hide-descendants"
-        source={require("@/assets/images/glow.png")}
-        style={styles.radialGlowTop}
-      />
-      <Image
-        accessibilityElementsHidden
-        contentFit="contain"
-        importantForAccessibility="no-hide-descendants"
-        source={require("@/assets/images/glow.png")}
-        style={styles.radialGlowBottom}
-      />
       <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.keyboard}
       >
-        <View style={styles.topBar}>
+        <View style={styles.header}>
           <Pressable
-            accessibilityRole="button"
             accessibilityLabel={t("onboarding.music.back")}
-            disabled={save.isPending}
+            accessibilityRole="button"
+            hitSlop={12}
             onPress={onBack}
-            style={styles.back}
+            testID="onboarding-music-back-button"
           >
-            <Icon source="chevron-left" size={32} color={colors.secondary[100]} />
+            <Icon color={colors.neutrals[50]} size={24} source="arrow-left" />
           </Pressable>
-          <AppText variant="headline4" style={styles.header}>
-            {t("onboarding.music.header")}
+          <AppText style={styles.headerTitle}>
+            {headerTitle ?? t("onboarding.music.header")}
           </AppText>
-          <View style={styles.back} />
+          <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.content}>
-          <Image
-            source={require("../assets/music-stepper.svg")}
-            style={styles.progress}
-            contentFit="fill"
-          />
-          <FlatList
-            data={
-              rawQuery
-                ? !waiting && debouncedQuery
-                  ? (results.data ?? [])
-                  : []
-                : (popular.data ?? [])
-            }
-            keyExtractor={(item) => String(item.id)}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.list}
-            ListHeaderComponent={
-              <>
-                <AppText color="primary" variant="body2" style={styles.step}>
-                  {t("onboarding.music.step")}
-                </AppText>
-                <AppText variant="headline2" style={styles.title}>
-                  {t("onboarding.music.title")}
-                </AppText>
-                <AppText style={styles.subtitle}>{t("onboarding.music.subtitle")}</AppText>
-                <View style={styles.search}>
-                  <TextInput
-                    accessibilityLabel={t("onboarding.music.search")}
-                    placeholder={t("onboarding.music.search")}
-                    placeholderTextColor={colors.neutrals[200]}
-                    value={query}
-                    onChangeText={setQuery}
-                    style={styles.input}
-                    returnKeyType="search"
-                    autoCorrect={false}
-                  />
-                  <Icon source="magnify" color={colors.neutrals[200]} size={24} />
-                </View>
-                {rawQuery && (waiting || results.isFetching) ? (
-                  <ActivityIndicator
-                    accessibilityLabel={t("onboarding.music.loading")}
-                    color={colors.primary[500]}
-                    style={styles.feedback}
-                  />
+
+        <FlatList
+          contentContainerStyle={styles.listContent}
+          data={tracks}
+          keyboardShouldPersistTaps="handled"
+          keyExtractor={(item) => String(item.id)}
+          ListEmptyComponent={
+            loading ? (
+              <View style={styles.center}>
+                <ActivityIndicator color={colors.primary[500]} />
+              </View>
+            ) : isError ? (
+              <View style={styles.center}>
+                <AppText style={styles.emptyText}>{t("onboarding.music.loadError")}</AppText>
+              </View>
+            ) : (
+              <View style={styles.center}>
+                <AppText style={styles.emptyText}>{t("onboarding.music.empty")}</AppText>
+              </View>
+            )
+          }
+          ListHeaderComponent={
+            <View>
+              <AppText style={styles.step}>{t("onboarding.music.step")}</AppText>
+              <AppText style={styles.title}>{title ?? t("onboarding.music.title")}</AppText>
+              <AppText style={styles.subtitle}>
+                {subtitle ?? t("onboarding.music.subtitle")}
+              </AppText>
+
+              <View style={styles.search}>
+                <Icon color={colors.neutrals[200]} size={20} source="magnify" />
+                <TextInput
+                  accessibilityLabel={t("onboarding.music.search")}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  onChangeText={setQuery}
+                  placeholder={t("onboarding.music.search")}
+                  placeholderTextColor={colors.neutrals[200]}
+                  returnKeyType="search"
+                  style={styles.input}
+                  value={query}
+                />
+                {query.length > 0 ? (
+                  <Pressable
+                    accessibilityLabel={t("onboarding.music.clearSearch")}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() => {
+                      setQuery("");
+                      setDebouncedQuery("");
+                    }}
+                  >
+                    <Icon color={colors.neutrals[200]} size={20} source="close-circle" />
+                  </Pressable>
                 ) : null}
-                {!rawQuery && popular.isPending ? (
-                  <ActivityIndicator
-                    accessibilityLabel={t("onboarding.music.popularLoading")}
-                    color={colors.primary[500]}
-                    style={styles.feedback}
-                  />
-                ) : null}
-                {!rawQuery && popular.isError ? (
-                  <View style={styles.feedback}>
-                    <AppText style={styles.error}>{t("onboarding.music.popularError")}</AppText>
-                    <Pressable accessibilityRole="button" onPress={() => void popular.refetch()}>
-                      <AppText color="primary">{t("onboarding.music.retry")}</AppText>
-                    </Pressable>
-                  </View>
-                ) : null}
-                {!waiting && debouncedQuery && results.isError ? (
-                  <View style={styles.feedback}>
-                    <AppText style={styles.error}>{t("onboarding.music.searchError")}</AppText>
-                    <Pressable accessibilityRole="button" onPress={() => void results.refetch()}>
-                      <AppText color="primary">{t("onboarding.music.retry")}</AppText>
-                    </Pressable>
-                  </View>
-                ) : null}
-                {!waiting && debouncedQuery && results.isSuccess && !results.data.length ? (
-                  <AppText style={styles.subtitle}>{t("onboarding.music.empty")}</AppText>
-                ) : null}
-              </>
-            }
-            renderItem={({ item }) => (
+              </View>
+            </View>
+          }
+          renderItem={({ item }) => {
+            const isSelected = selectedTrack?.id === item.id;
+            return (
               <Pressable
-                accessibilityRole="radio"
-                accessibilityLabel={`${item.title}, ${item.artist}`}
-                accessibilityState={{
-                  checked: selectedTrack?.id === item.id,
-                  disabled: save.isPending
-                }}
-                disabled={save.isPending}
+                accessibilityLabel={`${item.title} - ${item.artist}`}
+                accessibilityRole="button"
                 onPress={() => onSelectTrack(item)}
-                style={[
-                  styles.track,
-                  selectedTrack?.id === item.id ? styles.trackSelected : undefined
-                ]}
+                style={[styles.trackRow, isSelected && styles.trackRowSelected]}
               >
                 {item.artworkUrl ? (
-                  <Image source={item.artworkUrl} style={styles.artwork} contentFit="cover" />
+                  <Image source={{ uri: item.artworkUrl }} style={styles.artwork} />
                 ) : (
-                  <Icon source="music-note" size={40} color={colors.neutrals[200]} />
+                  <View style={[styles.artwork, styles.artworkPlaceholder]}>
+                    <Icon color={colors.neutrals[200]} size={24} source="music" />
+                  </View>
                 )}
-                <View style={styles.flex}>
-                  <AppText style={styles.light}>{item.title}</AppText>
-                  <AppText style={styles.artist}>{item.artist}</AppText>
+                <View style={styles.trackInfo}>
+                  <AppText numberOfLines={1} style={styles.trackTitle}>
+                    {item.title}
+                  </AppText>
+                  <AppText numberOfLines={1} style={styles.trackArtist}>
+                    {item.artist}
+                  </AppText>
                 </View>
-                <Icon
-                  source={selectedTrack?.id === item.id ? "radiobox-marked" : "radiobox-blank"}
-                  size={24}
-                  color={colors.primary[500]}
-                />
+                {isSelected ? (
+                  <Icon color={colors.primary[500]} size={22} source="check-circle" />
+                ) : null}
               </Pressable>
-            )}
-          />
-          <View style={styles.footer}>
-            {save.isError ? (
-              <AppText accessibilityRole="alert" style={styles.error}>
-                {t("onboarding.music.saveError")}
+            );
+          }}
+        />
+
+        <View style={styles.footer}>
+          {save.isError ? (
+            <AppText accessibilityRole="alert" style={styles.saveError}>
+              {t("onboarding.music.saveError")}
+            </AppText>
+          ) : null}
+          <Pressable
+            accessibilityLabel={finishLabel ?? t("onboarding.music.finish")}
+            accessibilityRole="button"
+            disabled={disabled}
+            onPress={() => void submit()}
+            style={[styles.button, disabled && styles.buttonDisabled]}
+            testID="onboarding-music-finish-button"
+          >
+            {save.isPending ? (
+              <ActivityIndicator color={baseColors.black} />
+            ) : (
+              <AppText style={[styles.buttonLabel, disabled && styles.buttonLabelDisabled]}>
+                {finishLabel ?? t("onboarding.music.finish")}
               </AppText>
-            ) : null}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("onboarding.music.finish")}
-              accessibilityState={{ disabled, busy: save.isPending }}
-              disabled={disabled}
-              onPress={() => void submit()}
-              style={({ pressed }) => [
-                styles.finish,
-                disabled ? styles.finishDisabled : undefined,
-                pressed ? styles.pressed : undefined
-              ]}
-            >
-              {save.isPending ? (
-                <ActivityIndicator color={colors.neutrals[800]} />
-              ) : (
-                <AppText variant="buttonLarge" style={styles.finishLabel}>
-                  {t("onboarding.music.finish")}
-                </AppText>
-              )}
-            </Pressable>
-          </View>
+            )}
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -258,103 +244,142 @@ export function OnboardingMusicScreen({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: baseColors.black, overflow: "hidden" },
-  flex: { flex: 1 },
-  radialGlowBottom: {
-    bottom: -190,
-    height: 520,
-    opacity: 0.42,
-    pointerEvents: "none",
-    position: "absolute",
-    right: -210,
-    transform: [{ rotate: "180deg" }],
-    width: 520
+  artwork: {
+    borderRadius: 4,
+    height: 48,
+    width: 48
   },
-  radialGlowTop: {
-    height: 520,
-    left: -210,
-    opacity: 0.48,
-    pointerEvents: "none",
-    position: "absolute",
-    top: -190,
-    width: 520
-  },
-  topBar: {
-    height: 64,
-    flexDirection: "row",
+  artworkPlaceholder: {
     alignItems: "center",
+    backgroundColor: colors.secondary[900],
+    justifyContent: "center"
+  },
+  button: {
+    alignItems: "center",
+    backgroundColor: colors.primary[500],
+    borderRadius: 24,
+    height: 48,
+    justifyContent: "center"
+  },
+  buttonDisabled: {
+    backgroundColor: colors.neutrals[700],
+    opacity: 0.6
+  },
+  buttonLabel: {
+    color: baseColors.black,
+    fontFamily: fontFamily.primary.bold,
+    fontSize: 16
+  },
+  buttonLabelDisabled: {
+    color: colors.neutrals[400]
+  },
+  center: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: spacing[6]
+  },
+  emptyText: {
+    color: colors.neutrals[300],
+    fontSize: 14,
+    textAlign: "center"
+  },
+  footer: {
+    borderTopColor: colors.neutrals[800],
+    borderTopWidth: 1,
+    gap: spacing[2],
+    padding: spacing[4]
+  },
+  header: {
+    alignItems: "center",
+    flexDirection: "row",
+    height: 48,
     justifyContent: "space-between",
     paddingHorizontal: spacing[4]
   },
-  back: { width: 48, height: 48, justifyContent: "center" },
-  header: { color: colors.secondary[100], fontFamily: fontFamily.primary.semiBold },
-  content: { flex: 1, paddingHorizontal: spacing[4], paddingBottom: spacing[6] },
-  progress: { width: "100%", height: 4, marginBottom: spacing[4] },
-  list: { paddingBottom: spacing[4] },
-  step: { lineHeight: 18, letterSpacing: 0.15, marginBottom: spacing[4] },
-  title: {
+  headerSpacer: {
+    width: 24
+  },
+  headerTitle: {
+    color: colors.neutrals[50],
+    fontFamily: fontFamily.primary.bold,
+    fontSize: 16
+  },
+  input: {
     color: colors.neutrals[100],
-    fontFamily: fontFamily.primary.semiBold,
-    lineHeight: 37.35
+    flex: 1,
+    fontFamily: fontFamily.primary.regular,
+    fontSize: 14,
+    paddingVertical: spacing[2]
+  },
+  keyboard: {
+    flex: 1
+  },
+  listContent: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2]
+  },
+  safe: {
+    backgroundColor: baseColors.black,
+    flex: 1
+  },
+  saveError: {
+    color: colors.error[500],
+    fontSize: 13,
+    marginBottom: spacing[1],
+    textAlign: "center"
+  },
+  search: {
+    alignItems: "center",
+    backgroundColor: colors.neutrals[800],
+    borderRadius: 8,
+    flexDirection: "row",
+    gap: spacing[2],
+    marginVertical: spacing[4],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1]
+  },
+  step: {
+    color: colors.primary[500],
+    fontFamily: fontFamily.primary.medium,
+    fontSize: 13,
+    marginTop: spacing[2]
   },
   subtitle: {
     color: colors.neutrals[200],
-    lineHeight: 21,
-    letterSpacing: 0.15,
-    marginTop: spacing[2],
-    marginBottom: spacing[4]
-  },
-  search: {
-    minHeight: 56,
-    borderRadius: 8,
-    backgroundColor: colors.neutrals[800],
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing[6],
-    marginBottom: spacing[4]
-  },
-  input: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: spacing[4],
-    color: colors.neutrals[100],
     fontFamily: fontFamily.primary.regular,
-    fontSize: 14
+    fontSize: 14,
+    marginTop: spacing[1]
   },
-  light: { color: colors.neutrals[100], flexShrink: 1 },
-  artist: { color: colors.neutrals[200], marginTop: 4 },
-  track: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[3],
-    padding: spacing[3],
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.neutrals[700],
-    marginBottom: spacing[2],
-    backgroundColor: colors.neutrals[800]
-  },
-  trackSelected: { borderColor: colors.primary[500], backgroundColor: colors.primary[900] },
-  artwork: { height: 48, width: 48, borderRadius: 8 },
-  feedback: { padding: spacing[4], gap: spacing[3] },
-  error: { color: colors.error[200], lineHeight: 21 },
-  footer: { gap: spacing[3], paddingTop: spacing[4] },
-  finish: {
-    minHeight: 58,
-    borderRadius: 100,
-    backgroundColor: colors.primary[500],
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: spacing[6],
-    paddingVertical: spacing[4]
-  },
-  finishDisabled: { backgroundColor: colors.neutrals[400] },
-  finishLabel: {
-    color: colors.neutrals[800],
+  title: {
+    color: colors.neutrals[50],
     fontFamily: fontFamily.primary.bold,
-    lineHeight: 26,
-    letterSpacing: 0.46,
-    textAlign: "center"
+    fontSize: 22,
+    marginTop: spacing[1]
   },
-  pressed: { opacity: 0.82 }
+  trackArtist: {
+    color: colors.neutrals[200],
+    fontFamily: fontFamily.primary.regular,
+    fontSize: 13,
+    marginTop: 2
+  },
+  trackInfo: {
+    flex: 1,
+    marginLeft: spacing[3]
+  },
+  trackRow: {
+    alignItems: "center",
+    borderRadius: 8,
+    flexDirection: "row",
+    padding: spacing[2]
+  },
+  trackRowSelected: {
+    backgroundColor: colors.neutrals[900],
+    borderColor: colors.primary[500],
+    borderWidth: 1
+  },
+  trackTitle: {
+    color: colors.neutrals[50],
+    fontFamily: fontFamily.primary.medium,
+    fontSize: 15
+  }
 });

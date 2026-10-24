@@ -47,6 +47,7 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
     update.mutate({ is_private: confirmation === "private" }, { onSettled: release });
   };
 
+  const openEditMusic = () => navigation.navigate("EditMusicPreferences");
   const openPending = (destination: Destination) =>
     navigation.navigate("SettingsPending", { destination });
   const openAccount = () => navigation.navigate("Account");

@@ -31,7 +31,8 @@ import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { FeedScreen, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
 import { NotificationsScreen } from "@/features/notifications";
-import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
+import { OnboardingArtistsRoute } from "@/features/onboarding/screens/OnboardingArtistsRoute";
+import { EditMusicPreferencesRoute } from "@/features/onboarding/screens/EditMusicPreferencesRoute";
 import { OnboardingGenresRoute } from "@/features/onboarding/screens/OnboardingGenresRoute";
 import { OnboardingMusicRoute } from "@/features/onboarding/screens/OnboardingMusicRoute";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
@@ -80,6 +81,7 @@ export type RootStackParamList = {
   };
   Settings: undefined;
   SettingsPending: { destination: "account" | "music" | "language" };
+  EditMusicPreferences: undefined;
   SignUp: undefined;
   UserProfile: { userId: string };
   UserSearch: undefined;
@@ -206,8 +208,8 @@ function UserProfilePlaceholderScreen() {
 export function RootNavigator() {
   const { setActiveRoute } = useFeedAudioActions();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
-  // A prévia só toca no Feed e nos Detalhes; sair para qualquer outra tela
-  // silencia. `onReady` cobre a rota inicial, que `onStateChange` não emite.
+  // A prÃ©via sÃ³ toca no Feed e nos Detalhes; sair para qualquer outra tela
+  // silencia. `onReady` cobre a rota inicial, que `onStateChange` nÃ£o emite.
   const syncActiveRoute = () => setActiveRoute(navigationRef.getCurrentRoute()?.name);
 
   return (
@@ -222,7 +224,7 @@ export function RootNavigator() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="Login" component={SignInScreen} />
         <Stack.Screen name="PasswordRecovery" component={PasswordRecoveryScreen} />
-        <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsScreen} />
+        <Stack.Screen name="OnboardingArtists" component={OnboardingArtistsRoute} />
         <Stack.Screen name="OnboardingGenres" component={OnboardingGenresRoute} />
         <Stack.Screen name="OnboardingMusic" component={OnboardingMusicRoute} />
         <Stack.Screen name="Feed" component={FeedScreen} />
@@ -232,6 +234,7 @@ export function RootNavigator() {
         <Stack.Screen name="Profile" component={ProfilePlaceholderScreen} />
         <Stack.Screen name="Settings" component={SettingsRoute} />
         <Stack.Screen name="SettingsPending" component={SettingsPendingScreen} />
+        <Stack.Screen name="EditMusicPreferences" component={EditMusicPreferencesRoute} />
         <Stack.Screen name="Account" component={AccountScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminHomeRoute} />

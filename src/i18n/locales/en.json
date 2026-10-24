@@ -40,7 +40,7 @@
       "hidePassword": "Hide password",
       "logo": "recorda.",
       "networkError": "Unable to connect to the server. Please try again.",
-      "noAccount": "Don't have an account?",
+      "noAccount": "Don\u0027t have an account?",
       "password": "Password",
       "showPassword": "Show password",
       "signUpAction": "Sign up",
@@ -53,7 +53,7 @@
     "signOut": "Sign out",
     "validation": {
       "usernameRequired": "Enter your username.",
-      "usernameNoSpaces": "Your username can't contain spaces.",
+      "usernameNoSpaces": "Your username can\u0027t contain spaces.",
       "nameRequired": "Enter your name.",
       "emailRequired": "Enter your email.",
       "emailInvalid": "Enter a valid email.",
@@ -97,7 +97,7 @@
       "back": "Back",
       "continue": "Next",
       "header": "Genres",
-      "loadError": "We couldn't load the genres.",
+      "loadError": "We couldn\u0027t load the genres.",
       "loading": "Loading genres...",
       "step": "STEP 2 OF 3",
       "subtitle": "Choose at least 3 genres. You can change this later.",
@@ -173,7 +173,7 @@
       "count_one": "{{count}} report",
       "count_other": "{{count}} reports",
       "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
-      "reportedBy": "By @{{username}} • {{date}}",
+      "reportedBy": "By @{{username}} â€¢ {{date}}",
       "target": {
         "recorda": "Recorda",
         "user": "Profile"
@@ -195,7 +195,7 @@
     "reportDetail": {
       "title": "Report details",
       "loading": "Loading report",
-      "loadError": "We couldn't load this report.",
+      "loadError": "We couldn\u0027t load this report.",
       "notFound": "This report no longer exists.",
       "retry": "Try again",
       "back": "Back to reports",
@@ -209,13 +209,13 @@
       "privateAccount": "Private account",
       "createdAt": "Account created on {{date}}",
       "openUser": "Open user",
-      "photo": "Photo from @{{username}}'s Recorda",
-      "video": "Video from @{{username}}'s Recorda",
+      "photo": "Photo from @{{username}}\u0027s Recorda",
+      "video": "Video from @{{username}}\u0027s Recorda",
       "reportsTitle": "Reports ({{count}})",
       "noDescription": "No description",
       "historyTitle": "History",
       "historyEmpty": "No actions recorded.",
-      "historyBy": "By @{{username}} • {{date}}",
+      "historyBy": "By @{{username}} â€¢ {{date}}",
       "historyReason": "Reason: {{reason}}",
       "history": {
         "REMOVE_RECORDA": "Content removed",
@@ -247,7 +247,7 @@
           "confirm": "Reopen",
           "success": "Reports reopened."
         },
-        "error": "We couldn't change the status. Try again.",
+        "error": "We couldn\u0027t change the status. Try again.",
         "invalidReason": "Enter a reason between 1 and 500 characters.",
         "conflictTitle": "This content has already been handled",
         "conflictMessage": "Someone else changed these reports. The data has been reloaded."
@@ -282,7 +282,7 @@
       },
       "statusChange": "(from {{from}} to {{to}})",
       "reason": "Reason: {{reason}}",
-      "dateTime": "{{date}} • {{time}}"
+      "dateTime": "{{date}} â€¢ {{time}}"
     }
   },
   "profile": {
@@ -300,9 +300,9 @@
     "empty": "There are no users in this list.",
     "searchEmpty": "No users found.",
     "privateError": "This account is private.",
-    "loadError": "We couldn't load this list.",
-    "loadMoreError": "We couldn't load more users.",
-    "removeError": "We couldn't remove this follower. Try again.",
+    "loadError": "We couldn\u0027t load this list.",
+    "loadMoreError": "We couldn\u0027t load more users.",
+    "removeError": "We couldn\u0027t remove this follower. Try again.",
     "retry": "Try again"
   },
   "recordaMusic": {
@@ -356,15 +356,15 @@
     "likesCount_other": "{{count}} likes",
     "loading": "Loading feed...",
     "loadingMore": "Loading more Recordas...",
-    "loadError": "We couldn't load the feed. Please try again.",
-    "loadMoreError": "We couldn't load more Recordas.",
+    "loadError": "We couldn\u0027t load the feed. Please try again.",
+    "loadMoreError": "We couldn\u0027t load more Recordas.",
     "retry": "Try again",
     "generalEmptyState": {
       "title": "No Recordas here yet",
       "message": "Open Following to keep up with the Recordas shared by people you follow."
     },
     "emptyState": {
-      "title": "It's still quiet around here",
+      "title": "It\u0027s still quiet around here",
       "message": "Follow new people and keep up with the Recordas they share!"
     },
     "tabs": {
@@ -407,12 +407,12 @@
     "fallbackMessage": "The system share menu opened with your card.",
     "webFallbackMessage": "The card was downloaded. Share the image using the app you prefer.",
     "savedTitle": "Image saved",
-    "savedMessage": "The card was saved to your device's gallery.",
+    "savedMessage": "The card was saved to your device\u0027s gallery.",
     "permissionDeniedTitle": "Permission needed",
     "permissionDeniedMessage": "Allow gallery access to save the card.",
     "saveErrorTitle": "Save error",
     "saveErrorMessage": "Could not save the image. Please try again.",
-    "shareMessage": "Check out my new Recorda! <app link coming soon>",
+    "shareMessage": "Check out my new Recorda! \u003capp link coming soon\u003e",
     "shareDialogTitle": "Share Recorda",
     "shareErrorTitle": "Share error",
     "shareErrorMessage": "Could not share. Please try again.",
@@ -422,12 +422,12 @@
     "title": "Notifications",
     "back": "Back",
     "loading": "Loading notifications...",
-    "loadError": "We couldn't load your notifications.",
+    "loadError": "We couldn\u0027t load your notifications.",
     "retry": "Try again",
     "empty": "You have no notifications yet.",
     "accept": "Accept",
     "decline": "Decline",
-    "actionError": "We couldn't respond to the request. Please try again.",
+    "actionError": "We couldn\u0027t respond to the request. Please try again.",
     "types": {
       "FOLLOW_REQUEST": "wants to follow you",
       "FOLLOW_ACCEPTED": "accepted your follow request",
@@ -497,7 +497,7 @@
       "reasonLabel": "Reason (required):",
       "reasonInput": "Moderation reason",
       "reasonPlaceholder": "Enter the reason for this action (max. {{max}} characters)...",
-      "resolveReports": "Mark the profile's open reports as resolved",
+      "resolveReports": "Mark the profile\u0027s open reports as resolved",
       "cancel": "Cancel",
       "confirmSuspend": "Confirm Suspension",
       "confirmReactivate": "Confirm Reactivation",
@@ -535,8 +535,8 @@
     "language": "Language",
     "sessionSection": "Session",
     "signOut": "Sign out",
-    "loading": "Loading settings…",
-    "saving": "Saving privacy…",
+    "loading": "Loading settingsâ€¦",
+    "saving": "Saving privacyâ€¦",
     "loadError": "Unable to load your settings.",
     "updateError": "Unable to change privacy. Your previous setting was restored. Please try again.",
     "retry": "Try again",
@@ -559,6 +559,14 @@
         "title": "Sign out",
         "message": "Do you want to sign out of your account?"
       }
+    },
+    "musicPreferences": {
+      "title": "Edit music preferences",
+      "loading": "Loading music preferences",
+      "loadError": "Could not load your preferences.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your changes have not been saved.",
+      "updated": "Preferences updated"
     }
   },
   "account": {
