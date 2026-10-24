@@ -27,6 +27,7 @@ function setup(
     save?: () => Promise<void>;
     search?: () => Promise<MusicTrack[]>;
     popular?: () => Promise<MusicTrack[]>;
+    initialTrack?: MusicTrack;
   } = {}
 ) {
   const search = jest.fn(options.search ?? (async () => tracks));
@@ -40,7 +41,7 @@ function setup(
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
   });
   function Host() {
-    const [track, setTrack] = useState<MusicTrack | null>(null);
+    const [track, setTrack] = useState<MusicTrack | null>(options.initialTrack ?? null);
     return (
       <OnboardingMusicScreen
         selectedTrack={track}
@@ -71,6 +72,13 @@ it("shows popular songs by default before any search", async () => {
   expect(await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" })).toBeTruthy();
   expect(screen.getByRole("radio", { name: "Evidências, Chitãozinho & Xororó" })).toBeTruthy();
   expect(search).not.toHaveBeenCalled();
+});
+
+it("keeps the saved song visible and selected when it is not in popular results", () => {
+  setup({ initialTrack: tracks[1] });
+
+  expect(screen.getByRole("radio", { name: "Evidências, Chitãozinho & Xororó" })).toBeChecked();
+  expect(screen.getByRole("button", { name: "Começar a Recordar" })).toBeEnabled();
 });
 
 it("shows an error state when popular songs fail to load", async () => {

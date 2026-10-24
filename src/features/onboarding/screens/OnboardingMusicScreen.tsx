@@ -16,7 +16,7 @@ import {
 import { Icon } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppText } from "@/components/ui";
+import { AppText, Button } from "@/components/ui";
 import { baseColors, colors, fontFamily, spacing } from "@/theme";
 import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
 
@@ -94,14 +94,37 @@ export function OnboardingMusicScreen({
         genres: selectedGenres,
         track: selectedTrack
       });
+    } catch {
+      // React Query exposes the failure through `save.isError` for an inline retry.
     } finally {
       submitting.current = false;
     }
   };
 
   const tracks = debouncedQuery.length > 0 ? (results.data ?? []) : (popular.data ?? []);
+  const visibleTracks = selectedTrack
+    ? [selectedTrack, ...tracks.filter((track) => track.id !== selectedTrack.id)]
+    : tracks;
   const loading = debouncedQuery.length > 0 ? waiting || results.isPending : popular.isPending;
   const isError = debouncedQuery.length > 0 ? results.isError : popular.isError;
+  const errorMessage =
+    debouncedQuery.length > 0
+      ? t("onboarding.music.searchError")
+      : t("onboarding.music.popularError");
+  const retry = () => {
+    if (debouncedQuery.length > 0) {
+      void results.refetch();
+      return;
+    }
+
+    void popular.refetch();
+  };
+  const errorContent = (
+    <View style={styles.center}>
+      <AppText style={styles.emptyText}>{errorMessage}</AppText>
+      <Button label={t("onboarding.music.retry")} onPress={retry} variant="secondary" />
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -118,7 +141,7 @@ export function OnboardingMusicScreen({
             onPress={onBack}
             testID="onboarding-music-back-button"
           >
-            <Icon color={colors.neutrals[50]} size={24} source="arrow-left" />
+            <Icon color={colors.neutrals[100]} size={24} source="arrow-left" />
           </Pressable>
           <AppText style={styles.headerTitle}>
             {headerTitle ?? t("onboarding.music.header")}
@@ -128,7 +151,7 @@ export function OnboardingMusicScreen({
 
         <FlatList
           contentContainerStyle={styles.listContent}
-          data={tracks}
+          data={visibleTracks}
           keyboardShouldPersistTaps="handled"
           keyExtractor={(item) => String(item.id)}
           ListEmptyComponent={
@@ -137,9 +160,7 @@ export function OnboardingMusicScreen({
                 <ActivityIndicator color={colors.primary[500]} />
               </View>
             ) : isError ? (
-              <View style={styles.center}>
-                <AppText style={styles.emptyText}>{t("onboarding.music.loadError")}</AppText>
-              </View>
+              errorContent
             ) : (
               <View style={styles.center}>
                 <AppText style={styles.emptyText}>{t("onboarding.music.empty")}</AppText>
@@ -187,8 +208,9 @@ export function OnboardingMusicScreen({
             const isSelected = selectedTrack?.id === item.id;
             return (
               <Pressable
-                accessibilityLabel={`${item.title} - ${item.artist}`}
-                accessibilityRole="button"
+                accessibilityLabel={`${item.title}, ${item.artist}`}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: isSelected }}
                 onPress={() => onSelectTrack(item)}
                 style={[styles.trackRow, isSelected && styles.trackRowSelected]}
               >
@@ -213,6 +235,15 @@ export function OnboardingMusicScreen({
               </Pressable>
             );
           }}
+          ListFooterComponent={
+            visibleTracks.length > 0 && loading ? (
+              <View style={styles.center}>
+                <ActivityIndicator color={colors.primary[500]} />
+              </View>
+            ) : visibleTracks.length > 0 && isError ? (
+              errorContent
+            ) : null
+          }
         />
 
         <View style={styles.footer}>
@@ -300,7 +331,7 @@ const styles = StyleSheet.create({
     width: 24
   },
   headerTitle: {
-    color: colors.neutrals[50],
+    color: colors.neutrals[100],
     fontFamily: fontFamily.primary.bold,
     fontSize: 16
   },
@@ -340,7 +371,7 @@ const styles = StyleSheet.create({
   },
   step: {
     color: colors.primary[500],
-    fontFamily: fontFamily.primary.medium,
+    fontFamily: fontFamily.primary.regular,
     fontSize: 13,
     marginTop: spacing[2]
   },
@@ -351,7 +382,7 @@ const styles = StyleSheet.create({
     marginTop: spacing[1]
   },
   title: {
-    color: colors.neutrals[50],
+    color: colors.neutrals[100],
     fontFamily: fontFamily.primary.bold,
     fontSize: 22,
     marginTop: spacing[1]
@@ -378,8 +409,8 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   trackTitle: {
-    color: colors.neutrals[50],
-    fontFamily: fontFamily.primary.medium,
+    color: colors.neutrals[100],
+    fontFamily: fontFamily.primary.semiBold,
     fontSize: 15
   }
 });

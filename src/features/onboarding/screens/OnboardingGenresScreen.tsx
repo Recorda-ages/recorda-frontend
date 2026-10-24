@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -37,6 +38,19 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
   const genresQuery = useGenres();
   const selectedGenreIds = selectedGenres.map((genre) => genre.id);
   const canContinue = selectedGenres.length >= 3;
+  const visibleGenres = useMemo<Genre[]>(() => {
+    const savedGenres = selectedGenres.map((genre) => ({
+      id: genre.id,
+      name: genre.name,
+      picture_url: genre.pictureUrl ?? null
+    }));
+    const availableGenres = genresQuery.data ?? [];
+
+    return [
+      ...savedGenres,
+      ...availableGenres.filter((genre) => !selectedGenreIds.includes(genre.id))
+    ];
+  }, [genresQuery.data, selectedGenreIds, selectedGenres]);
 
   const toggleGenre = (genre: Genre) => {
     const nextGenres = selectedGenreIds.includes(genre.id)
@@ -68,9 +82,9 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
 
       {genresQuery.isError ? <ErrorState message={t("onboarding.genres.loadError")} /> : null}
 
-      {genresQuery.isSuccess ? (
+      {genresQuery.isSuccess || selectedGenres.length > 0 ? (
         <View style={styles.grid}>
-          {genresQuery.data.map((genre) => {
+          {visibleGenres.map((genre) => {
             const isSelected = selectedGenreIds.includes(genre.id);
 
             return (
@@ -124,7 +138,7 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
   chipTextSelected: {
-    color: colors.neutrals[50]
+    color: colors.neutrals[100]
   },
   grid: {
     flexDirection: "row",

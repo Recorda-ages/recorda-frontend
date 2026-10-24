@@ -7,7 +7,7 @@
       "description": "Informe seu email para definir uma nova senha.",
       "email": "Email",
       "confirmPassword": "Confirmar Senha",
-      "genericError": "NÃ£o foi possÃ­vel redefinir sua senha. Tente novamente.",
+      "genericError": "Não foi possível redefinir sua senha. Tente novamente.",
       "hidePassword": "Ocultar senha",
       "loginAction": "Entrar",
       "logo": "recorda.",
@@ -20,113 +20,113 @@
     },
     "signUp": {
       "email": "Email",
-      "hasAccount": "JÃ¡ tem uma conta?",
+      "hasAccount": "Já tem uma conta?",
       "hidePassword": "Ocultar senha",
       "loginAction": "Entrar",
       "logo": "recorda.",
       "name": "Nome",
-      "networkError": "NÃ£o foi possÃ­vel conectar ao servidor. Tente novamente.",
+      "networkError": "Não foi possível conectar ao servidor. Tente novamente.",
       "password": "Senha",
       "showPassword": "Mostrar senha",
       "submit": "Cadastrar",
       "subtitle": "Crie sua conta e transforme momentos em trilhas.",
       "title": "Guarde o momento",
-      "username": "UsuÃ¡rio",
-      "invalidField": "Campo invÃ¡lido."
+      "username": "Usuário",
+      "invalidField": "Campo inválido."
     },
     "signIn": {
       "forgotPassword": "Esqueci minha senha",
-      "genericError": "NÃ£o foi possÃ­vel entrar. Tente novamente.",
+      "genericError": "Não foi possível entrar. Tente novamente.",
       "hidePassword": "Ocultar senha",
       "logo": "recorda.",
-      "networkError": "NÃ£o foi possÃ­vel conectar ao servidor. Tente novamente.",
-      "noAccount": "Ainda nÃ£o tem uma conta?",
+      "networkError": "Não foi possível conectar ao servidor. Tente novamente.",
+      "noAccount": "Ainda não tem uma conta?",
       "password": "Senha",
       "showPassword": "Mostrar senha",
       "signUpAction": "Cadastre-se",
       "submit": "Entrar",
       "subtitle": "Entre para reviver momentos que continuam tocando.",
       "title": "Bem-vindo de volta",
-      "username": "UsuÃ¡rio",
-      "invalidCredentials": "UsuÃ¡rio ou senha invÃ¡lidos."
+      "username": "Usuário",
+      "invalidCredentials": "Usuário ou senha inválidos."
     },
     "signOut": "Sair",
     "validation": {
-      "usernameRequired": "Informe seu usuÃ¡rio.",
-      "usernameNoSpaces": "O usuÃ¡rio nÃ£o pode conter espaÃ§os.",
+      "usernameRequired": "Informe seu usuário.",
+      "usernameNoSpaces": "O usuário não pode conter espaços.",
       "nameRequired": "Informe seu nome.",
       "emailRequired": "Informe seu email.",
-      "emailInvalid": "Informe um email vÃ¡lido.",
+      "emailInvalid": "Informe um email válido.",
       "passwordRequired": "Informe sua senha.",
-      "passwordMinLength": "A senha deve ter no mÃ­nimo {{min}} caracteres.",
-      "passwordMismatch": "As senhas devem ser idÃªnticas."
+      "passwordMinLength": "A senha deve ter no mínimo {{min}} caracteres.",
+      "passwordMismatch": "As senhas devem ser idênticas."
     }
   },
   "onboarding": {
     "artists": {
       "header": "Artistas",
       "back": "Voltar",
-      "continue": "PrÃ³ximo",
+      "continue": "Próximo",
       "step": "ETAPA 1 DE 3",
-      "title": "Quem faz parte da sua histÃ³ria?",
-      "subtitle": "Escolha pelo menos 3 artistas para personalizar suas recordaÃ§Ãµes.",
+      "title": "Quem faz parte da sua história?",
+      "subtitle": "Escolha pelo menos 3 artistas para personalizar suas recordações.",
       "search": "Buscar artistas",
       "clearSearch": "Limpar busca",
       "popularLoading": "Carregando artistas populares",
-      "popularError": "NÃ£o foi possÃ­vel carregar artistas populares.",
-      "searchError": "NÃ£o foi possÃ­vel buscar artistas. Verifique sua conexÃ£o.",
+      "popularError": "Não foi possível carregar artistas populares.",
+      "searchError": "Não foi possível buscar artistas. Verifique sua conexão.",
       "empty": "Nenhum artista encontrado."
     },
     "music": {
-      "header": "MÃºsica favorita",
-      "back": "Voltar para gÃªneros",
+      "header": "Música favorita",
+      "back": "Voltar para gêneros",
       "step": "ETAPA 3 DE 3",
-      "title": "Qual mÃºsica nÃ£o pode faltar?",
-      "subtitle": "Escolha 1 mÃºsica para dar o tom das suas primeiras recordaÃ§Ãµes.",
-      "search": "Buscar mÃºsicas",
-      "finish": "ComeÃ§ar a Recordar",
-      "loading": "Buscando mÃºsicas",
-      "popularLoading": "Carregando mÃºsicas populares",
-      "popularError": "NÃ£o foi possÃ­vel carregar mÃºsicas populares.",
-      "searchError": "NÃ£o foi possÃ­vel buscar mÃºsicas.",
+      "title": "Qual música não pode faltar?",
+      "subtitle": "Escolha 1 música para dar o tom das suas primeiras recordações.",
+      "search": "Buscar músicas",
+      "finish": "Começar a Recordar",
+      "loading": "Buscando músicas",
+      "popularLoading": "Carregando músicas populares",
+      "popularError": "Não foi possível carregar músicas populares.",
+      "searchError": "Não foi possível buscar músicas.",
       "retry": "Tentar novamente",
-      "empty": "Nenhuma mÃºsica encontrada. Tente outro nome ou artista.",
-      "saveError": "NÃ£o foi possÃ­vel salvar. Suas escolhas foram mantidas. Tente novamente."
+      "empty": "Nenhuma música encontrada. Tente outro nome ou artista.",
+      "saveError": "Não foi possível salvar. Suas escolhas foram mantidas. Tente novamente."
     },
     "genres": {
       "back": "Voltar",
-      "continue": "PrÃ³ximo",
-      "header": "GÃªneros",
-      "loadError": "NÃ£o foi possÃ­vel carregar os gÃªneros.",
-      "loading": "Carregando gÃªneros...",
+      "continue": "Próximo",
+      "header": "Gêneros",
+      "loadError": "Não foi possível carregar os gêneros.",
+      "loading": "Carregando gêneros...",
       "step": "ETAPA 2 DE 3",
-      "subtitle": "Escolha pelo menos 3 gÃªneros. VocÃª poderÃ¡ mudar isso depois.",
-      "title": "Que sons combinam com vocÃª?"
+      "subtitle": "Escolha pelo menos 3 gêneros. Você poderá mudar isso depois.",
+      "title": "Que sons combinam com você?"
     },
     "selectedCount_one": "{{count}} selecionado",
     "selectedCount_other": "{{count}} selecionados"
   },
   "recordaDetails": {
     "back": "Voltar",
-    "descriptionLabel": "DescriÃ§Ã£o",
-    "descriptionPlaceholder": "Adicione uma descriÃ§Ã£o...",
-    "mediaSelected": "MÃ­dia selecionada",
-    "mediaUnavailable": "MÃ­dia indisponÃ­vel",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Adicione uma descrição...",
+    "mediaSelected": "Mídia selecionada",
+    "mediaUnavailable": "Mídia indisponível",
     "publish": "Publicar",
     "publishCreating": "Publicando...",
     "publishRetry": "Tentar novamente",
     "publishSuccessMessage": "Sua Recorda foi publicada com sucesso.",
     "publishSuccessTitle": "Recorda publicada",
-    "publishUploading": "Enviando mÃ­dia...",
+    "publishUploading": "Enviando mídia...",
     "share": "Compartilhar",
-    "songCover": "Capa da mÃºsica",
+    "songCover": "Capa da música",
     "publishError": {
-      "upload": "NÃ£o foi possÃ­vel enviar a mÃ­dia. Tente novamente.",
-      "create": "NÃ£o foi possÃ­vel publicar a Recorda. Tente novamente."
+      "upload": "Não foi possível enviar a mídia. Tente novamente.",
+      "create": "Não foi possível publicar a Recorda. Tente novamente."
     }
   },
   "admin": {
-    "title": "Ãrea administrativa",
+    "title": "Área administrativa",
     "reasonDialog": {
       "label": "Motivo",
       "placeholder": "Descreva o motivo",
@@ -142,38 +142,38 @@
       "suspended": "Suspenso"
     },
     "session": {
-      "expiredTitle": "SessÃ£o encerrada",
-      "expiredMessage": "Sua sessÃ£o expirou.",
+      "expiredTitle": "Sessão encerrada",
+      "expiredMessage": "Sua sessão expirou.",
       "forbiddenTitle": "Acesso administrativo removido",
-      "forbiddenMessage": "Sua conta nÃ£o tem acesso administrativo."
+      "forbiddenMessage": "Sua conta não tem acesso administrativo."
     },
     "signOut": "Sair",
     "navigation": {
-      "home": "InÃ­cio administrativo",
+      "home": "Início administrativo",
       "auditLog": "Auditoria",
-      "reports": "DenÃºncias",
-      "users": "UsuÃ¡rios"
+      "reports": "Denúncias",
+      "users": "Usuários"
     },
     "reports": {
-      "title": "DenÃºncias",
-      "search": "Buscar por usuÃ¡rio ou conteÃºdo",
-      "loading": "Carregando denÃºncias",
-      "loadError": "NÃ£o foi possÃ­vel carregar as denÃºncias.",
-      "loadMoreError": "NÃ£o foi possÃ­vel carregar mais denÃºncias.",
+      "title": "Denúncias",
+      "search": "Buscar por usuário ou conteúdo",
+      "loading": "Carregando denúncias",
+      "loadError": "Não foi possível carregar as denúncias.",
+      "loadMoreError": "Não foi possível carregar mais denúncias.",
       "retry": "Tentar novamente",
       "empty": {
-        "open": "Nenhuma denÃºncia pendente",
-        "resolved": "Nenhuma denÃºncia resolvida",
-        "dismissed": "Nenhuma denÃºncia descartada",
-        "search": "Nenhuma denÃºncia encontrada para essa busca"
+        "open": "Nenhuma denúncia pendente",
+        "resolved": "Nenhuma denúncia resolvida",
+        "dismissed": "Nenhuma denúncia descartada",
+        "search": "Nenhuma denúncia encontrada para essa busca"
       },
-      "groupedCount_zero": "0 denÃºncias agrupadas",
-      "groupedCount_one": "{{count}} denÃºncia agrupada",
-      "groupedCount_other": "{{count}} denÃºncias agrupadas",
-      "count_one": "{{count}} denÃºncia",
-      "count_other": "{{count}} denÃºncias",
+      "groupedCount_zero": "0 denúncias agrupadas",
+      "groupedCount_one": "{{count}} denúncia agrupada",
+      "groupedCount_other": "{{count}} denúncias agrupadas",
+      "count_one": "{{count}} denúncia",
+      "count_other": "{{count}} denúncias",
       "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
-      "reportedBy": "Por @{{username}} â€¢ {{date}}",
+      "reportedBy": "Por @{{username}} • {{date}}",
       "target": {
         "recorda": "Recorda",
         "user": "Perfil"
@@ -193,77 +193,77 @@
       }
     },
     "reportDetail": {
-      "title": "Detalhes da denÃºncia",
-      "loading": "Carregando denÃºncia",
-      "loadError": "NÃ£o foi possÃ­vel carregar a denÃºncia.",
-      "notFound": "Essa denÃºncia nÃ£o existe mais.",
+      "title": "Detalhes da denúncia",
+      "loading": "Carregando denúncia",
+      "loadError": "Não foi possível carregar a denúncia.",
+      "notFound": "Essa denúncia não existe mais.",
       "retry": "Tentar novamente",
-      "back": "Voltar para as denÃºncias",
-      "dateTime": "{{date}} Ã s {{time}}",
+      "back": "Voltar para as denúncias",
+      "dateTime": "{{date}} às {{time}}",
       "recordaLabel": "Recorda denunciada",
       "userLabel": "Perfil denunciado",
-      "musicLabel": "MÃºsica associada",
+      "musicLabel": "Música associada",
       "author": "Autor: @{{username}}",
       "removedAt": "Removida em {{date}}",
-      "accountDeletedAt": "Conta excluÃ­da em {{date}}",
+      "accountDeletedAt": "Conta excluída em {{date}}",
       "privateAccount": "Conta privada",
       "createdAt": "Conta criada em {{date}}",
-      "openUser": "Abrir usuÃ¡rio",
+      "openUser": "Abrir usuário",
       "photo": "Foto da Recorda de @{{username}}",
-      "video": "VÃ­deo da Recorda de @{{username}}",
-      "reportsTitle": "DenÃºncias ({{count}})",
-      "noDescription": "Sem descriÃ§Ã£o",
-      "historyTitle": "HistÃ³rico",
-      "historyEmpty": "Nenhuma aÃ§Ã£o registrada.",
-      "historyBy": "Por @{{username}} â€¢ {{date}}",
+      "video": "Vídeo da Recorda de @{{username}}",
+      "reportsTitle": "Denúncias ({{count}})",
+      "noDescription": "Sem descrição",
+      "historyTitle": "Histórico",
+      "historyEmpty": "Nenhuma ação registrada.",
+      "historyBy": "Por @{{username}} • {{date}}",
       "historyReason": "Motivo: {{reason}}",
       "history": {
-        "REMOVE_RECORDA": "ConteÃºdo removido",
-        "CHANGE_REPORT_STATUS": "Status das denÃºncias alterado",
+        "REMOVE_RECORDA": "Conteúdo removido",
+        "CHANGE_REPORT_STATUS": "Status das denúncias alterado",
         "SUSPEND_USER": "Conta suspensa",
         "REACTIVATE_USER": "Conta reativada",
         "statusChangedTo": {
-          "OPEN": "DenÃºncias reabertas",
-          "RESOLVED": "DenÃºncias marcadas como resolvidas",
-          "DISMISSED": "DenÃºncias descartadas"
+          "OPEN": "Denúncias reabertas",
+          "RESOLVED": "Denúncias marcadas como resolvidas",
+          "DISMISSED": "Denúncias descartadas"
         }
       },
       "statusActions": {
         "DISMISSED": {
-          "button": "Descartar denÃºncia",
-          "title": "Descartar denÃºncias",
+          "button": "Descartar denúncia",
+          "title": "Descartar denúncias",
           "confirm": "Descartar",
-          "success": "DenÃºncias descartadas."
+          "success": "Denúncias descartadas."
         },
         "RESOLVED": {
           "button": "Marcar como resolvida",
-          "title": "Marcar denÃºncias como resolvidas",
+          "title": "Marcar denúncias como resolvidas",
           "confirm": "Resolver",
-          "success": "DenÃºncias marcadas como resolvidas."
+          "success": "Denúncias marcadas como resolvidas."
         },
         "OPEN": {
-          "button": "Reabrir denÃºncias",
-          "title": "Reabrir denÃºncias",
+          "button": "Reabrir denúncias",
+          "title": "Reabrir denúncias",
           "confirm": "Reabrir",
-          "success": "DenÃºncias reabertas."
+          "success": "Denúncias reabertas."
         },
-        "error": "NÃ£o foi possÃ­vel alterar o status. Tente novamente.",
+        "error": "Não foi possível alterar o status. Tente novamente.",
         "invalidReason": "Informe um motivo de 1 a 500 caracteres.",
-        "conflictTitle": "Este conteÃºdo jÃ¡ foi tratado",
-        "conflictMessage": "Essas denÃºncias foram alteradas por outra pessoa. Os dados foram recarregados."
+        "conflictTitle": "Este conteúdo já foi tratado",
+        "conflictMessage": "Essas denúncias foram alteradas por outra pessoa. Os dados foram recarregados."
       }
     },
     "pending": {
-      "message": "Esta seÃ§Ã£o ainda nÃ£o estÃ¡ disponÃ­vel.",
-      "users": "GestÃ£o de usuÃ¡rios",
-      "userDetail": "Detalhes do usuÃ¡rio",
+      "message": "Esta seção ainda não está disponível.",
+      "users": "Gestão de usuários",
+      "userDetail": "Detalhes do usuário",
       "auditLog": "Auditoria"
     },
     "auditLog": {
       "title": "Registro de Auditoria",
       "loading": "Carregando registros",
-      "loadError": "NÃ£o foi possÃ­vel carregar os registros.",
-      "loadMoreError": "NÃ£o foi possÃ­vel carregar mais registros.",
+      "loadError": "Não foi possível carregar os registros.",
+      "loadMoreError": "Não foi possível carregar mais registros.",
       "retry": "Tentar novamente",
       "empty": "Nenhum registro encontrado.",
       "count_zero": "{{count}} registros encontrados",
@@ -272,18 +272,18 @@
       "filters": {
         "all": "Todas",
         "today": "Hoje",
-        "lastMonth": "Ãšltimo mÃªs",
+        "lastMonth": "Último mês",
         "allAdmins": "Todos os admins"
       },
       "actions": {
         "REMOVE_RECORDA": "removeu a Recorda de",
-        "CHANGE_REPORT_STATUS": "alterou as denÃºncias de",
+        "CHANGE_REPORT_STATUS": "alterou as denúncias de",
         "SUSPEND_USER": "suspendeu a conta de",
         "REACTIVATE_USER": "reativou a conta de"
       },
       "statusChange": "(de {{from}} para {{to}})",
       "reason": "Motivo: {{reason}}",
-      "dateTime": "{{date}} â€¢ {{time}}"
+      "dateTime": "{{date}} • {{time}}"
     }
   },
   "profile": {
@@ -293,30 +293,30 @@
     "title": "Amigos",
     "followers": "Seguidores",
     "following": "Seguindo",
-    "search": "Buscar por usuÃ¡rio",
+    "search": "Buscar por usuário",
     "remove": "Remover",
     "removeTitle": "Remover seguidor",
     "removeMessage": "Tem certeza que deseja remover {{name}} dos seus seguidores?",
     "cancel": "Cancelar",
-    "empty": "Nenhum usuÃ¡rio nesta lista.",
-    "searchEmpty": "Nenhum usuÃ¡rio encontrado.",
-    "privateError": "Esta conta Ã© privada.",
-    "loadError": "NÃ£o foi possÃ­vel carregar esta lista.",
-    "loadMoreError": "NÃ£o foi possÃ­vel carregar mais usuÃ¡rios.",
-    "removeError": "NÃ£o foi possÃ­vel remover este seguidor. Tente novamente.",
+    "empty": "Nenhum usuário nesta lista.",
+    "searchEmpty": "Nenhum usuário encontrado.",
+    "privateError": "Esta conta é privada.",
+    "loadError": "Não foi possível carregar esta lista.",
+    "loadMoreError": "Não foi possível carregar mais usuários.",
+    "removeError": "Não foi possível remover este seguidor. Tente novamente.",
     "retry": "Tentar novamente"
   },
   "recordaMusic": {
     "back": "Voltar",
-    "header": "MÃºsica",
+    "header": "Música",
     "search": "Que som te representa?",
-    "next": "PrÃ³ximo",
-    "loading": "Buscando mÃºsicas",
-    "hint": "Busque por mÃºsica, artista ou Ã¡lbum para associar Ã  sua Recorda.",
-    "searchError": "NÃ£o foi possÃ­vel buscar mÃºsicas.",
+    "next": "Próximo",
+    "loading": "Buscando músicas",
+    "hint": "Busque por música, artista ou álbum para associar à sua Recorda.",
+    "searchError": "Não foi possível buscar músicas.",
     "retry": "Tentar novamente",
-    "empty": "Nenhuma mÃºsica encontrada. Tente outro nome ou artista.",
-    "noMedia": "Nenhuma mÃ­dia selecionada."
+    "empty": "Nenhuma música encontrada. Tente outro nome ou artista.",
+    "noMedia": "Nenhuma mídia selecionada."
   },
   "publishedRecorda": {
     "back": "Voltar",
@@ -324,33 +324,33 @@
     "likes_zero": "{{count}} curtidas",
     "likes_one": "{{count}} curtida",
     "likes_other": "{{count}} curtidas",
-    "comments": "ComentÃ¡rios",
-    "noComments": "Nenhum comentÃ¡rio ainda. Seja o primeiro a comentar!",
-    "loadingComments": "Carregando comentÃ¡rios...",
-    "commentsLoadError": "NÃ£o foi possÃ­vel carregar os comentÃ¡rios. Toque para tentar novamente.",
-    "commentSubmitError": "NÃ£o foi possÃ­vel enviar o comentÃ¡rio. Tente novamente.",
-    "writeComment": "Adicione um comentÃ¡rio...",
-    "closeComment": "Fechar comentÃ¡rios",
+    "comments": "Comentários",
+    "noComments": "Nenhum comentário ainda. Seja o primeiro a comentar!",
+    "loadingComments": "Carregando comentários...",
+    "commentsLoadError": "Não foi possível carregar os comentários. Toque para tentar novamente.",
+    "commentSubmitError": "Não foi possível enviar o comentário. Tente novamente.",
+    "writeComment": "Adicione um comentário...",
+    "closeComment": "Fechar comentários",
     "dragToClose": "Arraste para baixo para fechar",
-    "expandDescription": "Toque para ver a descriÃ§Ã£o inteira",
-    "collapseDescription": "Recolher descriÃ§Ã£o",
-    "send": "Enviar comentÃ¡rio",
+    "expandDescription": "Toque para ver a descrição inteira",
+    "collapseDescription": "Recolher descrição",
+    "send": "Enviar comentário",
     "delete": "Excluir",
     "report": "Denunciar",
-    "notInterested": "NÃ£o interessado",
+    "notInterested": "Não interessado",
     "cancel": "Cancelar",
     "deleteTitle": "Excluir Recorda?",
-    "deleteMessage": "Esta aÃ§Ã£o nÃ£o pode ser desfeita.",
-    "deleteError": "NÃ£o foi possÃ­vel excluir a Recorda. Tente novamente.",
-    "confirmDelete": "Confirmar exclusÃ£o",
-    "unavailable": "Esta Recorda nÃ£o estÃ¡ mais disponÃ­vel.",
-    "sharePending": "O compartilhamento de Recordas ainda nÃ£o estÃ¡ disponÃ­vel nesta versÃ£o."
+    "deleteMessage": "Esta ação não pode ser desfeita.",
+    "deleteError": "Não foi possível excluir a Recorda. Tente novamente.",
+    "confirmDelete": "Confirmar exclusão",
+    "unavailable": "Esta Recorda não está mais disponível.",
+    "sharePending": "O compartilhamento de Recordas ainda não está disponível nesta versão."
   },
   "feed": {
     "logo": "recorda.",
-    "notifications": "NotificaÃ§Ãµes",
-    "search": "Buscar usuÃ¡rios",
-    "more": "Mais opÃ§Ãµes",
+    "notifications": "Notificações",
+    "search": "Buscar usuários",
+    "more": "Mais opções",
     "like": "Curtir",
     "comment": "Comentar",
     "share": "Compartilhar",
@@ -359,19 +359,19 @@
     "likesCount_other": "{{count}} curtidas",
     "loading": "Carregando feed...",
     "loadingMore": "Carregando mais Recordas...",
-    "loadError": "NÃ£o foi possÃ­vel carregar o feed. Tente novamente.",
-    "loadMoreError": "NÃ£o foi possÃ­vel carregar mais Recordas.",
+    "loadError": "Não foi possível carregar o feed. Tente novamente.",
+    "loadMoreError": "Não foi possível carregar mais Recordas.",
     "retry": "Tentar novamente",
     "generalEmptyState": {
       "title": "Nenhuma Recorda por aqui ainda",
-      "message": "Confira a aba Seguindo para acompanhar os Recordas de quem vocÃª segue."
+      "message": "Confira a aba Seguindo para acompanhar os Recordas de quem você segue."
     },
     "emptyState": {
-      "title": "Ainda estÃ¡ tudo em silÃªncio por aqui",
+      "title": "Ainda está tudo em silêncio por aqui",
       "message": "Siga novas pessoas e acompanhe os Recordas que elas compartilharem."
     },
     "tabs": {
-      "geral": "Para VocÃª",
+      "geral": "Para Você",
       "following": "Seguindo"
     },
     "tabBar": {
@@ -379,22 +379,22 @@
       "feed": "Feed",
       "profile": "Perfil"
     },
-    "notificationsUnread": "NotificaÃ§Ãµes, {{count}} nÃ£o lidas",
-    "videoLoading": "Carregando vÃ­deo",
+    "notificationsUnread": "Notificações, {{count}} não lidas",
+    "videoLoading": "Carregando vídeo",
     "sound": {
-      "mute": "Silenciar mÃºsica",
-      "unmute": "Reativar mÃºsica",
-      "unavailable": "Esta Recorda nÃ£o tem prÃ©via de mÃºsica"
+      "mute": "Silenciar música",
+      "unmute": "Reativar música",
+      "unavailable": "Esta Recorda não tem prévia de música"
     }
   },
   "recordaView": {
     "back": "Voltar",
-    "deleteComment": "Excluir comentÃ¡rio",
+    "deleteComment": "Excluir comentário",
     "deleteDialog": {
       "cancel": "Cancelar",
       "confirm": "Excluir",
-      "message": "Tem certeza que deseja excluir o comentÃ¡rio?\nEssa aÃ§Ã£o nÃ£o pode ser revertida.",
-      "title": "Excluir ComentÃ¡rio?"
+      "message": "Tem certeza que deseja excluir o comentário?\nEssa ação não pode ser revertida.",
+      "title": "Excluir Comentário?"
     }
   },
   "shareCard": {
@@ -405,43 +405,43 @@
     "instagramStories": "Instagram Stories",
     "download": "Baixar imagem",
     "storiesOpenedTitle": "Pronto para compartilhar",
-    "storiesOpenedMessage": "O Instagram foi aberto com seu card. Conclua a publicaÃ§Ã£o por lÃ¡.",
+    "storiesOpenedMessage": "O Instagram foi aberto com seu card. Conclua a publicação por lá.",
     "fallbackTitle": "Compartilhamento alternativo",
     "fallbackMessage": "O compartilhamento do sistema foi aberto com seu card.",
     "webFallbackMessage": "O card foi baixado. Compartilhe a imagem pelo aplicativo que preferir.",
     "savedTitle": "Imagem salva",
     "savedMessage": "O card foi salvo na galeria do dispositivo.",
-    "permissionDeniedTitle": "PermissÃ£o necessÃ¡ria",
-    "permissionDeniedMessage": "Permita o acesso Ã  galeria para salvar o card.",
+    "permissionDeniedTitle": "Permissão necessária",
+    "permissionDeniedMessage": "Permita o acesso à galeria para salvar o card.",
     "saveErrorTitle": "Erro ao salvar",
-    "saveErrorMessage": "NÃ£o foi possÃ­vel salvar a imagem. Tente novamente.",
-    "shareMessage": "Veja sÃ³ a minha nova Recorda! \u003clink do app ainda nÃ£o existente\u003e",
+    "saveErrorMessage": "Não foi possível salvar a imagem. Tente novamente.",
+    "shareMessage": "Veja só a minha nova Recorda! <link do app ainda não existente>",
     "shareDialogTitle": "Compartilhar Recorda",
     "shareErrorTitle": "Erro ao compartilhar",
-    "shareErrorMessage": "NÃ£o foi possÃ­vel compartilhar. Tente novamente.",
+    "shareErrorMessage": "Não foi possível compartilhar. Tente novamente.",
     "logo": "recorda."
   },
   "notifications": {
-    "title": "NotificaÃ§Ãµes",
+    "title": "Notificações",
     "back": "Voltar",
-    "loading": "Carregando notificaÃ§Ãµes...",
-    "loadError": "NÃ£o foi possÃ­vel carregar suas notificaÃ§Ãµes.",
+    "loading": "Carregando notificações...",
+    "loadError": "Não foi possível carregar suas notificações.",
     "retry": "Tentar novamente",
-    "empty": "VocÃª ainda nÃ£o tem notificaÃ§Ãµes.",
+    "empty": "Você ainda não tem notificações.",
     "accept": "Aceitar",
     "decline": "Recusar",
-    "actionError": "NÃ£o foi possÃ­vel responder Ã  solicitaÃ§Ã£o. Tente novamente.",
+    "actionError": "Não foi possível responder à solicitação. Tente novamente.",
     "types": {
-      "FOLLOW_REQUEST": "quer seguir vocÃª",
+      "FOLLOW_REQUEST": "quer seguir você",
       "FOLLOW_ACCEPTED": "aceitou seu pedido para seguir",
-      "NEW_FOLLOWER": "comeÃ§ou a seguir vocÃª",
-      "LIKE": "curtiu sua publicaÃ§Ã£o",
-      "COMMENT": "comentou em sua publicaÃ§Ã£o",
-      "MENTION": "marcou vocÃª em uma publicaÃ§Ã£o",
-      "CONTENT_REMOVED": "Sua Recorda \"{{song}}\" foi removida pela moderaÃ§Ã£o. Motivo: {{reason}}"
+      "NEW_FOLLOWER": "começou a seguir você",
+      "LIKE": "curtiu sua publicação",
+      "COMMENT": "comentou em sua publicação",
+      "MENTION": "marcou você em uma publicação",
+      "CONTENT_REMOVED": "Sua Recorda \"{{song}}\" foi removida pela moderação. Motivo: {{reason}}"
     },
-    "removedSongFallback": "MÃºsica nÃ£o informada",
-    "removalReasonFallback": "NÃ£o informado",
+    "removedSongFallback": "Música não informada",
+    "removalReasonFallback": "Não informado",
     "time": {
       "now": "agora",
       "minutes": "{{count}} min",
@@ -453,11 +453,11 @@
     "back": "Voltar",
     "header": "Pesquisar",
     "search": "Buscar",
-    "loading": "Buscando usuÃ¡rios",
-    "hint": "Busque por um nome de usuÃ¡rio para encontrar pessoas.",
-    "searchError": "NÃ£o foi possÃ­vel buscar usuÃ¡rios.",
+    "loading": "Buscando usuários",
+    "hint": "Busque por um nome de usuário para encontrar pessoas.",
+    "searchError": "Não foi possível buscar usuários.",
     "retry": "Tentar novamente",
-    "empty": "Nenhum usuÃ¡rio encontrado. Tente outro nome de usuÃ¡rio.",
+    "empty": "Nenhum usuário encontrado. Tente outro nome de usuário.",
     "suggestions": "Perfis sugeridos"
   },
   "follow": {
@@ -465,7 +465,7 @@
     "requested": "Solicitado",
     "following": "Seguindo",
     "followA11y": "Seguir {{username}}",
-    "requestedA11y": "Cancelar solicitaÃ§Ã£o para seguir {{username}}",
+    "requestedA11y": "Cancelar solicitação para seguir {{username}}",
     "followingA11y": "Deixar de seguir {{username}}",
     "unfollowTitle": "Deixar de seguir",
     "unfollowMessage": "Tem certeza que deseja deixar de seguir {{username}}?",
@@ -478,85 +478,85 @@
         "recorda": "Denunciar Recorda",
         "user": "Denunciar perfil"
       },
-      "message": "Conte por que vocÃª estÃ¡ denunciando. A moderaÃ§Ã£o avaliarÃ¡ sua denÃºncia.",
-      "descriptionLabel": "DescriÃ§Ã£o (opcional)",
-      "descriptionPlaceholder": "Escreva uma descriÃ§Ã£o",
+      "message": "Conte por que você está denunciando. A moderação avaliará sua denúncia.",
+      "descriptionLabel": "Descrição (opcional)",
+      "descriptionPlaceholder": "Escreva uma descrição",
       "counter": "{{current}}/{{max}}",
       "cancel": "Cancelar",
       "submit": "Denunciar",
       "feedback": {
-        "success": "DenÃºncia enviada. Obrigado por ajudar a comunidade.",
-        "duplicate": "VocÃª jÃ¡ denunciou este conteÃºdo.",
-        "unavailable": "Este conteÃºdo nÃ£o estÃ¡ mais disponÃ­vel."
+        "success": "Denúncia enviada. Obrigado por ajudar a comunidade.",
+        "duplicate": "Você já denunciou este conteúdo.",
+        "unavailable": "Este conteúdo não está mais disponível."
       },
       "error": {
-        "generic": "NÃ£o foi possÃ­vel enviar a denÃºncia. Tente novamente."
+        "generic": "Não foi possível enviar a denúncia. Tente novamente."
       }
     },
     "account": {
       "suspendTitle": "Suspender Conta",
       "reactivateTitle": "Reativar Conta",
-      "userLabel": "UsuÃ¡rio:",
-      "reasonLabel": "Motivo (obrigatÃ³rio):",
-      "reasonInput": "Motivo da moderaÃ§Ã£o",
-      "reasonPlaceholder": "Informe o motivo da aÃ§Ã£o (mÃ¡x. {{max}} caracteres)...",
-      "resolveReports": "Marcar denÃºncias abertas do perfil como resolvidas",
+      "userLabel": "Usuário:",
+      "reasonLabel": "Motivo (obrigatório):",
+      "reasonInput": "Motivo da moderação",
+      "reasonPlaceholder": "Informe o motivo da ação (máx. {{max}} caracteres)...",
+      "resolveReports": "Marcar denúncias abertas do perfil como resolvidas",
       "cancel": "Cancelar",
-      "confirmSuspend": "Confirmar SuspensÃ£o",
-      "confirmReactivate": "Confirmar ReativaÃ§Ã£o",
+      "confirmSuspend": "Confirmar Suspensão",
+      "confirmReactivate": "Confirmar Reativação",
       "submitting": "Enviando...",
-      "adminNotice": "NÃ£o Ã© permitido suspender outro administrador.",
-      "unexpectedError": "Erro inesperado ao realizar moderaÃ§Ã£o."
+      "adminNotice": "Não é permitido suspender outro administrador.",
+      "unexpectedError": "Erro inesperado ao realizar moderação."
     }
   },
   "camera": {
-    "permissionMessage": "Precisamos da cÃ¢mera e do microfone pra criar sua Recorda.",
+    "permissionMessage": "Precisamos da câmera e do microfone pra criar sua Recorda.",
     "permissionAction": "Permitir acesso",
     "capture": "Tirar foto",
-    "galleryPermissionTitle": "PermissÃ£o necessÃ¡ria",
-    "galleryPermissionMessage": "Permita acesso Ã  galeria para escolher uma mÃ­dia.",
-    "videoTooLongTitle": "VÃ­deo muito longo",
-    "videoTooLongMessage": "Escolha um vÃ­deo de atÃ© {{seconds}} segundos."
+    "galleryPermissionTitle": "Permissão necessária",
+    "galleryPermissionMessage": "Permita acesso à galeria para escolher uma mídia.",
+    "videoTooLongTitle": "Vídeo muito longo",
+    "videoTooLongMessage": "Escolha um vídeo de até {{seconds}} segundos."
   },
   "preview": {
-    "confirm": "AvanÃ§ar"
+    "confirm": "Avançar"
   },
   "splash": {
     "logo": "recorda."
   },
   "settings": {
-    "title": "ConfiguraÃ§Ãµes",
+    "title": "Configurações",
     "back": "Voltar",
     "accountSection": "Conta",
     "account": "Minha conta",
     "privateAccount": "Conta privada",
-    "privateSupport": "SÃ³ seguidores aprovados veem suas Recordas",
-    "publicSupport": "Qualquer pessoa vÃª suas Recordas",
-    "preferencesSection": "PreferÃªncias",
-    "music": "PreferÃªncias musicais",
-    "musicSupport": "Artistas, gÃªneros e mÃºsica favorita",
+    "privateSupport": "Só seguidores aprovados veem suas Recordas",
+    "publicSupport": "Qualquer pessoa vê suas Recordas",
+    "preferencesSection": "Preferências",
+    "music": "Preferências musicais",
+    "musicSupport": "Artistas, gêneros e música favorita",
     "language": "Idioma",
-    "sessionSection": "SessÃ£o",
+    "sessionSection": "Sessão",
     "signOut": "Sair",
-    "loading": "Carregando configuraÃ§Ãµesâ€¦",
-    "saving": "Salvando privacidadeâ€¦",
-    "loadError": "NÃ£o foi possÃ­vel carregar suas configuraÃ§Ãµes.",
-    "updateError": "NÃ£o foi possÃ­vel alterar a privacidade. Sua configuraÃ§Ã£o anterior foi restaurada. Tente novamente.",
+    "loading": "Carregando configurações…",
+    "saving": "Salvando privacidade…",
+    "loadError": "Não foi possível carregar suas configurações.",
+    "updateError": "Não foi possível alterar a privacidade. Sua configuração anterior foi restaurada. Tente novamente.",
     "retry": "Tentar novamente",
     "accepted_one": "{{count}} pedido foi aceito",
     "accepted_other": "{{count}} pedidos foram aceitos",
-    "pending": "Esta configuraÃ§Ã£o estÃ¡ em construÃ§Ã£o. Em breve vocÃª poderÃ¡ alterÃ¡-la aqui.",
-    "signOutError": "NÃ£o foi possÃ­vel sair. Tente novamente.",
+    "pending": "Esta configuração está em construção. Em breve você poderá alterá-la aqui.",
+    "signOutError": "Não foi possível sair. Tente novamente.",
     "cancel": "Cancelar",
     "confirmAction": "Confirmar",
     "confirm": {
       "private": {
         "title": "Tornar a conta privada?",
-        "message": "Suas Recordas, inclusive as antigas, passam a aparecer sÃ³ para seguidores aprovados. Seus seguidores atuais continuam aprovados."
+        "message": "Suas Recordas, inclusive as antigas, passam a aparecer só para seguidores aprovados. Seus seguidores atuais continuam aprovados."
       },
       "public": {
-        "title": "Tornar a conta pÃºblica?",
-        "message": "Qualquer pessoa poderÃ¡ ver suas Recordas, inclusive as antigas. Todos os pedidos pendentes para seguir vocÃª serÃ£o aceitos."
+        "title": "Tornar a conta pública?",
+        "message": "Qualquer pessoa poderá ver suas Recordas, inclusive as antigas. Todos os pedidos pendentes para seguir você serão aceitos."
       },
       "signOut": {
         "title": "Sair da conta",
@@ -565,6 +565,7 @@
     },
     "musicPreferences": {
       "title": "Editar preferências musicais",
+      "save": "Salvar",
       "loading": "Carregando preferências musicais",
       "loadError": "Não foi possível carregar suas preferências.",
       "discardTitle": "Descartar alterações?",
@@ -575,33 +576,33 @@
   "account": {
     "title": "Conta",
     "back": "Voltar",
-    "infoSection": "InformaÃ§Ãµes",
+    "infoSection": "Informações",
     "name": "Nome",
-    "username": "UsuÃ¡rio",
+    "username": "Usuário",
     "email": "Email",
     "passwordSection": "Alterar Senha",
     "newPassword": "Nova senha",
     "confirmPassword": "Repetir nova senha",
     "passwordPairRequired": "Preencha os dois campos para alterar a senha.",
-    "usernameTaken": "Esse usuÃ¡rio jÃ¡ estÃ¡ em uso.",
-    "emailTaken": "Esse email jÃ¡ estÃ¡ em uso.",
-    "invalidField": "Campo invÃ¡lido.",
+    "usernameTaken": "Esse usuário já está em uso.",
+    "emailTaken": "Esse email já está em uso.",
+    "invalidField": "Campo inválido.",
     "save": "Salvar",
     "saveSuccess": "Dados atualizados.",
-    "saveError": "NÃ£o foi possÃ­vel salvar. Tente novamente.",
-    "noChanges": "Nenhuma alteraÃ§Ã£o para salvar.",
+    "saveError": "Não foi possível salvar. Tente novamente.",
+    "noChanges": "Nenhuma alteração para salvar.",
     "loading": "Carregando sua conta",
-    "loadError": "NÃ£o foi possÃ­vel carregar sua conta.",
+    "loadError": "Não foi possível carregar sua conta.",
     "retry": "Tentar novamente",
-    "sessionExpired": "Sua sessÃ£o expirou. Entre novamente.",
+    "sessionExpired": "Sua sessão expirou. Entre novamente.",
     "deleteAccount": "Excluir Conta",
-    "deleteSuccess": "Sua conta foi excluÃ­da.",
+    "deleteSuccess": "Sua conta foi excluída.",
     "deleteDialog": {
       "title": "Excluir conta",
-      "message": "Tem certeza que deseja excluir sua conta? Essa aÃ§Ã£o nÃ£o pode ser revertida.",
+      "message": "Tem certeza que deseja excluir sua conta? Essa ação não pode ser revertida.",
       "cancel": "Cancelar",
       "confirm": "Excluir",
-      "error": "NÃ£o foi possÃ­vel excluir a conta. Tente novamente."
+      "error": "Não foi possível excluir a conta. Tente novamente."
     }
   }
 }

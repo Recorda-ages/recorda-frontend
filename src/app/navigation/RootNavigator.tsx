@@ -79,7 +79,7 @@ export type RootStackParamList = {
     artistName: string;
     coverUrl: string | null;
   };
-  Settings: undefined;
+  Settings: { notice?: string } | undefined;
   SettingsPending: { destination: "account" | "music" | "language" };
   EditMusicPreferences: undefined;
   SignUp: undefined;
@@ -208,8 +208,8 @@ function UserProfilePlaceholderScreen() {
 export function RootNavigator() {
   const { setActiveRoute } = useFeedAudioActions();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
-  // A prÃ©via sÃ³ toca no Feed e nos Detalhes; sair para qualquer outra tela
-  // silencia. `onReady` cobre a rota inicial, que `onStateChange` nÃ£o emite.
+  // A prévia só toca no Feed e nos Detalhes; sair para qualquer outra tela
+  // silencia. `onReady` cobre a rota inicial, que `onStateChange` não emite.
   const syncActiveRoute = () => setActiveRoute(navigationRef.getCurrentRoute()?.name);
 
   return (

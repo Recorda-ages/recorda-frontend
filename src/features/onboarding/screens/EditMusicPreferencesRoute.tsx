@@ -1,12 +1,19 @@
-import { useCallback, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
-import { useNavigation, usePreventRemove } from "@react-navigation/native";
+import {
+  CommonActions,
+  useNavigation,
+  usePreventRemove,
+  type NavigationAction
+} from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
+import { ACCOUNT_QUERY_KEY } from "@/features/account/queryKeys";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { USER_SUGGESTIONS_QUERY_KEY } from "@/features/follow/queryKeys";
 import { baseColors, spacing } from "@/theme";
 
@@ -21,8 +28,6 @@ import type { MusicPreferences, MusicSelection } from "../types";
 import { OnboardingArtistsScreen } from "./OnboardingArtistsScreen";
 import { OnboardingGenresScreen } from "./OnboardingGenresScreen";
 import { OnboardingMusicScreen } from "./OnboardingMusicScreen";
-
-export const USER_PROFILE_QUERY_KEY = ["users", "me", "profile"] as const;
 
 function sameSelections(left: MusicSelection[], right: MusicSelection[]) {
   if (left.length !== right.length) return false;
@@ -98,61 +103,77 @@ export function EditMusicPreferencesWizard({
 
   const [draft, setDraft] = useState<MusicPreferences>(initialPreferences);
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [allowRemoval, setAllowRemoval] = useState(false);
+  const pendingRemovalAction = useRef<NavigationAction | null>(null);
 
   const hasChanges = hasPreferencesChanged(draft, initialPreferences);
 
-  const requestExit = useCallback(() => {
-    if (!hasChanges) {
-      navigation.goBack();
-      return;
-    }
-
+  const showDiscardConfirmation = (onDiscard: () => void) => {
     Alert.alert(
-      t("settings.musicPreferences.discardTitle", "Descartar alterações?"),
-      t("settings.musicPreferences.discardMessage", "Suas escolhas ainda não foram salvas."),
+      t("settings.musicPreferences.discardTitle"),
+      t("settings.musicPreferences.discardMessage"),
       [
-        { text: t("common.continueEditing", "Continuar editando"), style: "cancel" },
+        {
+          text: t("common.continueEditing", "Continuar editando"),
+          style: "cancel",
+          onPress: () => {
+            pendingRemovalAction.current = null;
+          }
+        },
         {
           text: t("common.discard", "Descartar"),
           style: "destructive",
-          onPress: () => navigation.goBack()
+          onPress: onDiscard
         }
       ]
     );
-  }, [hasChanges, navigation, t]);
+  };
 
-  usePreventRemove(hasChanges, ({ data }) => {
-    Alert.alert(
-      t("settings.musicPreferences.discardTitle", "Descartar alterações?"),
-      t("settings.musicPreferences.discardMessage", "Suas escolhas ainda não foram salvas."),
-      [
-        { text: t("common.continueEditing", "Continuar editando"), style: "cancel" },
-        {
-          text: t("common.discard", "Descartar"),
-          style: "destructive",
-          onPress: () => navigation.dispatch(data.action)
-        }
-      ]
-    );
+  const allowRemovalAndDispatch = (action: NavigationAction) => {
+    pendingRemovalAction.current = action;
+    setAllowRemoval(true);
+  };
+
+  usePreventRemove(hasChanges && !allowRemoval, ({ data }) => {
+    pendingRemovalAction.current = data.action;
+    showDiscardConfirmation(() => allowRemovalAndDispatch(data.action));
   });
 
+  useEffect(() => {
+    if (!allowRemoval || !pendingRemovalAction.current) return;
+
+    const action = pendingRemovalAction.current;
+    pendingRemovalAction.current = null;
+    navigation.dispatch(action);
+  }, [allowRemoval, navigation]);
+
   const finishEditing = async () => {
+    queryClient.setQueryData(MUSIC_PREFERENCES_QUERY_KEY, draft);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: USER_PROFILE_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: ACCOUNT_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY }),
       queryClient.invalidateQueries({ queryKey: USER_SUGGESTIONS_QUERY_KEY }),
-      queryClient.invalidateQueries({ queryKey: ["feed", "general"] }),
-      queryClient.invalidateQueries({ queryKey: MUSIC_PREFERENCES_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ["feed", "general"] })
     ]);
 
-    navigation.goBack();
+    const state = navigation.getState();
+    const settingsRoute = state.routes[state.index - 1];
+    if (settingsRoute?.name === "Settings") {
+      navigation.dispatch({
+        ...CommonActions.setParams({ notice: t("settings.musicPreferences.updated") }),
+        source: settingsRoute.key
+      });
+    }
+
+    allowRemovalAndDispatch(CommonActions.goBack());
   };
 
   if (step === 1) {
     return (
       <OnboardingArtistsScreen
-        continueLabel={t("common.next", "Avançar")}
-        headerTitle={t("settings.musicPreferences.title", "Editar preferências")}
-        onBack={requestExit}
+        continueLabel={t("onboarding.artists.continue")}
+        headerTitle={t("settings.musicPreferences.title")}
+        onBack={() => navigation.goBack()}
         onContinue={() => setStep(2)}
         onSelectedArtistsChange={(artists) => setDraft((current) => ({ ...current, artists }))}
         selectedArtists={draft.artists}
@@ -163,8 +184,8 @@ export function EditMusicPreferencesWizard({
   if (step === 2) {
     return (
       <OnboardingGenresScreen
-        continueLabel={t("common.next", "Avançar")}
-        headerTitle={t("settings.musicPreferences.title", "Editar preferências")}
+        continueLabel={t("onboarding.genres.continue")}
+        headerTitle={t("settings.musicPreferences.title")}
         onBack={() => setStep(1)}
         onContinue={() => setStep(3)}
         onSelectedGenresChange={(genres) => setDraft((current) => ({ ...current, genres }))}
@@ -175,9 +196,9 @@ export function EditMusicPreferencesWizard({
 
   return (
     <OnboardingMusicScreen
-      finishLabel={t("common.save", "Salvar")}
+      finishLabel={t("settings.musicPreferences.save")}
       getPopularTracks={getPopularTracks}
-      headerTitle={t("settings.musicPreferences.title", "Editar preferências")}
+      headerTitle={t("settings.musicPreferences.title")}
       onBack={() => setStep(2)}
       onComplete={finishEditing}
       onSelectTrack={(track) => setDraft((current) => ({ ...current, track }))}
