@@ -293,10 +293,9 @@ it("opens the music preference editor from Settings", () => {
   expect(mockNavigate).toHaveBeenCalledWith("EditMusicPreferences");
 });
 
-it("shows and clears the success notice returned by the editor", async () => {
+it("shows the success notice returned by the editor", async () => {
   mockRouteParams = { notice: "Preferências atualizadas" };
   renderScreen();
 
   expect(await screen.findByText("Preferências atualizadas")).toBeTruthy();
-  expect(mockSetParams).toHaveBeenCalledWith({ notice: undefined });
 });

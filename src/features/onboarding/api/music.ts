@@ -2,7 +2,6 @@ import { musicService } from "@/features/music/services/musicService";
 import { authApiClient } from "@/services/api";
 
 import type {
-  MusicItemResponse,
   MusicPreferences,
   MusicPreferencesResponse,
   MusicSelection,

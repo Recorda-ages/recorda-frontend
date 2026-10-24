@@ -29,23 +29,15 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, "Settings">>();
-  const [notice, setNotice] = useState<string | null>(null);
+  const notice = route.params?.notice;
   const { settings, update, isUpdating } = useSettings();
-
-  useEffect(() => {
-    const message = route.params?.notice;
-    if (!message) return;
-
-    setNotice(message);
-    navigation.setParams({ notice: undefined });
-  }, [navigation, route.params?.notice]);
 
   useEffect(() => {
     if (!notice) return;
 
-    const timer = setTimeout(() => setNotice(null), 3000);
+    const timer = setTimeout(() => navigation.setParams({ notice: undefined }), 3000);
     return () => clearTimeout(timer);
-  }, [notice]);
+  }, [navigation, notice]);
   const signOut = useSignOutFlow(onSignOut);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const confirmLock = useRef(false);
