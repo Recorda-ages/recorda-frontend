@@ -17,6 +17,16 @@ export {
 export { useAdminReportDetail } from "./reports/hooks/useAdminReportDetail";
 export { useUpdateAdminReportStatus } from "./reports/hooks/useUpdateAdminReportStatus";
 export { AdminAuditLogScreen } from "./audit-log/screens/AdminAuditLogScreen";
+export { AdminUserCard, shortUserId } from "./users/components/AdminUserCard";
+export { useAdminUserDetail } from "./users/hooks/useAdminUserDetail";
+export { ADMIN_USERS_PAGE_SIZE, useAdminUsers } from "./users/hooks/useAdminUsers";
+export { ADMIN_USERS_QUERY_KEY, adminUserDetailQueryKey } from "./users/queryKeys";
+export { AdminUserDetailScreen } from "./users/screens/AdminUserDetailScreen";
+export { AdminUsersScreen } from "./users/screens/AdminUsersScreen";
+export {
+  adminUsersServiceMock,
+  resetAdminUsersMock
+} from "./users/services/adminUsersService.mock";
 export { AdminHomeScreen } from "./screens/AdminHomeScreen";
 export { AdminReportsScreen } from "./reports/screens/AdminReportsScreen";
 export { AdminReportDetailScreen } from "./reports/screens/AdminReportDetailScreen";
@@ -40,6 +50,13 @@ export type {
   AdminStatus,
   AdminTargetType,
   AdminUserFilters,
+  AdminUserAction,
+  AdminUserDetail,
+  AdminUserReportGroup,
+  AdminUserRow,
   AdminUserStatus,
-  AdminUserSummary
+  AdminUserSummary,
+  AdminUsersFilters,
+  AdminUsersPage,
+  AdminUsersService
 } from "./types";

@@ -7,6 +7,7 @@ module.exports = {
     "^@expo/vector-icons$": "<rootDir>/tests/mocks/expoVectorIcons.tsx",
     "^expo-image-manipulator$": "<rootDir>/tests/mocks/expoImageManipulator.ts",
     "^expo-image-picker$": "<rootDir>/tests/mocks/expoImagePicker.ts",
+    "^expo-localization$": "<rootDir>/tests/mocks/expoLocalization.ts",
     "^expo-media-library$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",
     "^expo-media-library/legacy$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",
     "^expo-splash-screen$": "<rootDir>/tests/mocks/expoSplashScreen.ts",

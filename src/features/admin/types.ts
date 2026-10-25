@@ -123,6 +123,63 @@ export type AdminUserFilters = {
   status?: AdminUserStatus;
 };
 
+/** Backend-compatible user contracts used by the admin users mock until issue #243. */
+export type AdminUserRow = {
+  deleted_at: string | null;
+  email: string;
+  name: string;
+  profile_picture_url: string | null;
+  reports_count: number;
+  role: "ADMIN" | "USER";
+  status: AdminUserStatus;
+  user_id: string;
+  username: string;
+};
+
+export type AdminUserReportGroup = {
+  first_reported_at: string;
+  last_reported_at: string;
+  preview: { image_url: string | null; subtitle: string | null; title: string };
+  report_count: number;
+  status: AdminReportStatus;
+  target_id: string;
+  target_type: AdminTargetType;
+};
+
+export type AdminUserAction = {
+  action_id: string;
+  action_type: string;
+  admin_id: string;
+  admin_username: string;
+  created_at: string;
+  details: Record<string, unknown> | null;
+  reason: string;
+  target_recorda_id: string | null;
+  target_user_id: string | null;
+};
+
+export type AdminUserDetail = AdminUserRow & {
+  actions: AdminUserAction[];
+  created_at: string;
+  is_private: boolean;
+  recordas_count: number;
+  reports_received: AdminUserReportGroup[];
+};
+
+export type AdminUsersPage = { items: AdminUserRow[]; total: number };
+
+export type AdminUsersFilters = {
+  limit: number;
+  offset: number;
+  q?: string;
+  status?: AdminUserStatus;
+};
+
+export type AdminUsersService = {
+  getUserDetail: (userId: string, signal?: AbortSignal) => Promise<AdminUserDetail>;
+  listUsers: (filters: AdminUsersFilters, signal?: AbortSignal) => Promise<AdminUsersPage>;
+};
+
 export type AdminSummary = { user_id: string; username: string };
 export type AdminActionType =
   "REMOVE_RECORDA" | "CHANGE_REPORT_STATUS" | "SUSPEND_USER" | "REACTIVATE_USER";

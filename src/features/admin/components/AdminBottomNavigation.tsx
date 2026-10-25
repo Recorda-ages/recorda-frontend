@@ -10,6 +10,7 @@ export type AdminBottomTab = "home" | "reports" | "users" | "auditLog";
 type AdminBottomNavigationProps = {
   activeTab: AdminBottomTab;
   onPress: (tab: AdminBottomTab) => void;
+  visibleTabs?: readonly AdminBottomTab[];
 };
 
 const tabs: readonly AdminBottomTab[] = ["home", "reports", "users", "auditLog"];
@@ -20,7 +21,11 @@ const icons: Record<AdminBottomTab, string> = {
   users: "account-multiple-outline"
 };
 
-export function AdminBottomNavigation({ activeTab, onPress }: AdminBottomNavigationProps) {
+export function AdminBottomNavigation({
+  activeTab,
+  onPress,
+  visibleTabs = tabs
+}: AdminBottomNavigationProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -30,7 +35,7 @@ export function AdminBottomNavigation({ activeTab, onPress }: AdminBottomNavigat
       style={[styles.bar, { paddingBottom: Math.max(insets.bottom, spacing[3]) }]}
       testID="admin-bottom-navigation"
     >
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const selected = tab === activeTab;
 
         return (

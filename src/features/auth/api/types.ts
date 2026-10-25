@@ -1,6 +1,7 @@
 export type UserRole = "ADMIN" | "USER";
 
 export type UserBasicResponse = {
+  language?: string;
   name: string;
   onboarding_completed: boolean;
   role: UserRole;

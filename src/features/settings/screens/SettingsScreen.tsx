@@ -1,7 +1,8 @@
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RouteProp } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
@@ -25,9 +26,18 @@ const CONFIRMATION_ICONS: Record<PrivacyConfirmation, string> = {
 };
 
 export function SettingsScreen({ onSignOut }: Readonly<Props>) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, "Settings">>();
+  const notice = route.params?.notice;
   const { settings, update, isUpdating } = useSettings();
+
+  useEffect(() => {
+    if (!notice) return;
+
+    const timer = setTimeout(() => navigation.setParams({ notice: undefined }), 3000);
+    return () => clearTimeout(timer);
+  }, [navigation, notice]);
   const signOut = useSignOutFlow(onSignOut);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const confirmLock = useRef(false);
@@ -47,9 +57,9 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
     update.mutate({ is_private: confirmation === "private" }, { onSettled: release });
   };
 
-  const openPending = (destination: Destination) =>
-    navigation.navigate("SettingsPending", { destination });
+  const openEditMusic = () => navigation.navigate("EditMusicPreferences");
   const openAccount = () => navigation.navigate("Account");
+  const openLanguage = () => navigation.navigate("LanguageSettings");
 
   return (
     <SafeAreaView style={styles.screen} testID="settings-screen">
@@ -68,6 +78,15 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
         <View style={styles.back} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
+        {notice ? (
+          <AppText
+            accessibilityLiveRegion="polite"
+            style={styles.success}
+            testID="settings-success-notice"
+          >
+            {notice}
+          </AppText>
+        ) : null}
         <AppText style={styles.section}>{t("settings.accountSection")}</AppText>
         <NavigationRow
           destination="account"
@@ -103,10 +122,16 @@ export function SettingsScreen({ onSignOut }: Readonly<Props>) {
           destination="music"
           disabled={busy}
           icon="music-note-outline"
-          onPress={openPending}
+          onPress={openEditMusic}
           support={t("settings.musicSupport")}
         />
-        <NavigationRow destination="language" disabled={busy} icon="web" onPress={openPending} />
+        <NavigationRow
+          destination="language"
+          disabled={busy}
+          icon="web"
+          onPress={openLanguage}
+          support={t(`language.names.${i18n.language}`)}
+        />
         <AppText style={styles.section}>{t("settings.sessionSection")}</AppText>
         <Pressable
           accessibilityRole="button"

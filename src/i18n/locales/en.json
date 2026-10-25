@@ -269,6 +269,68 @@
       "userDetail": "User details",
       "auditLog": "Audit log"
     },
+    "users": {
+      "title": "User Management",
+      "search": "Search by user or email",
+      "loading": "Loading users",
+      "loadingMore": "Loading more users",
+      "loadError": "We couldn't load users.",
+      "loadMoreError": "We couldn't load more users.",
+      "retry": "Try again",
+      "count_zero": "0 users found",
+      "count_one": "{{count}} user found",
+      "count_other": "{{count}} users found",
+      "noReports": "no reports",
+      "reportCount_zero": "no reports",
+      "reportCount_one": "{{count}} report",
+      "reportCount_other": "{{count}} reports",
+      "shortId": "ID #{{id}}",
+      "viewHistory": "View history",
+      "status": { "active": "Active", "suspended": "Suspended" },
+      "filters": { "all": "All", "active": "Active", "suspended": "Suspended" },
+      "empty": {
+        "list": "No users found.",
+        "search": "No users match this search."
+      }
+    },
+    "userDetail": {
+      "title": "User details",
+      "loading": "Loading user details",
+      "loadError": "We couldn't load user details.",
+      "retry": "Try again",
+      "back": "Back to users",
+      "accountTitle": "Account details",
+      "email": "Email",
+      "userId": "Full ID",
+      "copyId": "Copy ID",
+      "copySuccess": "ID copied.",
+      "copyError": "We couldn't copy the ID.",
+      "createdAt": "Created on",
+      "deletedAt": "Deleted on",
+      "privacy": "Privacy",
+      "private": "Private",
+      "public": "Public",
+      "recordas": "Recordas published",
+      "reports": "Reports received",
+      "reportsReceived": "Report groups ({{count}})",
+      "reportCount_zero": "No reports",
+      "reportCount_one": "{{count}} report",
+      "reportCount_other": "{{count}} reports",
+      "reportPeriod": "{{from}}–{{to}}",
+      "noReports": "No reports received.",
+      "historyTitle": "Action history",
+      "historyEmpty": "No actions recorded.",
+      "historyBy": "By @{{username}} • {{date}}",
+      "reason": "Reason: {{reason}}",
+      "role": { "admin": "Administrator", "user": "User" },
+      "targetType": { "recorda": "Recorda", "user": "Profile" },
+      "actionTypes": {
+        "SUSPEND_USER": "Account suspended",
+        "REACTIVATE_USER": "Account reactivated",
+        "REMOVE_RECORDA": "Recorda removed",
+        "CHANGE_REPORT_STATUS": "Report status changed"
+      }
+    },
     "auditLog": {
       "title": "Audit Log",
       "loading": "Loading records",
@@ -503,6 +565,8 @@
     "account": {
       "suspendTitle": "Suspend Account",
       "reactivateTitle": "Reactivate Account",
+      "suspendShort": "Suspend",
+      "reactivateShort": "Reactivate",
       "userLabel": "User:",
       "reasonLabel": "Reason (required):",
       "reasonInput": "Moderation reason",
@@ -569,6 +633,15 @@
         "title": "Sign out",
         "message": "Do you want to sign out of your account?"
       }
+    },
+    "musicPreferences": {
+      "title": "Edit music preferences",
+      "save": "Save",
+      "loading": "Loading music preferences",
+      "loadError": "Could not load your preferences.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your changes have not been saved.",
+      "updated": "Preferences updated"
     }
   },
   "account": {
@@ -601,6 +674,15 @@
       "cancel": "Cancel",
       "confirm": "Delete",
       "error": "Could not delete your account. Please try again."
+    }
+  },
+  "language": {
+    "title": "Language",
+    "back": "Back",
+    "names": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
     }
   }
 }

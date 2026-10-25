@@ -11,7 +11,6 @@ import { signUpSchema } from "@/features/auth/validation/signUpSchema";
 import { AdminUserActions, UserModerationForm, type AdminUserRow } from "@/features/moderation";
 import { musicService } from "@/features/music/services/musicService";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
-import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { i18n } from "@/i18n";
@@ -114,9 +113,12 @@ function renderArtists() {
   return render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={client}>
-        <OnboardingProvider>
-          <OnboardingArtistsScreen />
-        </OnboardingProvider>
+        <OnboardingArtistsScreen
+          onBack={jest.fn()}
+          onContinue={jest.fn()}
+          onSelectedArtistsChange={jest.fn()}
+          selectedArtists={[]}
+        />
       </QueryClientProvider>
     </I18nextProvider>
   );

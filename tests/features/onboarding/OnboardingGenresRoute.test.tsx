@@ -33,7 +33,8 @@ function setup() {
       { id: 3, name: "Jazz", picture_url: null }
     ],
     isError: false,
-    isPending: false
+    isPending: false,
+    isSuccess: true
   } as ReturnType<typeof useGenres>);
 
   render(

@@ -1,4 +1,5 @@
 import { queryClient } from "@/app/providers/queryClient";
+import { syncLanguageWithAccount } from "@/features/language/languagePreference";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { secureStorage } from "@/services/storage";
@@ -21,6 +22,7 @@ export async function saveSession(response: AuthSessionResponse) {
   await secureStorage.setItem(ROLE_KEY, response.user.role);
   queryClient.setQueryData(AUTH_ME_QUERY_KEY, response.user);
   queryClient.setQueryData(AUTH_TOKEN_QUERY_KEY, response.access_token);
+  await syncLanguageWithAccount(response.user);
 }
 
 export async function clearSession() {

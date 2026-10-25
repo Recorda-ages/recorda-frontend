@@ -26,10 +26,22 @@ type Props = PropsWithChildren<{
   activeTab: AdminBottomTab;
   back?: { label: string; onPress: () => void };
   title: string;
+  showBackButton?: boolean;
+  showUsername?: boolean;
   testID?: string;
+  visibleTabs?: readonly AdminBottomTab[];
 }>;
 
-export function AdminScreenLayout({ activeTab, back, children, title, testID }: Readonly<Props>) {
+export function AdminScreenLayout({
+  activeTab,
+  back,
+  children,
+  showBackButton = activeTab !== "home",
+  showUsername = true,
+  title,
+  testID,
+  visibleTabs
+}: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const user = useCurrentUser();
@@ -49,7 +61,7 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
       <StatusBar style="light" />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <View style={styles.header}>
-          {activeTab === "home" ? (
+          {!showBackButton ? (
             <View style={styles.action} />
           ) : (
             <Pressable
@@ -65,7 +77,7 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
             <AppText style={styles.title} variant="headline4">
               {title}
             </AppText>
-            {user?.username ? (
+            {showUsername && user?.username ? (
               <AppText style={styles.username} variant="caption">
                 @{user.username}
               </AppText>
@@ -91,6 +103,7 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
       <AdminBottomNavigation
         activeTab={activeTab}
         onPress={(tab) => navigation.navigate(destinations[tab])}
+        visibleTabs={visibleTabs}
       />
     </View>
   );

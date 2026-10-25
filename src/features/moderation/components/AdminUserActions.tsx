@@ -12,6 +12,7 @@ import { adminModerationMockService } from "../services/adminModerationMockServi
 import { UserModerationForm, UserModerationFormSubmitData } from "./UserModerationForm";
 
 export type AdminUserActionsProps = {
+  compact?: boolean;
   currentAdmin?: AdminIdentity | null;
   moderationService?: AdminModerationService;
   onMutationError?: (error: Error) => void;
@@ -25,6 +26,7 @@ export function AdminUserActions(props: AdminUserActionsProps) {
 }
 
 const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
+  compact = false,
   currentAdmin,
   moderationService = adminModerationMockService,
   onMutationError,
@@ -116,14 +118,25 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
           }}
           style={[
             styles.actionButton,
-            isTargetActive ? styles.suspendButton : styles.reactivateButton
+            compact ? styles.compactActionButton : undefined,
+            compact
+              ? isTargetActive
+                ? styles.compactSuspendButton
+                : styles.compactReactivateButton
+              : isTargetActive
+                ? styles.suspendButton
+                : styles.reactivateButton
           ]}
           testID={isTargetActive ? "suspend-action-trigger" : "reactivate-action-trigger"}
         >
-          <Text style={styles.actionButtonText}>
+          <Text style={[styles.actionButtonText, compact ? styles.compactActionButtonText : null]}>
             {isTargetActive
-              ? t("moderation.account.suspendTitle")
-              : t("moderation.account.reactivateTitle")}
+              ? t(compact ? "moderation.account.suspendShort" : "moderation.account.suspendTitle")
+              : t(
+                  compact
+                    ? "moderation.account.reactivateShort"
+                    : "moderation.account.reactivateTitle"
+                )}
           </Text>
         </TouchableOpacity>
       ) : (
@@ -163,6 +176,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold"
   },
+  compactActionButton: {
+    borderRadius: 999,
+    minHeight: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  compactActionButtonText: { color: colors.neutrals[900], fontSize: 14, fontWeight: "400" },
+  compactReactivateButton: { backgroundColor: colors.primary[500] },
+  compactSuspendButton: { backgroundColor: colors.error[300] },
   noticeContainer: {
     backgroundColor: withOpacity(colors.warning[300], 0.15),
     borderColor: colors.warning[300],
