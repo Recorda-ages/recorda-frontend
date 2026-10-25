@@ -1,3 +1,4 @@
+import { onPrivateStateReset } from "@/services/api/sessionLifecycle";
 import { type AudioPlayer, useAudioPlayer } from "expo-audio";
 import {
   type Context,
@@ -99,6 +100,21 @@ export function FeedAudioProvider({ children }: PropsWithChildren) {
     active !== null && isLoaded && isRouteAllowed && isForeground && !isWaitingForMedia;
   // Read by the native status listener below.
   const playbackRef = useRef({ active, retried: null as ActivePreview | null, shouldPlay });
+
+  useEffect(
+    () =>
+      onPrivateStateReset(() => {
+        player.pause();
+        setActive(null);
+        setLoadedPreview(null);
+        setFocusKey(null);
+        focusedRecordaId.current = null;
+        setWaitingRecordaId(null);
+        setReadyMediaReporters(new Map());
+        setIsMuted(false);
+      }),
+    [player]
+  );
 
   useEffect(() => {
     playbackRef.current.active = active;

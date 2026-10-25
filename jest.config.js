@@ -16,6 +16,7 @@ module.exports = {
     "^react-native-screens$": "<rootDir>/tests/mocks/reactNativeScreens.tsx",
     "^@/(.*)$": "<rootDir>/src/$1"
   },
+  setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
   preset: "jest-expo",
   testMatch: ["<rootDir>/tests/**/*.test.ts?(x)"]
 };

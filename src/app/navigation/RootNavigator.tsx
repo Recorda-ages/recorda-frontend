@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from "react-native";
+import { useEffect } from "react";
 import {
   NavigationContainer,
   useNavigationContainerRef,
@@ -30,7 +31,7 @@ import { AdminScreenLayout } from "@/features/admin/components/AdminScreenLayout
 import { AdminUserDetailScreen } from "@/features/admin/users/screens/AdminUserDetailScreen";
 import { AdminUsersScreen } from "@/features/admin/users/screens/AdminUsersScreen";
 import { ADMIN_USERS_QUERY_KEY } from "@/features/admin/users/queryKeys";
-import { adminUsersServiceMock } from "@/features/admin/users/services/adminUsersService.mock";
+import { adminModerationService } from "@/features/admin/services/adminUserService";
 import { PasswordRecoveryScreen } from "@/features/auth/screens/PasswordRecoveryScreen";
 import { SignInScreen } from "@/features/auth/screens/SignInScreen";
 import { SignUpScreen } from "@/features/auth/screens/SignUpScreen";
@@ -53,6 +54,8 @@ import { RecordaViewScreen } from "@/features/recorda-view";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 import { SettingsScreen, SettingsPendingScreen } from "@/features/settings";
 import { SplashScreen } from "@/features/splash";
+import { clearSession } from "@/features/auth/session";
+import { onInvalidSession } from "@/services/api/sessionLifecycle";
 import { UserSearchScreen } from "@/features/user-search";
 import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 
@@ -177,7 +180,7 @@ function AdminUsersRoute() {
               }
             : null
         }
-        moderationService={adminUsersServiceMock}
+        moderationService={adminModerationService}
         onMutationSuccess={() => {
           void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY });
           void queryClient.invalidateQueries({
@@ -247,7 +250,7 @@ function AdminUserDetailRoute() {
               }
             : null
         }
-        moderationService={adminUsersServiceMock}
+        moderationService={adminModerationService}
         onMutationSuccess={() => {
           void queryClient.invalidateQueries({ queryKey: ADMIN_USERS_QUERY_KEY });
           void queryClient.invalidateQueries({
@@ -311,6 +314,17 @@ function UserProfilePlaceholderScreen() {
 export function RootNavigator() {
   const { setActiveRoute } = useFeedAudioActions();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
+  useEffect(
+    () =>
+      onInvalidSession(() => {
+        void clearSession().then(() => {
+          if (navigationRef.isReady()) {
+            navigationRef.reset({ index: 0, routes: [{ name: "Login" }] });
+          }
+        });
+      }),
+    [navigationRef]
+  );
   // A prévia só toca no Feed e nos Detalhes; sair para qualquer outra tela
   // silencia. `onReady` cobre a rota inicial, que `onStateChange` não emite.
   const syncActiveRoute = () => setActiveRoute(navigationRef.getCurrentRoute()?.name);

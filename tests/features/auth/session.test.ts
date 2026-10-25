@@ -9,9 +9,11 @@ import {
   clearSession,
   getPostAuthDestination,
   markOnboardingCompleted,
-  saveSession
+  saveSession,
+  updateAccountSession
 } from "@/features/auth/session";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
+import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { secureStorage } from "@/services/storage";
 
 jest.mock("@/services/storage", () => ({
@@ -47,6 +49,21 @@ describe("auth session", () => {
     expect(secureStorage.setItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY, "jwt");
     expect(secureStorage.setItem).toHaveBeenCalledWith(ROLE_KEY, "USER");
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
+  });
+
+  it("replaces the persisted token and updates cached account identity after an account edit", async () => {
+    queryClient.setQueryData(AUTH_ME_QUERY_KEY, buildUser());
+
+    await updateAccountSession("jwt-renewed", {
+      name: "Gabriel Silva",
+      username: "gabriel-silva"
+    });
+
+    expect(secureStorage.setItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY, "jwt-renewed");
+    expect(queryClient.getQueryData(AUTH_TOKEN_QUERY_KEY)).toBe("jwt-renewed");
+    expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(
+      buildUser({ name: "Gabriel Silva", username: "gabriel-silva" })
+    );
   });
 
   // Nothing observes the cached user, so React Query's default 5-minute garbage
@@ -137,3 +154,25 @@ describe("auth session", () => {
     expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
   });
 });
+
+it("clears all account caches when saving a different account", async () => {
+  queryClient.setQueryData(["friends", "followers", "old-user"], ["private"]);
+  queryClient.setQueryData(["users", "search", "secret"], ["private"]);
+  queryClient.setQueryData(["settings"], { language: "es" });
+  queryClient.setQueryData(["music-preferences", "old-user"], { private: true });
+  await saveSession({
+    access_token: "new-token",
+    token_type: "bearer",
+    user: buildUser({ user_id: "next-user", language: "en" })
+  });
+  expect(queryClient.getQueryData(["friends", "followers", "old-user"])).toBeUndefined();
+  expect(queryClient.getQueryData(["users", "search", "secret"])).toBeUndefined();
+  expect(queryClient.getQueryData(["settings"])).toBeUndefined();
+  expect(queryClient.getQueryData(["music-preferences", "old-user"])).toBeUndefined();
+  expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toMatchObject({
+    user_id: "next-user",
+    language: "en"
+  });
+});
+
+afterEach(() => queryClient.clear());

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { onPrivateStateReset } from "@/services/api/sessionLifecycle";
 import {
   createContext,
   type Dispatch,
@@ -29,6 +31,8 @@ export function OnboardingProvider({ children }: PropsWithChildren) {
     setSelectedArtists([]);
     setSelectedGenres([]);
   }, []);
+
+  useEffect(() => onPrivateStateReset(reset), [reset]);
 
   const value = useMemo(
     () => ({

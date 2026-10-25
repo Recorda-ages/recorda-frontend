@@ -2,9 +2,9 @@ import { type InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { ADMIN_ROLE } from "@/features/auth/session";
+import { adminUserService } from "@/features/admin/services/adminUserService";
 
 import { ADMIN_USERS_QUERY_KEY } from "../queryKeys";
-import { adminUsersServiceMock } from "../services/adminUsersService.mock";
 import type { AdminUserStatus, AdminUsersPage } from "../../types";
 
 export const ADMIN_USERS_PAGE_SIZE = 20;
@@ -26,13 +26,8 @@ export function useAdminUsers(query: string, status: AdminUserStatus | undefined
     },
     initialPageParam: 0,
     queryFn: ({ pageParam, signal }) =>
-      adminUsersServiceMock.listUsers(
-        {
-          limit: ADMIN_USERS_PAGE_SIZE,
-          offset: pageParam,
-          q: query || undefined,
-          status
-        },
+      adminUserService.list(
+        { limit: ADMIN_USERS_PAGE_SIZE, offset: pageParam, q: query || undefined, status },
         signal
       ),
     queryKey: [...ADMIN_USERS_QUERY_KEY, user?.user_id, query, status],

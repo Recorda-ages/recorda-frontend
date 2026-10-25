@@ -355,10 +355,97 @@
       "statusChange": "(de {{from}} a {{to}})",
       "reason": "Motivo: {{reason}}",
       "dateTime": "{{date}} • {{time}}"
+    },
+    "users": {
+      "title": "Usuarios",
+      "detailTitle": "Detalles del usuario",
+      "search": "Buscar por nombre, usuario o email",
+      "filters": {
+        "ALL": "Todos",
+        "ACTIVE": "Activos",
+        "SUSPENDED": "Suspendidos"
+      },
+      "loading": "Cargando usuarios...",
+      "loadError": "No se pudieron cargar los usuarios.",
+      "empty": "No se encontraron usuarios.",
+      "more": "Cargar más",
+      "reportCount": "Denuncias: {{count}}",
+      "details": "Rol: {{role}}. Recordas: {{count}}.",
+      "private": "Cuenta privada",
+      "public": "Cuenta pública",
+      "deleted": "Cuenta eliminada",
+      "reports": "Denuncias recibidas",
+      "history": "Historial de moderación",
+      "actionBy": "@{{username}}: {{action}}",
+      "reportTarget": {
+        "USER": "Usuario",
+        "RECORDA": "Recorda"
+      }
     }
   },
   "profile": {
     "title": "Perfil"
+  },
+  "settings": {
+    "title": "Configuración",
+    "back": "Volver",
+    "editAccount": "Mi cuenta",
+    "editMusicPreferences": "Editar preferencias musicales",
+    "next": "Siguiente",
+    "save": "Guardar",
+    "retry": "Reintentar",
+    "continueEditing": "Seguir editando",
+    "discard": "Descartar",
+    "musicPreferences": {
+      "title": "Editar preferencias musicales",
+      "loading": "Cargando preferencias musicales",
+      "loadError": "No se pudieron cargar tus preferencias.",
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Tus selecciones aún no se han guardado.",
+      "updated": "Preferencias actualizadas"
+    },
+    "account": {
+      "title": "Mi cuenta",
+      "loading": "Cargando los datos de la cuenta",
+      "loadError": "No se pudieron cargar los datos de la cuenta.",
+      "save": "Guardar cambios",
+      "saveError": "No se pudieron guardar tus datos. Inténtalo de nuevo.",
+      "networkError": "No se puede conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+      "updated": "Datos de la cuenta actualizados",
+      "personalDetails": "Datos personales",
+      "name": "Nombre",
+      "username": "Usuario",
+      "email": "Correo electrónico",
+      "passwordSection": "Cambiar contraseña",
+      "passwordHint": "Completa ambos campos para cambiar la contraseña. Déjalos vacíos para conservarla.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "passwordRequired": "Introduce la nueva contraseña.",
+      "confirmPasswordRequired": "Confirma la nueva contraseña.",
+      "emailTaken": "Este correo electrónico ya está en uso.",
+      "usernameTaken": "Este nombre de usuario ya está en uso.",
+      "invalidField": "Revisa este campo e inténtalo de nuevo.",
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Aún no has guardado los cambios."
+    },
+    "loading": "Cargando configuración...",
+    "loadError": "No se pudo cargar la configuración.",
+    "privateAccount": "Cuenta privada",
+    "privacyHint": "Al hacer pública tu cuenta se aceptarán las solicitudes pendientes.",
+    "language": "Idioma",
+    "languages": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    },
+    "saved": "Configuración guardada.",
+    "acceptedRequests": "Configuración guardada. Solicitudes aceptadas: {{count}}.",
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteTitle": "¿Eliminar tu cuenta?",
+    "deleteMessage": "Se eliminarán tu cuenta y tus Recordas. Esta acción no se puede deshacer.",
+    "cancel": "Cancelar",
+    "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
   },
   "friends": {
     "title": "Amigos",
@@ -414,7 +501,8 @@
     "deleteError": "No se pudo eliminar la Recorda. Inténtalo de nuevo.",
     "confirmDelete": "Confirmar eliminación",
     "unavailable": "Esta Recorda ya no está disponible.",
-    "sharePending": "Compartir Recordas todavía no está disponible en esta versión."
+    "sharePending": "Compartir Recordas todavía no está disponible en esta versión.",
+    "commentDeleteError": "No se pudo eliminar el comentario. Inténtalo de nuevo."
   },
   "feed": {
     "logo": "recorda.",

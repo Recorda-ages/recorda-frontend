@@ -1,16 +1,26 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  adminModerationMockService,
+  resetModerationMockStore,
+  getModerationMockStore
+} from "@/features/moderation/services/adminModerationMockService";
 import React from "react";
-import { act, render, fireEvent, waitFor } from "@testing-library/react-native";
+import { act, render as nativeRender, fireEvent, waitFor } from "@testing-library/react-native";
 import {
   AdminUserActions,
   UserModerationForm,
-  adminModerationMockService,
-  resetModerationMockStore,
-  getModerationMockStore,
   AdminIdentity,
   AdminModerationService,
   AdminUserRow
 } from "@/features/moderation";
 import "@/i18n";
+
+function render(element: React.ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } }
+  });
+  return nativeRender(<QueryClientProvider client={client}>{element}</QueryClientProvider>);
+}
 
 const currentAdmin: AdminIdentity = {
   role: "ADMIN",
@@ -262,7 +272,11 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
   describe("AdminUserActions Component", () => {
     it("não renderiza nada se identidade do admin for indefinida", () => {
       const { queryByTestId } = render(
-        <AdminUserActions targetUser={activeUser} currentAdmin={null} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={activeUser}
+          currentAdmin={null}
+        />
       );
       expect(queryByTestId("admin-user-actions")).toBeNull();
     });
@@ -270,6 +284,7 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
     it("não libera ações para uma identidade que não é admin", () => {
       const { queryByTestId } = render(
         <AdminUserActions
+          moderationService={adminModerationMockService}
           targetUser={activeUser}
           currentAdmin={{ ...currentAdmin, role: "USER" }}
         />
@@ -280,14 +295,22 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
     it("não exibe ações quando a conta-alvo é o próprio admin", () => {
       const selfUser: AdminUserRow = { ...activeUser, user_id: currentAdmin.user_id };
       const { queryByTestId } = render(
-        <AdminUserActions targetUser={selfUser} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={selfUser}
+          currentAdmin={currentAdmin}
+        />
       );
       expect(queryByTestId("admin-user-actions")).toBeNull();
     });
 
     it("exibe aviso explicativo para outro admin ativo", () => {
       const { getByTestId, getByText } = render(
-        <AdminUserActions targetUser={activeAdmin} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={activeAdmin}
+          currentAdmin={currentAdmin}
+        />
       );
       expect(getByTestId("admin-action-notice")).toBeTruthy();
       expect(getByText("Não é permitido suspender outro administrador.")).toBeTruthy();
@@ -295,7 +318,11 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
 
     it("exibe botão de suspender para usuário ativo e abre formulário", () => {
       const { getByTestId } = render(
-        <AdminUserActions targetUser={activeUser} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={activeUser}
+          currentAdmin={currentAdmin}
+        />
       );
 
       const trigger = getByTestId("suspend-action-trigger");
@@ -308,7 +335,11 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
     it("impede que o toque na ação se propague para o card", () => {
       const stopPropagation = jest.fn();
       const { getByTestId } = render(
-        <AdminUserActions targetUser={activeUser} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={activeUser}
+          currentAdmin={currentAdmin}
+        />
       );
 
       fireEvent.press(getByTestId("suspend-action-trigger"), { stopPropagation });
@@ -317,7 +348,11 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
 
     it("exibe botão de reativar para outro admin suspenso", () => {
       const { getByTestId } = render(
-        <AdminUserActions targetUser={suspendedAdmin} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={suspendedAdmin}
+          currentAdmin={currentAdmin}
+        />
       );
       expect(getByTestId("reactivate-action-trigger")).toBeTruthy();
     });
@@ -325,7 +360,11 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
     it("reativa enviando apenas o motivo", async () => {
       const reactivate = jest.spyOn(adminModerationMockService, "reactivateUser");
       const { getByTestId } = render(
-        <AdminUserActions targetUser={suspendedAdmin} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={suspendedAdmin}
+          currentAdmin={currentAdmin}
+        />
       );
 
       fireEvent.press(getByTestId("reactivate-action-trigger"));
@@ -370,6 +409,7 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
       const onSuccess = jest.fn();
       const { getByTestId } = render(
         <AdminUserActions
+          moderationService={adminModerationMockService}
           targetUser={activeUser}
           currentAdmin={currentAdmin}
           onMutationSuccess={onSuccess}
@@ -396,6 +436,7 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
       const onError = jest.fn();
       const { getByTestId, getByText } = render(
         <AdminUserActions
+          moderationService={adminModerationMockService}
           targetUser={activeUser}
           currentAdmin={currentAdmin}
           onMutationError={onError}
@@ -416,7 +457,11 @@ describe("US 46 - Moderação de Usuários (Mock Service & UI)", () => {
     it("envia a mutação uma única vez mesmo com dois toques imediatos", async () => {
       const suspend = jest.spyOn(adminModerationMockService, "suspendUser");
       const { getByTestId } = render(
-        <AdminUserActions targetUser={activeUser} currentAdmin={currentAdmin} />
+        <AdminUserActions
+          moderationService={adminModerationMockService}
+          targetUser={activeUser}
+          currentAdmin={currentAdmin}
+        />
       );
       fireEvent.press(getByTestId("suspend-action-trigger"));
       fireEvent.changeText(getByTestId("moderation-reason-input"), "Motivo válido");

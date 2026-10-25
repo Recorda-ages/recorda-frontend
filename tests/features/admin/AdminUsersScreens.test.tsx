@@ -4,6 +4,7 @@ import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 
 import { AdminUserDetailScreen } from "@/features/admin/users/screens/AdminUserDetailScreen";
+import { adminUserService } from "@/features/admin/services/adminUserService";
 import { ADMIN_USERS_QUERY_KEY } from "@/features/admin/users/queryKeys";
 import {
   ADMIN_USERS_SEARCH_DEBOUNCE_MS,
@@ -47,6 +48,20 @@ describe("admin user screens", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     resetAdminUsersMock();
+    jest.spyOn(adminUserService, "list").mockImplementation((filters = {}, signal) =>
+      adminUsersServiceMock.listUsers(
+        {
+          limit: filters.limit ?? 20,
+          offset: filters.offset ?? 0,
+          q: filters.q,
+          status: filters.status
+        },
+        signal
+      )
+    );
+    jest
+      .spyOn(adminUserService, "get")
+      .mockImplementation((userId, signal) => adminUsersServiceMock.getUserDetail(userId, signal));
   });
 
   it("shows the mock user total and account cards", async () => {
@@ -60,7 +75,7 @@ describe("admin user screens", () => {
   });
 
   it("debounces search and filters the list by active or suspended status", async () => {
-    const listUsers = jest.spyOn(adminUsersServiceMock, "listUsers");
+    const listUsers = jest.spyOn(adminUserService, "list");
     renderWithProviders(<AdminUsersScreen onViewHistory={jest.fn()} />);
     await screen.findByText("6 usuários encontrados");
 
@@ -104,9 +119,9 @@ describe("admin user screens", () => {
       };
     });
     const listUsers = jest
-      .spyOn(adminUsersServiceMock, "listUsers")
-      .mockImplementation(async ({ limit, offset }) => ({
-        items: rows.slice(offset, offset + limit),
+      .spyOn(adminUserService, "list")
+      .mockImplementation(async (filters = {}) => ({
+        items: rows.slice(filters.offset ?? 0, (filters.offset ?? 0) + (filters.limit ?? 20)),
         total: rows.length
       }));
     const client = renderWithProviders(<AdminUsersScreen onViewHistory={jest.fn()} />);
@@ -137,9 +152,9 @@ describe("admin user screens", () => {
   });
 
   it("shows a retry action after the mock list fails twice", async () => {
-    const originalListUsers = adminUsersServiceMock.listUsers;
+    const originalListUsers = adminUserService.list;
     const listUsers = jest
-      .spyOn(adminUsersServiceMock, "listUsers")
+      .spyOn(adminUserService, "list")
       .mockRejectedValueOnce(new Error("temporary failure"))
       .mockRejectedValueOnce(new Error("temporary failure"))
       .mockImplementation(originalListUsers);
@@ -169,9 +184,9 @@ describe("admin user screens", () => {
   });
 
   it("offers a retry when detail loading fails", async () => {
-    const originalGetUserDetail = adminUsersServiceMock.getUserDetail;
+    const originalGetUserDetail = adminUserService.get;
     const getUserDetail = jest
-      .spyOn(adminUsersServiceMock, "getUserDetail")
+      .spyOn(adminUserService, "get")
       .mockRejectedValueOnce(new Error("temporary failure"))
       .mockRejectedValueOnce(new Error("temporary failure"))
       .mockImplementation(originalGetUserDetail);

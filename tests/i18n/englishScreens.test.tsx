@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  render as nativeRender,
+  screen,
+  waitFor
+} from "@testing-library/react-native";
 import * as ExpoCamera from "expo-camera";
 import * as ExpoImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
@@ -105,6 +111,13 @@ function expectNoPortuguese() {
   expect(texts.filter((text) => /[ãõçâêô]/i.test(text))).toEqual([]);
 }
 
+function render(element: React.ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } }
+  });
+  return nativeRender(<QueryClientProvider client={client}>{element}</QueryClientProvider>);
+}
+
 function renderArtists() {
   const client = new QueryClient({
     defaultOptions: { queries: { gcTime: Infinity, retry: false } }
@@ -149,7 +162,7 @@ const regularUser: AdminUserRow = {
 };
 
 describe("screens with the app in English", () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await i18n.changeLanguage("en");
   });
 

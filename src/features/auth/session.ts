@@ -2,6 +2,9 @@ import { queryClient } from "@/app/providers/queryClient";
 import { syncLanguageWithAccount } from "@/features/language/languagePreference";
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
+import { resetPrivateState } from "@/services/api/sessionLifecycle";
+import { i18n } from "@/i18n";
+import { getDeviceLanguage } from "@/i18n/config";
 import { secureStorage } from "@/services/storage";
 
 import { AUTH_ME_QUERY_KEY } from "./api/getCurrentUser";
@@ -18,6 +21,9 @@ export type PostAuthDestination = "Admin" | "Feed" | "OnboardingArtists";
 queryClient.setQueryDefaults(AUTH_ME_QUERY_KEY, { gcTime: Infinity });
 
 export async function saveSession(response: AuthSessionResponse) {
+  resetPrivateState();
+  await queryClient.cancelQueries();
+  queryClient.clear();
   await secureStorage.setItem(AUTH_TOKEN_KEY, response.access_token);
   await secureStorage.setItem(ROLE_KEY, response.user.role);
   queryClient.setQueryData(AUTH_ME_QUERY_KEY, response.user);
@@ -25,13 +31,27 @@ export async function saveSession(response: AuthSessionResponse) {
   await syncLanguageWithAccount(response.user);
 }
 
+export async function updateAccountSession(
+  accessToken: string,
+  account: Pick<UserBasicResponse, "name" | "username">
+) {
+  await secureStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+  queryClient.setQueryData(AUTH_TOKEN_QUERY_KEY, accessToken);
+  queryClient.setQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY, (user) =>
+    user ? { ...user, ...account } : user
+  );
+}
+
 export async function clearSession() {
+  resetPrivateState();
+  await queryClient.cancelQueries();
   await Promise.allSettled([
     secureStorage.removeItem(AUTH_TOKEN_KEY),
     secureStorage.removeItem(ROLE_KEY),
     secureStorage.removeItem(LEGACY_ACCOUNT_TYPE_KEY)
   ]);
   queryClient.clear();
+  await i18n.changeLanguage(getDeviceLanguage());
 }
 
 export function getPostAuthDestination(user: UserBasicResponse): PostAuthDestination {

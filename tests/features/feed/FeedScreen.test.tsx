@@ -169,7 +169,10 @@ function switchTab(name: keyof typeof TAB_PAGES) {
 
 function renderScreen(currentUser?: CurrentUser) {
   const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
+    defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
+      queries: { gcTime: 0, retry: false }
+    }
   });
   queryClients.push(queryClient);
   if (currentUser) queryClient.setQueryData(AUTH_ME_QUERY_KEY, currentUser);
