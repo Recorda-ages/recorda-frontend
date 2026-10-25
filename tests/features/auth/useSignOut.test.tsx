@@ -102,7 +102,7 @@ it("resets real contexts, stops audio and clears the previous account before res
   expect(mockAudioPlayer.pause).toHaveBeenCalled();
   expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   expect(mockStorage.get("app_language")).toBe("es");
-  expect(i18n.language).toBe("es");
+  expect(i18n.language).toBe("pt-BR");
 
   mockAudioPlayer.play.mockClear();
   act(() => result.current.audio.setActiveRoute("Feed"));

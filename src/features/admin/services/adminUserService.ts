@@ -1,5 +1,5 @@
 import { authApiClient } from "@/services/api";
-import type { AdminUserDetail, AdminUserRow, AdminUsersPage } from "@/features/admin/types";
+import type { AdminUserDetail, AdminUsersPage } from "@/features/admin/types";
 import type { AdminModerationService, UserModerationStatus } from "@/features/moderation/types";
 
 export type AdminUsersFilters = {

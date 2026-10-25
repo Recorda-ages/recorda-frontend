@@ -3,8 +3,7 @@ import { syncLanguageWithAccount } from "@/features/language/languagePreference"
 import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { resetPrivateState } from "@/services/api/sessionLifecycle";
-import { i18n } from "@/i18n";
-import { getDeviceLanguage } from "@/i18n/config";
+import { i18n, resolveDeviceLanguage } from "@/i18n";
 import { secureStorage } from "@/services/storage";
 
 import { AUTH_ME_QUERY_KEY } from "./api/getCurrentUser";
@@ -51,7 +50,7 @@ export async function clearSession() {
     secureStorage.removeItem(LEGACY_ACCOUNT_TYPE_KEY)
   ]);
   queryClient.clear();
-  await i18n.changeLanguage(getDeviceLanguage());
+  await i18n.changeLanguage(resolveDeviceLanguage());
 }
 
 export function getPostAuthDestination(user: UserBasicResponse): PostAuthDestination {

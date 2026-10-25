@@ -54,6 +54,7 @@ export function PublishedRecordaScreen() {
     queryFn: ({ signal }) => feedService.getComments(params.postId, signal)
   });
   const createComment = useMutation({
+    onMutate: () => queryClient.cancelQueries({ queryKey: recordaCommentsQueryKey(params.postId) }),
     mutationFn: (content: string) => feedService.createComment(params.postId, content),
     onSuccess: (created) => {
       queryClient.setQueryData<RecordaCommentResponse[]>(

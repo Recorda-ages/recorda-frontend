@@ -152,7 +152,7 @@ describe("admin user screens", () => {
   });
 
   it("shows a retry action after the mock list fails twice", async () => {
-    const originalListUsers = adminUserService.list;
+    const originalListUsers = jest.mocked(adminUserService.list).getMockImplementation()!;
     const listUsers = jest
       .spyOn(adminUserService, "list")
       .mockRejectedValueOnce(new Error("temporary failure"))
@@ -184,7 +184,7 @@ describe("admin user screens", () => {
   });
 
   it("offers a retry when detail loading fails", async () => {
-    const originalGetUserDetail = adminUserService.get;
+    const originalGetUserDetail = jest.mocked(adminUserService.get).getMockImplementation()!;
     const getUserDetail = jest
       .spyOn(adminUserService, "get")
       .mockRejectedValueOnce(new Error("temporary failure"))

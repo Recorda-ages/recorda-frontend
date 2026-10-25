@@ -9,13 +9,6 @@ import { resolveDeviceLanguage } from "./resolveDeviceLanguage";
 
 export { defaultLanguage };
 
-export function getDeviceLanguage() {
-  const locale = Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase();
-  if (locale.startsWith("en")) return "en";
-  if (locale.startsWith("es")) return "es";
-  return defaultLanguage;
-}
-
 const i18n = createInstance();
 
 void i18n.use(initReactI18next).init({

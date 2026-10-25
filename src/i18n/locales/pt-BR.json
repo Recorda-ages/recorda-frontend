@@ -356,32 +356,6 @@
       "statusChange": "(de {{from}} para {{to}})",
       "reason": "Motivo: {{reason}}",
       "dateTime": "{{date}} • {{time}}"
-    },
-    "users": {
-      "title": "Usuários",
-      "detailTitle": "Detalhes do usuário",
-      "search": "Buscar por nome, usuário ou email",
-      "filters": {
-        "ALL": "Todos",
-        "ACTIVE": "Ativos",
-        "SUSPENDED": "Suspensos"
-      },
-      "loading": "Carregando usuários...",
-      "loadError": "Não foi possível carregar os usuários.",
-      "empty": "Nenhum usuário encontrado.",
-      "more": "Carregar mais",
-      "reportCount": "Denúncias: {{count}}",
-      "details": "Função: {{role}}. Recordas: {{count}}.",
-      "private": "Conta privada",
-      "public": "Conta pública",
-      "deleted": "Conta excluída",
-      "reports": "Denúncias recebidas",
-      "history": "Histórico de moderação",
-      "actionBy": "@{{username}}: {{action}}",
-      "reportTarget": {
-        "USER": "Usuário",
-        "RECORDA": "Recorda"
-      }
     }
   },
   "profile": {

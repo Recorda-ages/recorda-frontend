@@ -355,32 +355,6 @@
       "statusChange": "(from {{from}} to {{to}})",
       "reason": "Reason: {{reason}}",
       "dateTime": "{{date}} • {{time}}"
-    },
-    "users": {
-      "title": "Users",
-      "detailTitle": "User details",
-      "search": "Search by name, username or email",
-      "filters": {
-        "ALL": "All",
-        "ACTIVE": "Active",
-        "SUSPENDED": "Suspended"
-      },
-      "loading": "Loading users...",
-      "loadError": "Unable to load users.",
-      "empty": "No users found.",
-      "more": "Load more",
-      "reportCount": "Reports: {{count}}",
-      "details": "Role: {{role}}. Recordas: {{count}}.",
-      "private": "Private account",
-      "public": "Public account",
-      "deleted": "Deleted account",
-      "reports": "Reports received",
-      "history": "Moderation history",
-      "actionBy": "@{{username}}: {{action}}",
-      "reportTarget": {
-        "USER": "User",
-        "RECORDA": "Recorda"
-      }
     }
   },
   "profile": {
