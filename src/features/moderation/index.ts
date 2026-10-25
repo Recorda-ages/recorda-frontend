@@ -1,6 +1,5 @@
 export * from "./types";
 export * from "./services/reportService";
-export * from "./services/adminModerationMockService";
 export * from "./components/ReportDialog";
 export * from "./components/ReportFeedback";
 export * from "./components/UserModerationForm";

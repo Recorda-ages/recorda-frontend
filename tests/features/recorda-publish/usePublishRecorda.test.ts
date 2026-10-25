@@ -84,7 +84,7 @@ describe("usePublishRecorda", () => {
     });
 
     expect(result.current.status).toBe("success");
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed", "general"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed"] });
   });
 
   it("keeps publication successful if refreshing the feed fails", async () => {

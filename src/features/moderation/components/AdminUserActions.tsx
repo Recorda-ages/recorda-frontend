@@ -8,7 +8,8 @@ import {
   AdminModerationService,
   AdminUserRow
 } from "../types";
-import { adminModerationMockService } from "../services/adminModerationMockService";
+import { adminModerationService } from "@/features/admin/services/adminUserService";
+import { useQueryClient } from "@tanstack/react-query";
 import { UserModerationForm, UserModerationFormSubmitData } from "./UserModerationForm";
 
 export type AdminUserActionsProps = {
@@ -28,12 +29,13 @@ export function AdminUserActions(props: AdminUserActionsProps) {
 const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
   compact = false,
   currentAdmin,
-  moderationService = adminModerationMockService,
+  moderationService = adminModerationService,
   onMutationError,
   onMutationSuccess,
   targetUser
 }) => {
   const { t } = useTranslation();
+  const client = useQueryClient();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -92,6 +94,7 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
         });
       }
 
+      void client.invalidateQueries({ queryKey: ["admin"] });
       setCurrentStatus(result.user.status);
       setIsFormVisible(false);
       onMutationSuccess?.(result);

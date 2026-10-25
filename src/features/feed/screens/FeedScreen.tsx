@@ -1,6 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useQuery } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -19,7 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
-import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useReportDialog } from "@/features/moderation";
 import { resolveApiAssetUrl } from "@/services/api";
 import { useNotifications } from "@/features/notifications";
@@ -110,10 +109,7 @@ export function FeedScreen() {
   const followingFeedQuery = useFollowingFeed(activeTab === "following" || isSwiping);
   const { mutateAsync: toggleRecordaLike } = useRecordaLikeMutation();
   const unreadCount = useNotifications().data?.pages[0]?.unread_count ?? 0;
-  const { data: currentUser } = useQuery<CurrentUser>({
-    enabled: false,
-    queryKey: AUTH_ME_QUERY_KEY
-  });
+  const currentUser = useCurrentUser();
   const currentUserId = currentUser?.user_id;
   const { openReport, reportDialog } = useReportDialog();
 

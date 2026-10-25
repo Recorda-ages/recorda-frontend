@@ -360,6 +360,67 @@
   "profile": {
     "title": "Profile"
   },
+  "settings": {
+    "title": "Settings",
+    "back": "Back",
+    "editAccount": "My account",
+    "editMusicPreferences": "Edit music preferences",
+    "next": "Next",
+    "save": "Save",
+    "retry": "Try again",
+    "continueEditing": "Keep editing",
+    "discard": "Discard",
+    "musicPreferences": {
+      "title": "Edit music preferences",
+      "loading": "Loading music preferences",
+      "loadError": "We couldn't load your preferences.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your selections haven't been saved.",
+      "updated": "Preferences updated"
+    },
+    "account": {
+      "title": "My account",
+      "loading": "Loading account details",
+      "loadError": "We couldn't load your account details.",
+      "save": "Save changes",
+      "saveError": "We couldn't save your details. Try again.",
+      "networkError": "Can't connect to the server. Check your connection and try again.",
+      "updated": "Account details updated",
+      "personalDetails": "Personal details",
+      "name": "Name",
+      "username": "Username",
+      "email": "Email",
+      "passwordSection": "Change password",
+      "passwordHint": "Fill in both fields to change your password. Leave both empty to keep it.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "passwordRequired": "Enter a new password.",
+      "confirmPasswordRequired": "Confirm your new password.",
+      "emailTaken": "This email is already in use.",
+      "usernameTaken": "This username is already in use.",
+      "invalidField": "Check this field and try again.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your changes haven't been saved."
+    },
+    "loading": "Loading settings...",
+    "loadError": "Unable to load settings.",
+    "privateAccount": "Private account",
+    "privacyHint": "Making your account public accepts pending follow requests.",
+    "language": "Language",
+    "languages": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    },
+    "saved": "Settings saved.",
+    "acceptedRequests": "Settings saved. Accepted requests: {{count}}.",
+    "saveError": "Unable to save. Try again.",
+    "deleteAccount": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteMessage": "Your account and Recordas will be deleted. This cannot be undone.",
+    "cancel": "Cancel",
+    "deleteError": "Unable to delete your account. Try again."
+  },
   "friends": {
     "title": "Friends",
     "followers": "Followers",
@@ -414,7 +475,8 @@
     "deleteError": "Could not delete the Recorda. Try again.",
     "confirmDelete": "Confirm deletion",
     "unavailable": "This Recorda is no longer available.",
-    "sharePending": "Recorda sharing is not available in this version yet."
+    "sharePending": "Recorda sharing is not available in this version yet.",
+    "commentDeleteError": "Unable to delete the comment. Try again."
   },
   "feed": {
     "logo": "recorda.",

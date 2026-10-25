@@ -20,6 +20,13 @@ export async function preloadStartupImages() {
   const preload = Promise.allSettled(
     uris.flatMap((uri) => [RNImage.prefetch(uri), ExpoImage.prefetch(uri)])
   );
-  const timeout = new Promise<void>((resolve) => setTimeout(resolve, IMAGE_PRELOAD_TIMEOUT_MS));
-  await Promise.race([preload, timeout]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, IMAGE_PRELOAD_TIMEOUT_MS);
+  });
+  try {
+    await Promise.race([preload, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
 }

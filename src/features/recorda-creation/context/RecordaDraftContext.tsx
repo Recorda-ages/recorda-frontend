@@ -1,5 +1,6 @@
+import { onPrivateStateReset } from "@/services/api/sessionLifecycle";
 import type { PropsWithChildren } from "react";
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import type { RecordaDraft, RecordaDraftMedia, RecordaDraftSong } from "../types";
 
@@ -41,6 +42,8 @@ export function RecordaDraftProvider({ children }: PropsWithChildren) {
   }, []);
 
   const reset = useCallback(() => setDraft(EMPTY_DRAFT), []);
+
+  useEffect(() => onPrivateStateReset(reset), [reset]);
 
   const value = useMemo<RecordaDraftContextValue>(
     () => ({ ...draft, clearMedia, reset, setDescription, setMedia, setSong }),

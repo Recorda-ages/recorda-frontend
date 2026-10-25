@@ -5,45 +5,26 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState
 } from "react";
 
-import { queryClient } from "@/app/providers/queryClient";
-import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
-import type { UserBasicResponse } from "@/features/auth/api/types";
+import { onPrivateStateReset } from "@/services/api/sessionLifecycle";
 import { i18n } from "@/i18n";
 import { resolveApiAssetUrl } from "@/services/api";
 
-import { mockFeedPosts } from "../mocks/feedPosts";
 import type { FeedItem, FeedPost, RecordaDetailResponse } from "../types";
 import { formatFeedDate } from "../utils/formatFeedDate";
-
-// Fallback identity for the local preview without an authenticated session.
-export const demoFeedUser = { id: "demo-lucas", username: "lucas_almeida" };
 
 type FeedState = {
   posts: FeedPost[];
   likedIds: string[];
-  currentUser: typeof demoFeedUser;
   deletedIds: string[];
   openFeedItem: (item: FeedItem) => void;
-  toggleLike: (id: string) => void;
   setLikeState: (id: string, liked: boolean, likesCount?: number) => void;
-  addComment: (id: string, text: string) => void;
   deletePost: (id: string) => void;
 };
 
 const FeedContext = createContext<FeedState | null>(null);
-
-const STANDALONE_FEED_SESSION = "standalone";
-
-function getFeedSessionId() {
-  return (
-    queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY)?.user_id ??
-    STANDALONE_FEED_SESSION
-  );
-}
 
 export function recordaDetailToFeedItem(detail: RecordaDetailResponse): FeedItem {
   return {
@@ -96,31 +77,18 @@ export function feedItemToFeedPost(item: FeedItem): FeedPost {
 }
 
 export function FeedProvider({ children }: PropsWithChildren) {
-  const [posts, setPosts] = useState(mockFeedPosts);
+  const [posts, setPosts] = useState<FeedPost[]>([]);
   const [likedIds, setLikedIds] = useState<string[]>([]);
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
-  const nextComment = useRef(0);
-  const feedSessionId = useRef(getFeedSessionId());
-
-  useEffect(() => {
-    return queryClient.getQueryCache().subscribe((event) => {
-      const [scope, resource] = event.query.queryKey;
-
-      if (scope === AUTH_ME_QUERY_KEY[0] && resource === AUTH_ME_QUERY_KEY[1]) {
-        const nextSessionId = getFeedSessionId();
-
-        if (feedSessionId.current === nextSessionId) {
-          return;
-        }
-
-        feedSessionId.current = nextSessionId;
-        nextComment.current = 0;
-        setPosts(mockFeedPosts);
+  useEffect(
+    () =>
+      onPrivateStateReset(() => {
+        setPosts([]);
         setLikedIds([]);
         setDeletedIds([]);
-      }
-    });
-  }, []);
+      }),
+    []
+  );
 
   const openFeedItem = useCallback((item: FeedItem) => {
     const post = feedItemToFeedPost(item);
@@ -141,10 +109,6 @@ export function FeedProvider({ children }: PropsWithChildren) {
     );
   }, []);
 
-  const toggleLike = useCallback((id: string) => {
-    setLikedIds((ids) => (ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id]));
-  }, []);
-
   const setLikeState = useCallback((id: string, liked: boolean, likesCount?: number) => {
     setLikedIds((current) =>
       liked
@@ -163,25 +127,6 @@ export function FeedProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  const addComment = useCallback((id: string, value: string) => {
-    const text = value.trim();
-    if (!text) return;
-    const comment = {
-      id: `local-comment-${++nextComment.current}`,
-      text,
-      username:
-        queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY)?.username ??
-        demoFeedUser.username,
-      avatarUrl: null,
-      createdAt: new Date().toISOString()
-    };
-    setPosts((current) =>
-      current.map((post) =>
-        post.id === id ? { ...post, comments: [...post.comments, comment] } : post
-      )
-    );
-  }, []);
-
   const deletePost = useCallback((id: string) => {
     setPosts((current) => current.filter((post) => post.id !== id));
     setDeletedIds((current) => (current.includes(id) ? current : [...current, id]));
@@ -192,14 +137,11 @@ export function FeedProvider({ children }: PropsWithChildren) {
       posts,
       likedIds,
       deletedIds,
-      currentUser: demoFeedUser,
       openFeedItem,
-      toggleLike,
       setLikeState,
-      addComment,
       deletePost
     }),
-    [posts, likedIds, deletedIds, openFeedItem, toggleLike, setLikeState, addComment, deletePost]
+    [posts, likedIds, deletedIds, openFeedItem, setLikeState, deletePost]
   );
 
   return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;

@@ -361,6 +361,67 @@
   "profile": {
     "title": "Perfil"
   },
+  "settings": {
+    "title": "Configurações",
+    "back": "Voltar",
+    "editAccount": "Minha conta",
+    "editMusicPreferences": "Editar preferências musicais",
+    "next": "Próximo",
+    "save": "Salvar",
+    "retry": "Tentar novamente",
+    "continueEditing": "Continuar editando",
+    "discard": "Descartar",
+    "musicPreferences": {
+      "title": "Editar preferências musicais",
+      "loading": "Carregando preferências musicais",
+      "loadError": "Não foi possível carregar suas preferências.",
+      "discardTitle": "Descartar alterações?",
+      "discardMessage": "Suas escolhas ainda não foram salvas.",
+      "updated": "Preferências atualizadas"
+    },
+    "account": {
+      "title": "Minha conta",
+      "loading": "Carregando dados da conta",
+      "loadError": "Não foi possível carregar os dados da conta.",
+      "save": "Salvar alterações",
+      "saveError": "Não foi possível salvar seus dados. Tente novamente.",
+      "networkError": "Sem conexão com o servidor. Verifique sua conexão e tente novamente.",
+      "updated": "Dados da conta atualizados",
+      "personalDetails": "Dados pessoais",
+      "name": "Nome",
+      "username": "Usuário",
+      "email": "Email",
+      "passwordSection": "Alterar senha",
+      "passwordHint": "Preencha os dois campos para alterar a senha. Deixe ambos vazios para mantê-la.",
+      "newPassword": "Nova senha",
+      "confirmPassword": "Confirmar nova senha",
+      "passwordRequired": "Informe a nova senha.",
+      "confirmPasswordRequired": "Confirme a nova senha.",
+      "emailTaken": "Este email já está cadastrado.",
+      "usernameTaken": "Este usuário já está cadastrado.",
+      "invalidField": "Confira este campo e tente novamente.",
+      "discardTitle": "Descartar alterações?",
+      "discardMessage": "Suas alterações ainda não foram salvas."
+    },
+    "loading": "Carregando configurações...",
+    "loadError": "Não foi possível carregar as configurações.",
+    "privateAccount": "Conta privada",
+    "privacyHint": "Ao tornar a conta pública, as solicitações pendentes serão aceitas.",
+    "language": "Idioma",
+    "languages": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    },
+    "saved": "Configurações salvas.",
+    "acceptedRequests": "Configurações salvas. Solicitações aceitas: {{count}}.",
+    "saveError": "Não foi possível salvar. Tente novamente.",
+    "deleteAccount": "Excluir conta",
+    "deleteTitle": "Excluir sua conta?",
+    "deleteMessage": "Sua conta e suas Recordas serão excluídas. Esta ação não pode ser desfeita.",
+    "cancel": "Cancelar",
+    "deleteError": "Não foi possível excluir sua conta. Tente novamente."
+  },
   "friends": {
     "title": "Amigos",
     "followers": "Seguidores",
@@ -416,7 +477,8 @@
     "deleteError": "Não foi possível excluir a Recorda. Tente novamente.",
     "confirmDelete": "Confirmar exclusão",
     "unavailable": "Esta Recorda não está mais disponível.",
-    "sharePending": "O compartilhamento de Recordas ainda não está disponível nesta versão."
+    "sharePending": "O compartilhamento de Recordas ainda não está disponível nesta versão.",
+    "commentDeleteError": "Não foi possível excluir o comentário. Tente novamente."
   },
   "feed": {
     "logo": "recorda.",

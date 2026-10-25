@@ -78,7 +78,7 @@ it("resets real contexts, stops audio and clears the previous account before res
     });
     result.current.audio.setActiveRoute("Feed");
     result.current.audio.setActivePreview("old-recorda", "https://example.com/preview.mp3");
-    result.current.feed.toggleLike("old-recorda");
+    result.current.feed.setLikeState("old-recorda", true);
     result.current.feed.deletePost("old-deleted-recorda");
   });
   expect(result.current.feed.likedIds).toEqual(["old-recorda"]);
@@ -102,7 +102,7 @@ it("resets real contexts, stops audio and clears the previous account before res
   expect(mockAudioPlayer.pause).toHaveBeenCalled();
   expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
   expect(mockStorage.get("app_language")).toBe("es");
-  expect(i18n.language).toBe("es");
+  expect(i18n.language).toBe("pt-BR");
 
   mockAudioPlayer.play.mockClear();
   act(() => result.current.audio.setActiveRoute("Feed"));

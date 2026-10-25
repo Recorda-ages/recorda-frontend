@@ -63,6 +63,7 @@ export type RecordaCommentResponse = {
 };
 
 export type FeedComment = {
+  userId?: string;
   id: string;
   text: string;
   username: string;

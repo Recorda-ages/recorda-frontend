@@ -35,6 +35,14 @@ describe("preloadStartupImages", () => {
     await expect(preloadStartupImages()).resolves.toBeUndefined();
   });
 
+  it("clears the fallback timer when preloading finishes", async () => {
+    jest.useFakeTimers();
+    jest.spyOn(RNImage, "prefetch").mockResolvedValue(true);
+    jest.spyOn(ExpoImage, "prefetch").mockResolvedValue(true);
+    await preloadStartupImages();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   it("gives up waiting after the timeout", async () => {
     jest.useFakeTimers();
     jest.spyOn(RNImage, "prefetch").mockReturnValue(new Promise(() => {}));

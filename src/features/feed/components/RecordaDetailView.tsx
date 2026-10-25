@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -38,6 +39,9 @@ import { VideoLoadingSpinner } from "./VideoLoadingSpinner";
 
 type Props = {
   post: FeedPost;
+  canDeleteComment?: (comment: FeedComment) => boolean;
+  onDeleteComment?: (commentId: string) => void;
+  commentDeleteError?: boolean;
   commentsLoading?: boolean;
   commentsError?: boolean;
   commentSubmitError?: boolean;
@@ -186,7 +190,11 @@ function SmallAvatar({ source }: Readonly<{ source: AuthImageSource | undefined 
 }
 
 // A component of its own so each row can use the auth image hook.
-function CommentRow({ comment }: Readonly<{ comment: FeedComment }>) {
+function CommentRow({
+  comment,
+  onDelete
+}: Readonly<{ comment: FeedComment; onDelete?: () => void }>) {
+  const { t } = useTranslation();
   const avatarSource = useAuthImageSource(comment.avatarUrl);
 
   return (
@@ -195,12 +203,25 @@ function CommentRow({ comment }: Readonly<{ comment: FeedComment }>) {
       <AppText style={[styles.comment, styles.commentText]}>
         <AppText style={styles.bold}>{comment.username}</AppText> {comment.text}
       </AppText>
+      {onDelete ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("recordaView.deleteComment")}
+          onPress={onDelete}
+          testID={`delete-comment-${comment.id}`}
+        >
+          <Ionicons name="trash-outline" color={colors.neutrals[300]} size={22} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 type CommentsSheetProps = Readonly<{
   comments: FeedComment[];
+  canDeleteComment?: (comment: FeedComment) => boolean;
+  onDeleteComment?: (commentId: string) => void;
+  commentDeleteError?: boolean;
   commentsError: boolean;
   commentsLoading: boolean;
   commentSubmitError: boolean;
@@ -213,6 +234,9 @@ type CommentsSheetProps = Readonly<{
 }>;
 
 function CommentsSheet({
+  canDeleteComment,
+  onDeleteComment,
+  commentDeleteError,
   comments,
   commentsError,
   commentsLoading,
@@ -297,10 +321,18 @@ function CommentsSheet({
             <AppText style={styles.muted}>{t("publishedRecorda.noComments")}</AppText>
           )
         }
-        renderItem={({ item }) => <CommentRow comment={item} />}
+        renderItem={({ item }) => (
+          <CommentRow
+            comment={item}
+            onDelete={canDeleteComment?.(item) ? () => onDeleteComment?.(item.id) : undefined}
+          />
+        )}
         showsVerticalScrollIndicator={false}
         style={styles.commentListContainer}
       />
+      {commentDeleteError ? (
+        <AppText style={styles.submitError}>{t("publishedRecorda.commentDeleteError")}</AppText>
+      ) : null}
       {commentSubmitError ? (
         <AppText style={styles.submitError}>{t("publishedRecorda.commentSubmitError")}</AppText>
       ) : null}
@@ -455,6 +487,9 @@ function OwnRecordaMenu({
 }
 
 export function RecordaDetailView({
+  canDeleteComment,
+  onDeleteComment,
+  commentDeleteError,
   post,
   commentsLoading = false,
   commentsError = false,
@@ -741,6 +776,9 @@ export function RecordaDetailView({
                   testID="comments-backdrop"
                 />
                 <CommentsSheet
+                  canDeleteComment={canDeleteComment}
+                  onDeleteComment={onDeleteComment}
+                  commentDeleteError={commentDeleteError}
                   comments={post.comments}
                   commentsError={commentsError}
                   commentsLoading={commentsLoading}

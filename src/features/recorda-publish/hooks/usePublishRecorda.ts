@@ -50,7 +50,7 @@ export function usePublishRecorda(): UsePublishRecordaResult {
         song: draft.song
       });
       // A atualização do feed não deve atrasar nem reverter um POST concluído.
-      void queryClient.invalidateQueries({ queryKey: ["feed", "general"] }).catch(() => undefined);
+      void queryClient.invalidateQueries({ queryKey: ["feed"] }).catch(() => undefined);
 
       // Ends here on purpose: navigating to the Feed (team decision, not the
       // Profile originally described) and clearing the draft are the caller's job.

@@ -12,6 +12,9 @@ function buildFeedPath(feed: "following" | "general", cursor: string | null) {
 }
 
 export const feedService = {
+  deleteComment: (commentId: string) =>
+    authApiClient.delete<void>(`/comments/${encodeURIComponent(commentId)}`),
+
   deleteRecorda: (recordaId: string) =>
     authApiClient.delete<void>(`/recordas/${encodeURIComponent(recordaId)}`),
 

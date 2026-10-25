@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react-native";
 import { Pressable, Text } from "react-native";
 
 import { useRecordaLikeMutation } from "@/features/feed/hooks/useRecordaLikeMutation";
@@ -98,4 +98,35 @@ describe("useRecordaLikeMutation", () => {
       likes_count: 5
     });
   });
+});
+
+it("rolls optimistic likes back in both feeds after a network failure", async () => {
+  queryClient = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } }
+  });
+  const client = queryClient;
+  client.setQueryData(["feed", "general"], FEED_CACHE);
+  let fail!: (error: Error) => void;
+  jest.spyOn(feedService, "setRecordaLike").mockReturnValue(
+    new Promise((_resolve, reject) => {
+      fail = reject;
+    })
+  );
+  const { result, unmount } = renderHook(() => useRecordaLikeMutation(), {
+    wrapper: ({ children }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  });
+  act(() => result.current.mutate({ recordaId, isLiked: true }));
+  await waitFor(() =>
+    expect(
+      client.getQueryData<typeof FEED_CACHE>(["feed", "general"])?.pages[0].items[0]
+    ).toMatchObject({ is_liked: true, likes_count: 5 })
+  );
+  await act(async () => fail(new Error("offline")));
+  await waitFor(() => expect(result.current.isError).toBe(true));
+  expect(
+    client.getQueryData<typeof FEED_CACHE>(["feed", "general"])?.pages[0].items[0]
+  ).toMatchObject({ is_liked: false, likes_count: 4 });
+  unmount();
+  client.clear();
+  jest.restoreAllMocks();
 });

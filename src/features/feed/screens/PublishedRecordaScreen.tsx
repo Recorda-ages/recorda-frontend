@@ -1,6 +1,6 @@
 import { type RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -8,11 +8,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
-import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
-import type { UserBasicResponse } from "@/features/auth/api/types";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 import { useReportDialog } from "@/features/moderation";
 import { colors, spacing } from "@/theme";
-import { resolveApiAssetUrl } from "@/services/api";
+import { DeleteCommentDialog } from "@/features/recorda-view/components/DeleteCommentDialog";
+import { ApiError, resolveApiAssetUrl } from "@/services/api";
 
 import { RecordaDetailView } from "../components/RecordaDetailView";
 import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
@@ -23,11 +24,10 @@ import { useFeedAudioActions } from "../state/FeedAudioContext";
 import { feedItemToFeedPost, recordaDetailToFeedItem, useFeed } from "../state/FeedContext";
 import type { FeedComment, RecordaCommentResponse } from "../types";
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 function toFeedComment(comment: RecordaCommentResponse): FeedComment {
   return {
     id: comment.comment_id,
+    userId: comment.user_id,
     text: comment.content,
     username: comment.username,
     avatarUrl: comment.avatar_url ? resolveApiAssetUrl(comment.avatar_url) : null,
@@ -39,37 +39,42 @@ export function PublishedRecordaScreen() {
   const queryClient = useQueryClient();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { params } = useRoute<RouteProp<RootStackParamList, "PublishedRecorda">>();
-  const {
-    posts,
-    likedIds,
-    currentUser,
-    deletedIds,
-    openFeedItem,
-    toggleLike,
-    setLikeState,
-    addComment,
-    deletePost
-  } = useFeed();
+  const { posts, likedIds, deletedIds, openFeedItem, setLikeState, deletePost } = useFeed();
   const { setActivePreview } = useFeedAudioActions();
   const { t } = useTranslation();
   const { openReport, reportDialog } = useReportDialog();
   const snapshot = posts.find((item) => item.id === params.postId);
   const isLocallyDeleted = deletedIds.includes(params.postId);
-  const isApiRecorda = UUID_PATTERN.test(params.postId);
-  const recorda = useRecordaDetails(params.postId, !snapshot && !isLocallyDeleted);
+  const recorda = useRecordaDetails(params.postId, !isLocallyDeleted);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
   const likeMutation = useRecordaLikeMutation();
   const comments = useQuery({
-    enabled: isApiRecorda && !isLocallyDeleted,
+    enabled: !isLocallyDeleted,
     queryKey: recordaCommentsQueryKey(params.postId),
     queryFn: ({ signal }) => feedService.getComments(params.postId, signal)
   });
   const createComment = useMutation({
+    onMutate: () => queryClient.cancelQueries({ queryKey: recordaCommentsQueryKey(params.postId) }),
     mutationFn: (content: string) => feedService.createComment(params.postId, content),
     onSuccess: (created) => {
       queryClient.setQueryData<RecordaCommentResponse[]>(
         recordaCommentsQueryKey(params.postId),
         (current = []) => [...current, created]
       );
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }
+  });
+  const removeComment = useMutation({
+    mutationFn: (commentId: string) => feedService.deleteComment(commentId),
+    onSuccess: (_result, commentId) => {
+      queryClient.setQueryData<RecordaCommentResponse[]>(
+        recordaCommentsQueryKey(params.postId),
+        (current) => current?.filter((item) => item.comment_id !== commentId)
+      );
+      setCommentToDelete(null);
+      void queryClient.invalidateQueries({ queryKey: recordaCommentsQueryKey(params.postId) });
+      void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
     }
   });
   const removeRecorda = useMutation({
@@ -85,46 +90,51 @@ export function PublishedRecordaScreen() {
   });
   const remoteItem = recorda.data ? recordaDetailToFeedItem(recorda.data) : undefined;
   const remotePost = remoteItem ? feedItemToFeedPost(remoteItem) : undefined;
-  const post = isLocallyDeleted ? undefined : (snapshot ?? remotePost);
-  const visiblePost =
-    post && isApiRecorda ? { ...post, comments: (comments.data ?? []).map(toFeedComment) } : post;
-  const authenticatedUser = queryClient.getQueryData<UserBasicResponse>(AUTH_ME_QUERY_KEY);
-  const isOwnPost = post?.author.id === (authenticatedUser?.user_id ?? currentUser.id);
+  const inaccessible =
+    recorda.error instanceof ApiError && [403, 404].includes(recorda.error.status);
+  const post = isLocallyDeleted || inaccessible ? undefined : (remotePost ?? snapshot);
+  const visiblePost = post ? { ...post, comments: (comments.data ?? []).map(toFeedComment) } : post;
+  const authenticatedUser = useCurrentUser();
+  const isOwnPost = post?.author.id === authenticatedUser?.user_id;
   const isLiked = remoteItem?.is_liked ?? likedIds.includes(post?.id ?? params.postId);
 
   const handleLike = () => {
     if (likeMutation.isPending) return;
 
-    if (!isApiRecorda) {
-      toggleLike(params.postId);
-      return;
-    }
-
+    const generation = getSessionGeneration();
     const nextLiked = !isLiked;
     const previousCount = remoteItem?.likes_count ?? (post?.likesCount ?? 0) + (isLiked ? 1 : 0);
     setLikeState(params.postId, nextLiked, previousCount + (nextLiked ? 1 : -1));
     likeMutation.mutate(
       { isLiked: nextLiked, recordaId: params.postId },
       {
-        onError: () => setLikeState(params.postId, isLiked, previousCount),
-        onSuccess: (state) => setLikeState(params.postId, state.is_liked, state.likes_count)
+        onError: () => {
+          if (generation === getSessionGeneration())
+            setLikeState(params.postId, isLiked, previousCount);
+        },
+        onSuccess: (state) => {
+          if (generation === getSessionGeneration())
+            setLikeState(params.postId, state.is_liked, state.likes_count);
+        }
       }
     );
   };
 
   useEffect(() => {
-    if (!snapshot && !isLocallyDeleted && remoteItem) {
-      openFeedItem(remoteItem);
+    if (!isLocallyDeleted && recorda.data) {
+      openFeedItem(recordaDetailToFeedItem(recorda.data));
     }
-  }, [isLocallyDeleted, openFeedItem, remoteItem, snapshot]);
+  }, [isLocallyDeleted, openFeedItem, recorda.data]);
 
   useEffect(() => {
     if (post) {
       setActivePreview(post.id, post.previewUrl ?? null, {
         waitForMedia: post.mediaType === "VIDEO"
       });
+    } else {
+      setActivePreview(params.postId, null);
     }
-  }, [post, setActivePreview]);
+  }, [params.postId, post, setActivePreview]);
 
   if (!post && recorda.isPending && !isLocallyDeleted) {
     return (
@@ -134,7 +144,7 @@ export function PublishedRecordaScreen() {
     );
   }
 
-  if (!post && recorda.isError && !isLocallyDeleted) {
+  if (!post && recorda.isError && !isLocallyDeleted && !inaccessible) {
     return (
       <SafeAreaView style={styles.empty}>
         <View style={styles.feedback}>
@@ -165,12 +175,20 @@ export function PublishedRecordaScreen() {
     <>
       <RecordaDetailView
         post={visiblePost ?? post}
-        commentsLoading={isApiRecorda && comments.isPending}
-        commentsError={isApiRecorda && comments.isError}
+        commentsLoading={comments.isPending}
+        commentsError={comments.isError}
         commentSubmitError={createComment.isError}
         deleteError={removeRecorda.isError}
         deleteSubmitting={removeRecorda.isPending}
         commentSubmitting={createComment.isPending}
+        canDeleteComment={(comment) =>
+          !!authenticatedUser && (isOwnPost || comment.userId === authenticatedUser.user_id)
+        }
+        onDeleteComment={(commentId) => {
+          removeComment.reset();
+          setCommentToDelete(commentId);
+        }}
+        commentDeleteError={removeComment.isError}
         onRetryComments={() => void comments.refetch()}
         liked={isLiked}
         likeSubmitting={likeMutation.isPending}
@@ -178,27 +196,16 @@ export function PublishedRecordaScreen() {
         onBack={() => navigation.goBack()}
         onLike={handleLike}
         onComment={async (text) => {
-          if (isApiRecorda) {
-            await createComment.mutateAsync(text);
-          } else {
-            addComment(post.id, text);
-          }
+          await createComment.mutateAsync(text);
         }}
         onDelete={() => {
           if (!isOwnPost) return;
-          if (isApiRecorda) {
-            removeRecorda.mutate();
-          } else {
-            deletePost(post.id);
-            navigation.goBack();
-          }
+          removeRecorda.mutate();
         }}
         onReport={() => openReport({ recordaId: post.id, type: "RECORDA" })}
         onShare={() =>
           navigation.navigate("ShareCard", {
             artistName: post.song.artistName,
-            // A post opened from the feed has no `remoteItem` (details aren't refetched), so
-            // the cover has to come from the post itself.
             coverUrl: post.song.coverUrl || remoteItem?.song_cover_url || null,
             mediaUri: post.mediaUrl,
             mediaType: post.mediaType === "VIDEO" ? "video" : "photo",
@@ -208,6 +215,17 @@ export function PublishedRecordaScreen() {
         onTabPress={(tab) => {
           if (tab === "feed") navigation.goBack();
           else navigation.navigate(tab === "camera" ? "Camera" : "Profile");
+        }}
+      />
+      <DeleteCommentDialog
+        visible={!!commentToDelete}
+        submitting={removeComment.isPending}
+        error={removeComment.isError}
+        onCancel={() => {
+          if (!removeComment.isPending) setCommentToDelete(null);
+        }}
+        onConfirm={() => {
+          if (commentToDelete && !removeComment.isPending) removeComment.mutate(commentToDelete);
         }}
       />
       {reportDialog}

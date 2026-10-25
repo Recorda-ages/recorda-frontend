@@ -35,7 +35,10 @@ function suggestions(overrides: Record<string, unknown>) {
 
 function renderSuggestions() {
   const queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false }, queries: { gcTime: 0, retry: false } }
+    defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
+      queries: { gcTime: 0, retry: false }
+    }
   });
 
   return render(
