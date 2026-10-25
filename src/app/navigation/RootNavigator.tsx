@@ -17,6 +17,7 @@ import type { PropsWithChildren } from "react";
 
 import { AppText, Button } from "@/components/ui";
 import { AccountScreen } from "@/features/account";
+import { LanguageSettingsScreen } from "@/features/language";
 import {
   AdminAccessGuard,
   AdminAuditLogScreen,
@@ -58,6 +59,7 @@ import { baseColors, colors, navigationTheme, spacing } from "@/theme";
 export type RootStackParamList = {
   Splash: undefined;
   Account: undefined;
+  LanguageSettings: undefined;
   Admin: undefined;
   AdminAuditLog: undefined;
   AdminReportDetail: { targetId: string; targetType: "RECORDA" | "USER" };
@@ -337,6 +339,7 @@ export function RootNavigator() {
         <Stack.Screen name="SettingsPending" component={SettingsPendingScreen} />
         <Stack.Screen name="EditMusicPreferences" component={EditMusicPreferencesRoute} />
         <Stack.Screen name="Account" component={AccountScreen} />
+        <Stack.Screen name="LanguageSettings" component={LanguageSettingsScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Admin" component={AdminHomeRoute} />
         <Stack.Screen name="AdminReports" component={AdminReportsRoute} />

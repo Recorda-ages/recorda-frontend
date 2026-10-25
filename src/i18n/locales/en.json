@@ -665,5 +665,14 @@
       "confirm": "Delete",
       "error": "Could not delete your account. Please try again."
     }
+  },
+  "language": {
+    "title": "Language",
+    "back": "Back",
+    "names": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    }
   }
 }

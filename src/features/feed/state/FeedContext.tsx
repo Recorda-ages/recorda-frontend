@@ -76,6 +76,7 @@ export function feedItemToFeedPost(item: FeedItem): FeedPost {
       username: item.author.username
     },
     comments: [],
+    createdAt: item.created_at,
     description: item.description ?? "",
     id: item.recorda_id,
     likedBy: { avatarUrl: "", username: "" },
