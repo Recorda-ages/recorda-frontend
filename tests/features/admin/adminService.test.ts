@@ -4,10 +4,11 @@ import { authApiClient, ApiError } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
   ...jest.requireActual("@/services/api"),
-  authApiClient: { get: jest.fn(), patch: jest.fn() }
+  authApiClient: { get: jest.fn(), patch: jest.fn(), post: jest.fn() }
 }));
 const mockGet = authApiClient.get as jest.Mock;
 const mockPatch = authApiClient.patch as jest.Mock;
+const mockPost = authApiClient.post as jest.Mock;
 const author = {
   deleted_at: null,
   profile_picture_url: "/media/avatars/marina.jpg",
@@ -290,6 +291,27 @@ describe("adminService HTTP contract", () => {
       status: "DISMISSED"
     });
     expect(result).toEqual({ status: "DISMISSED", updatedCount: 3 });
+  });
+
+  it("removes a Recorda through the backend endpoint and maps the response", async () => {
+    mockPost.mockResolvedValue({
+      deleted_at: "2026-10-25T12:00:00Z",
+      recorda_id: "recorda/1",
+      resolved_reports: 2
+    });
+
+    const result = await adminService.removeRecorda("recorda/1", {
+      reason: "Conteúdo fora das regras"
+    });
+
+    expect(mockPost).toHaveBeenCalledWith("/admin/recordas/recorda%2F1/removal", {
+      reason: "Conteúdo fora das regras"
+    });
+    expect(result).toEqual({
+      deletedAt: "2026-10-25T12:00:00Z",
+      recordaId: "recorda/1",
+      resolvedReports: 2
+    });
   });
 
   it.each([404, 409])("preserves a %s error from the detail endpoints", async (status) => {

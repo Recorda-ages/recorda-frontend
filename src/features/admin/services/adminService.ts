@@ -2,6 +2,7 @@ import { authApiClient } from "@/services/api";
 
 import type {
   AdminAuditPage,
+  AdminRecordaRemovalResponse,
   AdminReportAccount,
   AdminReportAccountResponse,
   AdminReportDetail,
@@ -71,6 +72,17 @@ export const adminService: AdminService = {
     }
     const suffix = params.size ? `?${params}` : "";
     return authApiClient.get<AdminAuditPage>(`/admin/audit-log${suffix}`, { signal });
+  },
+  async removeRecorda(recordaId, payload) {
+    const response = await authApiClient.post<AdminRecordaRemovalResponse>(
+      `/admin/recordas/${encodeURIComponent(recordaId)}/removal`,
+      { reason: payload.reason }
+    );
+    return {
+      deletedAt: response.deleted_at,
+      recordaId: response.recorda_id,
+      resolvedReports: response.resolved_reports
+    };
   }
 };
 
