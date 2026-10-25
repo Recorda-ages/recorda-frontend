@@ -75,7 +75,7 @@ export const adminService: AdminService = {
   },
   async removeRecorda(recordaId, payload) {
     const response = await authApiClient.post<AdminRecordaRemovalResponse>(
-      `/admin/recordas/${encodeURIComponent(recordaId)}/remove`,
+      `/admin/recordas/${encodeURIComponent(recordaId)}/removal`,
       { reason: payload.reason }
     );
     return {
