@@ -139,7 +139,7 @@ describe("SplashScreen", () => {
 
     await waitFor(
       () => {
-        expect(mockReplace).toHaveBeenCalledWith("Admin");
+        expect(mockReplace).toHaveBeenCalledWith("AdminReports");
       },
       { timeout: NAVIGATE_WAIT_TIMEOUT }
     );

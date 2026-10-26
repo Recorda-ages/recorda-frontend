@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     justifyContent: "center",
     marginLeft: spacing[3],
-    width: 96
+    width: 116
   },
   active: { color: colors.primary[500] },
   card: {

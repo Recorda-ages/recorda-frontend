@@ -82,7 +82,12 @@ export function ReportedUserCard({
 
   return (
     <View style={styles.stack} testID="admin-report-user">
-      <TargetSection label={t("admin.reportDetail.userLabel")}>
+      <TargetSection
+        accessibilityLabel={t("admin.reportDetail.openUser")}
+        label={t("admin.reportDetail.userLabel")}
+        onPress={() => onOpenUser(user.userId)}
+        testID="admin-report-open-user"
+      >
         <View style={styles.profile}>
           {avatarSource ? (
             <Image
@@ -129,32 +134,54 @@ export function ReportedUserCard({
           })}
         />
       ) : null}
-
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => onOpenUser(user.userId)}
-        style={({ pressed }) => [styles.openUser, pressed ? styles.pressed : undefined]}
-        testID="admin-report-open-user"
-      >
-        <Icon color={colors.primary[300]} size={20} source="account-arrow-right-outline" />
-        <AppText style={styles.openUserLabel} variant="buttonLarge">
-          {t("admin.reportDetail.openUser")}
-        </AppText>
-      </Pressable>
     </View>
   );
 }
 
-function TargetSection({ children, label }: Readonly<PropsWithChildren<{ label: string }>>) {
-  const { i18n } = useTranslation();
+type TargetSectionProps = PropsWithChildren<{
+  accessibilityLabel?: string;
+  label: string;
+  /** Makes the whole section a button, marked with an arrow on the right. */
+  onPress?: () => void;
+  testID?: string;
+}>;
 
-  return (
-    <View style={styles.section}>
+function TargetSection({
+  accessibilityLabel,
+  children,
+  label,
+  onPress,
+  testID
+}: Readonly<TargetSectionProps>) {
+  const { i18n } = useTranslation();
+  const content = (
+    <View style={[styles.sectionContent, onPress ? styles.sectionContentBeside : undefined]}>
       <AppText style={styles.sectionLabel} variant="caption">
         {label.toLocaleUpperCase(i18n.language)}
       </AppText>
       {children}
     </View>
+  );
+
+  if (!onPress) {
+    return <View style={styles.section}>{content}</View>;
+  }
+
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.section,
+        styles.pressableSection,
+        pressed ? styles.pressed : undefined
+      ]}
+      testID={testID}
+    >
+      {content}
+      <Icon color={colors.neutrals[300]} size={24} source="chevron-right" />
+    </Pressable>
   );
 }
 
@@ -249,18 +276,10 @@ const styles = StyleSheet.create({
   muted: {
     color: colors.neutrals[300]
   },
-  openUser: {
+  pressableSection: {
     alignItems: "center",
-    borderColor: colors.primary[300],
-    borderRadius: radius.xl,
-    borderWidth: 1,
     flexDirection: "row",
-    gap: spacing[2],
-    justifyContent: "center",
-    minHeight: 48
-  },
-  openUserLabel: {
-    color: colors.primary[300]
+    gap: spacing[2]
   },
   pressed: {
     opacity: 0.82
@@ -291,8 +310,15 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: colors.neutrals[800],
     borderRadius: radius.lg,
-    gap: spacing[1],
     padding: spacing[3]
+  },
+  sectionContent: {
+    gap: spacing[1]
+  },
+  // Next to the arrow: takes the rest of the row.
+  sectionContentBeside: {
+    flex: 1,
+    minWidth: 0
   },
   sectionLabel: {
     color: colors.primary[300],

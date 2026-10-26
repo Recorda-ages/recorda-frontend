@@ -16,7 +16,6 @@ import { colors, fontFamily, spacing } from "@/theme";
 import { AdminBottomNavigation, type AdminBottomTab } from "./AdminBottomNavigation";
 
 const destinations = {
-  home: "Admin",
   reports: "AdminReports",
   users: "AdminUsers",
   auditLog: "AdminAuditLog"
@@ -24,23 +23,20 @@ const destinations = {
 
 type Props = PropsWithChildren<{
   activeTab: AdminBottomTab;
+  /** Inner screens (details) go back with this; the tab screens have no back button. */
   back?: { label: string; onPress: () => void };
   title: string;
-  showBackButton?: boolean;
   showUsername?: boolean;
   testID?: string;
-  visibleTabs?: readonly AdminBottomTab[];
 }>;
 
 export function AdminScreenLayout({
   activeTab,
   back,
   children,
-  showBackButton = activeTab !== "home",
   showUsername = true,
   title,
-  testID,
-  visibleTabs
+  testID
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -61,17 +57,17 @@ export function AdminScreenLayout({
       <StatusBar style="light" />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <View style={styles.header}>
-          {!showBackButton ? (
-            <View style={styles.action} />
-          ) : (
+          {back ? (
             <Pressable
-              accessibilityLabel={back?.label ?? t("admin.navigation.home")}
+              accessibilityLabel={back.label}
               accessibilityRole="button"
-              onPress={back?.onPress ?? (() => navigation.navigate("Admin"))}
+              onPress={back.onPress}
               style={styles.action}
             >
               <Icon source="arrow-left" size={24} color={colors.neutrals[100]} />
             </Pressable>
+          ) : (
+            <View style={styles.action} />
           )}
           <View style={styles.copy}>
             <AppText style={styles.title} variant="headline4">
@@ -103,7 +99,6 @@ export function AdminScreenLayout({
       <AdminBottomNavigation
         activeTab={activeTab}
         onPress={(tab) => navigation.navigate(destinations[tab])}
-        visibleTabs={visibleTabs}
       />
     </View>
   );

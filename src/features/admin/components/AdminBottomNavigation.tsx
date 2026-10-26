@@ -5,27 +5,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "@/theme";
 
-export type AdminBottomTab = "home" | "reports" | "users" | "auditLog";
+export type AdminBottomTab = "reports" | "users" | "auditLog";
 
 type AdminBottomNavigationProps = {
   activeTab: AdminBottomTab;
   onPress: (tab: AdminBottomTab) => void;
-  visibleTabs?: readonly AdminBottomTab[];
 };
 
-const tabs: readonly AdminBottomTab[] = ["home", "reports", "users", "auditLog"];
+const tabs: readonly AdminBottomTab[] = ["reports", "users", "auditLog"];
 const icons: Record<AdminBottomTab, string> = {
-  home: "view-dashboard-outline",
   auditLog: "clipboard-text-clock-outline",
   reports: "flag-outline",
   users: "account-multiple-outline"
 };
 
-export function AdminBottomNavigation({
-  activeTab,
-  onPress,
-  visibleTabs = tabs
-}: AdminBottomNavigationProps) {
+export function AdminBottomNavigation({ activeTab, onPress }: AdminBottomNavigationProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -35,7 +29,7 @@ export function AdminBottomNavigation({
       style={[styles.bar, { paddingBottom: Math.max(insets.bottom, spacing[3]) }]}
       testID="admin-bottom-navigation"
     >
-      {visibleTabs.map((tab) => {
+      {tabs.map((tab) => {
         const selected = tab === activeTab;
 
         return (

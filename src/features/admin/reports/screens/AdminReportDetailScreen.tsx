@@ -264,61 +264,55 @@ function DetailContent({
   const canRemove = detail.target.type === "RECORDA" && !detail.target.recorda.deletedAt;
 
   return (
-    <>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary[500]]}
-            onRefresh={onRefresh}
-            refreshing={refreshing}
-            tintColor={colors.primary[500]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        testID="admin-report-detail-content"
-      >
-        <AppText style={styles.summary} testID="admin-report-detail-summary" variant="caption">
-          <AppText style={styles.summaryTarget} variant="caption">
-            {target.toLocaleUpperCase(i18n.language)}
-          </AppText>
-          {status ? (
-            <>
-              {" • "}
-              <StatusBadge status={status} variant="text" />
-              {" • "}
-              <AppText style={styles.summaryCount} variant="caption">
-                {t("admin.reports.count", { count: statusCount })}
-              </AppText>
-            </>
-          ) : null}
+    <ScrollView
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.primary[500]]}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          tintColor={colors.primary[500]}
+        />
+      }
+      showsVerticalScrollIndicator={false}
+      testID="admin-report-detail-content"
+    >
+      <AppText style={styles.summary} testID="admin-report-detail-summary" variant="caption">
+        <AppText style={styles.summaryTarget} variant="caption">
+          {target.toLocaleUpperCase(i18n.language)}
         </AppText>
+        {status ? (
+          <>
+            {" • "}
+            <StatusBadge status={status} variant="text" />
+            {" • "}
+            <AppText style={styles.summaryCount} variant="caption">
+              {t("admin.reports.count", { count: statusCount })}
+            </AppText>
+          </>
+        ) : null}
+      </AppText>
 
-        {detail.target.type === "RECORDA" ? (
-          <ReportedRecordaCard recorda={detail.target.recorda} />
-        ) : (
-          <ReportedUserCard onOpenUser={onOpenUser} user={detail.target.user} />
-        )}
+      {detail.target.type === "RECORDA" ? (
+        <ReportedRecordaCard recorda={detail.target.recorda} />
+      ) : (
+        <ReportedUserCard onOpenUser={onOpenUser} user={detail.target.user} />
+      )}
 
-        <ReportEntries reports={detail.reports} />
-        <ReportHistory actions={detail.actions} />
-      </ScrollView>
+      <ReportEntries reports={detail.reports} />
+      <ReportHistory actions={detail.actions} />
 
-      {statuses.length > 0 || canRemove ? (
-        <View style={styles.footer}>
-          <ReportStatusActions
-            disabled={updating}
-            onSelect={onSelectStatus}
-            primaryAction={
-              canRemove ? (
-                <RemoveRecordaButton disabled={updating} onPress={onRemoveRecorda} />
-              ) : undefined
-            }
-            statuses={statuses}
-          />
-        </View>
-      ) : null}
-    </>
+      <ReportStatusActions
+        disabled={updating}
+        onSelect={onSelectStatus}
+        primaryAction={
+          canRemove ? (
+            <RemoveRecordaButton disabled={updating} onPress={onRemoveRecorda} />
+          ) : undefined
+        }
+        statuses={statuses}
+      />
+    </ScrollView>
   );
 }
 
@@ -353,13 +347,6 @@ const styles = StyleSheet.create({
   feedback: {
     gap: spacing[3],
     padding: spacing[4]
-  },
-  footer: {
-    backgroundColor: colors.neutrals[900],
-    borderTopColor: colors.neutrals[800],
-    borderTopWidth: 1,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3]
   },
   summary: {
     color: colors.neutrals[500]

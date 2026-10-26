@@ -81,7 +81,7 @@ export function AdminReportRow({ item, onPress }: AdminReportRowProps) {
       </View>
 
       <View style={styles.chevron}>
-        <Icon color={colors.neutrals[300]} size={20} source="menu-right" />
+        <Icon color={colors.neutrals[300]} size={24} source="chevron-right" />
       </View>
     </Pressable>
   );
@@ -89,7 +89,7 @@ export function AdminReportRow({ item, onPress }: AdminReportRowProps) {
 
 const styles = StyleSheet.create({
   chevron: {
-    alignSelf: "flex-start"
+    alignSelf: "center"
   },
   copy: {
     flex: 1,

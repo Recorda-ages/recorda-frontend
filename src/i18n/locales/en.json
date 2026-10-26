@@ -126,7 +126,6 @@
     }
   },
   "admin": {
-    "title": "Admin area",
     "reasonDialog": {
       "label": "Reason",
       "placeholder": "Describe the reason",
@@ -149,7 +148,6 @@
     },
     "signOut": "Sign out",
     "navigation": {
-      "home": "Admin home",
       "auditLog": "Audit log",
       "reports": "Reports",
       "users": "Users"
@@ -263,12 +261,6 @@
         "conflictMessage": "Someone else changed these reports. The data has been reloaded."
       }
     },
-    "pending": {
-      "message": "This section is not available yet.",
-      "users": "User management",
-      "userDetail": "User details",
-      "auditLog": "Audit log"
-    },
     "users": {
       "title": "User Management",
       "search": "Search by user or email",
@@ -338,6 +330,9 @@
       "loadMoreError": "Could not load more records.",
       "retry": "Try again",
       "empty": "No records found.",
+      "emptySearch": "No records match this search.",
+      "ownedBy": "by",
+      "search": "Search by admin, user, Recorda or reason",
       "count_one": "{{count}} record found",
       "count_other": "{{count}} records found",
       "filters": {
@@ -347,10 +342,11 @@
         "allAdmins": "All admins"
       },
       "actions": {
-        "REMOVE_RECORDA": "removed the Recorda of",
-        "CHANGE_REPORT_STATUS": "changed the reports on",
-        "SUSPEND_USER": "suspended account of",
-        "REACTIVATE_USER": "reactivated account of"
+        "REMOVE_RECORDA": "removed the Recorda",
+        "CHANGE_REPORT_STATUS_RECORDA": "changed the reports on the Recorda",
+        "CHANGE_REPORT_STATUS_USER": "changed the reports on the profile",
+        "SUSPEND_USER": "suspended the account of",
+        "REACTIVATE_USER": "reactivated the account of"
       },
       "statusChange": "(from {{from}} to {{to}})",
       "reason": "Reason: {{reason}}",
@@ -629,15 +625,11 @@
       "reactivateTitle": "Reactivate Account",
       "suspendShort": "Suspend",
       "reactivateShort": "Reactivate",
-      "userLabel": "User:",
-      "reasonLabel": "Reason (required):",
-      "reasonInput": "Moderation reason",
-      "reasonPlaceholder": "Enter the reason for this action (max. {{max}} characters)...",
+      "suspendDialogTitle": "Suspend this account?",
+      "reactivateDialogTitle": "Reactivate this account?",
+      "suspendMessage": "@{{username}}'s account will be suspended. This action is recorded in the audit log.",
+      "reactivateMessage": "@{{username}}'s account will be active again. This action is recorded in the audit log.",
       "resolveReports": "Mark the profile's open reports as resolved",
-      "cancel": "Cancel",
-      "confirmSuspend": "Confirm Suspension",
-      "confirmReactivate": "Confirm Reactivation",
-      "submitting": "Sending...",
       "adminNotice": "Suspending another administrator is not allowed.",
       "unexpectedError": "Unexpected error while moderating."
     }

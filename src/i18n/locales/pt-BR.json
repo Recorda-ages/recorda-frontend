@@ -126,7 +126,6 @@
     }
   },
   "admin": {
-    "title": "Área administrativa",
     "reasonDialog": {
       "label": "Motivo",
       "placeholder": "Descreva o motivo",
@@ -149,7 +148,6 @@
     },
     "signOut": "Sair",
     "navigation": {
-      "home": "Início administrativo",
       "auditLog": "Auditoria",
       "reports": "Denúncias",
       "users": "Usuários"
@@ -263,12 +261,6 @@
         "conflictMessage": "Essas denúncias foram alteradas por outra pessoa. Os dados foram recarregados."
       }
     },
-    "pending": {
-      "message": "Esta seção ainda não está disponível.",
-      "users": "Gestão de usuários",
-      "userDetail": "Detalhes do usuário",
-      "auditLog": "Auditoria"
-    },
     "users": {
       "title": "Gestão de Usuários",
       "search": "Buscar por usuário ou email",
@@ -338,6 +330,9 @@
       "loadMoreError": "Não foi possível carregar mais registros.",
       "retry": "Tentar novamente",
       "empty": "Nenhum registro encontrado.",
+      "emptySearch": "Nenhum registro encontrado para essa busca.",
+      "ownedBy": "de",
+      "search": "Buscar por admin, usuário, Recorda ou motivo",
       "count_zero": "{{count}} registros encontrados",
       "count_one": "{{count}} registro encontrado",
       "count_other": "{{count}} registros encontrados",
@@ -348,8 +343,9 @@
         "allAdmins": "Todos os admins"
       },
       "actions": {
-        "REMOVE_RECORDA": "removeu a Recorda de",
-        "CHANGE_REPORT_STATUS": "alterou as denúncias de",
+        "REMOVE_RECORDA": "removeu a Recorda",
+        "CHANGE_REPORT_STATUS_RECORDA": "alterou as denúncias da Recorda",
+        "CHANGE_REPORT_STATUS_USER": "alterou as denúncias do perfil",
         "SUSPEND_USER": "suspendeu a conta de",
         "REACTIVATE_USER": "reativou a conta de"
       },
@@ -632,15 +628,11 @@
       "reactivateTitle": "Reativar Conta",
       "suspendShort": "Suspender",
       "reactivateShort": "Reativar",
-      "userLabel": "Usuário:",
-      "reasonLabel": "Motivo (obrigatório):",
-      "reasonInput": "Motivo da moderação",
-      "reasonPlaceholder": "Informe o motivo da ação (máx. {{max}} caracteres)...",
+      "suspendDialogTitle": "Suspender esta conta?",
+      "reactivateDialogTitle": "Reativar esta conta?",
+      "suspendMessage": "A conta de @{{username}} ficará suspensa. A ação fica registrada na auditoria.",
+      "reactivateMessage": "A conta de @{{username}} voltará a ficar ativa. A ação fica registrada na auditoria.",
       "resolveReports": "Marcar denúncias abertas do perfil como resolvidas",
-      "cancel": "Cancelar",
-      "confirmSuspend": "Confirmar Suspensão",
-      "confirmReactivate": "Confirmar Reativação",
-      "submitting": "Enviando...",
       "adminNotice": "Não é permitido suspender outro administrador.",
       "unexpectedError": "Erro inesperado ao realizar moderação."
     }

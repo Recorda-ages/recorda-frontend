@@ -1,12 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AppText, Loading } from "@/components/ui";
-import { colors, radius, spacing } from "@/theme";
+import { colors, fontFamily, radius, spacing } from "@/theme";
 
 import { AdminScreenLayout } from "../../components/AdminScreenLayout";
 import { AdminRetryBlock } from "../../components/AdminRetryBlock";
+import { AdminSearchInput } from "../../components/AdminSearchInput";
 import { FilterChips, type FilterChipOption } from "../../components/FilterChips";
 import { formatReportDate, formatReportTime } from "../../reports/formatReportDate";
 import type { AdminAuditEntry } from "../../types";
@@ -14,6 +15,7 @@ import { auditLogPeriodRange, type AuditLogPeriod } from "../auditLogPeriod";
 import { useAdminList, useAuditLog, type AuditLogFilters } from "../hooks/useAuditLog";
 
 const ALL_ADMINS = "all";
+export const AUDIT_LOG_SEARCH_DEBOUNCE_MS = 350;
 const REPORT_STATUSES = new Set(["OPEN", "RESOLVED", "DISMISSED"]);
 
 const periodOptions: readonly FilterChipOption<AuditLogPeriod>[] = [
@@ -27,6 +29,7 @@ type Translate = (key: string, options?: Record<string, unknown>) => string;
 function AuditEntryRow({ item }: Readonly<{ item: AdminAuditEntry }>) {
   const { i18n, t } = useTranslation();
   const statusChange = statusChangeLabel(item, t);
+  const owner = targetsRecorda(item) ? item.target_owner_username : null;
   const date = formatReportDate(item.created_at, i18n.language);
 
   return (
@@ -35,10 +38,18 @@ function AuditEntryRow({ item }: Readonly<{ item: AdminAuditEntry }>) {
         <AppText style={styles.admin} variant="body2">
           {item.admin.username}
         </AppText>{" "}
-        {t(`admin.auditLog.actions.${item.action_type}`, { defaultValue: item.action_type })}{" "}
+        {t(`admin.auditLog.actions.${actionKey(item)}`, { defaultValue: item.action_type })}{" "}
         <AppText style={styles.target} variant="body2">
-          {item.target_label}
+          {targetLabel(item)}
         </AppText>
+        {owner ? (
+          <>
+            {` ${t("admin.auditLog.ownedBy")} `}
+            <AppText style={styles.owner} variant="body2">
+              @{owner}
+            </AppText>
+          </>
+        ) : null}
         {statusChange ? ` ${statusChange}` : null}
       </AppText>
       <AppText style={styles.reason} variant="caption">
@@ -54,6 +65,23 @@ function AuditEntryRow({ item }: Readonly<{ item: AdminAuditEntry }>) {
       ) : null}
     </View>
   );
+}
+
+// A Recorda's label is its song title, so the sentence has to say it's a Recorda; on its
+// own, "changed the reports on Levitating" reads as if the song had been edited.
+function targetsRecorda(item: AdminAuditEntry) {
+  if (item.action_type === "REMOVE_RECORDA") return true;
+  if (item.action_type === "CHANGE_REPORT_STATUS") return item.target_recorda_id !== null;
+  return false;
+}
+
+function actionKey(item: AdminAuditEntry) {
+  if (item.action_type !== "CHANGE_REPORT_STATUS") return item.action_type;
+  return targetsRecorda(item) ? "CHANGE_REPORT_STATUS_RECORDA" : "CHANGE_REPORT_STATUS_USER";
+}
+
+function targetLabel(item: AdminAuditEntry) {
+  return targetsRecorda(item) ? `“${item.target_label}”` : `@${item.target_label}`;
 }
 
 function statusChangeLabel(item: AdminAuditEntry, t: Translate) {
@@ -86,14 +114,25 @@ export function AdminAuditLogScreen() {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<AuditLogPeriod>("all");
   const [adminId, setAdminId] = useState(ALL_ADMINS);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const admins = useAdminList();
+
+  useEffect(() => {
+    const nextSearch = search.trim();
+    if (nextSearch === debouncedSearch) return undefined;
+
+    const timer = setTimeout(() => setDebouncedSearch(nextSearch), AUDIT_LOG_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [debouncedSearch, search]);
 
   const filters = useMemo<AuditLogFilters>(
     () => ({
       ...auditLogPeriodRange(period),
-      ...(adminId === ALL_ADMINS ? {} : { adminId })
+      ...(adminId === ALL_ADMINS ? {} : { adminId }),
+      ...(debouncedSearch ? { query: debouncedSearch } : {})
     }),
-    [adminId, period]
+    [adminId, debouncedSearch, period]
   );
 
   const auditLog = useAuditLog(filters);
@@ -139,6 +178,13 @@ export function AdminAuditLogScreen() {
       title={t("admin.auditLog.title")}
       testID="admin-audit-log-screen"
     >
+      <AdminSearchInput
+        accessibilityLabel={t("admin.auditLog.search")}
+        onChangeText={setSearch}
+        placeholder={t("admin.auditLog.search")}
+        testID="admin-audit-log-search"
+        value={search}
+      />
       <View style={styles.filters}>
         <FilterChips
           onChange={setPeriod}
@@ -176,7 +222,7 @@ export function AdminAuditLogScreen() {
           keyExtractor={(item) => item.action_id}
           ListEmptyComponent={
             <AppText style={styles.empty} testID="admin-audit-log-empty">
-              {t("admin.auditLog.empty")}
+              {t(debouncedSearch ? "admin.auditLog.emptySearch" : "admin.auditLog.empty")}
             </AppText>
           }
           ListFooterComponent={renderFooter()}
@@ -233,6 +279,10 @@ const styles = StyleSheet.create({
   },
   meta: {
     color: colors.neutrals[400]
+  },
+  owner: {
+    color: colors.neutrals[100],
+    fontFamily: fontFamily.primary.semiBold
   },
   reason: {
     color: colors.neutrals[300]

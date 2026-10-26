@@ -27,10 +27,8 @@ export {
   adminUsersServiceMock,
   resetAdminUsersMock
 } from "./users/services/adminUsersService.mock";
-export { AdminHomeScreen } from "./screens/AdminHomeScreen";
 export { AdminReportsScreen } from "./reports/screens/AdminReportsScreen";
 export { AdminReportDetailScreen } from "./reports/screens/AdminReportDetailScreen";
-export { AdminPendingScreen } from "./screens/AdminPendingScreen";
 export { adminServiceMock } from "./services/adminService.mock";
 export { adminService } from "./services/adminService";
 export type {

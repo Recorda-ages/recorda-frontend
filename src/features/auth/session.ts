@@ -13,7 +13,7 @@ export const ROLE_KEY = "role";
 export const LEGACY_ACCOUNT_TYPE_KEY = "account_type";
 export const ADMIN_ROLE = "ADMIN";
 
-export type PostAuthDestination = "Admin" | "Feed" | "OnboardingArtists";
+export type PostAuthDestination = "AdminReports" | "Feed" | "OnboardingArtists";
 
 // The current user is only ever written with setQueryData and usually has no observer,
 // so the default 5-minute garbage collection would drop it in the middle of a session.
@@ -55,7 +55,7 @@ export async function clearSession() {
 
 export function getPostAuthDestination(user: UserBasicResponse): PostAuthDestination {
   if (user.role === ADMIN_ROLE) {
-    return "Admin";
+    return "AdminReports";
   }
 
   return user.onboarding_completed ? "Feed" : "OnboardingArtists";

@@ -22,7 +22,6 @@ import { LanguageSettingsScreen } from "@/features/language";
 import {
   AdminAccessGuard,
   AdminAuditLogScreen,
-  AdminHomeScreen,
   AdminReportDetailScreen,
   AdminReportsScreen
 } from "@/features/admin";
@@ -63,7 +62,6 @@ export type RootStackParamList = {
   Splash: undefined;
   Account: undefined;
   LanguageSettings: undefined;
-  Admin: undefined;
   AdminAuditLog: undefined;
   AdminReportDetail: { targetId: string; targetType: "RECORDA" | "USER" };
   AdminReports: undefined;
@@ -145,14 +143,6 @@ function ProfilePlaceholderScreen() {
   );
 }
 
-function AdminHomeRoute() {
-  return (
-    <AdminAccessGuard>
-      <AdminHomeScreen />
-    </AdminAccessGuard>
-  );
-}
-
 function AdminReportsRoute() {
   return (
     <AdminAccessGuard>
@@ -196,11 +186,9 @@ function AdminUsersRoute() {
     <AdminAccessGuard>
       <AdminScreenLayout
         activeTab="users"
-        showBackButton={false}
         showUsername={false}
         title={t("admin.users.title")}
         testID="admin-users-route"
-        visibleTabs={["users", "reports"]}
       >
         <AdminUsersScreen
           onViewHistory={(userId) => navigation.navigate("AdminUserDetail", { userId })}
@@ -270,7 +258,6 @@ function AdminUserDetailRoute() {
         showUsername={false}
         title={t("admin.userDetail.title")}
         testID="admin-user-detail-route"
-        visibleTabs={["users", "reports"]}
       >
         <AdminUserDetailScreen
           onBack={goBack}
@@ -355,7 +342,6 @@ export function RootNavigator() {
         <Stack.Screen name="Account" component={AccountScreen} />
         <Stack.Screen name="LanguageSettings" component={LanguageSettingsScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
-        <Stack.Screen name="Admin" component={AdminHomeRoute} />
         <Stack.Screen name="AdminReports" component={AdminReportsRoute} />
         <Stack.Screen name="AdminReportDetail" component={AdminReportDetailRoute} />
         <Stack.Screen name="AdminUsers" component={AdminUsersRoute} />

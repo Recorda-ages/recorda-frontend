@@ -5,8 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { PaperProvider } from "react-native-paper";
 
 import { queryClient } from "@/app/providers/queryClient";
-import { AdminHomeScreen } from "@/features/admin/screens/AdminHomeScreen";
-import { AdminPendingScreen } from "@/features/admin/screens/AdminPendingScreen";
+import { AdminScreenLayout } from "@/features/admin/components/AdminScreenLayout";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import { clearSession } from "@/features/auth/session";
 import { paperTheme } from "@/theme";
@@ -24,17 +23,13 @@ jest.mock("@/features/auth/session", () => ({
   clearSession: jest.fn(async () => undefined)
 }));
 
-function renderHome(pending = false) {
+function renderLayout(back?: { label: string; onPress: () => void }) {
   return render(
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
           <SessionProviders>
-            {pending ? (
-              <AdminPendingScreen activeTab="users" title="Gestão de usuários" />
-            ) : (
-              <AdminHomeScreen />
-            )}
+            <AdminScreenLayout activeTab="reports" back={back} title="Denúncias" />
           </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
@@ -42,7 +37,7 @@ function renderHome(pending = false) {
   );
 }
 
-describe("AdminHomeScreen", () => {
+describe("AdminScreenLayout", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     queryClient.clear();
@@ -57,35 +52,49 @@ describe("AdminHomeScreen", () => {
     queryClient.clear();
   });
 
-  it("shows the required home title, cached username and three administrative entries", () => {
-    renderHome();
-    expect(screen.getByText("Área administrativa")).toBeTruthy();
+  it("shows the title and the cached username", () => {
+    renderLayout();
+
+    expect(screen.getByText("Denúncias")).toBeTruthy();
     expect(screen.getByText("@admin")).toBeTruthy();
-    for (const [label, route] of [
-      ["Denúncias", "AdminReports"],
-      ["Usuários", "AdminUsers"],
-      ["Auditoria", "AdminAuditLog"]
-    ]) {
-      fireEvent.press(screen.getByRole("button", { name: label }));
-      expect(mockNavigate).toHaveBeenCalledWith(route);
-    }
-    for (const label of ["Feed", "Perfil", "Câmera"]) expect(screen.queryByText(label)).toBeNull();
     act(() => {
       queryClient.setQueryData(AUTH_ME_QUERY_KEY, { username: "renamed", role: "ADMIN" });
     });
     expect(screen.getByText("@renamed")).toBeTruthy();
   });
 
-  it("allows returning from a pending screen without navigating to the common app", () => {
-    renderHome(true);
-    fireEvent.press(screen.getByRole("button", { name: "Início administrativo" }));
-    expect(mockNavigate).toHaveBeenCalledWith("Admin");
-    fireEvent.press(screen.getByRole("tab", { name: "Auditoria" }));
-    expect(mockNavigate).toHaveBeenCalledWith("AdminAuditLog");
+  it("offers the same three admin tabs on every screen, and nothing from the common app", () => {
+    renderLayout();
+
+    expect(screen.getAllByRole("tab")).toHaveLength(3);
+    for (const [label, route] of [
+      ["Denúncias", "AdminReports"],
+      ["Usuários", "AdminUsers"],
+      ["Auditoria", "AdminAuditLog"]
+    ]) {
+      fireEvent.press(screen.getByRole("tab", { name: label }));
+      expect(mockNavigate).toHaveBeenCalledWith(route);
+    }
+    for (const label of ["Feed", "Perfil", "Câmera"]) expect(screen.queryByText(label)).toBeNull();
+  });
+
+  it("has no back button on a tab screen", () => {
+    renderLayout();
+
+    expect(screen.queryByRole("button", { name: "Voltar" })).toBeNull();
+  });
+
+  it("goes back from an inner screen", () => {
+    const onBack = jest.fn();
+    renderLayout({ label: "Voltar", onPress: onBack });
+
+    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 
   it("signs out only once even on repeated taps", async () => {
-    renderHome();
+    renderLayout();
     const signOut = screen.getByRole("button", { name: "Sair" });
     fireEvent.press(signOut);
     fireEvent.press(signOut);

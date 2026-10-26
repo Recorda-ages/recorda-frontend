@@ -34,7 +34,8 @@ const MOCK_ENTRY: AdminAuditEntry = {
   action_id: "entry-1",
   admin: { user_id: "admin-1", username: "admin" },
   action_type: "CHANGE_REPORT_STATUS",
-  target_label: "user-target",
+  target_label: "Levitating",
+  target_owner_username: "marina",
   target_user_id: null,
   target_recorda_id: "recorda-1",
   created_at: "2026-10-01T10:00:00Z",
@@ -83,14 +84,37 @@ describe("AdminAuditLogScreen", () => {
     resetAdminServiceMock();
   });
 
-  it("renders the title without a local search", async () => {
+  it("renders the title and a search field", async () => {
     jest.spyOn(adminServiceMock, "listAuditLog").mockResolvedValue({ items: [], total: 0 });
     renderScreen();
 
     expect(screen.getByTestId("admin-audit-log-screen")).toBeTruthy();
     expect(screen.getByText("Registro de Auditoria")).toBeTruthy();
-    expect(screen.queryByTestId("admin-audit-log-search")).toBeNull();
+    expect(screen.getByTestId("admin-audit-log-search")).toBeTruthy();
     await screen.findByTestId("admin-audit-log-empty");
+  });
+
+  // The log is paginated, so the search runs on the server, not over the loaded page.
+  it("searches on the server once typing settles", async () => {
+    const list = jest
+      .spyOn(adminServiceMock, "listAuditLog")
+      .mockResolvedValue({ items: [], total: 0 });
+    renderScreen();
+    await screen.findByTestId("admin-audit-log-empty");
+
+    fireEvent.changeText(screen.getByTestId("admin-audit-log-search"), "  marcos ");
+
+    await waitFor(() =>
+      expect(list).toHaveBeenLastCalledWith(
+        expect.objectContaining({ offset: 0, q: "marcos" }),
+        expect.any(AbortSignal)
+      )
+    );
+    expect(await screen.findByText("Nenhum registro encontrado para essa busca.")).toBeTruthy();
+
+    fireEvent.changeText(screen.getByTestId("admin-audit-log-search"), "");
+
+    await waitFor(() => expect(list.mock.calls.at(-1)?.[0]).not.toHaveProperty("q"));
   });
 
   it("shows an empty state when there are no entries", async () => {
@@ -110,8 +134,10 @@ describe("AdminAuditLogScreen", () => {
     const entry = within(await screen.findByTestId("admin-audit-log-entry-entry-1"));
 
     expect(entry.getByText("admin")).toBeTruthy();
-    expect(entry.getByText("user-target")).toBeTruthy();
-    expect(entry.getByText(/alterou as denúncias de/)).toBeTruthy();
+    // The song title alone would read as if the song had been edited.
+    expect(entry.getByText("“Levitating”")).toBeTruthy();
+    expect(entry.getByText(/alterou as denúncias da Recorda/)).toBeTruthy();
+    expect(entry.getByText("@marina")).toBeTruthy();
     expect(entry.getByText(/\(de Pendente para Resolvida\)/)).toBeTruthy();
     expect(entry.getByText("Motivo: Conteúdo verificado")).toBeTruthy();
     expect(entry.getByText(/^\d{2}\/\d{2}\/2026 • \d{2}:\d{2}$/)).toBeTruthy();
@@ -164,9 +190,14 @@ describe("AdminAuditLogScreen", () => {
   });
 
   it("describes other actions without a status change", async () => {
+    const userTarget = {
+      target_label: "marina",
+      target_recorda_id: null,
+      target_user_id: "user-1"
+    };
     jest.spyOn(adminServiceMock, "listAuditLog").mockResolvedValue({
       items: [
-        { ...MOCK_ENTRY, action_type: "SUSPEND_USER", details: null },
+        { ...MOCK_ENTRY, ...userTarget, action_type: "SUSPEND_USER", details: null },
         {
           ...MOCK_ENTRY,
           action_id: "entry-2",
@@ -181,9 +212,38 @@ describe("AdminAuditLogScreen", () => {
     const partial = within(screen.getByTestId("admin-audit-log-entry-entry-2"));
 
     expect(suspended.getByText(/suspendeu a conta de/)).toBeTruthy();
+    expect(suspended.getByText("@marina")).toBeTruthy();
     expect(suspended.queryByText(/\(de /)).toBeNull();
-    expect(partial.getByText(/alterou as denúncias de/)).toBeTruthy();
+    expect(partial.getByText(/alterou as denúncias da Recorda/)).toBeTruthy();
     expect(partial.queryByText(/\(de /)).toBeNull();
+  });
+
+  it("names the kind of target: a removed Recorda or a reported profile", async () => {
+    jest.spyOn(adminServiceMock, "listAuditLog").mockResolvedValue({
+      items: [
+        { ...MOCK_ENTRY, action_type: "REMOVE_RECORDA", details: null },
+        {
+          ...MOCK_ENTRY,
+          action_id: "entry-2",
+          target_label: "paulo",
+          target_owner_username: null,
+          target_recorda_id: null,
+          target_user_id: "user-1"
+        }
+      ],
+      total: 2
+    });
+    renderScreen();
+
+    const removed = within(await screen.findByTestId("admin-audit-log-entry-entry-1"));
+    const profile = within(screen.getByTestId("admin-audit-log-entry-entry-2"));
+
+    expect(removed.getByText(/removeu a Recorda/)).toBeTruthy();
+    expect(removed.getByText("“Levitating”")).toBeTruthy();
+    expect(removed.getByText("@marina")).toBeTruthy();
+    expect(profile.getByText(/alterou as denúncias do perfil/)).toBeTruthy();
+    expect(profile.getByText("@paulo")).toBeTruthy();
+    expect(profile.queryByText(/ de @/)).toBeNull();
   });
 
   it("loads the next page when the end of the list is reached", async () => {

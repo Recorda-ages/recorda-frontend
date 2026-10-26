@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
-import { colors, radius, spacing } from "@/theme";
+import { colors, spacing } from "@/theme";
 
 export type FilterChipOption<TValue extends string> = {
   label: string;
@@ -47,22 +47,24 @@ export function FilterChips<TValue extends string>({
             ]}
           >
             <View style={[styles.content, columns ? styles.centeredContent : undefined]}>
+              <AppText
+                numberOfLines={1}
+                style={[
+                  selected ? styles.selectedLabel : styles.unselectedLabel,
+                  columns ? styles.centeredLabel : undefined
+                ]}
+                variant="buttonSmall"
+              >
+                {option.label}
+              </AppText>
               {selected ? (
                 <Icon
-                  color={colors.neutrals[100]}
+                  color={colors.primary[500]}
                   size={16}
                   source="check"
                   testID="filter-chip-check"
                 />
               ) : null}
-              <AppText
-                style={[
-                  selected ? styles.selectedLabel : styles.unselectedLabel,
-                  columns ? styles.centeredLabel : undefined
-                ]}
-              >
-                {option.label}
-              </AppText>
             </View>
           </Pressable>
         );
@@ -71,13 +73,14 @@ export function FilterChips<TValue extends string>({
   );
 }
 
+// Same look as the onboarding artist and genre chips.
 const styles = StyleSheet.create({
   chip: {
-    borderRadius: radius.md,
+    borderRadius: 20,
+    borderWidth: 1,
+    height: 40,
     justifyContent: "center",
-    minHeight: 36,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2]
+    paddingHorizontal: 14
   },
   centeredContent: {
     justifyContent: "center"
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
   content: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing[1]
+    gap: spacing[2]
   },
   disabled: {
     opacity: 0.56
@@ -102,10 +105,11 @@ const styles = StyleSheet.create({
     opacity: 0.82
   },
   selectedChip: {
-    backgroundColor: colors.primary[800]
+    backgroundColor: colors.primary[900],
+    borderColor: colors.primary[500]
   },
   selectedLabel: {
-    color: colors.neutrals[100]
+    color: colors.secondary[100]
   },
   twoColumnChip: {
     flexBasis: "45%",
@@ -116,7 +120,8 @@ const styles = StyleSheet.create({
     flexGrow: 1
   },
   unselectedChip: {
-    backgroundColor: colors.neutrals[700]
+    backgroundColor: "transparent",
+    borderColor: colors.neutrals[700]
   },
   unselectedLabel: {
     color: colors.neutrals[200]

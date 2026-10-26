@@ -1,16 +1,20 @@
 import React, { useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { colors, withOpacity } from "@/theme";
+import { Icon } from "react-native-paper";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { AppText } from "@/components/ui";
+import { ADMIN_REASON_MAX_LENGTH, ReasonDialog } from "@/features/admin/components/ReasonDialog";
+import { adminModerationService } from "@/features/admin/services/adminUserService";
+import { baseColors, colors, radius, spacing, withOpacity } from "@/theme";
+
 import {
   AdminIdentity,
   AdminModerationResult,
   AdminModerationService,
   AdminUserRow
 } from "../types";
-import { adminModerationService } from "@/features/admin/services/adminUserService";
-import { useQueryClient } from "@tanstack/react-query";
-import { UserModerationForm, UserModerationFormSubmitData } from "./UserModerationForm";
 
 export type AdminUserActionsProps = {
   compact?: boolean;
@@ -36,9 +40,11 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
 }) => {
   const { t } = useTranslation();
   const client = useQueryClient();
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [resolveOpenReports, setResolveOpenReports] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>();
   const [currentStatus, setCurrentStatus] = useState(targetUser.status);
   const submitting = useRef(false);
 
@@ -61,42 +67,49 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
     );
   }
 
-  const actionType = isTargetActive ? "SUSPEND" : "REACTIVATE";
+  const isSuspend = isTargetActive;
+  const username = targetUser.username;
 
-  const handleOpenForm = () => {
-    setErrorMessage(null);
-    setIsFormVisible(true);
+  const openDialog = () => {
+    setReason("");
+    setResolveOpenReports(true);
+    setErrorMessage(undefined);
+    setIsDialogOpen(true);
   };
 
-  const handleCloseForm = () => {
+  const closeDialog = () => {
     if (!submitting.current) {
-      setIsFormVisible(false);
-      setErrorMessage(null);
+      setIsDialogOpen(false);
     }
   };
 
-  const handleSubmit = async (data: UserModerationFormSubmitData) => {
-    if (submitting.current) return;
+  const changeReason = (value: string) => {
+    setReason(value);
+    setErrorMessage(undefined);
+  };
+
+  const confirm = async () => {
+    const trimmedReason = reason.trim();
+    if (submitting.current || !trimmedReason || trimmedReason.length > ADMIN_REASON_MAX_LENGTH) {
+      return;
+    }
     submitting.current = true;
     setIsLoading(true);
-    setErrorMessage(null);
+    setErrorMessage(undefined);
 
     try {
-      let result;
-      if (actionType === "SUSPEND") {
-        result = await moderationService.suspendUser(targetUser.user_id, currentAdmin, {
-          reason: data.reason,
-          resolve_open_reports: data.resolve_open_reports
-        });
-      } else {
-        result = await moderationService.reactivateUser(targetUser.user_id, currentAdmin, {
-          reason: data.reason
-        });
-      }
+      const result = isSuspend
+        ? await moderationService.suspendUser(targetUser.user_id, currentAdmin, {
+            reason: trimmedReason,
+            resolve_open_reports: resolveOpenReports
+          })
+        : await moderationService.reactivateUser(targetUser.user_id, currentAdmin, {
+            reason: trimmedReason
+          });
 
       void client.invalidateQueries({ queryKey: ["admin"] });
+      setIsDialogOpen(false);
       setCurrentStatus(result.user.status);
-      setIsFormVisible(false);
       onMutationSuccess?.(result);
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : t("moderation.account.unexpectedError"));
@@ -109,85 +122,135 @@ const AdminUserActionsContent: React.FC<AdminUserActionsProps> = ({
     }
   };
 
+  const triggerLabel = isSuspend
+    ? t(compact ? "moderation.account.suspendShort" : "moderation.account.suspendTitle")
+    : t(compact ? "moderation.account.reactivateShort" : "moderation.account.reactivateTitle");
+  const tone = isSuspend ? colors.error[300] : colors.primary[500];
+
   return (
     <View style={styles.container} testID="admin-user-actions">
-      {!isFormVisible ? (
-        <TouchableOpacity
-          accessibilityRole="button"
-          activeOpacity={0.7}
-          onPress={(event) => {
-            event?.stopPropagation();
-            handleOpenForm();
-          }}
-          style={[
-            styles.actionButton,
-            compact ? styles.compactActionButton : undefined,
-            compact
-              ? isTargetActive
-                ? styles.compactSuspendButton
-                : styles.compactReactivateButton
-              : isTargetActive
-                ? styles.suspendButton
-                : styles.reactivateButton
-          ]}
-          testID={isTargetActive ? "suspend-action-trigger" : "reactivate-action-trigger"}
-        >
-          <Text style={[styles.actionButtonText, compact ? styles.compactActionButtonText : null]}>
-            {isTargetActive
-              ? t(compact ? "moderation.account.suspendShort" : "moderation.account.suspendTitle")
-              : t(
-                  compact
-                    ? "moderation.account.reactivateShort"
-                    : "moderation.account.reactivateTitle"
-                )}
-          </Text>
-        </TouchableOpacity>
-      ) : (
-        <UserModerationForm
-          action={actionType}
-          errorMessage={errorMessage}
-          isLoading={isLoading}
-          onCancel={handleCloseForm}
-          onSubmit={handleSubmit}
-          targetUser={targetUser}
+      <Pressable
+        accessibilityLabel={triggerLabel}
+        accessibilityRole="button"
+        onPress={(event) => {
+          event?.stopPropagation();
+          openDialog();
+        }}
+        style={({ pressed }) => [
+          compact ? styles.compactTrigger : styles.trigger,
+          compact
+            ? { backgroundColor: withOpacity(tone, 0.12), borderColor: tone }
+            : isSuspend
+              ? styles.suspendTrigger
+              : styles.reactivateTrigger,
+          pressed ? styles.pressed : undefined
+        ]}
+        testID={isSuspend ? "suspend-action-trigger" : "reactivate-action-trigger"}
+      >
+        <Icon
+          color={compact ? tone : isSuspend ? baseColors.white : colors.primary[100]}
+          size={compact ? 16 : 20}
+          source={isSuspend ? "account-cancel-outline" : "account-check-outline"}
         />
-      )}
+        <AppText
+          numberOfLines={1}
+          style={
+            compact
+              ? { color: tone }
+              : isSuspend
+                ? styles.suspendTriggerLabel
+                : styles.reactivateTriggerLabel
+          }
+          variant={compact ? "buttonSmall" : "buttonLarge"}
+        >
+          {triggerLabel}
+        </AppText>
+      </Pressable>
+
+      <ReasonDialog
+        confirmLabel={t(
+          isSuspend ? "moderation.account.suspendShort" : "moderation.account.reactivateShort"
+        )}
+        confirmTone={isSuspend ? "destructive" : "primary"}
+        error={errorMessage}
+        icon={isSuspend ? "account-cancel-outline" : "account-check-outline"}
+        loading={isLoading}
+        message={t(
+          isSuspend ? "moderation.account.suspendMessage" : "moderation.account.reactivateMessage",
+          { username }
+        )}
+        onCancel={closeDialog}
+        onChangeReason={changeReason}
+        onConfirm={() => void confirm()}
+        reason={reason}
+        title={t(
+          isSuspend
+            ? "moderation.account.suspendDialogTitle"
+            : "moderation.account.reactivateDialogTitle"
+        )}
+        visible={isDialogOpen}
+      >
+        {isSuspend ? (
+          <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: resolveOpenReports, disabled: isLoading }}
+            disabled={isLoading}
+            onPress={() => setResolveOpenReports((current) => !current)}
+            style={styles.checkboxRow}
+            testID="resolve-reports-toggle"
+          >
+            <View style={[styles.checkbox, resolveOpenReports && styles.checkboxChecked]}>
+              {resolveOpenReports ? (
+                <Icon color={colors.neutrals[900]} size={14} source="check" />
+              ) : null}
+            </View>
+            <AppText style={styles.checkboxLabel} variant="body2">
+              {t("moderation.account.resolveReports")}
+            </AppText>
+          </Pressable>
+        ) : null}
+      </ReasonDialog>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 8,
+  checkbox: {
+    alignItems: "center",
+    borderColor: colors.neutrals[400],
+    borderRadius: 4,
+    borderWidth: 1,
+    height: 20,
+    justifyContent: "center",
+    width: 20
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary[500],
+    borderColor: colors.primary[500]
+  },
+  checkboxLabel: {
+    color: colors.neutrals[100],
+    flex: 1
+  },
+  checkboxRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[3],
     width: "100%"
   },
-  actionButton: {
+  compactTrigger: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing[1],
+    height: 36,
     justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10
+    paddingHorizontal: spacing[3]
   },
-  suspendButton: {
-    backgroundColor: colors.error[400]
+  container: {
+    width: "100%"
   },
-  reactivateButton: {
-    backgroundColor: colors.success[400]
-  },
-  actionButtonText: {
-    color: colors.neutrals[100],
-    fontSize: 14,
-    fontWeight: "bold"
-  },
-  compactActionButton: {
-    borderRadius: 999,
-    minHeight: 40,
-    paddingHorizontal: 12,
-    paddingVertical: 8
-  },
-  compactActionButtonText: { color: colors.neutrals[900], fontSize: 14, fontWeight: "400" },
-  compactReactivateButton: { backgroundColor: colors.primary[500] },
-  compactSuspendButton: { backgroundColor: colors.error[300] },
   noticeContainer: {
     backgroundColor: withOpacity(colors.warning[300], 0.15),
     borderColor: colors.warning[300],
@@ -198,5 +261,29 @@ const styles = StyleSheet.create({
   noticeText: {
     color: colors.warning[300],
     fontSize: 13
+  },
+  pressed: {
+    opacity: 0.82
+  },
+  reactivateTrigger: {
+    backgroundColor: colors.primary[800]
+  },
+  reactivateTriggerLabel: {
+    color: colors.primary[100]
+  },
+  suspendTrigger: {
+    backgroundColor: colors.error[300]
+  },
+  suspendTriggerLabel: {
+    color: baseColors.white
+  },
+  trigger: {
+    alignItems: "center",
+    borderRadius: radius.xl,
+    flexDirection: "row",
+    gap: spacing[2],
+    justifyContent: "center",
+    minHeight: 48,
+    paddingHorizontal: spacing[4]
   }
 });

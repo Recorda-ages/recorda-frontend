@@ -126,6 +126,12 @@ describe("AdminReportDetailScreen", () => {
     expect(screen.getByRole("button", { name: "Descartar denúncia" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Reabrir denúncias" })).toBeNull();
     expect(screen.queryByTestId("admin-report-open-user")).toBeNull();
+    // The actions scroll with the content instead of sticking to the bottom.
+    expect(
+      within(screen.getByTestId("admin-report-detail-content")).getByTestId(
+        "admin-report-status-actions"
+      )
+    ).toBeTruthy();
   });
 
   it("plays a removed Recorda video only on demand and without sound", async () => {

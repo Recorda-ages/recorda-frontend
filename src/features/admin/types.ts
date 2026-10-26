@@ -190,6 +190,8 @@ export type AdminAuditEntry = {
   target_user_id: string | null;
   target_recorda_id: string | null;
   target_label: string;
+  /** Author of the target Recorda; null when the target is a profile. */
+  target_owner_username?: string | null;
   reason: string;
   details: Record<string, unknown> | null;
   created_at: string;
@@ -201,6 +203,7 @@ export type AdminAuditFilters = {
   date_to?: string;
   limit?: number;
   offset?: number;
+  q?: string;
 };
 export type AdminAuditPage = { items: AdminAuditEntry[]; total: number };
 export type AdminReportPageResponse = {

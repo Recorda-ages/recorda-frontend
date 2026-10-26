@@ -131,7 +131,7 @@ describe("auth session", () => {
   });
 
   it.each([
-    [buildUser({ role: "ADMIN" }), "Admin"],
+    [buildUser({ role: "ADMIN" }), "AdminReports"],
     [buildUser({ onboarding_completed: true }), "Feed"],
     [buildUser({ onboarding_completed: false }), "OnboardingArtists"]
   ])("routes %o to %s", (user, destination) => {
