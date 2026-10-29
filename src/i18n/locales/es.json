@@ -354,7 +354,44 @@
     }
   },
   "profile": {
-    "title": "Perfil"
+    "title": "Perfil",
+    "avatarA11y": "Foto de perfil de {{name}}",
+    "editAvatarA11y": "Cambiar foto de perfil",
+    "favoriteSongA11y": "Canción favorita: {{title}}, de {{artist}}",
+    "favoriteArtistA11y": "Artista favorito: {{name}}",
+    "favoriteGenreA11y": "Género favorito: {{name}}",
+    "counts": {
+      "recordas_one": "Recorda",
+      "recordas_other": "Recordas",
+      "followers_one": "Seguidor",
+      "followers_other": "Seguidores",
+      "following": "Siguiendo",
+      "followersHint": "Abre la lista de seguidores",
+      "followingHint": "Abre la lista de seguidos"
+    },
+    "tabs": {
+      "recordas": "Recordas",
+      "metrics": "Métricas",
+      "calendar": "Calendario"
+    },
+    "private": {
+      "title": "Esta cuenta es privada",
+      "message": "Sigue este perfil para ver sus Recordas."
+    },
+    "comingSoon": "Próximamente",
+    "loading": "Cargando perfil",
+    "loadError": "No se pudo cargar el perfil.",
+    "retry": "Intentar de nuevo",
+    "grid": {
+      "empty": "Todavía no hay Recordas publicadas.",
+      "loadError": "No se pudieron cargar las Recordas.",
+      "loadMoreError": "No se pudieron cargar más Recordas.",
+      "retry": "Intentar de nuevo",
+      "loading": "Cargando Recordas",
+      "loadingMore": "Cargando más Recordas",
+      "photoA11y": "Recorda con foto: {{title}}, de {{artist}}",
+      "videoA11y": "Recorda en video: {{title}}, de {{artist}}"
+    }
   },
   "settings": {
     "title": "Configuración",

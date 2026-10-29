@@ -7,6 +7,7 @@ import {
 } from "@/features/recorda-publish/api/recordaPublishApi";
 import { usePublishRecorda } from "@/features/recorda-publish/hooks/usePublishRecorda";
 import type { PublishRecordaDraft } from "@/features/recorda-publish/types";
+import { resetPrivateState } from "@/services/api/sessionLifecycle";
 
 jest.mock("@/features/recorda-publish/api/recordaPublishApi", () => ({
   createRecorda: jest.fn(),
@@ -85,6 +86,83 @@ describe("usePublishRecorda", () => {
 
     expect(result.current.status).toBe("success");
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed"] });
+  });
+
+  describe("author's profile", () => {
+    afterEach(() => queryClient.clear());
+
+    it("invalidates the author's profile, grid included, and nobody else's", async () => {
+      // Real cache: the grid sits under the profile key and must follow it.
+      queryClient.setQueryData(["profile", "user-1"], { user_id: "user-1" });
+      queryClient.setQueryData(["profile", "user-1", "recordas"], { pages: [], pageParams: [] });
+      queryClient.setQueryData(["profile", "user-2"], { user_id: "user-2" });
+      mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
+      mockedCreate.mockResolvedValueOnce({ recorda_id: "new-recorda", user_id: "user-1" });
+
+      const { result } = renderHook(() => usePublishRecorda());
+      await act(async () => {
+        await result.current.publish(draft);
+      });
+
+      expect(result.current.status).toBe("success");
+      expect(queryClient.getQueryState(["profile", "user-1"])?.isInvalidated).toBe(true);
+      expect(queryClient.getQueryState(["profile", "user-1", "recordas"])?.isInvalidated).toBe(
+        true
+      );
+      expect(queryClient.getQueryState(["profile", "user-2"])?.isInvalidated).toBe(false);
+    });
+
+    it("keeps refreshing the feed alongside the profile", async () => {
+      const invalidate = jest.spyOn(queryClient, "invalidateQueries").mockResolvedValue();
+      mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
+      mockedCreate.mockResolvedValueOnce({ recorda_id: "new-recorda", user_id: "user-1" });
+
+      const { result } = renderHook(() => usePublishRecorda());
+      await act(async () => {
+        await result.current.publish(draft);
+      });
+
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed"] });
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ["profile", "user-1"] });
+    });
+
+    it("does not touch any profile when the creation fails", async () => {
+      const invalidate = jest.spyOn(queryClient, "invalidateQueries").mockResolvedValue();
+      mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
+      mockedCreate.mockRejectedValueOnce(new Error("create failed"));
+
+      const { result } = renderHook(() => usePublishRecorda());
+      await act(async () => {
+        await result.current.publish(draft);
+      });
+
+      expect(result.current.status).toBe("error");
+      expect(invalidate).not.toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: expect.arrayContaining(["profile"]) })
+      );
+    });
+
+    it("skips the profile when the session changed during the publication", async () => {
+      const invalidate = jest.spyOn(queryClient, "invalidateQueries").mockResolvedValue();
+      const creation = createDeferred<{ recorda_id: string; user_id: string }>();
+      mockedUpload.mockResolvedValueOnce({ mediaUrl: "https://cdn.example.com/a.jpg" });
+      mockedCreate.mockReturnValueOnce(creation.promise);
+
+      const { result } = renderHook(() => usePublishRecorda());
+      let publishing: Promise<void> = Promise.resolve();
+      act(() => {
+        publishing = result.current.publish(draft);
+      });
+      await waitFor(() => expect(mockedCreate).toHaveBeenCalled());
+
+      resetPrivateState(); // sign out / account switch while the POST is in flight
+      await act(async () => {
+        creation.resolve({ recorda_id: "new-recorda", user_id: "user-1" });
+        await publishing;
+      });
+
+      expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ["profile", "user-1"] });
+    });
   });
 
   it("keeps publication successful if refreshing the feed fails", async () => {

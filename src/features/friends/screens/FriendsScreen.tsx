@@ -24,7 +24,8 @@ export function FriendsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, "Friends">>();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<FriendsTab>("seguidores");
+  // The profile counters open the list they were tapped on; otherwise followers first.
+  const [activeTab, setActiveTab] = useState<FriendsTab>(route.params?.tab ?? "seguidores");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 

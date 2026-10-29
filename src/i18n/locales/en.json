@@ -354,7 +354,44 @@
     }
   },
   "profile": {
-    "title": "Profile"
+    "title": "Profile",
+    "avatarA11y": "{{name}}'s profile picture",
+    "editAvatarA11y": "Change profile picture",
+    "favoriteSongA11y": "Favorite song: {{title}}, by {{artist}}",
+    "favoriteArtistA11y": "Favorite artist: {{name}}",
+    "favoriteGenreA11y": "Favorite genre: {{name}}",
+    "counts": {
+      "recordas_one": "Recorda",
+      "recordas_other": "Recordas",
+      "followers_one": "Follower",
+      "followers_other": "Followers",
+      "following": "Following",
+      "followersHint": "Opens the followers list",
+      "followingHint": "Opens the following list"
+    },
+    "tabs": {
+      "recordas": "Recordas",
+      "metrics": "Metrics",
+      "calendar": "Calendar"
+    },
+    "private": {
+      "title": "This account is private",
+      "message": "Follow this profile to see their Recordas."
+    },
+    "comingSoon": "Coming soon",
+    "loading": "Loading profile",
+    "loadError": "We couldn't load this profile.",
+    "retry": "Try again",
+    "grid": {
+      "empty": "No Recordas published yet.",
+      "loadError": "We couldn't load the Recordas.",
+      "loadMoreError": "We couldn't load more Recordas.",
+      "retry": "Try again",
+      "loading": "Loading Recordas",
+      "loadingMore": "Loading more Recordas",
+      "photoA11y": "Photo Recorda: {{title}}, by {{artist}}",
+      "videoA11y": "Video Recorda: {{title}}, by {{artist}}"
+    }
   },
   "settings": {
     "title": "Settings",

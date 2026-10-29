@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 
 import { queryClient } from "@/app/providers/queryClient";
+import { profileQueryKey } from "@/features/profile/queryKeys";
+import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 
 import { createRecorda, uploadRecordaMedia } from "../api/recordaPublishApi";
 import type { PublishRecordaDraft } from "../types";
@@ -31,6 +33,7 @@ export function usePublishRecorda(): UsePublishRecordaResult {
   async function attempt(draft: PublishRecordaDraft, skipUpload: boolean) {
     let step: PublishErrorStep = skipUpload ? "create" : "upload";
     let mediaUrl = mediaUrlRef.current;
+    const generation = getSessionGeneration();
 
     try {
       if (!skipUpload) {
@@ -43,7 +46,7 @@ export function usePublishRecorda(): UsePublishRecordaResult {
 
       step = "create";
       setStatus("creating");
-      await createRecorda({
+      const created = await createRecorda({
         description: draft.description,
         mediaType: draft.media.type,
         mediaUrl: mediaUrl as string,
@@ -51,6 +54,14 @@ export function usePublishRecorda(): UsePublishRecordaResult {
       });
       // A atualização do feed não deve atrasar nem reverter um POST concluído.
       void queryClient.invalidateQueries({ queryKey: ["feed"] }).catch(() => undefined);
+      // The author's profile (grid and counter, both under this key) gets the new Recorda.
+      // The owner comes from the response; skipped if the session changed meanwhile.
+      const authorId = created?.user_id;
+      if (authorId && generation === getSessionGeneration()) {
+        void queryClient
+          .invalidateQueries({ queryKey: profileQueryKey(authorId) })
+          .catch(() => undefined);
+      }
 
       // Ends here on purpose: navigating to the Feed (team decision, not the
       // Profile originally described) and clearing the draft are the caller's job.

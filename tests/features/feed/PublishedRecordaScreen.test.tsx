@@ -16,6 +16,7 @@ import { useLayoutEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import { resetPrivateState } from "@/services/api/sessionLifecycle";
 import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { shouldCloseCommentsSheet } from "@/features/feed/components/RecordaDetailView";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
@@ -284,6 +285,76 @@ describe("PublishedRecordaScreen", () => {
       expect(screen.getByTestId("remaining-posts").props.children).not.toContain(recordaId)
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe("owner's profile after a delete", () => {
+    function seedProfiles() {
+      queryClient.setQueryData(["profile", "demo-lucas"], { user_id: "demo-lucas" });
+      queryClient.setQueryData(["profile", "demo-lucas", "recordas"], {
+        pageParams: [null],
+        pages: []
+      });
+      queryClient.setQueryData(["profile", "someone-else"], { user_id: "someone-else" });
+    }
+
+    function confirmDelete() {
+      fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+      fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
+      fireEvent.press(screen.getByRole("button", { name: "Confirmar exclusão" }));
+    }
+
+    function isInvalidated(key: readonly unknown[]) {
+      return queryClient.getQueryState(key)?.isInvalidated;
+    }
+
+    it("refreshes the owner's profile and grid, and no one else's", async () => {
+      renderScreen();
+      seedProfiles();
+
+      confirmDelete();
+
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+      expect(isInvalidated(["profile", "demo-lucas"])).toBe(true);
+      expect(isInvalidated(["profile", "demo-lucas", "recordas"])).toBe(true);
+      expect(isInvalidated(["profile", "someone-else"])).toBe(false);
+    });
+
+    it("leaves the profile alone when the delete fails", async () => {
+      const deleteRecorda = jest
+        .spyOn(feedService, "deleteRecorda")
+        .mockRejectedValue(new Error("network"));
+      renderScreen();
+      seedProfiles();
+
+      confirmDelete();
+
+      await waitFor(() => expect(deleteRecorda).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(screen.getByText(/Não foi possível excluir a Recorda/)).toBeTruthy()
+      );
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(isInvalidated(["profile", "demo-lucas"])).toBe(false);
+    });
+
+    it("skips the profile when the session changed during the delete", async () => {
+      let finishDelete!: () => void;
+      jest.spyOn(feedService, "deleteRecorda").mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            finishDelete = resolve;
+          })
+      );
+      renderScreen();
+      seedProfiles();
+
+      confirmDelete();
+      await waitFor(() => expect(feedService.deleteRecorda).toHaveBeenCalled());
+      resetPrivateState(); // sign out / account switch while the DELETE is in flight
+      await act(async () => finishDelete());
+
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+      expect(isInvalidated(["profile", "demo-lucas"])).toBe(false);
+    });
   });
 
   it("only offers Not interested and Report for another author and opens the report dialog", () => {
