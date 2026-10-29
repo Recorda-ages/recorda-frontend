@@ -30,13 +30,29 @@ export type ProfileHeaderFavoriteSong = {
   title: string;
 };
 
+/**
+ * A favorite artist or genre. Structurally compatible with the onboarding's
+ * `MusicSelection`, so the screen can pass the music preferences as they come.
+ */
+export type ProfileHeaderMusicItem = {
+  id: number | string;
+  name: string;
+  pictureUrl?: string | null;
+};
+
 type ProfileHeaderProps = Readonly<{
   avatarUrl: string | null;
   name: string;
   username: string;
   favoriteSong: ProfileHeaderFavoriteSong | null;
+  /** Optional: only the own profile has a source for them today (music preferences). */
+  favoriteArtists?: readonly ProfileHeaderMusicItem[];
+  favoriteGenres?: readonly ProfileHeaderMusicItem[];
   /** Hidden when absent or null: the screen decides whether the viewer may see them. */
   counts?: ProfileHeaderCounts | null;
+  /** Make the followers / following counters pressable; the screen navigates. */
+  onPressFollowers?: () => void;
+  onPressFollowing?: () => void;
   /** Shown between the music chips and the counters, e.g. a follow button. */
   actionSlot?: ReactNode;
   /** Makes the avatar pressable; only the own profile passes it. */
@@ -55,9 +71,13 @@ export function ProfileHeader({
   actionSlot,
   avatarUrl,
   counts,
+  favoriteArtists = [],
+  favoriteGenres = [],
   favoriteSong,
   name,
   onEditAvatar,
+  onPressFollowers,
+  onPressFollowing,
   username
 }: ProfileHeaderProps) {
   const { t } = useTranslation();
@@ -105,9 +125,42 @@ export function ProfileHeader({
         @{username}
       </AppText>
 
-      {favoriteSong ? (
+      {favoriteSong || favoriteArtists.length > 0 || favoriteGenres.length > 0 ? (
         <View style={styles.chips}>
-          <FavoriteSongChip song={favoriteSong} />
+          {favoriteSong ? (
+            <ProfileChip
+              accessibilityLabel={t("profile.favoriteSongA11y", {
+                artist: favoriteSong.artistName,
+                title: favoriteSong.title
+              })}
+              fallbackIcon="music-note"
+              // The cover may come as "" when Deezer has none (backend ADR 0001).
+              imageUrl={favoriteSong.coverUrl || null}
+              label={`${favoriteSong.title} · ${favoriteSong.artistName}`}
+              testID="profile-favorite-song"
+            />
+          ) : null}
+          {favoriteArtists.map((artist) => (
+            <ProfileChip
+              accessibilityLabel={t("profile.favoriteArtistA11y", { name: artist.name })}
+              fallbackIcon="account-music"
+              imageUrl={artist.pictureUrl || null}
+              key={`artist-${artist.id}`}
+              label={artist.name}
+              testID={`profile-favorite-artist-${artist.id}`}
+            />
+          ))}
+          {favoriteGenres.map((genre) => (
+            // Genres use the icon, as in the visual reference, not the Deezer picture.
+            <ProfileChip
+              accessibilityLabel={t("profile.favoriteGenreA11y", { name: genre.name })}
+              fallbackIcon="music-note"
+              imageUrl={null}
+              key={`genre-${genre.id}`}
+              label={genre.name}
+              testID={`profile-favorite-genre-${genre.id}`}
+            />
+          ))}
         </View>
       ) : null}
 
@@ -120,55 +173,110 @@ export function ProfileHeader({
             value={counts.recordas}
           />
           <ProfileCount
+            accessibilityHint={t("profile.counts.followersHint")}
             label={t("profile.counts.followers", { count: counts.followers })}
+            onPress={onPressFollowers}
+            testID="profile-count-followers"
             value={counts.followers}
           />
-          <ProfileCount label={t("profile.counts.following")} value={counts.following} />
+          <ProfileCount
+            accessibilityHint={t("profile.counts.followingHint")}
+            label={t("profile.counts.following")}
+            onPress={onPressFollowing}
+            testID="profile-count-following"
+            value={counts.following}
+          />
         </View>
       ) : null}
     </View>
   );
 }
 
-function FavoriteSongChip({ song }: Readonly<{ song: ProfileHeaderFavoriteSong }>) {
-  const { t } = useTranslation();
-  // The cover may come as "" when Deezer has none (backend ADR 0001).
-  const coverSource = useAuthImageSource(song.coverUrl ? resolveApiAssetUrl(song.coverUrl) : null);
+type ProfileChipProps = Readonly<{
+  accessibilityLabel: string;
+  fallbackIcon: string;
+  imageUrl: string | null;
+  label: string;
+  testID: string;
+}>;
+
+/** Music chip: picture (or icon) and a one-line label that ends in "…" when too long. */
+function ProfileChip({
+  accessibilityLabel,
+  fallbackIcon,
+  imageUrl,
+  label,
+  testID
+}: ProfileChipProps) {
+  const imageSource = useAuthImageSource(imageUrl ? resolveApiAssetUrl(imageUrl) : null);
 
   return (
-    <View
-      accessibilityLabel={t("profile.favoriteSongA11y", {
-        artist: song.artistName,
-        title: song.title
-      })}
-      accessible
-      style={styles.chip}
-      testID="profile-favorite-song"
-    >
-      {coverSource ? (
-        <Image contentFit="cover" source={coverSource} style={styles.chipImage} />
+    <View accessibilityLabel={accessibilityLabel} accessible style={styles.chip} testID={testID}>
+      {imageSource ? (
+        <Image
+          contentFit="cover"
+          source={imageSource}
+          style={styles.chipImage}
+          testID={`${testID}-image`}
+        />
       ) : (
         <View style={[styles.chipImage, styles.chipIcon]}>
-          <Icon color={colors.neutrals[900]} size={18} source="music-note" />
+          <Icon color={colors.neutrals[900]} size={18} source={fallbackIcon} />
         </View>
       )}
       <AppText numberOfLines={1} style={styles.chipLabel}>
-        {`${song.title} · ${song.artistName}`}
+        {label}
       </AppText>
     </View>
   );
 }
 
-function ProfileCount({ label, value }: Readonly<{ label: string; value: number }>) {
-  return (
-    <View accessibilityLabel={`${value} ${label}`} accessible style={styles.count}>
+type ProfileCountProps = Readonly<{
+  /** Read only when the counter is pressable. */
+  accessibilityHint?: string;
+  label: string;
+  onPress?: () => void;
+  testID?: string;
+  value: number;
+}>;
+
+function ProfileCount({ accessibilityHint, label, onPress, testID, value }: ProfileCountProps) {
+  const content = (
+    <>
       <AppText style={styles.countValue} variant="headline3">
         {value}
       </AppText>
       <AppText style={styles.countLabel} variant="body2">
         {label}
       </AppText>
-    </View>
+    </>
+  );
+
+  if (!onPress) {
+    return (
+      <View
+        accessibilityLabel={`${value} ${label}`}
+        accessible
+        style={styles.count}
+        testID={testID}
+      >
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={`${value} ${label}`}
+      accessibilityRole="button"
+      hitSlop={4}
+      onPress={onPress}
+      style={({ pressed }) => [styles.count, pressed && styles.countPressed]}
+      testID={testID}
+    >
+      {content}
+    </Pressable>
   );
 }
 
@@ -231,6 +339,9 @@ const styles = StyleSheet.create({
   },
   countLabel: {
     color: colors.neutrals[100]
+  },
+  countPressed: {
+    opacity: 0.7
   },
   countValue: {
     color: colors.neutrals[100]

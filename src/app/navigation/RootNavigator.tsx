@@ -48,6 +48,7 @@ import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
+import type { FriendsTab } from "@/features/friends/types";
 import { AdminUserActions } from "@/features/moderation/components/AdminUserActions";
 import { RecordaViewScreen } from "@/features/recorda-view";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
@@ -77,7 +78,7 @@ export type RootStackParamList = {
   PasswordRecovery: undefined;
   Preview: { uri: string; type: "photo" | "video" };
   Profile: undefined;
-  Friends: { userId?: string } | undefined;
+  Friends: { tab?: FriendsTab; userId?: string } | undefined;
   PublishedRecorda: { postId: string };
   RecordaShare: { postId: string };
   RecordaDetails: undefined;

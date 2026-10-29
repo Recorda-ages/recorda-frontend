@@ -358,12 +358,16 @@
     "avatarA11y": "Foto de perfil de {{name}}",
     "editAvatarA11y": "Cambiar foto de perfil",
     "favoriteSongA11y": "Canción favorita: {{title}}, de {{artist}}",
+    "favoriteArtistA11y": "Artista favorito: {{name}}",
+    "favoriteGenreA11y": "Género favorito: {{name}}",
     "counts": {
       "recordas_one": "Recorda",
       "recordas_other": "Recordas",
       "followers_one": "Seguidor",
       "followers_other": "Seguidores",
-      "following": "Siguiendo"
+      "following": "Siguiendo",
+      "followersHint": "Abre la lista de seguidores",
+      "followingHint": "Abre la lista de seguidos"
     },
     "tabs": {
       "recordas": "Recordas",

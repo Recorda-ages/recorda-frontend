@@ -18,7 +18,9 @@ jest.mock("@/features/friends/api/friendsApi", () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-let mockRoute = { params: undefined as { userId?: string } | undefined };
+let mockRoute = {
+  params: undefined as { tab?: "seguidores" | "seguindo"; userId?: string } | undefined
+};
 
 jest.mock("@react-navigation/native", () => ({
   ...jest.requireActual("@react-navigation/native"),
@@ -149,6 +151,58 @@ describe("FriendsScreen", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Remover seguidor")).toBeTruthy();
+    });
+  });
+
+  describe("initial tab", () => {
+    it("opens on Seguidores when no tab is given", async () => {
+      renderScreen();
+
+      await waitFor(() => expect(mockListFollowers).toHaveBeenCalled());
+      expect(mockListFollowing).not.toHaveBeenCalled();
+      expect(screen.getByRole("tab", { name: "Seguidores" })).toBeSelected();
+    });
+
+    it("opens directly on Seguidores when asked", async () => {
+      mockRoute = { params: { tab: "seguidores" } };
+      renderScreen();
+
+      await waitFor(() => expect(mockListFollowers).toHaveBeenCalled());
+      expect(mockListFollowing).not.toHaveBeenCalled();
+      expect(screen.getByRole("tab", { name: "Seguidores" })).toBeSelected();
+    });
+
+    it("opens directly on Seguindo when asked", async () => {
+      mockRoute = { params: { tab: "seguindo" } };
+      renderScreen();
+
+      await waitFor(() => expect(mockListFollowing).toHaveBeenCalled());
+      expect(mockListFollowers).not.toHaveBeenCalled();
+      expect(screen.getByRole("tab", { name: "Seguindo" })).toBeSelected();
+      expect(screen.queryByText("Remover")).toBeNull();
+    });
+
+    it("combines the tab with the userId of the list owner", async () => {
+      mockRoute = { params: { tab: "seguindo", userId: "other-user" } };
+      renderScreen();
+
+      await waitFor(() => expect(mockListFollowing).toHaveBeenCalled());
+      expect(mockListFollowing).toHaveBeenCalledWith(
+        "other-user",
+        expect.objectContaining({ limit: 20, offset: 0 })
+      );
+      expect(mockListFollowers).not.toHaveBeenCalled();
+    });
+
+    it("still lets the user switch tabs afterwards", async () => {
+      mockRoute = { params: { tab: "seguindo" } };
+      renderScreen();
+      await waitFor(() => expect(mockListFollowing).toHaveBeenCalled());
+
+      fireEvent.press(screen.getByRole("tab", { name: "Seguidores" }));
+
+      await waitFor(() => expect(mockListFollowers).toHaveBeenCalled());
+      expect(screen.getByRole("tab", { name: "Seguidores" })).toBeSelected();
     });
   });
 
