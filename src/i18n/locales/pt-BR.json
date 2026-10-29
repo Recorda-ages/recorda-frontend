@@ -379,6 +379,10 @@
       "title": "Esta conta é privada",
       "message": "Siga este perfil para ver suas Recordas."
     },
+    "comingSoon": "Em breve",
+    "loading": "Carregando perfil",
+    "loadError": "Não foi possível carregar o perfil.",
+    "retry": "Tentar novamente",
     "grid": {
       "empty": "Nenhuma Recorda publicada ainda.",
       "loadError": "Não foi possível carregar as Recordas.",

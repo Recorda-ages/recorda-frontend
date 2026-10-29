@@ -7,6 +7,8 @@ import { AppProviders } from "@/app/providers/AppProviders";
 import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import * as musicApi from "@/features/onboarding/api/music";
+import { profileService } from "@/features/profile/services/profileService";
+import type { ProfileRead } from "@/features/profile/types";
 import { SETTINGS_QUERY_KEY } from "@/features/settings/queryKeys";
 import * as service from "@/features/settings/services/settingsService";
 import { i18n } from "@/i18n";
@@ -92,7 +94,28 @@ it("opens Settings through the profile gear and navigates to every destination",
 
 it("signs out from Settings, clears private data and removes logged-in routes from history", async () => {
   queryClient.setQueryData(AUTH_ME_QUERY_KEY, { user_id: "example" });
-  queryClient.setQueryData(["profile", "example"], { name: "Previous account" });
+  // The Profile route is the real MyProfileScreen now: it needs a full ProfileRead.
+  const previousProfile: ProfileRead = {
+    can_view_content: true,
+    counts: { followers: 0, following: 0, recordas: 0 },
+    favorite_song: {
+      artist_name: "Saved artist",
+      cover_url: "",
+      deezer_track_id: "1",
+      preview_url: null,
+      title: "Saved song"
+    },
+    is_private: true,
+    name: "Previous account",
+    profile_picture_url: null,
+    relationship: { follow_id: null, follow_status: "nenhuma", is_self: true },
+    streak: null,
+    user_id: "example",
+    username: "example"
+  };
+  jest.spyOn(profileService, "getMyProfile").mockResolvedValue(previousProfile);
+  jest.spyOn(profileService, "getUserRecordas").mockResolvedValue({ items: [], next_cursor: null });
+  queryClient.setQueryData(["profile", "example"], previousProfile);
   render(
     <AppProviders>
       <RootNavigator />

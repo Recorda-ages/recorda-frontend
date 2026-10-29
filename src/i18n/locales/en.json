@@ -378,6 +378,10 @@
       "title": "This account is private",
       "message": "Follow this profile to see their Recordas."
     },
+    "comingSoon": "Coming soon",
+    "loading": "Loading profile",
+    "loadError": "We couldn't load this profile.",
+    "retry": "Try again",
     "grid": {
       "empty": "No Recordas published yet.",
       "loadError": "We couldn't load the Recordas.",
