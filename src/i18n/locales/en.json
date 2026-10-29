@@ -373,6 +373,16 @@
     "private": {
       "title": "This account is private",
       "message": "Follow this profile to see their Recordas."
+    },
+    "grid": {
+      "empty": "No Recordas published yet.",
+      "loadError": "We couldn't load the Recordas.",
+      "loadMoreError": "We couldn't load more Recordas.",
+      "retry": "Try again",
+      "loading": "Loading Recordas",
+      "loadingMore": "Loading more Recordas",
+      "photoA11y": "Photo Recorda: {{title}}, by {{artist}}",
+      "videoA11y": "Video Recorda: {{title}}, by {{artist}}"
     }
   },
   "settings": {

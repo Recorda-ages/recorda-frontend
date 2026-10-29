@@ -374,6 +374,16 @@
     "private": {
       "title": "Esta conta é privada",
       "message": "Siga este perfil para ver suas Recordas."
+    },
+    "grid": {
+      "empty": "Nenhuma Recorda publicada ainda.",
+      "loadError": "Não foi possível carregar as Recordas.",
+      "loadMoreError": "Não foi possível carregar mais Recordas.",
+      "retry": "Tentar novamente",
+      "loading": "Carregando Recordas",
+      "loadingMore": "Carregando mais Recordas",
+      "photoA11y": "Recorda com foto: {{title}}, de {{artist}}",
+      "videoA11y": "Recorda em vídeo: {{title}}, de {{artist}}"
     }
   },
   "settings": {
