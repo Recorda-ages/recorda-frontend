@@ -4,7 +4,7 @@ import type { FollowStatus } from "@/features/follow";
 /**
  * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend. Já é a
  * resposta de `GET /users/me/profile` na `dev` do backend. O perfil de terceiros (#109)
- * usará o mesmo contrato quando existir (ver IMPLEMENTATION_NOTES.md).
+ * usará o mesmo contrato quando existir (ver docs/issue-253.md).
  */
 export type ProfileRead = {
   can_view_content: boolean;
