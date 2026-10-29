@@ -2,6 +2,7 @@ import { queryClient } from "@/app/providers/queryClient";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
 import type { UserBasicResponse } from "@/features/auth/api/types";
 import { recordaCommentsQueryKey, recordaDetailsQueryKey } from "@/features/feed/queryKeys";
+import { dayMemoriesQueryKey, monthCalendarQueryKey } from "@/features/memories-calendar/queryKeys";
 import { NOTIFICATIONS_QUERY_KEY } from "@/features/notifications/queryKeys";
 import {
   LEGACY_ACCOUNT_TYPE_KEY,
@@ -97,6 +98,8 @@ describe("auth session", () => {
     queryClient.setQueryData(["feed", "general"], {
       pages: [{ items: [{ recorda_id: "private-recorda" }] }]
     });
+    queryClient.setQueryData(monthCalendarQueryKey(2026, 10), { days: ["private"] });
+    queryClient.setQueryData(dayMemoriesQueryKey("2026-10-03"), { memories: ["private"] });
     const privateRecordaKey = recordaDetailsQueryKey("private-recorda");
     queryClient.setQueryData(privateRecordaKey, { recorda_id: "private-recorda" });
     const privateCommentsKey = recordaCommentsQueryKey("private-recorda");
@@ -112,6 +115,8 @@ describe("auth session", () => {
     expect(queryClient.getQueryData(["settings"])).toBeUndefined();
     expect(queryClient.getQueryData(NOTIFICATIONS_QUERY_KEY)).toBeUndefined();
     expect(queryClient.getQueryData(["feed", "general"])).toBeUndefined();
+    expect(queryClient.getQueryData(monthCalendarQueryKey(2026, 10))).toBeUndefined();
+    expect(queryClient.getQueryData(dayMemoriesQueryKey("2026-10-03"))).toBeUndefined();
     expect(queryClient.getQueryData(privateRecordaKey)).toBeUndefined();
     expect(queryClient.getQueryData(privateCommentsKey)).toBeUndefined();
     expect(queryClient.getQueryData(["admin", "reports", "admin-1"])).toBeUndefined();
@@ -128,6 +133,29 @@ describe("auth session", () => {
     expect(queryClient.getQueryCache().getAll()).toHaveLength(0);
     expect(queryClient.getMutationCache().getAll()).toHaveLength(0);
     expect(secureStorage.removeItem).not.toHaveBeenCalledWith("app_language");
+  });
+
+  it("cancels an in-flight calendar request on logout and discards its late result", async () => {
+    const key = dayMemoriesQueryKey("2026-10-03");
+    let signal: AbortSignal | undefined;
+    let finish: ((value: string) => void) | undefined;
+    const pending = queryClient
+      .fetchQuery({
+        queryKey: key,
+        queryFn: (context) => {
+          signal = context.signal;
+          return new Promise<string>((resolve) => {
+            finish = resolve;
+          });
+        }
+      })
+      .catch((error: unknown) => error);
+    expect(signal?.aborted).toBe(false);
+    await clearSession();
+    expect(signal?.aborted).toBe(true);
+    finish?.("private-memory");
+    await pending;
+    expect(queryClient.getQueryData(key)).toBeUndefined();
   });
 
   it.each([
