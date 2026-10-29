@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { profileQueryKey } from "@/features/profile/queryKeys";
 import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 import { useReportDialog } from "@/features/moderation";
 import { colors, spacing } from "@/theme";
@@ -79,12 +80,21 @@ export function PublishedRecordaScreen() {
   });
   const removeRecorda = useMutation({
     mutationFn: () => feedService.deleteRecorda(params.postId),
-    onSuccess: () => {
+    // Captured when the delete starts: whose profile loses the Recorda, and in which session.
+    onMutate: () => ({
+      generation: getSessionGeneration(),
+      ownerId: isOwnPost ? authenticatedUser?.user_id : undefined
+    }),
+    onSuccess: (_result, _variables, context) => {
       deletePost(params.postId);
       queryClient.removeQueries({ queryKey: recordaDetailsQueryKey(params.postId) });
       queryClient.removeQueries({ queryKey: recordaCommentsQueryKey(params.postId) });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      // Grid and counter of the owner's profile, both under this key.
+      if (context?.ownerId && context.generation === getSessionGeneration()) {
+        void queryClient.invalidateQueries({ queryKey: profileQueryKey(context.ownerId) });
+      }
       navigation.goBack();
     }
   });

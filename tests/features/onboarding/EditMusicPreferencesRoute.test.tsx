@@ -16,6 +16,7 @@ import {
 } from "@/features/onboarding/api/music";
 import { ACCOUNT_QUERY_KEY } from "@/features/account/queryKeys";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import { resetPrivateState } from "@/services/api/sessionLifecycle";
 import { EditMusicPreferencesRoute } from "@/features/onboarding/screens/EditMusicPreferencesRoute";
 import { MUSIC_PREFERENCES_QUERY_KEY } from "@/features/onboarding/queryKeys";
 import type { MusicPreferences, MusicTrack } from "@/features/onboarding/types";
@@ -304,4 +305,80 @@ it("keeps the draft and displays a retryable error when saving fails", async () 
   expect(screen.getByRole("radio", { name: "Saved song, Saved artist" })).toBeChecked();
   expect(screen.getByRole("button", { name: "Salvar" })).toBeEnabled();
   expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+});
+
+describe("own profile after saving", () => {
+  // Keeps unobserved queries alive, so the test can read their invalidation state.
+  function profileClient() {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: { gcTime: Infinity, retry: false },
+        mutations: { gcTime: 0, retry: false }
+      }
+    });
+    client.setQueryData(AUTH_ME_QUERY_KEY, { role: "USER", user_id: "user-1" });
+    client.setQueryData(["profile", "user-1"], { user_id: "user-1" });
+    client.setQueryData(["profile", "user-1", "recordas"], { pageParams: [null], pages: [] });
+    client.setQueryData(["profile", "user-2"], { user_id: "user-2" });
+    return client;
+  }
+
+  function isInvalidated(client: QueryClient, key: readonly unknown[]) {
+    return client.getQueryState(key)?.isInvalidated;
+  }
+
+  async function save(client: QueryClient) {
+    await openMusicStep(client);
+    fireEvent.press(screen.getByRole("button", { name: "Salvar" }));
+  }
+
+  it("refreshes only the own profile (favorite song), not its grid or other profiles", async () => {
+    const client = profileClient();
+
+    await save(client);
+
+    await waitFor(() =>
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "GO_BACK" })
+      )
+    );
+    expect(isInvalidated(client, ["profile", "user-1"])).toBe(true);
+    expect(isInvalidated(client, ["profile", "user-1", "recordas"])).toBe(false);
+    expect(isInvalidated(client, ["profile", "user-2"])).toBe(false);
+    // The chips read the preferences cache, which is still updated in place.
+    expect(client.getQueryData(MUSIC_PREFERENCES_QUERY_KEY)).toEqual(initialPreferences);
+  });
+
+  it("leaves the profile alone when saving fails", async () => {
+    mockSaveMusicPreferences.mockRejectedValueOnce(new Error("offline"));
+    const client = profileClient();
+
+    await save(client);
+
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(isInvalidated(client, ["profile", "user-1"])).toBe(false);
+  });
+
+  it("skips the profile when the session changed during the save", async () => {
+    let finishSave!: () => void;
+    mockSaveMusicPreferences.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishSave = resolve;
+        })
+    );
+    const client = profileClient();
+
+    await save(client);
+    await waitFor(() => expect(mockSaveMusicPreferences).toHaveBeenCalled());
+    resetPrivateState(); // sign out / account switch while the save is in flight
+    await act(async () => finishSave());
+
+    await waitFor(() =>
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "GO_BACK" })
+      )
+    );
+    expect(isInvalidated(client, ["profile", "user-1"])).toBe(false);
+  });
 });
