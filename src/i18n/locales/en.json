@@ -738,5 +738,6 @@
       "en": "English",
       "es": "Español"
     }
-  }
+  },
+  "memoriesMetrics": { "loadError": "Unable to load your metrics. Please try again." }
 }

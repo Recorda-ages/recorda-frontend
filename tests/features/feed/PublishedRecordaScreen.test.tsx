@@ -518,6 +518,7 @@ describe("PublishedRecordaScreen", () => {
     expect(screen.getByText(/Nenhum comentário ainda/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("Adicione um comentário..."), "Primeiro!");
     fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+    await waitFor(() => expect(createComment).toHaveBeenCalledWith("post-4", "Primeiro!"));
     await waitFor(() => expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull());
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
   });
