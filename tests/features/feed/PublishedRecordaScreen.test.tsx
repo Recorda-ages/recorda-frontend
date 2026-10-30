@@ -595,6 +595,7 @@ describe("PublishedRecordaScreen", () => {
     await act(async () => {
       fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
     });
+    expect(createComment).toHaveBeenCalledWith("post-4", "Primeiro!");
     await waitFor(() => expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull());
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
   });
