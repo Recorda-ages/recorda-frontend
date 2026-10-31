@@ -778,5 +778,16 @@
   },
   "memoriesMetrics": {
     "loadError": "Unable to load your metrics. Please try again."
+  },
+  "memoriesCalendar": {
+    "viewer": {
+      "close": "Close",
+      "previousDay": "Previous day",
+      "nextDay": "Next day",
+      "play": "Play song",
+      "pause": "Pause song",
+      "error": "Could not load this day’s memories.",
+      "empty": "No memories on this day."
+    }
   }
 }

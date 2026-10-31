@@ -781,5 +781,16 @@
   },
   "memoriesMetrics": {
     "loadError": "Não foi possível carregar suas métricas. Tente novamente."
+  },
+  "memoriesCalendar": {
+    "viewer": {
+      "close": "Fechar",
+      "previousDay": "Dia anterior",
+      "nextDay": "Próximo dia",
+      "play": "Tocar música",
+      "pause": "Pausar música",
+      "error": "Não foi possível carregar as memórias deste dia.",
+      "empty": "Nenhuma memória neste dia."
+    }
   }
 }
