@@ -520,7 +520,10 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
     expect(screen.getByText(/Nenhum comentário ainda/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("Adicione um comentário..."), "Primeiro!");
-    fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+    // The comment mutation settles asynchronously; act waits for it before asserting.
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+    });
     await waitFor(() => expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull());
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
   });
