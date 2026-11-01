@@ -8,6 +8,7 @@ export type CalendarDaySummary = {
   media_type: "PHOTO" | "VIDEO";
   first_recorda_id: string;
 };
+
 export type MonthlyCalendarResponse = {
   year: number;
   month: number;
@@ -15,6 +16,7 @@ export type MonthlyCalendarResponse = {
   active_days_count: number;
   days: CalendarDaySummary[];
 };
+
 // Provisional extension of the existing Recorda wire contract; confirm with backend.
 export type DayRecordaDetail = RecordaDetailResponse & {
   thumbnail_url: string;
@@ -22,6 +24,7 @@ export type DayRecordaDetail = RecordaDetailResponse & {
   comments_count: number;
   formatted_time: string;
 };
+
 export type DailyMemoriesResponse = {
   date: string;
   total_count: number;
@@ -29,6 +32,7 @@ export type DailyMemoriesResponse = {
   previous_date_with_memories: string | null;
   next_date_with_memories: string | null;
 };
+
 export type MemoryCalendarService = {
   getMonthCalendar: (
     year: number,

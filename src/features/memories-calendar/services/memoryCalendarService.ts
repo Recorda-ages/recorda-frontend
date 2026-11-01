@@ -1,5 +1,6 @@
 import { authApiClient } from "@/services/api";
 import { ApiError } from "@/services/api/errors";
+
 import { memoryCalendarMock } from "../mocks/memoryCalendarMock";
 import type {
   DailyMemoriesResponse,
@@ -20,7 +21,9 @@ const apiAdapter: MemoryCalendarService = {
       { signal }
     )
 };
+
 type Options = { mock?: boolean; fallbackToMock?: boolean };
+
 export function createMemoryCalendarService(options: Options = {}): MemoryCalendarService {
   async function read<T>(
     live: () => Promise<T>,
@@ -62,6 +65,7 @@ export function createMemoryCalendarService(options: Options = {}): MemoryCalend
     }
   };
 }
+
 export const memoryCalendarService = createMemoryCalendarService({
   mock: process.env.EXPO_PUBLIC_MEMORY_CALENDAR_MOCK === "true",
   fallbackToMock: process.env.EXPO_PUBLIC_MEMORY_CALENDAR_MOCK_FALLBACK === "true"

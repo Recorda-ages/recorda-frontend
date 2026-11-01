@@ -11,6 +11,7 @@ const dates = [
   "2026-10-29",
   "2026-11-02"
 ];
+
 function createMemories(date: string, index: number): DayRecordaDetail[] {
   return Array.from({ length: (index % 3) + 1 }, (_, post) => {
     const id = `memory-${date}-${post + 1}`;
@@ -56,10 +57,12 @@ function createMemories(date: string, index: number): DayRecordaDetail[] {
     };
   });
 }
+
 // Recreated on every read so callers cannot mutate shared fixtures.
 function entries() {
   return dates.map((date, index) => ({ date, memories: createMemories(date, index) }));
 }
+
 export const memoryCalendarMock: MemoryCalendarService = {
   async getMonthCalendar(year, month, signal) {
     assertMonth(year, month);

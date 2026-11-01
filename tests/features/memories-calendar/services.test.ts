@@ -4,7 +4,9 @@ import { authApiClient } from "@/services/api";
 import { ApiError } from "@/services/api/errors";
 
 jest.mock("@/services/api", () => ({ authApiClient: { get: jest.fn() } }));
+
 const get = jest.mocked(authApiClient.get);
+
 beforeEach(() => get.mockReset());
 
 it("requests month and day through the authenticated client with cancellation", async () => {
@@ -20,6 +22,7 @@ it("requests month and day through the authenticated client with cancellation", 
   });
   expect(get).toHaveBeenNthCalledWith(2, "/users/me/calendar/day?date=2026-10-03", { signal });
 });
+
 it("uses explicit mocks without HTTP and keeps month and daily details consistent", async () => {
   const service = createMemoryCalendarService({ mock: true });
   const month = await service.getMonthCalendar(2026, 10);
@@ -35,6 +38,7 @@ it("uses explicit mocks without HTTP and keeps month and daily details consisten
   }
   expect(get).not.toHaveBeenCalled();
 });
+
 it("returns isolated fixtures and navigation across months and empty days", async () => {
   const first = await memoryCalendarMock.getDayMemories("2026-10-01");
   expect(first.previous_date_with_memories).toBe("2026-09-30");
@@ -54,6 +58,7 @@ it("returns isolated fixtures and navigation across months and empty days", asyn
     (await memoryCalendarMock.getDayMemories("2026-11-02")).next_date_with_memories
   ).toBeNull();
 });
+
 it("falls back only when explicitly enabled for network errors", async () => {
   const error = new ApiError("NETWORK_ERROR", "offline", 0, null);
   get.mockRejectedValue(error);
@@ -62,6 +67,7 @@ it("falls back only when explicitly enabled for network errors", async () => {
     createMemoryCalendarService({ fallbackToMock: true }).getDayMemories("2026-10-03")
   ).resolves.toMatchObject({ total_count: 3 });
 });
+
 it.each([401, 403, 404, 500, 408])("propagates HTTP %s even with fallback", async (status) => {
   const error = new ApiError("REQUEST_FAILED", "failed", status, null);
   get.mockRejectedValue(error);
@@ -69,6 +75,7 @@ it.each([401, 403, 404, 500, 408])("propagates HTTP %s even with fallback", asyn
     createMemoryCalendarService({ fallbackToMock: true }).getMonthCalendar(2026, 10)
   ).rejects.toBe(error);
 });
+
 it("rejects invalid inputs before HTTP and respects cancellation in mock mode", async () => {
   const service = createMemoryCalendarService({ mock: true });
   await expect(service.getMonthCalendar(2026, 13)).rejects.toBeInstanceOf(RangeError);
@@ -80,6 +87,7 @@ it("rejects invalid inputs before HTTP and respects cancellation in mock mode", 
   });
   expect(get).not.toHaveBeenCalled();
 });
+
 it("does not turn an aborted live request into mock data", async () => {
   const controller = new AbortController();
   get.mockImplementationOnce(async () => {
@@ -115,6 +123,7 @@ it("ignores mock and fallback flags in production", async () => {
     });
   }
 });
+
 it("keeps mock times chronological and includes both media types in the mosaic", async () => {
   const month = await memoryCalendarMock.getMonthCalendar(2026, 10);
   expect(new Set(month.days.map((day) => day.media_type))).toEqual(new Set(["PHOTO", "VIDEO"]));
@@ -145,6 +154,7 @@ it.each([
   );
   expect(get).not.toHaveBeenCalled();
 });
+
 it.each(["2000-02-29", "2024-02-29", "2026-04-30", "2026-12-31"])(
   "accepts valid calendar boundary %s",
   async (date) => {

@@ -22,6 +22,7 @@ import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { feedService } from "@/features/feed/services/feedService";
 import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
+import { monthCalendarQueryKey } from "@/features/memories-calendar/queryKeys";
 import { i18n } from "@/i18n";
 import { authApiClient } from "@/services/api";
 import { fontFamily } from "@/theme";
@@ -270,6 +271,7 @@ describe("PublishedRecordaScreen", () => {
     );
     mockRoute.params.postId = recordaId;
     renderScreen(item);
+    queryClient.setQueryData(monthCalendarQueryKey(2026, 1), { days: [] });
     fireEvent.press(screen.getByText("Open API item"));
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
@@ -284,6 +286,7 @@ describe("PublishedRecordaScreen", () => {
       expect(screen.getByTestId("remaining-posts").props.children).not.toContain(recordaId)
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(queryClient.getQueryState(monthCalendarQueryKey(2026, 1))?.isInvalidated).toBe(true);
   });
 
   it("only offers Not interested and Report for another author and opens the report dialog", () => {
