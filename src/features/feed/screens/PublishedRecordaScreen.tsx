@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { invalidateMemoryCalendar } from "@/features/memories-calendar/queryKeys";
 import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 import { useReportDialog } from "@/features/moderation";
 import { colors, spacing } from "@/theme";
@@ -85,6 +86,7 @@ export function PublishedRecordaScreen() {
       queryClient.removeQueries({ queryKey: recordaCommentsQueryKey(params.postId) });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      void invalidateMemoryCalendar(queryClient);
       navigation.goBack();
     }
   });

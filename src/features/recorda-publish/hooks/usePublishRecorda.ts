@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
 import { queryClient } from "@/app/providers/queryClient";
+import { invalidateMemoryCalendar } from "@/features/memories-calendar/queryKeys";
 
 import { createRecorda, uploadRecordaMedia } from "../api/recordaPublishApi";
 import type { PublishRecordaDraft } from "../types";
@@ -51,6 +52,7 @@ export function usePublishRecorda(): UsePublishRecordaResult {
       });
       // A atualização do feed não deve atrasar nem reverter um POST concluído.
       void queryClient.invalidateQueries({ queryKey: ["feed"] }).catch(() => undefined);
+      void invalidateMemoryCalendar(queryClient).catch(() => undefined);
 
       // Ends here on purpose: navigating to the Feed (team decision, not the
       // Profile originally described) and clearing the draft are the caller's job.

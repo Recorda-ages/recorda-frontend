@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { queryClient } from "@/app/providers/queryClient";
 
+import { MEMORY_CALENDAR_QUERY_KEY } from "@/features/memories-calendar/queryKeys";
 import {
   createRecorda,
   uploadRecordaMedia
@@ -85,6 +86,7 @@ describe("usePublishRecorda", () => {
 
     expect(result.current.status).toBe("success");
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["feed"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: MEMORY_CALENDAR_QUERY_KEY });
   });
 
   it("keeps publication successful if refreshing the feed fails", async () => {
