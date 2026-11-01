@@ -43,6 +43,53 @@ function swipeTo(index: number) {
   });
 }
 
+// A single finger moving vertically, in the shape PanResponder reads from touchHistory.
+function touchEvent(pageY: number, previousPageY: number, timestamp: number) {
+  return {
+    nativeEvent: { changedTouches: [], pageX: 0, pageY, timestamp, touches: [] },
+    touchHistory: {
+      indexOfSingleActiveTouch: 0,
+      mostRecentTimeStamp: timestamp,
+      numberActiveTouches: 1,
+      touchBank: [
+        {
+          currentPageX: 0,
+          currentPageY: pageY,
+          currentTimeStamp: timestamp,
+          previousPageX: 0,
+          previousPageY,
+          previousTimeStamp: timestamp - 1,
+          startPageX: 0,
+          startPageY: 0,
+          startTimeStamp: 0,
+          touchActive: true
+        }
+      ]
+    }
+  };
+}
+
+const NEGOTIATION_OFFSET = 20;
+
+// Drives the responder handlers directly: the viewer only claims the gesture on move
+// (onStartShouldSetResponder is false), which fireEvent treats as a disabled target.
+// As on a device, a first small move negotiates the gesture: the capture phase updates
+// the gesture state that the bubbling check then reads.
+function pullDown(distance: number, durationMs: number) {
+  const { props } = screen.getByTestId("day-memories-viewer");
+  const offset = Math.sign(distance) * NEGOTIATION_OFFSET;
+  const start = touchEvent(offset, 0, 100);
+  props.onMoveShouldSetResponderCapture(start);
+  const claimed: boolean = props.onMoveShouldSetResponder(start);
+  if (!claimed) return false;
+  act(() => {
+    props.onResponderGrant(start);
+    props.onResponderMove(touchEvent(offset + distance, offset, durationMs));
+    props.onResponderRelease(touchEvent(offset + distance, offset + distance, durationMs + 1));
+  });
+  return true;
+}
+
 function selectedSegment() {
   return screen
     .getAllByTestId(/^day-pagination-segment-/)
@@ -135,12 +182,47 @@ it("closes from the X button and stops the audio", async () => {
   expect(mockAudioPlayer.pause).toHaveBeenCalled();
 });
 
-it("shows a translated error and keeps the close button", async () => {
-  getDayMemories.mockRejectedValue(new Error("offline"));
+it("closes on a long pull down and releases the audio", async () => {
+  const { onClose } = renderViewer();
+  await screen.findByTestId("day-memories-carousel");
+  mockAudioPlayer.pause.mockClear();
+
+  expect(pullDown(200, 1000)).toBe(true);
+
+  expect(onClose).toHaveBeenCalledTimes(1);
+  expect(mockAudioPlayer.pause).toHaveBeenCalled();
+});
+
+it("stays open after a short, slow pull down", async () => {
+  const { onClose } = renderViewer();
+  await screen.findByTestId("day-memories-carousel");
+
+  // The gesture is claimed (vertical, downwards) but too short and slow to dismiss.
+  expect(pullDown(40, 1000)).toBe(true);
+
+  expect(onClose).not.toHaveBeenCalled();
+  expect(screen.getByTestId("day-memories-carousel")).toBeTruthy();
+});
+
+it("leaves upward drags to the content", async () => {
+  const { onClose } = renderViewer();
+  await screen.findByTestId("day-memories-carousel");
+
+  expect(pullDown(-200, 1000)).toBe(false);
+  expect(onClose).not.toHaveBeenCalled();
+});
+
+it("shows a translated error that can be retried, keeping the close button", async () => {
+  getDayMemories.mockRejectedValueOnce(new Error("offline"));
   renderViewer();
 
   expect(await screen.findByText("Não foi possível carregar as memórias deste dia.")).toBeTruthy();
   expect(screen.getByLabelText("Fechar")).toBeTruthy();
+
+  fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+
+  expect(await screen.findByTestId("day-memories-carousel")).toBeTruthy();
+  expect(getDayMemories).toHaveBeenCalledTimes(2);
 });
 
 it("renders nothing while not visible", () => {
@@ -174,6 +256,8 @@ it("keeps the play button disabled while the preview link is not loaded", async 
   await screen.findByTestId("day-memories-carousel");
 
   expect(screen.getByTestId("music-preview-toggle")).toBeDisabled();
+  // Nothing plays yet, so the pill does not offer to pause.
+  expect(screen.getByLabelText("Tocar música")).toBeTruthy();
   expect(mockAudioPlayer.play).not.toHaveBeenCalled();
 });
 

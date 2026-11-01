@@ -12,7 +12,6 @@ import {
   Pressable,
   type StyleProp,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
   type ViewStyle
@@ -20,8 +19,9 @@ import {
 import { Icon } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AppText, Button } from "@/components/ui";
 import { authApiClient, isApiUrl } from "@/services/api";
-import { baseColors, radius, spacing, typography, withOpacity } from "@/theme";
+import { baseColors, radius, spacing, withOpacity } from "@/theme";
 
 import { useDayMemories } from "../hooks/useDayMemories";
 import type { DayRecordaDetail } from "../types";
@@ -63,7 +63,7 @@ function ViewerContent({
   const { height, width } = useWindowDimensions();
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { data, isError, isLoading } = useDayMemories(currentDate);
+  const { data, isError, isLoading, isRefetching, refetch } = useDayMemories(currentDate);
   const memories = data?.memories ?? [];
   const previousDate = data?.previous_date_with_memories ?? null;
   const nextDate = data?.next_date_with_memories ?? null;
@@ -96,10 +96,20 @@ function ViewerContent({
     >
       {isLoading ? (
         <ActivityIndicator color={baseColors.white} style={styles.centered} />
-      ) : isError || memories.length === 0 ? (
-        <Text style={[styles.centered, styles.message]}>
-          {isError ? t("memoriesCalendar.viewer.error") : t("memoriesCalendar.viewer.empty")}
-        </Text>
+      ) : isError ? (
+        <View style={[styles.centered, styles.feedback]}>
+          <AppText style={styles.message}>{t("memoriesCalendar.viewer.error")}</AppText>
+          <Button
+            disabled={isRefetching}
+            label={t("memoriesCalendar.viewer.retry")}
+            onPress={() => void refetch()}
+            variant="secondary"
+          />
+        </View>
+      ) : memories.length === 0 ? (
+        <AppText style={[styles.centered, styles.message]}>
+          {t("memoriesCalendar.viewer.empty")}
+        </AppText>
       ) : (
         <FlatList
           data={memories}
@@ -161,7 +171,8 @@ function ViewerContent({
             artist={active.song_artist_name}
             canPlay={preview.isLoaded}
             coverUrl={active.song_cover_url}
-            isPlaying={preview.isPlaying}
+            // Until the preview loads nothing is playing, whatever the pause state says.
+            isPlaying={preview.isPlaying && preview.isLoaded}
             onToggle={preview.toggle}
             title={active.song_title}
           />
@@ -299,8 +310,11 @@ const styles = StyleSheet.create({
     backgroundColor: baseColors.black,
     flex: 1
   },
+  feedback: {
+    gap: spacing[4],
+    paddingHorizontal: spacing[6]
+  },
   message: {
-    ...typography.body1,
     color: baseColors.white,
     paddingHorizontal: spacing[6],
     textAlign: "center"

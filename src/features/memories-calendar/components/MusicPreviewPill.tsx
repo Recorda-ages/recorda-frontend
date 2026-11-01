@@ -1,9 +1,10 @@
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
-import { baseColors, colors, radius, spacing, typography, withOpacity } from "@/theme";
+import { AppText } from "@/components/ui";
+import { baseColors, colors, radius, spacing, withOpacity } from "@/theme";
 
 type MusicPreviewPillProps = Readonly<{
   artist: string;
@@ -29,12 +30,12 @@ export function MusicPreviewPill({
     <View style={styles.pill} testID="music-preview-pill">
       <Image source={{ uri: coverUrl }} style={styles.cover} />
       <View style={styles.texts}>
-        <Text numberOfLines={1} style={styles.title}>
+        <AppText numberOfLines={1} style={styles.title} variant="buttonSmall">
           {title}
-        </Text>
-        <Text numberOfLines={1} style={styles.artist}>
+        </AppText>
+        <AppText numberOfLines={1} style={styles.artist} variant="body2">
           {artist}
-        </Text>
+        </AppText>
       </View>
       <Pressable
         accessibilityLabel={
@@ -56,7 +57,6 @@ export function MusicPreviewPill({
 
 const styles = StyleSheet.create({
   artist: {
-    ...typography.body2,
     color: colors.neutrals[300]
   },
   cover: {
@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     flex: 1
   },
   title: {
-    ...typography.buttonSmall,
     color: baseColors.white
   },
   toggle: {

@@ -787,6 +787,7 @@
       "play": "Play song",
       "pause": "Pause song",
       "error": "Could not load this day’s memories.",
+      "retry": "Try again",
       "empty": "No memories on this day."
     }
   }

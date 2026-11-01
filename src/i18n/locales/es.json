@@ -787,6 +787,7 @@
       "play": "Reproducir canción",
       "pause": "Pausar canción",
       "error": "No se pudieron cargar los recuerdos de este día.",
+      "retry": "Intentar de nuevo",
       "empty": "No hay recuerdos en este día."
     }
   }

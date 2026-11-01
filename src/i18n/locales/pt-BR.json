@@ -790,6 +790,7 @@
       "play": "Tocar música",
       "pause": "Pausar música",
       "error": "Não foi possível carregar as memórias deste dia.",
+      "retry": "Tentar novamente",
       "empty": "Nenhuma memória neste dia."
     }
   }

@@ -1,10 +1,11 @@
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import { AppText } from "@/components/ui";
 import { resolveApiAssetUrl, useAuthImageSource, type AuthImageSource } from "@/services/api";
-import { baseColors, spacing, typography, withOpacity } from "@/theme";
+import { baseColors, spacing, withOpacity } from "@/theme";
 
 import type { DayRecordaDetail } from "../types";
 
@@ -27,11 +28,13 @@ export function DayMemorySlide({ height, isActive, memory, width }: DayMemorySli
         <Image contentFit="cover" source={source} style={StyleSheet.absoluteFill} />
       )}
       <View style={styles.caption}>
-        <Text style={styles.time}>{memory.formatted_time}</Text>
+        <AppText style={styles.time} variant="buttonSmall">
+          {memory.formatted_time}
+        </AppText>
         {memory.description ? (
-          <Text numberOfLines={3} style={styles.description}>
+          <AppText numberOfLines={3} style={styles.description}>
             {memory.description}
-          </Text>
+          </AppText>
         ) : null}
       </View>
     </View>
@@ -76,11 +79,9 @@ const styles = StyleSheet.create({
     right: 0
   },
   description: {
-    ...typography.body1,
     color: baseColors.white
   },
   time: {
-    ...typography.buttonSmall,
     color: baseColors.white
   }
 });
