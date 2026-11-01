@@ -14,7 +14,10 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Button, ErrorState, Loading } from "@/components/ui";
 import { ACCOUNT_QUERY_KEY } from "@/features/account/queryKeys";
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { USER_SUGGESTIONS_QUERY_KEY } from "@/features/follow/queryKeys";
+import { profileQueryKey } from "@/features/profile/queryKeys";
+import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 import { baseColors, spacing } from "@/theme";
 
 import {
@@ -100,6 +103,9 @@ export function EditMusicPreferencesWizard({
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const queryClient = useQueryClient();
+  const myUserId = useCurrentUser()?.user_id;
+  // Who saved, and in which session: the profile is refreshed only if it is still theirs.
+  const saveSession = useRef<{ generation: number; userId: string | undefined } | null>(null);
 
   const [draft, setDraft] = useState<MusicPreferences>(initialPreferences);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -147,13 +153,30 @@ export function EditMusicPreferencesWizard({
     navigation.dispatch(action);
   }, [allowRemoval, navigation]);
 
+  const savePreferences = (preferences: MusicPreferences) => {
+    saveSession.current = { generation: getSessionGeneration(), userId: myUserId };
+    return saveMusicPreferences(preferences);
+  };
+
   const finishEditing = async () => {
     queryClient.setQueryData(MUSIC_PREFERENCES_QUERY_KEY, draft);
+    const session = saveSession.current;
+    // The profile's favorite song comes from these preferences; its chips already read
+    // the preferences cache set above.
+    const profileUserId =
+      session?.userId && session.generation === getSessionGeneration() ? session.userId : undefined;
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ACCOUNT_QUERY_KEY }),
       queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY }),
       queryClient.invalidateQueries({ queryKey: USER_SUGGESTIONS_QUERY_KEY }),
-      queryClient.invalidateQueries({ queryKey: ["feed", "general"] })
+      queryClient.invalidateQueries({ queryKey: ["feed", "general"] }),
+      profileUserId
+        ? queryClient.invalidateQueries({
+            // Only the profile (favorite song); the Recordas grid did not change.
+            exact: true,
+            queryKey: profileQueryKey(profileUserId)
+          })
+        : Promise.resolve()
     ]);
 
     const state = navigation.getState();
@@ -202,7 +225,7 @@ export function EditMusicPreferencesWizard({
       onBack={() => setStep(2)}
       onComplete={finishEditing}
       onSelectTrack={(track) => setDraft((current) => ({ ...current, track }))}
-      savePreferences={saveMusicPreferences}
+      savePreferences={savePreferences}
       searchTracks={searchTracks}
       selectedArtists={draft.artists}
       selectedGenres={draft.genres}
