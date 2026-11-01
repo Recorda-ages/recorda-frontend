@@ -780,6 +780,20 @@
     "loadError": "Unable to load your metrics. Please try again."
   },
   "memoriesCalendar": {
+    "grid": {
+      "monthTitle": "{{month}} {{year}}",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "summary": "{{memories}} across {{days}}",
+      "summaryEmpty": "No memories this month",
+      "memories_one": "{{count}} memory",
+      "memories_other": "{{count}} memories",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "dayLabel_one": "{{date}}, {{count}} memory",
+      "dayLabel_other": "{{date}}, {{count}} memories",
+      "extraMemories": "+{{extra}}"
+    },
     "viewer": {
       "close": "Close",
       "previousDay": "Previous day",
