@@ -776,5 +776,7 @@
       "es": "Español"
     }
   },
-  "memoriesMetrics": { "loadError": "Unable to load your metrics. Please try again." }
+  "memoriesMetrics": {
+    "loadError": "Unable to load your metrics. Please try again."
+  }
 }

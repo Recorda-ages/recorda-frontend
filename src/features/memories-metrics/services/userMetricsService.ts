@@ -1,11 +1,23 @@
 import { authApiClient } from "@/services/api";
 
-import type { ProfileMetricsResponse } from "../types";
+import { userMetricsServiceMock } from "../mocks/metricsMock";
+import type { ProfileMetricsResponse, UserMetricsService } from "../types";
 
-export const userMetricsService = {
-  getProfileMetrics: (period: string, signal?: AbortSignal) =>
+const apiService: UserMetricsService = {
+  getProfileMetrics: (period, signal) =>
     authApiClient.get<ProfileMetricsResponse>(
       `/users/me/metrics?bundle=profile&period=${encodeURIComponent(period)}`,
       { signal }
     )
 };
+
+type Options = { mock?: boolean };
+
+// The fixtures are opt-in and development-only: API failures never switch to them.
+export function createUserMetricsService(options: Options = {}): UserMetricsService {
+  return __DEV__ && options.mock ? userMetricsServiceMock : apiService;
+}
+
+export const userMetricsService = createUserMetricsService({
+  mock: process.env.EXPO_PUBLIC_MEMORY_METRICS_MOCK === "true"
+});

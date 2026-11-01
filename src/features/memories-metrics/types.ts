@@ -21,3 +21,7 @@ export type ProfileMetricsResponse = {
   top_genres: TopGenreItem[];
   streak: DailyStreakMetric;
 };
+
+export type UserMetricsService = {
+  getProfileMetrics: (period: string, signal?: AbortSignal) => Promise<ProfileMetricsResponse>;
+};

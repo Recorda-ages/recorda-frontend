@@ -1,4 +1,4 @@
-import type { ProfileMetricsResponse } from "../types";
+import type { ProfileMetricsResponse, UserMetricsService } from "../types";
 
 export const profileMetricsMock = {
   period: "30d",
@@ -18,13 +18,14 @@ export const emptyProfileMetricsMock: ProfileMetricsResponse = {
   streak: { current_streak_days: 0, last_post_date: null }
 };
 
-export const userMetricsServiceMock = {
+export const userMetricsServiceMock: UserMetricsService = {
   // shortcut: fixed sample totals for every period; replace when real period fixtures are available.
-  getProfileMetrics: async (period: string): Promise<ProfileMetricsResponse> => ({
-    ...profileMetricsMock,
-    period,
-    top_artist: { ...profileMetricsMock.top_artist },
-    top_genres: profileMetricsMock.top_genres.map((genre) => ({ ...genre })),
-    streak: { ...profileMetricsMock.streak }
-  })
+  getProfileMetrics: (period) =>
+    Promise.resolve({
+      ...profileMetricsMock,
+      period,
+      top_artist: { ...profileMetricsMock.top_artist },
+      top_genres: profileMetricsMock.top_genres.map((genre) => ({ ...genre })),
+      streak: { ...profileMetricsMock.streak }
+    })
 };

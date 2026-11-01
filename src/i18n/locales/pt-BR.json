@@ -779,5 +779,7 @@
       "es": "Español"
     }
   },
-  "memoriesMetrics": { "loadError": "Não foi possível carregar suas métricas. Tente novamente." }
+  "memoriesMetrics": {
+    "loadError": "Não foi possível carregar suas métricas. Tente novamente."
+  }
 }

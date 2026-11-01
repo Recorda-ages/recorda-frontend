@@ -4,13 +4,14 @@ import { useTranslation } from "react-i18next";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { ApiError } from "@/services/api";
 
+import { profileMetricsQueryKey } from "../queryKeys";
 import { userMetricsService } from "../services/userMetricsService";
 
 export function useUserMetrics(period: string) {
   const currentUser = useCurrentUser();
   const { t } = useTranslation();
   const query = useQuery({
-    queryKey: ["user-metrics", "profile", currentUser?.user_id ?? null, period],
+    queryKey: profileMetricsQueryKey(currentUser?.user_id ?? null, period),
     queryFn: ({ signal }) => userMetricsService.getProfileMetrics(period, signal),
     enabled: Boolean(currentUser),
     retry: (failureCount, error) =>

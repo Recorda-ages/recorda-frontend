@@ -9,7 +9,10 @@ import {
   profileMetricsMock,
   userMetricsServiceMock
 } from "@/features/memories-metrics/mocks/metricsMock";
-import { userMetricsService } from "@/features/memories-metrics/services/userMetricsService";
+import {
+  createUserMetricsService,
+  userMetricsService
+} from "@/features/memories-metrics/services/userMetricsService";
 import type { ProfileMetricsResponse } from "@/features/memories-metrics/types";
 import { i18n } from "@/i18n";
 import { ApiError, authApiClient } from "@/services/api";
@@ -54,6 +57,41 @@ describe("userMetricsService", () => {
     const error = new ApiError("UNAVAILABLE", "Internal details", 503, null);
     mockGet.mockRejectedValueOnce(error);
     await expect(userMetricsService.getProfileMetrics("30d")).rejects.toBe(error);
+  });
+
+  it("serves the fixtures without HTTP only when the mock is enabled", async () => {
+    await expect(
+      createUserMetricsService({ mock: true }).getProfileMetrics("7d")
+    ).resolves.toMatchObject({ period: "7d", top_artist: profileMetricsMock.top_artist });
+    expect(mockGet).not.toHaveBeenCalled();
+
+    mockGet.mockResolvedValueOnce(emptyProfileMetricsMock);
+    await expect(createUserMetricsService().getProfileMetrics("7d")).resolves.toBe(
+      emptyProfileMetricsMock
+    );
+    expect(mockGet).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores the mock flag in production", async () => {
+    const development = __DEV__;
+    Object.defineProperty(globalThis, "__DEV__", {
+      value: false,
+      configurable: true,
+      writable: true
+    });
+    try {
+      mockGet.mockResolvedValueOnce(emptyProfileMetricsMock);
+      await expect(createUserMetricsService({ mock: true }).getProfileMetrics("30d")).resolves.toBe(
+        emptyProfileMetricsMock
+      );
+      expect(mockGet).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(globalThis, "__DEV__", {
+        value: development,
+        configurable: true,
+        writable: true
+      });
+    }
   });
 });
 
