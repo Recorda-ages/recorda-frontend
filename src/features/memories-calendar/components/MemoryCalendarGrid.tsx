@@ -114,21 +114,21 @@ export function MemoryCalendarGrid({
           ))}
         </View>
 
-        {weeks.map((week, index) => (
-          <View key={index} style={styles.row} testID="calendar-week">
-            {week.map((slot, column) =>
-              slot ? (
+        {weeks.map((week) => (
+          <View key={week.id} style={styles.row} testID="calendar-week">
+            {week.slots.map((slot) =>
+              slot.kind === "day" ? (
                 <CalendarDayThumbnailCell
                   accessibilityDate={formatDay(year, month, slot.day)}
                   date={slot.date}
                   day={slot.day}
-                  key={slot.date}
+                  key={slot.id}
                   onSelect={selectDay}
                   selected={slot.date === selectedDate}
                   summary={daysByDate.get(slot.date)}
                 />
               ) : (
-                <View key={`blank-${column}`} style={styles.blank} testID="calendar-blank-day" />
+                <View key={slot.id} style={styles.blank} testID="calendar-blank-day" />
               )
             )}
           </View>

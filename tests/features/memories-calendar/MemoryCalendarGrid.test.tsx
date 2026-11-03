@@ -8,6 +8,7 @@ import { PaperProvider } from "react-native-paper";
 import { MemoryCalendarGrid } from "@/features/memories-calendar/components/MemoryCalendarGrid";
 import { memoryCalendarMock } from "@/features/memories-calendar/mocks/memoryCalendarMock";
 import type { MonthlyCalendarResponse } from "@/features/memories-calendar/types";
+import { buildCalendarWeeks } from "@/features/memories-calendar/utils/calendarMonth";
 import { i18n } from "@/i18n";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
 import { paperTheme } from "@/theme";
@@ -285,6 +286,35 @@ describe("MemoryCalendarGrid", () => {
     expect(screen.getAllByTestId(/^calendar-day-thumbnail-/)).toHaveLength(1);
     expect(screen.getByTestId("calendar-day-thumbnail-2026-11-02")).toBeTruthy();
     expect(mockImageMount).toHaveBeenCalledTimes(6);
+  });
+
+  it("gives every week and empty slot its own id, the same on every render", () => {
+    const weeks = buildCalendarWeeks(2026, 8);
+    const ids = weeks.flatMap((week) => [week.id, ...week.slots.map((slot) => slot.id)]);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(weeks.map((week) => week.id)).toEqual([
+      "2026-08-week-1",
+      "2026-08-week-2",
+      "2026-08-week-3",
+      "2026-08-week-4",
+      "2026-08-week-5",
+      "2026-08-week-6"
+    ]);
+    expect(weeks[0].slots.slice(0, 2).map((slot) => slot.id)).toEqual([
+      "2026-08-before-1",
+      "2026-08-before-2"
+    ]);
+    expect(weeks[5].slots.map((slot) => slot.id)).toEqual([
+      "2026-08-30",
+      "2026-08-31",
+      "2026-08-after-1",
+      "2026-08-after-2",
+      "2026-08-after-3",
+      "2026-08-after-4",
+      "2026-08-after-5"
+    ]);
+    expect(buildCalendarWeeks(2026, 8)).toEqual(weeks);
   });
 
   it("follows the app language", async () => {

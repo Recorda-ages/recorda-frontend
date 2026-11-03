@@ -1,4 +1,7 @@
-export type CalendarSlot = { date: string; day: number } | null;
+export type CalendarDaySlot = { date: string; day: number; id: string; kind: "day" };
+export type CalendarBlankSlot = { id: string; kind: "blank" };
+export type CalendarSlot = CalendarDaySlot | CalendarBlankSlot;
+export type CalendarWeek = { id: string; slots: CalendarSlot[] };
 
 const DAYS_IN_WEEK = 7;
 const FIRST_SUNDAY = new Date(2023, 0, 1, 12);
@@ -19,22 +22,30 @@ export function getFirstWeekday(year: number, month: number) {
   return new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
 }
 
-export function buildCalendarWeeks(year: number, month: number): CalendarSlot[][] {
+export function buildCalendarWeeks(year: number, month: number): CalendarWeek[] {
+  const monthKey = toDateKey(year, month, 1).slice(0, 7);
+  const leading = getFirstWeekday(year, month);
+  const days = getDaysInMonth(year, month);
+  const trailing = (DAYS_IN_WEEK - ((leading + days) % DAYS_IN_WEEK)) % DAYS_IN_WEEK;
+
+  const blank = (position: "after" | "before", index: number): CalendarBlankSlot => ({
+    id: `${monthKey}-${position}-${index + 1}`,
+    kind: "blank"
+  });
+
   const slots: CalendarSlot[] = [
-    ...Array.from({ length: getFirstWeekday(year, month) }, () => null),
-    ...Array.from({ length: getDaysInMonth(year, month) }, (_, index) => ({
-      date: toDateKey(year, month, index + 1),
-      day: index + 1
-    }))
+    ...Array.from({ length: leading }, (_, index) => blank("before", index)),
+    ...Array.from({ length: days }, (_, index): CalendarDaySlot => {
+      const date = toDateKey(year, month, index + 1);
+      return { date, day: index + 1, id: date, kind: "day" };
+    }),
+    ...Array.from({ length: trailing }, (_, index) => blank("after", index))
   ];
 
-  while (slots.length % DAYS_IN_WEEK !== 0) {
-    slots.push(null);
-  }
-
-  return Array.from({ length: slots.length / DAYS_IN_WEEK }, (_, week) =>
-    slots.slice(week * DAYS_IN_WEEK, (week + 1) * DAYS_IN_WEEK)
-  );
+  return Array.from({ length: slots.length / DAYS_IN_WEEK }, (_, week) => ({
+    id: `${monthKey}-week-${week + 1}`,
+    slots: slots.slice(week * DAYS_IN_WEEK, (week + 1) * DAYS_IN_WEEK)
+  }));
 }
 
 export function shiftMonth(year: number, month: number, delta: number) {
