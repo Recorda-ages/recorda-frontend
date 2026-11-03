@@ -780,6 +780,20 @@
     "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo."
   },
   "memoriesCalendar": {
+    "grid": {
+      "monthTitle": "{{month}} {{year}}",
+      "previousMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "summary": "{{memories}} en {{days}}",
+      "summaryEmpty": "Ningún recuerdo este mes",
+      "memories_one": "{{count}} recuerdo",
+      "memories_other": "{{count}} recuerdos",
+      "days_one": "{{count}} día",
+      "days_other": "{{count}} días",
+      "dayLabel_one": "{{date}}, {{count}} recuerdo",
+      "dayLabel_other": "{{date}}, {{count}} recuerdos",
+      "extraMemories": "+{{extra}}"
+    },
     "viewer": {
       "close": "Cerrar",
       "previousDay": "Día anterior",
