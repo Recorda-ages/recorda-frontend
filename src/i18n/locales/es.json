@@ -898,5 +898,49 @@
       "retry": "Intentar de nuevo",
       "empty": "No hay recuerdos en este día."
     }
+  },
+  "retrospective": {
+    "open": "Abrir retrospectiva",
+    "title": "Tu retrospectiva",
+    "close": "Cerrar",
+    "previous": "Diapositiva anterior",
+    "next": "Siguiente diapositiva",
+    "step": "Paso {{current}} de {{total}}",
+    "featuredSong": "Canción destacada",
+    "recordasCount_one": "{{count}} Recorda",
+    "recordasCount_other": "{{count}} Recordas",
+    "total": {
+      "eyebrow": "Tu período en música",
+      "title_one": "{{count}} Recorda",
+      "title_other": "{{count}} Recordas",
+      "subtitle": "Momentos que encontraron una canción para quedarse."
+    },
+    "artists": {
+      "eyebrow": "Quién más sonó",
+      "subtitle": "Los artistas más presentes en tus Recordas.",
+      "empty": "Sin artistas en este período"
+    },
+    "genres": {
+      "eyebrow": "Tus estilos",
+      "title": "Géneros musicales",
+      "subtitle": "Cómo sonó tu período."
+    },
+    "tagged": {
+      "eyebrow": "Quién estuvo contigo",
+      "title": "Más etiquetados",
+      "empty": "Nadie fue etiquetado en este período.",
+      "count_one": "{{count}} etiqueta",
+      "count_other": "{{count}} etiquetas"
+    },
+    "engagement": {
+      "eyebrow": "Tu alcance",
+      "title": "Interacción",
+      "subtitle": "Lo que recibieron tus Recordas y tu racha más larga.",
+      "likes": "Me gusta",
+      "comments": "Comentarios",
+      "streak": "Racha más larga",
+      "days_one": "{{count}} día",
+      "days_other": "{{count}} días"
+    }
   }
 }

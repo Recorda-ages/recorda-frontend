@@ -898,5 +898,49 @@
       "retry": "Try again",
       "empty": "No memories on this day."
     }
+  },
+  "retrospective": {
+    "open": "Open recap",
+    "title": "Your recap",
+    "close": "Close",
+    "previous": "Previous slide",
+    "next": "Next slide",
+    "step": "Step {{current}} of {{total}}",
+    "featuredSong": "Featured song",
+    "recordasCount_one": "{{count}} Recorda",
+    "recordasCount_other": "{{count}} Recordas",
+    "total": {
+      "eyebrow": "Your period in music",
+      "title_one": "{{count}} Recorda",
+      "title_other": "{{count}} Recordas",
+      "subtitle": "Moments that found a song to stay."
+    },
+    "artists": {
+      "eyebrow": "Who played the most",
+      "subtitle": "The artists most present in your Recordas.",
+      "empty": "No artists in this period"
+    },
+    "genres": {
+      "eyebrow": "Your styles",
+      "title": "Music genres",
+      "subtitle": "How your period sounded."
+    },
+    "tagged": {
+      "eyebrow": "Who was there",
+      "title": "Most tagged",
+      "empty": "Nobody was tagged in this period.",
+      "count_one": "{{count}} tag",
+      "count_other": "{{count}} tags"
+    },
+    "engagement": {
+      "eyebrow": "Your reach",
+      "title": "Engagement",
+      "subtitle": "What your Recordas received and your longest streak.",
+      "likes": "Likes",
+      "comments": "Comments",
+      "streak": "Longest streak",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
+    }
   }
 }
