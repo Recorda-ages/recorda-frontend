@@ -149,6 +149,17 @@ afterEach(() => {
 });
 
 describe("MyProfileScreen", () => {
+  it("opens the retrospective story viewer from the top bar", async () => {
+    await renderLoaded();
+    expect(screen.queryByTestId("retrospective-screen")).toBeNull();
+
+    fireEvent.press(screen.getByLabelText("Abrir retrospectiva"));
+    expect(screen.getByTestId("retrospective-screen")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText("Fechar"));
+    expect(screen.queryByTestId("retrospective-screen")).toBeNull();
+  });
+
   it("shows the own profile: identity, counters and favorite song, without a follow button", async () => {
     await renderLoaded();
 
