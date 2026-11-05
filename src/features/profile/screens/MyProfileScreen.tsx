@@ -19,6 +19,9 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomTabBar";
+import { RetrospectiveButton } from "@/features/memories-retrospective/components/RetrospectiveButton";
+import { RetrospectiveScreen } from "@/features/memories-retrospective/screens/RetrospectiveScreen";
+import { retrospectiveStoryMock } from "@/features/memories-retrospective/storyData";
 import { getMusicPreferences } from "@/features/onboarding/api/music";
 import { MUSIC_PREFERENCES_QUERY_KEY } from "@/features/onboarding/queryKeys";
 import { colors, fontFamily, spacing } from "@/theme";
@@ -58,6 +61,7 @@ export function MyProfileScreen() {
   });
   const [activeTab, setActiveTab] = useState<ProfileTab>("recordas");
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const [isRetrospectiveOpen, setIsRetrospectiveOpen] = useState(false);
   const redirected = useRef(false);
 
   useEffect(() => {
@@ -101,7 +105,16 @@ export function MyProfileScreen() {
       <ProfileGlow centerY={insets.top + TOP_BAR_HEIGHT + PROFILE_AVATAR_CENTER_Y} />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <View style={styles.topBar}>
-          <View style={styles.barButton} />
+          {/* ponytail: só em dev, com dados simulados, até a FE.01 (#288) trazer a disponibilidade real. */}
+          {__DEV__ ? (
+            <RetrospectiveButton
+              onPress={() => setIsRetrospectiveOpen(true)}
+              size={BAR_ICON_SIZE}
+              style={styles.barButton}
+            />
+          ) : (
+            <View style={styles.barButton} />
+          )}
           <AppText numberOfLines={1} style={styles.topBarTitle} variant="headline4">
             {t("profile.title")}
           </AppText>
@@ -186,6 +199,12 @@ export function MyProfileScreen() {
         )}
       </SafeAreaView>
       <BottomTabBar activeTab="profile" onPress={handleTabBarPress} />
+      <RetrospectiveScreen
+        onClose={() => setIsRetrospectiveOpen(false)}
+        story={retrospectiveStoryMock}
+        title={t("retrospective.title")}
+        visible={isRetrospectiveOpen}
+      />
     </View>
   );
 }
