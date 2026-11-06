@@ -777,7 +777,27 @@
     }
   },
   "memoriesMetrics": {
-    "loadError": "Unable to load your metrics. Please try again."
+    "loadError": "Unable to load your metrics. Please try again.",
+    "widgets": {
+      "topArtist": {
+        "title": "Top artist",
+        "empty": "No top artist in this period yet.",
+        "photo": "Photo of {{name}}",
+        "countSingular": "{{count}} Recorda",
+        "countPlural": "{{count}} Recordas"
+      },
+      "topGenres": {
+        "title": "Top genres",
+        "empty": "No genres in this period yet."
+      },
+      "streak": {
+        "title": "Daily streak",
+        "none": "No active streak",
+        "daySingular": "day in a row",
+        "dayPlural": "days in a row",
+        "explanation": "The streak is daily and resets if a day ends without a post."
+      }
+    }
   },
   "memoriesCalendar": {
     "grid": {
