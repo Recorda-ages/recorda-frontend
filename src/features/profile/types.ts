@@ -2,9 +2,9 @@ import type { FeedItem } from "@/features/feed/types";
 import type { FollowStatus } from "@/features/follow";
 
 /**
- * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend. Já é a
- * resposta de `GET /users/me/profile` na `dev` do backend. O perfil de terceiros (#109)
- * usará o mesmo contrato quando existir (ver docs/issue-253.md).
+ * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend. É a resposta
+ * de `GET /users/me/profile` na `dev` e de `GET /users/{id}/profile` no backend PR #152, ainda
+ * não integrado (ver docs/issue-253.md e docs/issue-255.md).
  */
 export type ProfileRead = {
   can_view_content: boolean;

@@ -136,22 +136,9 @@ automatizados, mas falta conferir no aparelho:
 2. Publique uma Recorda e volte ao perfil.
 3. O contador deve subir 1 e a nova Recorda deve aparecer no topo, sem puxar para atualizar.
 
-## Integração futura com a US29 e o Draft PR #268
+## Integração com a US29 (#255)
 
-- O #268 foi criado sobre uma `dev` antiga e já tinha conflitos com ela. Ao retomá-lo:
-  - **`profileService.ts` e o teste dele:** juntar `getUserProfile` (terceiros) aos métodos
-    desta task, no mesmo objeto.
-  - **`types.ts` e `queryKeys.ts`:** manter a versão desta task, que acrescenta os tipos da
-    grade e a chave da grade sem mudar `ProfileRead` nem `profileQueryKey`.
-  - **`profile/index.ts`, traduções e `RootNavigator`:** conflitos simples de linhas
-    adjacentes. As chaves `comingSoon`, `loading`, `loadError` e `retry` têm os mesmos nomes
-    e textos nas duas tasks.
-  - **`ProfileHeader`:** manter a versão desta task; as mudanças são aditivas.
-  - **`FriendsScreen`:** descartar a mudança da US29. A `dev` já abre `Profile` para o
-    próprio usuário e `UserProfile` para os outros.
-  - **`useFollowMutation`:** reaplicar a invalidação de `["profile", userId]` sobre a versão
-    atual da `dev`, que agora tem controle de sessão.
-- **Melhorias possíveis para a `UserProfileScreen`:**
-  - trocar o "Em breve" da aba Recordas pela `RecordaGrid` com `useProfileRecordas(userId)`
-    quando `can_view_content` for verdadeiro;
-  - não passar chips de artistas e gêneros: não há fonte para terceiros.
+A US29 foi retomada sobre esta base no Draft PR #268. Os conflitos previstos aqui foram
+resolvidos no merge da `dev`, o mock de desenvolvimento foi removido e a aba Recordas do
+perfil de terceiros passou a usar a `RecordaGrid`. O estado atual está em
+[`docs/issue-255.md`](issue-255.md).
