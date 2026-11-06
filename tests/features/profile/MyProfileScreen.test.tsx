@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
@@ -188,6 +188,51 @@ describe("MyProfileScreen", () => {
     expect(screen.getByText("Natalia Yuk")).toBeTruthy();
     expect(screen.queryByTestId(/^profile-favorite-artist-/)).toBeNull();
     expect(screen.queryByText("Não foi possível carregar o perfil.")).toBeNull();
+  });
+
+  describe("streak badge", () => {
+    it("shows a single streak badge as the first information chip, without a hint after publishing today", async () => {
+      await renderLoaded();
+
+      expect(screen.getAllByTestId("profile-streak-active")).toHaveLength(1);
+      expect(
+        within(screen.getByTestId("profile-chips")).getByText("12 dias de streak")
+      ).toBeTruthy();
+      expect(screen.getByText("12 dias de streak")).toBeTruthy();
+      expect(screen.queryByTestId("profile-streak-hint")).toBeNull();
+    });
+
+    it("asks to publish today to keep the streak", async () => {
+      mockGetMyProfile.mockResolvedValue({
+        ...PROFILE,
+        streak: { current_days: 3, published_today: false }
+      });
+      await renderLoaded();
+
+      expect(screen.getByText("3 dias de streak")).toBeTruthy();
+      expect(screen.getByText("Publique hoje para manter")).toBeTruthy();
+    });
+
+    it("shows 'Sem sequência' with the hint to start a streak", async () => {
+      mockGetMyProfile.mockResolvedValue({
+        ...PROFILE,
+        streak: { current_days: 0, published_today: false }
+      });
+      await renderLoaded();
+
+      expect(screen.getByText("Sem sequência")).toBeTruthy();
+      expect(screen.getByText("Publique hoje para começar")).toBeTruthy();
+    });
+
+    it("hides the badge when the profile has no streak", async () => {
+      mockGetMyProfile.mockResolvedValue({ ...PROFILE, streak: null });
+      await renderLoaded();
+
+      expect(screen.getByText("@natalia")).toBeTruthy();
+      expect(screen.queryByTestId("profile-streak-active")).toBeNull();
+      expect(screen.queryByTestId("profile-streak-inactive")).toBeNull();
+      expect(screen.getByText("Starlight · Muse")).toBeTruthy();
+    });
   });
 
   describe("Recordas grid", () => {

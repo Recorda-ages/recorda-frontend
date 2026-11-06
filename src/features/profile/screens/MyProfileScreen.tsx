@@ -27,6 +27,7 @@ import { ProfileGlow } from "../components/ProfileGlow";
 import { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "../components/ProfileHeader";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
 import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
+import { StreakBadge, StreakHint } from "../components/StreakBadge";
 import { isIncompleteProfileError, useMyProfile } from "../hooks/useMyProfile";
 import { useProfileRecordas } from "../hooks/useProfileRecordas";
 import type { ProfileRead } from "../types";
@@ -145,6 +146,8 @@ export function MyProfileScreen() {
               onPressFollowing={() =>
                 navigation.navigate("Friends", { tab: "seguindo", userId: myUserId })
               }
+              streakSlot={<StreakBadge profile={data} />}
+              streakHintSlot={<StreakHint profile={data} />}
               username={data.username}
             />
             <View style={styles.tabs}>
