@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
 import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
@@ -7,12 +7,12 @@ import { followService } from "@/features/follow/services/followService";
 import { reportService } from "@/features/moderation/services/reportService";
 import { PROFILE_AVATAR_CENTER_Y, UserProfileScreen } from "@/features/profile";
 import { profileService } from "@/features/profile/services/profileService";
-import type { ProfileRead } from "@/features/profile/types";
+import type { ProfileRead, RecordaGridItem, RecordaGridPage } from "@/features/profile/types";
 import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 
 jest.mock("@/features/profile/services/profileService", () => ({
-  profileService: { getUserProfile: jest.fn() }
+  profileService: { getUserProfile: jest.fn(), getUserRecordas: jest.fn() }
 }));
 
 jest.mock("@/features/follow/services/followService", () => ({
@@ -35,6 +35,7 @@ jest.mock("@react-navigation/native", () => ({
 }));
 
 const mockGetUserProfile = profileService.getUserProfile as jest.Mock;
+const mockGetUserRecordas = profileService.getUserRecordas as jest.Mock;
 const mockFollow = followService.follow as jest.Mock;
 const mockUnfollow = followService.unfollow as jest.Mock;
 const mockReportUser = reportService.reportUser as jest.Mock;
@@ -70,6 +71,24 @@ function makeProfile(overrides: Partial<ProfileRead> = {}): ProfileRead {
 }
 
 const PRIVATE_LOCKED = makeProfile({ can_view_content: false, counts: null, is_private: true });
+
+function gridItem(id: string, createdAt: string): RecordaGridItem {
+  return {
+    created_at: createdAt,
+    media_type: "PHOTO",
+    media_url: `/api/v1/recordas/media/${id}.jpg`,
+    recorda_id: id,
+    song_artist_name: "Muse",
+    song_cover_url: "",
+    song_title: "Starlight"
+  };
+}
+
+// Newest first, as the backend sends them.
+const GRID_PAGE: RecordaGridPage = {
+  items: [gridItem("r3", "2026-10-27T12:00:00Z"), gridItem("r2", "2026-10-26T12:00:00Z")],
+  next_cursor: null
+};
 
 const clients: QueryClient[] = [];
 
@@ -114,6 +133,22 @@ function profileTabs() {
   return screen.getAllByTestId(/^profile-tab-/);
 }
 
+function tileIds() {
+  return screen
+    .getAllByTestId(/^recorda-grid-item-/)
+    .map((tile) => String(tile.props.testID).replace("recorda-grid-item-", ""));
+}
+
+function scrollToEnd() {
+  fireEvent.scroll(screen.getByTestId("user-profile-scroll"), {
+    nativeEvent: {
+      contentOffset: { x: 0, y: 1500 },
+      contentSize: { height: 2000, width: 390 },
+      layoutMeasurement: { height: 700, width: 390 }
+    }
+  });
+}
+
 function followButton() {
   return screen.getByTestId("follow-button-user-2");
 }
@@ -121,9 +156,10 @@ function followButton() {
 beforeEach(() => {
   jest.clearAllMocks();
   // mockReset also drops queued *Once values a failed test may have left behind.
-  [mockGetUserProfile, mockFollow, mockUnfollow, mockReportUser].forEach((mock) =>
-    mock.mockReset()
+  [mockGetUserProfile, mockGetUserRecordas, mockFollow, mockUnfollow, mockReportUser].forEach(
+    (mock) => mock.mockReset()
   );
+  mockGetUserRecordas.mockResolvedValue(GRID_PAGE);
   mockRoute = { params: { userId: "user-2" } };
 });
 
@@ -209,7 +245,7 @@ describe("UserProfileScreen", () => {
       expect(screen.getByLabelText("15 Seguidores")).toBeTruthy();
       expect(screen.getByLabelText("256 Seguindo")).toBeTruthy();
       expect(profileTabs()).toHaveLength(3);
-      expect(screen.getByTestId("profile-coming-soon-recordas")).toBeTruthy();
+      expect(await screen.findByTestId("recorda-grid")).toBeTruthy();
       expect(screen.queryByTestId("profile-private-notice")).toBeNull();
     });
 
@@ -233,7 +269,7 @@ describe("UserProfileScreen", () => {
       expect(within(screen.getByTestId("profile-header")).queryByTestId("profile-glow")).toBeNull();
     });
 
-    it("shows 'Em breve' on each tab while the content isn't available", async () => {
+    it("keeps 'Em breve' on Métricas and Calendário (Epic 07)", async () => {
       await renderProfile(makeProfile());
 
       fireEvent.press(screen.getByRole("tab", { name: "Métricas" }));
@@ -265,6 +301,252 @@ describe("UserProfileScreen", () => {
     });
   });
 
+  describe("Recordas grid", () => {
+    it("shows the Recordas of a public profile in the backend order", async () => {
+      await renderProfile(makeProfile());
+
+      await screen.findByTestId("recorda-grid");
+      expect(mockGetUserRecordas).toHaveBeenCalledWith("user-2", null, expect.any(AbortSignal));
+      expect(tileIds()).toEqual(["r3", "r2"]);
+    });
+
+    it("shows the Recordas of a private profile the viewer follows", async () => {
+      await renderProfile(
+        makeProfile({
+          is_private: true,
+          relationship: { follow_id: "follow-1", follow_status: "seguindo", is_self: false }
+        })
+      );
+
+      await screen.findByTestId("recorda-grid");
+      expect(tileIds()).toEqual(["r3", "r2"]);
+    });
+
+    it("never requests nor shows the Recordas of a private profile without access", async () => {
+      const client = await renderProfile(PRIVATE_LOCKED);
+
+      for (const name of ["Recordas", "Métricas", "Calendário"]) {
+        fireEvent.press(screen.getByRole("tab", { name }));
+        expect(screen.getByTestId("profile-private-notice")).toBeTruthy();
+      }
+      await act(async () => {
+        screen.getByTestId("user-profile-scroll").props.refreshControl.props.onRefresh();
+      });
+      scrollToEnd();
+
+      expect(mockGetUserRecordas).not.toHaveBeenCalled();
+      expect(screen.queryByTestId("recorda-grid")).toBeNull();
+      expect(screen.queryByTestId(/^recorda-grid-item-/)).toBeNull();
+      expect(client.getQueryData(["profile", "user-2", "recordas"])).toBeUndefined();
+    });
+
+    it("hides and drops the Recordas when access is lost", async () => {
+      mockUnfollow.mockResolvedValue({ follow_status: "nenhuma" });
+      mockGetUserProfile
+        .mockResolvedValueOnce(
+          makeProfile({
+            is_private: true,
+            relationship: { follow_id: "follow-1", follow_status: "seguindo", is_self: false }
+          })
+        )
+        .mockResolvedValueOnce(PRIVATE_LOCKED);
+      const client = renderScreen();
+      await screen.findByTestId("recorda-grid");
+      expect(client.getQueryData(["profile", "user-2", "recordas"])).toBeDefined();
+
+      fireEvent.press(followButton());
+      fireEvent.press(
+        within(screen.getByTestId("unfollow-dialog")).getByRole("button", {
+          name: "Deixar de seguir"
+        })
+      );
+
+      expect(await screen.findByTestId("profile-private-notice")).toBeTruthy();
+      expect(screen.queryByTestId("recorda-grid")).toBeNull();
+      expect(screen.queryByTestId(/^recorda-grid-item-/)).toBeNull();
+      expect(client.getQueryData(["profile", "user-2", "recordas"])).toBeUndefined();
+      expect(mockGetUserRecordas).toHaveBeenCalledTimes(1);
+    });
+
+    it("hides the Recordas as soon as the unfollow starts, before the server answers", async () => {
+      let resolveUnfollow: (value: { follow_status: string }) => void = () => undefined;
+      mockUnfollow.mockReturnValue(new Promise((resolve) => (resolveUnfollow = resolve)));
+      mockGetUserProfile
+        .mockResolvedValueOnce(
+          makeProfile({
+            is_private: true,
+            relationship: { follow_id: "follow-1", follow_status: "seguindo", is_self: false }
+          })
+        )
+        .mockResolvedValue(PRIVATE_LOCKED);
+      renderScreen();
+      await screen.findByTestId("recorda-grid");
+
+      fireEvent.press(followButton());
+      fireEvent.press(
+        within(screen.getByTestId("unfollow-dialog")).getByRole("button", {
+          name: "Deixar de seguir"
+        })
+      );
+
+      // The request is still pending: no Recorda may stay on screen meanwhile.
+      expect(await screen.findByTestId("profile-private-notice")).toBeTruthy();
+      expect(screen.queryByTestId(/^recorda-grid-item-/)).toBeNull();
+      expect(screen.queryByTestId("profile-counts")).toBeNull();
+      await act(async () => resolveUnfollow({ follow_status: "nenhuma" }));
+    });
+
+    it("brings the Recordas back when the unfollow fails", async () => {
+      const followed = makeProfile({
+        is_private: true,
+        relationship: { follow_id: "follow-1", follow_status: "seguindo", is_self: false }
+      });
+      let rejectUnfollow: (reason: unknown) => void = () => undefined;
+      mockUnfollow.mockReturnValue(new Promise((_resolve, reject) => (rejectUnfollow = reject)));
+      mockGetUserProfile.mockResolvedValue(followed);
+      const client = renderScreen();
+      await screen.findByTestId("recorda-grid");
+
+      fireEvent.press(followButton());
+      fireEvent.press(
+        within(screen.getByTestId("unfollow-dialog")).getByRole("button", {
+          name: "Deixar de seguir"
+        })
+      );
+      await screen.findByTestId("profile-private-notice");
+      expect(client.getQueryData(["profile", "user-2", "recordas"])).toBeUndefined();
+
+      await act(async () => rejectUnfollow(new Error("offline")));
+
+      // Still following: the content comes back, reloaded since the cache was dropped.
+      await waitFor(() => expect(mockGetUserRecordas).toHaveBeenCalledTimes(2));
+      expect(await screen.findByTestId("recorda-grid")).toBeTruthy();
+      expect(tileIds()).toEqual(["r3", "r2"]);
+      expect(screen.queryByTestId("profile-private-notice")).toBeNull();
+      expect(screen.getByTestId("profile-counts")).toBeTruthy();
+    });
+
+    it("loads the Recordas again when access is granted", async () => {
+      await renderProfile(PRIVATE_LOCKED);
+      mockGetUserProfile.mockReset();
+      mockGetUserProfile.mockResolvedValue(
+        makeProfile({
+          is_private: true,
+          relationship: { follow_id: "follow-1", follow_status: "seguindo", is_self: false }
+        })
+      );
+      expect(mockGetUserRecordas).not.toHaveBeenCalled();
+
+      // E.g. the request was accepted meanwhile and the user pulls to refresh.
+      await act(async () => {
+        screen.getByTestId("user-profile-scroll").props.refreshControl.props.onRefresh();
+      });
+
+      expect(await screen.findByTestId("recorda-grid")).toBeTruthy();
+      expect(mockGetUserRecordas).toHaveBeenCalledWith("user-2", null, expect.any(AbortSignal));
+      expect(tileIds()).toEqual(["r3", "r2"]);
+    });
+
+    it("drops only this profile's Recordas from the cache when access is lost", async () => {
+      mockUnfollow.mockResolvedValue({ follow_status: "nenhuma" });
+      mockGetUserProfile
+        .mockResolvedValueOnce(
+          makeProfile({
+            is_private: true,
+            relationship: { follow_id: "follow-1", follow_status: "seguindo", is_self: false }
+          })
+        )
+        .mockResolvedValue(PRIVATE_LOCKED);
+      const client = renderScreen();
+      const otherGrid = { pageParams: [null], pages: [GRID_PAGE] };
+      client.setQueryData(["profile", "user-3", "recordas"], otherGrid);
+      client.setQueryData(["profile", VIEWER.user_id, "recordas"], otherGrid);
+      await screen.findByTestId("recorda-grid");
+
+      fireEvent.press(followButton());
+      fireEvent.press(
+        within(screen.getByTestId("unfollow-dialog")).getByRole("button", {
+          name: "Deixar de seguir"
+        })
+      );
+      await screen.findByTestId("profile-private-notice");
+
+      await waitFor(() =>
+        expect(client.getQueryData(["profile", "user-2", "recordas"])).toBeUndefined()
+      );
+      expect(client.getQueryData(["profile", "user-3", "recordas"])).toEqual(otherGrid);
+      expect(client.getQueryData(["profile", VIEWER.user_id, "recordas"])).toEqual(otherGrid);
+    });
+
+    it("shows the empty state for a profile without Recordas", async () => {
+      mockGetUserRecordas.mockResolvedValue({ items: [], next_cursor: null });
+      await renderProfile(makeProfile());
+
+      expect(await screen.findByText("Nenhuma Recorda publicada ainda.")).toBeTruthy();
+    });
+
+    it("shows a grid error and retries", async () => {
+      // A 500 is retried once by the hook before the error shows.
+      mockGetUserRecordas
+        .mockRejectedValueOnce(new ApiError("SERVER", "Boom", 500, null))
+        .mockRejectedValueOnce(new ApiError("SERVER", "Boom", 500, null))
+        .mockResolvedValueOnce(GRID_PAGE);
+      await renderProfile(makeProfile());
+
+      expect(await screen.findByText("Não foi possível carregar as Recordas.")).toBeTruthy();
+      fireEvent.press(screen.getByRole("button", { name: "Tentar novamente" }));
+
+      expect(await screen.findByTestId("recorda-grid")).toBeTruthy();
+      expect(tileIds()).toEqual(["r3", "r2"]);
+    });
+
+    it("requests the next page near the end of the scroll, once at a time", async () => {
+      let resolveNext: (page: RecordaGridPage) => void = () => undefined;
+      mockGetUserRecordas
+        .mockResolvedValueOnce({ ...GRID_PAGE, next_cursor: "cursor-2" })
+        .mockReturnValueOnce(new Promise((resolve) => (resolveNext = resolve)));
+      await renderProfile(makeProfile());
+      await screen.findByTestId("recorda-grid");
+
+      scrollToEnd();
+      await waitFor(() => expect(mockGetUserRecordas).toHaveBeenCalledTimes(2));
+      expect(mockGetUserRecordas).toHaveBeenLastCalledWith(
+        "user-2",
+        "cursor-2",
+        expect.any(AbortSignal)
+      );
+      scrollToEnd();
+      expect(mockGetUserRecordas).toHaveBeenCalledTimes(2);
+
+      await act(async () =>
+        resolveNext({ items: [gridItem("r1", "2026-10-25T12:00:00Z")], next_cursor: null })
+      );
+      await waitFor(() => expect(tileIds()).toEqual(["r3", "r2", "r1"]));
+    });
+
+    it("refreshes profile and grid on pull to refresh", async () => {
+      await renderProfile(makeProfile());
+      await screen.findByTestId("recorda-grid");
+      const profileCalls = mockGetUserProfile.mock.calls.length;
+      const gridCalls = mockGetUserRecordas.mock.calls.length;
+
+      await act(async () => {
+        screen.getByTestId("user-profile-scroll").props.refreshControl.props.onRefresh();
+      });
+
+      await waitFor(() => expect(mockGetUserProfile.mock.calls.length).toBe(profileCalls + 1));
+      expect(mockGetUserRecordas.mock.calls.length).toBe(gridCalls + 1);
+    });
+
+    it("opens a Recorda's details", async () => {
+      await renderProfile(makeProfile());
+
+      fireEvent.press(await screen.findByTestId("recorda-grid-item-r2"));
+
+      expect(mockNavigate).toHaveBeenCalledWith("PublishedRecorda", { postId: "r2" });
+    });
+  });
+
   describe("private profile without access", () => {
     it("keeps identity, music and the follow button but hides counters and content", async () => {
       await renderProfile(PRIVATE_LOCKED);
@@ -274,7 +556,7 @@ describe("UserProfileScreen", () => {
       expect(header().getByText("Starlight · Muse")).toBeTruthy();
       expect(within(followButton()).getByText("Seguir")).toBeTruthy();
       expect(screen.queryByTestId("profile-counts")).toBeNull();
-      expect(screen.queryByTestId("profile-coming-soon-recordas")).toBeNull();
+      expect(screen.queryByTestId("recorda-grid")).toBeNull();
       expect(screen.getByText("Esta conta é privada")).toBeTruthy();
     });
 
@@ -307,7 +589,7 @@ describe("UserProfileScreen", () => {
       );
 
       expect(screen.getByTestId("profile-counts")).toBeTruthy();
-      expect(screen.getByTestId("profile-coming-soon-recordas")).toBeTruthy();
+      expect(await screen.findByTestId("recorda-grid")).toBeTruthy();
       expect(screen.queryByTestId("profile-private-notice")).toBeNull();
       expect(within(followButton()).getByText("Seguindo")).toBeTruthy();
     });

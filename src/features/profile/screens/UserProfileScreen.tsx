@@ -3,7 +3,16 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Modal,
+  type NativeScrollEvent,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View
+} from "react-native";
 import { Icon } from "react-native-paper";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -20,13 +29,18 @@ import { ProfileGlow } from "../components/ProfileGlow";
 import { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "../components/ProfileHeader";
 import { ProfilePrivateNotice } from "../components/ProfilePrivateNotice";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
+import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
+import { useProfileRecordas } from "../hooks/useProfileRecordas";
 import { useUserProfile } from "../hooks/useUserProfile";
+import { profileRecordasQueryKey } from "../queryKeys";
 import type { ProfileRead } from "../types";
 
 const BAR_ICON_SIZE = 28;
 const BAR_BUTTON_SIZE = 40;
 const TOP_BAR_HEIGHT = BAR_BUTTON_SIZE + spacing[2] * 2;
 const MENU_ICON_SIZE = 20;
+// How close to the end of the scroll the next page of the grid is requested.
+const LOAD_MORE_THRESHOLD = 400;
 
 /**
  * Another user's profile (#255). What the viewer may see comes only from
@@ -44,8 +58,13 @@ export function UserProfileScreen() {
   const profile = useUserProfile(userId, !isOwnRoute);
   // Fallback for when the signed-in user isn't cached yet.
   const isSelf = isOwnRoute || profile.data?.relationship.is_self === true;
+  // The grid is only ever requested when the backend says the viewer may see the content.
+  const canViewContent = profile.data?.can_view_content === true;
+  const recordas = useProfileRecordas(userId, !isSelf && canViewContent);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ProfileTab>("recordas");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
   const { openReport, reportDialog } = useReportDialog();
   const insets = useSafeAreaInsets();
   const redirected = useRef(false);
@@ -57,6 +76,15 @@ export function UserProfileScreen() {
     }
   }, [isSelf, navigation]);
 
+  // Access lost (e.g. unfollowed a private account): drop the Recordas already cached, so
+  // nothing restricted stays around to show up if access comes back.
+  const hasProfile = profile.data !== undefined;
+  useEffect(() => {
+    if (hasProfile && !canViewContent) {
+      queryClient.removeQueries({ exact: true, queryKey: profileRecordasQueryKey(userId) });
+    }
+  }, [canViewContent, hasProfile, queryClient, userId]);
+
   if (isSelf) {
     return <View style={styles.screen} testID="user-profile-redirecting" />;
   }
@@ -65,6 +93,31 @@ export function UserProfileScreen() {
     if (tab === "camera") navigation.navigate("Camera");
     else if (tab === "feed") navigation.navigate("Feed");
     else navigation.navigate("Profile");
+  };
+
+  const refresh = async () => {
+    setIsPullRefreshing(true);
+    try {
+      // `refetch` ignores `enabled`: the grid is refreshed only when it may be seen.
+      await Promise.all([profile.refetch(), canViewContent ? recordas.refetch() : null]);
+    } finally {
+      setIsPullRefreshing(false);
+    }
+  };
+
+  const loadMore = () => {
+    // cancelRefetch: false ignores a second request while a page is still on its way, even if
+    // a scroll event arrives before the screen re-renders with isFetchingNextPage.
+    if (canViewContent && canLoadMore(recordas)) {
+      void recordas.fetchNextPage({ cancelRefetch: false });
+    }
+  };
+
+  const handleScroll = ({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
+    const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
+    const nearEnd =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - LOAD_MORE_THRESHOLD;
+    if (activeTab === "recordas" && nearEnd) loadMore();
   };
 
   const data = profile.data;
@@ -101,7 +154,19 @@ export function UserProfileScreen() {
         </View>
 
         {data ? (
-          <ProfileContent activeTab={activeTab} onTabChange={setActiveTab} profile={data} />
+          <ProfileContent
+            activeTab={activeTab}
+            isRefreshing={isPullRefreshing}
+            onLoadMore={loadMore}
+            onPressRecorda={(recordaId) =>
+              navigation.navigate("PublishedRecorda", { postId: recordaId })
+            }
+            onRefresh={() => void refresh()}
+            onScroll={handleScroll}
+            onTabChange={setActiveTab}
+            profile={data}
+            recordas={recordas}
+          />
         ) : (
           <ProfileStatus profile={profile} />
         )}
@@ -122,20 +187,47 @@ export function UserProfileScreen() {
   );
 }
 
-function ProfileContent({
-  activeTab,
-  onTabChange,
-  profile
-}: Readonly<{
+type ProfileContentProps = Readonly<{
   activeTab: ProfileTab;
+  isRefreshing: boolean;
+  onLoadMore: () => void;
+  onPressRecorda: (recordaId: string) => void;
+  onRefresh: () => void;
+  onScroll: (event: { nativeEvent: NativeScrollEvent }) => void;
   onTabChange: (tab: ProfileTab) => void;
   profile: ProfileRead;
-}>) {
+  recordas: ReturnType<typeof useProfileRecordas>;
+}>;
+
+function ProfileContent({
+  activeTab,
+  isRefreshing,
+  onLoadMore,
+  onPressRecorda,
+  onRefresh,
+  onScroll,
+  onTabChange,
+  profile,
+  recordas
+}: ProfileContentProps) {
   const { t } = useTranslation();
   const song = profile.favorite_song;
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      onScroll={onScroll}
+      refreshControl={
+        <RefreshControl
+          onRefresh={onRefresh}
+          refreshing={isRefreshing}
+          tintColor={colors.neutrals[100]}
+        />
+      }
+      scrollEventThrottle={100}
+      showsVerticalScrollIndicator={false}
+      testID="user-profile-scroll"
+    >
       <ProfileHeader
         actionSlot={
           <FollowButton
@@ -154,17 +246,34 @@ function ProfileContent({
       <View style={styles.tabs}>
         <ProfileTabs activeTab={activeTab} onChange={onTabChange} />
       </View>
-      {profile.can_view_content ? (
-        // Recordas have no data source yet and Metrics/Calendar belong to Epic 07, so no
-        // tab pretends to be an empty list (IMPLEMENTATION_NOTES.md, §2.5 and §6.2).
-        <AppText style={styles.comingSoon} testID={`profile-coming-soon-${activeTab}`}>
-          {t("profile.comingSoon")}
-        </AppText>
-      ) : (
-        <ProfilePrivateNotice />
-      )}
+      <View style={styles.tabContent}>
+        {!profile.can_view_content ? (
+          <ProfilePrivateNotice />
+        ) : activeTab === "recordas" ? (
+          <RecordaGrid
+            hasNextPage={recordas.hasNextPage}
+            isFetchNextPageError={recordas.isFetchNextPageError}
+            isFetchingNextPage={recordas.isFetchingNextPage}
+            items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
+            onLoadMore={onLoadMore}
+            onPressItem={onPressRecorda}
+            onRetry={() => void recordas.refetch()}
+            status={gridStatus(recordas)}
+          />
+        ) : (
+          // Metrics and Calendar belong to Epic 07.
+          <AppText style={styles.comingSoon} testID={`profile-coming-soon-${activeTab}`}>
+            {t("profile.comingSoon")}
+          </AppText>
+        )}
+      </View>
     </ScrollView>
   );
+}
+
+function gridStatus(query: ReturnType<typeof useProfileRecordas>) {
+  if (query.data) return "success";
+  return query.isError ? "error" : "pending";
 }
 
 function ProfileStatus({ profile }: Readonly<{ profile: ReturnType<typeof useUserProfile> }>) {
@@ -268,6 +377,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: spacing[6],
     paddingHorizontal: spacing[5]
+  },
+  tabContent: {
+    marginTop: spacing[4]
   },
   tabs: {
     marginTop: spacing[6]
