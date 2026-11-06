@@ -1,3 +1,6 @@
+import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
+import { useOnboarding } from "@/features/onboarding/state/OnboardingContext";
+import { clearSession, saveSession } from "@/features/auth/session";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { useState } from "react";
 import { Pressable, Text } from "react-native";
@@ -122,7 +125,9 @@ describe("AppProviders", () => {
     fireEvent.press(screen.getByText("Open private Recorda"));
     expect(screen.getByTestId("session-feed-posts")).toHaveTextContent(/private-session-recorda/);
 
-    act(() => queryClient.removeQueries({ queryKey: AUTH_ME_QUERY_KEY }));
+    await act(async () => {
+      await clearSession();
+    });
 
     await waitFor(() =>
       expect(screen.getByTestId("session-feed-posts")).not.toHaveTextContent(
@@ -131,4 +136,48 @@ describe("AppProviders", () => {
     );
     expect(screen.getByTestId("feed-consumer-mount")).toHaveTextContent("1");
   });
+});
+
+function PrivateDraftConsumer() {
+  const draft = useRecordaDraft();
+  const music = useOnboarding();
+  return (
+    <>
+      <Text testID="private-draft">{draft.description}</Text>
+      <Text testID="private-artists">{music.selectedArtists.length}</Text>
+      <Pressable
+        onPress={() => {
+          draft.setDescription("Private memory");
+          music.setSelectedArtists([{ id: 1, name: "Artist" }]);
+        }}
+      >
+        <Text>Fill private drafts</Text>
+      </Pressable>
+    </>
+  );
+}
+it("clears music selections and publication drafts when saving another account", async () => {
+  render(
+    <AppProviders>
+      <PrivateDraftConsumer />
+    </AppProviders>
+  );
+  fireEvent.press(screen.getByText("Fill private drafts"));
+  expect(screen.getByTestId("private-draft")).toHaveTextContent("Private memory");
+  await act(async () => {
+    await saveSession({
+      access_token: "next-token",
+      token_type: "bearer",
+      user: {
+        user_id: "next",
+        username: "next",
+        name: "Next",
+        language: "es",
+        onboarding_completed: true,
+        role: "USER"
+      }
+    });
+  });
+  expect(screen.getByTestId("private-draft")).toHaveTextContent("");
+  expect(screen.getByTestId("private-artists")).toHaveTextContent("0");
 });

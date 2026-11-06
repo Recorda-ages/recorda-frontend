@@ -9,9 +9,13 @@ type DeleteCommentDialogProps = {
   onCancel: () => void;
   onConfirm: () => void;
   visible: boolean;
+  submitting?: boolean;
+  error?: boolean;
 };
 
 export function DeleteCommentDialog({
+  submitting = false,
+  error = false,
   onCancel,
   onConfirm,
   visible
@@ -21,7 +25,9 @@ export function DeleteCommentDialog({
   return (
     <Modal
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={() => {
+        if (!submitting) onCancel();
+      }}
       statusBarTranslucent
       transparent
       visible={visible}
@@ -37,10 +43,14 @@ export function DeleteCommentDialog({
             </AppText>
             <AppText style={styles.message}>{t("recordaView.deleteDialog.message")}</AppText>
           </View>
+          {error ? (
+            <AppText style={styles.message}>{t("publishedRecorda.commentDeleteError")}</AppText>
+          ) : null}
           <View style={styles.actions}>
             <Pressable
               accessibilityLabel={t("recordaView.deleteDialog.cancel")}
               accessibilityRole="button"
+              disabled={submitting}
               onPress={onCancel}
               style={({ pressed }) => [
                 styles.button,
@@ -55,6 +65,7 @@ export function DeleteCommentDialog({
             <Pressable
               accessibilityLabel={t("recordaView.deleteDialog.confirm")}
               accessibilityRole="button"
+              disabled={submitting}
               onPress={onConfirm}
               style={({ pressed }) => [
                 styles.button,

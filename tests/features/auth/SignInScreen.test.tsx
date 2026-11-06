@@ -200,7 +200,7 @@ describe("SignInScreen", () => {
     await waitFor(() => {
       expect(navigation.reset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: "Admin" }]
+        routes: [{ name: "AdminReports" }]
       });
     });
   });

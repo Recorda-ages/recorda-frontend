@@ -10,13 +10,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
-import { clearSession } from "@/features/auth/session";
+import { useSignOut } from "@/features/auth/hooks/useSignOut";
 import { colors, fontFamily, spacing } from "@/theme";
 
 import { AdminBottomNavigation, type AdminBottomTab } from "./AdminBottomNavigation";
 
 const destinations = {
-  home: "Admin",
   reports: "AdminReports",
   users: "AdminUsers",
   auditLog: "AdminAuditLog"
@@ -24,15 +23,25 @@ const destinations = {
 
 type Props = PropsWithChildren<{
   activeTab: AdminBottomTab;
+  /** Inner screens (details) go back with this; the tab screens have no back button. */
   back?: { label: string; onPress: () => void };
   title: string;
+  showUsername?: boolean;
   testID?: string;
 }>;
 
-export function AdminScreenLayout({ activeTab, back, children, title, testID }: Readonly<Props>) {
+export function AdminScreenLayout({
+  activeTab,
+  back,
+  children,
+  showUsername = true,
+  title,
+  testID
+}: Readonly<Props>) {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const user = useCurrentUser();
+  const endSession = useSignOut();
   const logoutStarted = useRef(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -40,8 +49,7 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
     if (logoutStarted.current) return;
     logoutStarted.current = true;
     setSigningOut(true);
-    await clearSession();
-    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+    await endSession();
   };
 
   return (
@@ -49,23 +57,23 @@ export function AdminScreenLayout({ activeTab, back, children, title, testID }: 
       <StatusBar style="light" />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <View style={styles.header}>
-          {activeTab === "home" ? (
-            <View style={styles.action} />
-          ) : (
+          {back ? (
             <Pressable
-              accessibilityLabel={back?.label ?? t("admin.navigation.home")}
+              accessibilityLabel={back.label}
               accessibilityRole="button"
-              onPress={back?.onPress ?? (() => navigation.navigate("Admin"))}
+              onPress={back.onPress}
               style={styles.action}
             >
               <Icon source="arrow-left" size={24} color={colors.neutrals[100]} />
             </Pressable>
+          ) : (
+            <View style={styles.action} />
           )}
           <View style={styles.copy}>
             <AppText style={styles.title} variant="headline4">
               {title}
             </AppText>
-            {user?.username ? (
+            {showUsername && user?.username ? (
               <AppText style={styles.username} variant="caption">
                 @{user.username}
               </AppText>

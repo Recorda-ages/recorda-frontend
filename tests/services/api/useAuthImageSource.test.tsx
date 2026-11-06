@@ -8,7 +8,9 @@ import { AUTH_TOKEN_QUERY_KEY, isApiUrl, useAuthImageSource } from "@/services/a
 const AUTH = { Authorization: "Bearer token-123" };
 
 function renderSource(uri: string | null, token: string | null = "token-123") {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
+  });
   client.setQueryData(AUTH_TOKEN_QUERY_KEY, token);
 
   const wrapper = ({ children }: { children: ReactNode }) => (

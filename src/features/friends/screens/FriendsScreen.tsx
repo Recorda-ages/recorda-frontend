@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
-import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
-import type { CurrentUser } from "@/features/auth/api/getCurrentUser";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { AppText, Button, ErrorState } from "@/components/ui";
 import { ApiError } from "@/services/api/errors";
 import { colors, spacing } from "@/theme";
@@ -26,14 +24,12 @@ export function FriendsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, "Friends">>();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<FriendsTab>("seguidores");
+  // The profile counters open the list they were tapped on; otherwise followers first.
+  const [activeTab, setActiveTab] = useState<FriendsTab>(route.params?.tab ?? "seguidores");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const { data: currentUser } = useQuery<CurrentUser>({
-    queryKey: AUTH_ME_QUERY_KEY,
-    enabled: false
-  });
+  const currentUser = useCurrentUser();
   const ownUserId = currentUser?.user_id ?? "";
   const userId = route.params?.userId ?? ownUserId;
   const isOwnAccount = !!ownUserId && userId === ownUserId;
@@ -58,7 +54,8 @@ export function FriendsScreen() {
   };
 
   const handleProfilePress = (profile: FriendProfile) => {
-    navigation.navigate("UserProfile", { userId: profile.id });
+    if (profile.id === ownUserId) navigation.navigate("Profile");
+    else navigation.navigate("UserProfile", { userId: profile.id });
   };
 
   return (

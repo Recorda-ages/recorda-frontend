@@ -1,3 +1,4 @@
+import { onInvalidSession, resetPrivateState } from "@/services/api/sessionLifecycle";
 import { authApiClient, AUTH_TOKEN_KEY } from "@/services/api";
 import { secureStorage } from "@/services/storage";
 
@@ -80,5 +81,68 @@ it("authenticates every verb", async () => {
   expect(methods).toEqual(["GET", "POST", "PUT", "PATCH", "DELETE"]);
   for (const [, init] of fetchMock.mock.calls) {
     expect(init.headers.Authorization).toBe("Bearer token-abc");
+  }
+});
+
+it("aborts pending requests and rejects late responses after a session change", async () => {
+  getItem.mockResolvedValue("old-token");
+  let finish!: (value: ReturnType<typeof jsonResponse>) => void;
+  fetchMock.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    })
+  );
+  const request = authApiClient.get("/private");
+  const rejection = expect(request).rejects.toMatchObject({ name: "AbortError" });
+  await Promise.resolve();
+  await Promise.resolve();
+  const signal = fetchMock.mock.calls[0][1].signal;
+  resetPrivateState();
+  expect(signal.aborted).toBe(true);
+  finish(jsonResponse({ secret: "old-account" }));
+  await rejection;
+});
+
+it("does not send a token read that finishes after logout", async () => {
+  let finish!: (value: string) => void;
+  getItem.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    })
+  );
+  const request = authApiClient.post("/private", {});
+  const rejection = expect(request).rejects.toMatchObject({ name: "AbortError" });
+  resetPrivateState();
+  finish("old-token");
+  await rejection;
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it.each([401, 403, 422, 500])(
+  "only expires the session for HTTP 401, received %s",
+  async (status) => {
+    const expired = jest.fn();
+    const unsubscribe = onInvalidSession(expired);
+    getItem.mockResolvedValue("token");
+    fetchMock.mockResolvedValue({ ...jsonResponse({}), ok: false, status });
+    try {
+      await expect(authApiClient.get("/private")).rejects.toMatchObject({ status });
+      expect(expired).toHaveBeenCalledTimes(status === 401 ? 1 : 0);
+    } finally {
+      unsubscribe();
+    }
+  }
+);
+
+it("does not expire a renewed account token for an old token's 401", async () => {
+  const expired = jest.fn();
+  const unsubscribe = onInvalidSession(expired);
+  getItem.mockResolvedValueOnce("old-token").mockResolvedValueOnce("renewed-token");
+  fetchMock.mockResolvedValue({ ...jsonResponse({}), ok: false, status: 401 });
+  try {
+    await expect(authApiClient.get("/private")).rejects.toMatchObject({ status: 401 });
+    expect(expired).not.toHaveBeenCalled();
+  } finally {
+    unsubscribe();
   }
 });

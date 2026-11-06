@@ -1,3 +1,4 @@
+import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 import { type QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { profileQueryKey } from "@/features/profile/queryKeys";
@@ -33,23 +34,29 @@ export function useFollowMutation() {
       action === "follow" ? followService.follow(userId) : followService.unfollow(userId),
 
     onError: (_error, _input, context) => {
+      if (context?.generation !== getSessionGeneration()) return;
       context?.snapshot.forEach(([queryKey, data]) => {
         restoreCachedUser(queryClient, queryKey, data, _input.userId);
       });
     },
 
     onMutate: async ({ action, userId }: FollowMutationInput) => {
+      const generation = getSessionGeneration();
       await queryClient.cancelQueries({ queryKey: USERS_QUERY_PREFIX });
+      if (generation !== getSessionGeneration()) throw new Error("Session ended");
       const snapshot = queryClient.getQueriesData({ queryKey: USERS_QUERY_PREFIX });
 
       patchCachedUser(queryClient, userId, action === "follow" ? "seguindo" : "nenhuma");
 
-      return { snapshot };
+      return { snapshot, generation };
     },
 
-    onSettled: (_result, _error, { action, userId }: FollowMutationInput) => {
+    onSettled: (_result, _error, { action, userId }: FollowMutationInput, context) => {
+      if (context?.generation !== getSessionGeneration()) return;
       void queryClient.invalidateQueries({ queryKey: USERS_QUERY_PREFIX });
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["friends"] });
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
       // The profile screen reads follow_status, counts and can_view_content from the server.
       void queryClient.invalidateQueries({ queryKey: profileQueryKey(userId) });
       // Suggestions skip followed profiles, so an unfollow can bring one back. Follows
@@ -59,7 +66,8 @@ export function useFollowMutation() {
       }
     },
 
-    onSuccess: (result: FollowMutationResult | null, { userId }: FollowMutationInput) => {
+    onSuccess: (result: FollowMutationResult | null, { userId }: FollowMutationInput, context) => {
+      if (context?.generation !== getSessionGeneration()) return;
       if (result?.follow_status) {
         patchCachedUser(queryClient, userId, result.follow_status);
       }

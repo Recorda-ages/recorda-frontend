@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -17,9 +18,15 @@ import { baseColors, colors, fontFamily, spacing } from "@/theme";
 export const ADMIN_REASON_MAX_LENGTH = 500;
 
 export type ReasonDialogProps = {
+  /** Extra options shown below the reason, such as a checkbox. */
+  children?: ReactNode;
   confirmLabel: string;
+  /** "destructive" (default) for removals and suspensions, "primary" for restoring actions. */
+  confirmTone?: "destructive" | "primary";
   error?: string;
+  icon?: string;
   loading?: boolean;
+  message?: string;
   onCancel: () => void;
   onChangeReason: (reason: string) => void;
   onConfirm: () => void;
@@ -29,9 +36,13 @@ export type ReasonDialogProps = {
 };
 
 export function ReasonDialog({
+  children,
   confirmLabel,
+  confirmTone = "destructive",
   error,
+  icon = "text-box-edit-outline",
   loading = false,
+  message,
   onCancel,
   onChangeReason,
   onConfirm,
@@ -69,11 +80,16 @@ export function ReasonDialog({
         >
           <View accessibilityViewIsModal style={styles.dialog}>
             <View style={styles.iconBox}>
-              <Icon color={baseColors.white} size={28} source="text-box-edit-outline" />
+              <Icon color={baseColors.white} size={28} source={icon} />
             </View>
             <AppText style={styles.title} variant="headline4">
               {title}
             </AppText>
+            {message && (
+              <AppText style={styles.message} variant="body2">
+                {message}
+              </AppText>
+            )}
             <View style={styles.field}>
               <Input
                 accessibilityLabel={t("admin.reasonDialog.label")}
@@ -97,6 +113,7 @@ export function ReasonDialog({
                 })}
               </AppText>
             </View>
+            {children}
             <View style={styles.actions}>
               <Pressable
                 accessibilityLabel={t("admin.reasonDialog.cancel")}
@@ -122,7 +139,7 @@ export function ReasonDialog({
                 onPress={onConfirm}
                 style={({ pressed }) => [
                   styles.button,
-                  styles.confirmButton,
+                  confirmTone === "primary" ? styles.primaryConfirmButton : styles.confirmButton,
                   confirmDisabled ? styles.disabled : undefined,
                   pressed ? styles.pressed : undefined
                 ]}
@@ -174,6 +191,13 @@ const styles = {
     keyboardAvoiding: {
       alignItems: "center",
       width: "100%"
+    },
+    message: {
+      color: colors.neutrals[200],
+      textAlign: "center"
+    },
+    primaryConfirmButton: {
+      backgroundColor: colors.primary[700]
     },
     title: {
       color: colors.neutrals[100],

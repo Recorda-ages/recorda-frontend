@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -29,6 +30,7 @@ import { useAuthImageSource, type AuthImageSource } from "@/services/api";
 import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 import type { FeedComment, FeedPost } from "../types";
+import { formatFeedDate } from "../utils/formatFeedDate";
 import { BottomTabBar, type BottomTab } from "./BottomTabBar";
 import { FeedGlow } from "./FeedGlow";
 import { useFeedAudioActions } from "../state/FeedAudioContext";
@@ -37,6 +39,9 @@ import { VideoLoadingSpinner } from "./VideoLoadingSpinner";
 
 type Props = {
   post: FeedPost;
+  canDeleteComment?: (comment: FeedComment) => boolean;
+  onDeleteComment?: (commentId: string) => void;
+  commentDeleteError?: boolean;
   commentsLoading?: boolean;
   commentsError?: boolean;
   commentSubmitError?: boolean;
@@ -189,8 +194,13 @@ function SmallAvatar({ source }: Readonly<{ source: AuthImageSource | undefined 
 // A component of its own so each row can use the auth image hook.
 function CommentRow({
   comment,
+  onDelete,
   onOpenProfile
-}: Readonly<{ comment: FeedComment; onOpenProfile: (userId: string) => void }>) {
+}: Readonly<{
+  comment: FeedComment;
+  onDelete?: () => void;
+  onOpenProfile: (userId: string) => void;
+}>) {
   const { t } = useTranslation();
   const avatarSource = useAuthImageSource(comment.avatarUrl);
   const { userId } = comment;
@@ -214,12 +224,25 @@ function CommentRow({
         </AppText>{" "}
         {comment.text}
       </AppText>
+      {onDelete ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("recordaView.deleteComment")}
+          onPress={onDelete}
+          testID={`delete-comment-${comment.id}`}
+        >
+          <Ionicons name="trash-outline" color={colors.neutrals[300]} size={22} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 type CommentsSheetProps = Readonly<{
   comments: FeedComment[];
+  canDeleteComment?: (comment: FeedComment) => boolean;
+  onDeleteComment?: (commentId: string) => void;
+  commentDeleteError?: boolean;
   commentsError: boolean;
   commentsLoading: boolean;
   commentSubmitError: boolean;
@@ -233,6 +256,9 @@ type CommentsSheetProps = Readonly<{
 }>;
 
 function CommentsSheet({
+  canDeleteComment,
+  onDeleteComment,
+  commentDeleteError,
   comments,
   commentsError,
   commentsLoading,
@@ -318,10 +344,19 @@ function CommentsSheet({
             <AppText style={styles.muted}>{t("publishedRecorda.noComments")}</AppText>
           )
         }
-        renderItem={({ item }) => <CommentRow comment={item} onOpenProfile={onOpenProfile} />}
+        renderItem={({ item }) => (
+          <CommentRow
+            comment={item}
+            onDelete={canDeleteComment?.(item) ? () => onDeleteComment?.(item.id) : undefined}
+            onOpenProfile={onOpenProfile}
+          />
+        )}
         showsVerticalScrollIndicator={false}
         style={styles.commentListContainer}
       />
+      {commentDeleteError ? (
+        <AppText style={styles.submitError}>{t("publishedRecorda.commentDeleteError")}</AppText>
+      ) : null}
       {commentSubmitError ? (
         <AppText style={styles.submitError}>{t("publishedRecorda.commentSubmitError")}</AppText>
       ) : null}
@@ -476,6 +511,9 @@ function OwnRecordaMenu({
 }
 
 export function RecordaDetailView({
+  canDeleteComment,
+  onDeleteComment,
+  commentDeleteError,
   post,
   commentsLoading = false,
   commentsError = false,
@@ -496,7 +534,7 @@ export function RecordaDetailView({
   onShare,
   onTabPress
 }: Readonly<Props>) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
   const [menu, setMenu] = useState<RecordaMenu>(null);
   const [mediaHeight, setMediaHeight] = useState(0);
@@ -760,7 +798,11 @@ export function RecordaDetailView({
                       {t("publishedRecorda.likes", { count: post.likesCount + (liked ? 1 : 0) })}
                     </AppText>
                   </View>
-                  <AppText style={styles.date}>{post.publishedAt}</AppText>
+                  <AppText style={styles.date}>
+                    {post.createdAt
+                      ? formatFeedDate(post.createdAt, i18n.language)
+                      : post.publishedAt}
+                  </AppText>
                 </View>
               </View>
             </Animated.View>
@@ -774,6 +816,9 @@ export function RecordaDetailView({
                   testID="comments-backdrop"
                 />
                 <CommentsSheet
+                  canDeleteComment={canDeleteComment}
+                  onDeleteComment={onDeleteComment}
+                  commentDeleteError={commentDeleteError}
                   comments={post.comments}
                   commentsError={commentsError}
                   commentsLoading={commentsLoading}

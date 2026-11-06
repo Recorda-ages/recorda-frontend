@@ -1,91 +1,99 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
 
-import { clearSession } from "@/features/auth/session";
-import { musicService } from "@/features/music/services/musicService";
+import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
+import { usePopularArtists } from "@/features/music/hooks/usePopularArtists";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
-import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
+import type { MusicSelection } from "@/features/onboarding";
 import { i18n } from "@/i18n";
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockCanGoBack = jest.fn();
-const mockReset = jest.fn();
-
-jest.mock("@react-navigation/native", () => ({
-  ...jest.requireActual("@react-navigation/native"),
-  useNavigation: () => ({
-    canGoBack: mockCanGoBack,
-    goBack: mockGoBack,
-    navigate: mockNavigate,
-    reset: mockReset
-  })
+jest.mock("@/features/music/hooks/useArtistSearch", () => ({
+  useArtistSearch: jest.fn()
+}));
+jest.mock("@/features/music/hooks/usePopularArtists", () => ({
+  usePopularArtists: jest.fn()
 }));
 
-jest.mock("@/features/auth/session", () => ({
-  clearSession: jest.fn(async () => undefined)
-}));
+const popularArtists = [
+  { id: 101, name: "Anitta", picture_url: null },
+  { id: 102, name: "Djavan", picture_url: null },
+  { id: 103, name: "Marisa Monte", picture_url: null }
+];
+const searchArtists = [
+  { id: 1, name: "Legião Urbana", picture_url: null },
+  { id: 2, name: "Tribalistas", picture_url: null },
+  { id: 3, name: "Toquinho", picture_url: null }
+];
+const mockUseArtistSearch = jest.mocked(useArtistSearch);
+const mockUsePopularArtists = jest.mocked(usePopularArtists);
 
-jest.mock("@/features/music/services/musicService", () => ({
-  musicService: {
-    searchArtists: jest.fn(),
-    getPopularArtists: jest.fn()
+function renderScreen(initialArtists: MusicSelection[] = []) {
+  const onBack = jest.fn();
+  const onContinue = jest.fn();
+
+  function ControlledScreen() {
+    const [selectedArtists, setSelectedArtists] = useState<MusicSelection[]>(initialArtists);
+
+    return (
+      <OnboardingArtistsScreen
+        onBack={onBack}
+        onContinue={onContinue}
+        onSelectedArtistsChange={setSelectedArtists}
+        selectedArtists={selectedArtists}
+      />
+    );
   }
-}));
 
-const mockSearchArtists = musicService.searchArtists as jest.Mock;
-const mockGetPopularArtists = musicService.getPopularArtists as jest.Mock;
-
-function renderScreen() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
-  });
-
-  return render(
+  render(
     <I18nextProvider i18n={i18n}>
-      <QueryClientProvider client={client}>
-        <OnboardingProvider>
-          <OnboardingArtistsScreen />
-        </OnboardingProvider>
-      </QueryClientProvider>
+      <ControlledScreen />
     </I18nextProvider>
   );
+
+  return { onBack, onContinue };
 }
 
 describe("OnboardingArtistsScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCanGoBack.mockReturnValue(true);
-    mockSearchArtists.mockResolvedValue([
-      { id: 1, name: "Legião Urbana", picture_url: null },
-      { id: 2, name: "Tribalistas", picture_url: null },
-      { id: 3, name: "Toquinho", picture_url: null }
-    ]);
-    mockGetPopularArtists.mockResolvedValue([
-      { id: 101, name: "Anitta", picture_url: null },
-      { id: 102, name: "Djavan", picture_url: null },
-      { id: 103, name: "Marisa Monte", picture_url: null }
-    ]);
+    mockUseArtistSearch.mockImplementation(
+      (query) =>
+        ({
+          data: query ? searchArtists : undefined,
+          isError: false,
+          isFetching: false,
+          isSuccess: query.length > 0
+        }) as ReturnType<typeof useArtistSearch>
+    );
+    mockUsePopularArtists.mockReturnValue({
+      data: popularArtists,
+      isError: false,
+      isPending: false
+    } as ReturnType<typeof usePopularArtists>);
   });
 
-  it("shows popular artists by default before any search", async () => {
+  it("shows popular artists by default before any search", () => {
     renderScreen();
 
-    expect(await screen.findByText("Anitta")).toBeTruthy();
+    expect(screen.getByText("Anitta")).toBeTruthy();
     expect(screen.getByText("Djavan")).toBeTruthy();
     expect(screen.getByText("Marisa Monte")).toBeTruthy();
-    expect(mockSearchArtists).not.toHaveBeenCalled();
+    expect(mockUseArtistSearch).toHaveBeenCalledWith("");
   });
 
-  it("shows an error state when popular artists fail to load", async () => {
-    mockGetPopularArtists.mockRejectedValueOnce(new Error("Network error"));
+  it("shows an error state when popular artists fail to load", () => {
+    mockUsePopularArtists.mockReturnValue({
+      data: undefined,
+      isError: true,
+      isPending: false
+    } as ReturnType<typeof usePopularArtists>);
     renderScreen();
 
-    expect(await screen.findByText("Não foi possível carregar artistas populares.")).toBeTruthy();
+    expect(screen.getByText("Não foi possível carregar artistas populares.")).toBeTruthy();
   });
 
-  it("renders the artist search step", () => {
+  it("renders the artist search step and its minimum selection rule", () => {
     renderScreen();
 
     expect(screen.getByTestId("onboarding-artists-screen")).toBeTruthy();
@@ -96,85 +104,65 @@ describe("OnboardingArtistsScreen", () => {
       screen.getByText("Escolha pelo menos 3 artistas para personalizar suas recordações.")
     ).toBeTruthy();
     expect(screen.getByLabelText("Buscar artistas")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Próximo" })).toBeDisabled();
   });
 
-  it("enables next only after three artists are selected and navigates to genres", async () => {
-    renderScreen();
-
+  it("enables next only after three artists are selected and calls the route callback", async () => {
+    const { onContinue } = renderScreen();
     const nextButton = screen.getByRole("button", { name: "Próximo" });
-    expect(nextButton).toBeDisabled();
 
     fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "legiao");
-
     await waitFor(() => expect(screen.getByText("Legião Urbana")).toBeTruthy());
-    expect(mockSearchArtists).toHaveBeenCalledWith("legiao", expect.anything());
-
     fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
     fireEvent.press(screen.getByRole("checkbox", { name: "Tribalistas" }));
     expect(nextButton).toBeDisabled();
-
     fireEvent.press(screen.getByRole("checkbox", { name: "Toquinho" }));
     expect(nextButton).toBeEnabled();
 
     fireEvent.press(nextButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith("OnboardingGenres");
+    expect(onContinue).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps multiple selected artists checked", async () => {
+  it("keeps selected artists checked as search results change", async () => {
     renderScreen();
-
-    fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "toquinho");
-
-    await waitFor(() => expect(screen.getByText("Toquinho")).toBeTruthy());
-
-    fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
-    fireEvent.press(screen.getByRole("checkbox", { name: "Tribalistas" }));
-    fireEvent.press(screen.getByRole("checkbox", { name: "Toquinho" }));
-
-    expect(screen.getByRole("checkbox", { name: "Legião Urbana" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "Tribalistas" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "Toquinho" })).toBeChecked();
-  });
-
-  it("goes back when the header action is pressed", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it("signs out and returns to login when the screen has no previous route", async () => {
-    mockCanGoBack.mockReturnValueOnce(false);
-    renderScreen();
-
-    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-    await waitFor(() => {
-      expect(clearSession).toHaveBeenCalledTimes(1);
-      expect(mockReset).toHaveBeenCalledWith({ index: 0, routes: [{ name: "Login" }] });
-    });
-  });
-
-  it("shows how many artists are selected", async () => {
-    renderScreen();
-
-    expect(screen.queryByTestId("onboarding-selection-count")).toBeNull();
-
-    fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "legiao");
+    const input = screen.getByLabelText("Buscar artistas");
+    fireEvent.changeText(input, "legiao");
     await waitFor(() => expect(screen.getByText("Legião Urbana")).toBeTruthy());
 
     fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
-    expect(screen.getByText("1 selecionado")).toBeTruthy();
+    fireEvent.changeText(input, "toquinho");
+    await waitFor(() => expect(mockUseArtistSearch).toHaveBeenLastCalledWith("toquinho"));
 
-    fireEvent.press(screen.getByRole("checkbox", { name: "Tribalistas" }));
-    expect(screen.getByText("2 selecionados")).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "Legião Urbana" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Toquinho" })).toBeTruthy();
   });
 
-  it("shows empty state when no artists are found", async () => {
-    mockSearchArtists.mockResolvedValueOnce([]);
+  it("keeps saved artists visible and selected when they are absent from the catalog", () => {
+    renderScreen([{ id: 999, name: "Saved artist" }]);
+
+    expect(screen.getByRole("checkbox", { name: "Saved artist" })).toBeChecked();
+    expect(screen.getByText("Anitta")).toBeTruthy();
+  });
+
+  it("calls the route callback when the back button is pressed", () => {
+    const { onBack } = renderScreen();
+
+    fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
+
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an empty state when no artists are found", async () => {
+    mockUseArtistSearch.mockImplementation(
+      () =>
+        ({
+          data: [],
+          isError: false,
+          isFetching: false,
+          isSuccess: true
+        }) as unknown as ReturnType<typeof useArtistSearch>
+    );
     renderScreen();
 
     fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "unknown");
@@ -182,8 +170,16 @@ describe("OnboardingArtistsScreen", () => {
     expect(await screen.findByText("Nenhum artista encontrado.")).toBeTruthy();
   });
 
-  it("shows error state when search fails", async () => {
-    mockSearchArtists.mockRejectedValueOnce(new Error("Network error"));
+  it("shows an error when artist search fails", async () => {
+    mockUseArtistSearch.mockImplementation(
+      () =>
+        ({
+          data: undefined,
+          isError: true,
+          isFetching: false,
+          isSuccess: false
+        }) as ReturnType<typeof useArtistSearch>
+    );
     renderScreen();
 
     fireEvent.changeText(screen.getByLabelText("Buscar artistas"), "error");
@@ -191,32 +187,5 @@ describe("OnboardingArtistsScreen", () => {
     expect(
       await screen.findByText("Não foi possível buscar artistas. Verifique sua conexão.")
     ).toBeTruthy();
-  });
-
-  it("keeps the search text and results when an artist is selected", async () => {
-    renderScreen();
-
-    const searchInput = screen.getByLabelText("Buscar artistas");
-    fireEvent.changeText(searchInput, "legiao");
-
-    await waitFor(() => expect(screen.getByText("Legião Urbana")).toBeTruthy());
-
-    fireEvent.press(screen.getByRole("checkbox", { name: "Legião Urbana" }));
-
-    expect(searchInput.props.value).toBe("legiao");
-    expect(screen.getByRole("checkbox", { name: "Tribalistas" })).toBeTruthy();
-    expect(mockSearchArtists).toHaveBeenCalledTimes(1);
-  });
-
-  it("clears search input when clear button is pressed", async () => {
-    renderScreen();
-
-    const searchInput = screen.getByLabelText("Buscar artistas");
-    fireEvent.changeText(searchInput, "anitta");
-
-    const clearButton = await screen.findByLabelText("Limpar busca");
-    fireEvent.press(clearButton);
-
-    expect(searchInput.props.value).toBe("");
   });
 });

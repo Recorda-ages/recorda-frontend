@@ -63,10 +63,9 @@ export type RecordaCommentResponse = {
 };
 
 export type FeedComment = {
+  userId?: string;
   id: string;
   text: string;
-  /** Comment author. Absent on local-only comments, which then don't link to a profile. */
-  userId?: string;
   username: string;
   avatarUrl?: string | null;
   createdAt?: string;
@@ -75,6 +74,7 @@ export type FeedComment = {
 export type FeedPost = {
   author: { id: string; avatarUrl: string; username: string };
   comments: FeedComment[];
+  createdAt?: string;
   description: string;
   id: string;
   likedBy: { avatarUrl: string; username: string };

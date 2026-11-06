@@ -1,16 +1,33 @@
 import { authApiClient } from "@/services/api";
 
-import type { ProfileRead } from "../types";
+import type { ProfileRead, RecordaGridPage } from "../types";
 
-/**
- * NÃO CONFIRMADO: o path do perfil de terceiros é da #109, que ainda não o definiu. Este
- * valor é provisório, escolhido por simetria com `GET /users/me/profile`, e é o único
- * ponto a ajustar quando a #109 sair (ver IMPLEMENTATION_NOTES.md, §6.1). Não há fallback
- * para `GET /users/{id}`, que é uma rota administrativa.
- */
-const userProfilePath = (userId: string) => `/users/${encodeURIComponent(userId)}/profile`;
+function buildRecordasPath(userId: string, cursor: string | null) {
+  const path = `/users/${encodeURIComponent(userId)}/recordas`;
+  // No `limit`: the backend default (24) is the page size of the grid.
+  return cursor ? `${path}?cursor=${encodeURIComponent(cursor)}` : path;
+}
 
 export const profileService = {
+  /**
+   * `GET /users/me/profile`. Answers 409 while the music onboarding is incomplete, which
+   * the screen turns into a redirect to onboarding (see `isIncompleteProfileError`).
+   */
+  getMyProfile: (signal?: AbortSignal) =>
+    authApiClient.get<ProfileRead>("/users/me/profile", { signal }),
+
+  /**
+   * `GET /users/{id}/profile` (#109). Path and `ProfileRead` as in the backend PR #152, not
+   * yet merged into the backend `dev`. 404 for a missing, suspended or not onboarded user.
+   * No fallback to `GET /users/{id}`, which is an admin route.
+   */
   getUserProfile: (userId: string, signal?: AbortSignal) =>
-    authApiClient.get<ProfileRead>(userProfilePath(userId), { signal })
+    authApiClient.get<ProfileRead>(`/users/${encodeURIComponent(userId)}/profile`, { signal }),
+
+  /**
+   * `GET /users/{id}/recordas`, newest first. 403 for a private account the viewer can't
+   * see, 404 for a missing or suspended user, 400 for an invalid cursor.
+   */
+  getUserRecordas: (userId: string, cursor: string | null = null, signal?: AbortSignal) =>
+    authApiClient.get<RecordaGridPage>(buildRecordasPath(userId, cursor), { signal })
 };

@@ -1,7 +1,39 @@
 import { musicService } from "@/features/music/services/musicService";
 import { authApiClient } from "@/services/api";
 
-import type { MusicPreferences, MusicSelection, MusicTrack } from "../types";
+import type {
+  MusicPreferences,
+  MusicPreferencesResponse,
+  MusicSelection,
+  MusicTrack
+} from "../types";
+
+export async function getMusicPreferences(signal?: AbortSignal): Promise<MusicPreferences> {
+  const response = await authApiClient.get<MusicPreferencesResponse>(
+    "/users/me/music-preferences",
+    { signal }
+  );
+
+  return {
+    genres: response.genres.map((item) => ({
+      id: item.deezer_id,
+      name: item.name,
+      pictureUrl: item.picture_url ?? undefined
+    })),
+    artists: response.artists.map((item) => ({
+      id: item.deezer_id,
+      name: item.name,
+      pictureUrl: item.picture_url ?? undefined
+    })),
+    track: {
+      id: response.favorite_track.deezer_id,
+      title: response.favorite_track.title,
+      artist: response.favorite_track.artist_name,
+      artworkUrl: response.favorite_track.cover_url || undefined,
+      previewUrl: response.favorite_track.preview_url ?? undefined
+    }
+  };
+}
 
 export async function searchTracks(query: string, signal: AbortSignal): Promise<MusicTrack[]> {
   const tracks = await musicService.searchTracks(query, signal);

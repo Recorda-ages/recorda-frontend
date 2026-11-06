@@ -1,4 +1,3 @@
-import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import { Linking, Platform } from "react-native";
 import type { Social } from "react-native-share";
@@ -95,6 +94,9 @@ export async function saveCardToGallery(uri: string): Promise<"saved" | "permiss
     return "saved";
   }
 
+  // The native module is unavailable on web; load it only for a gallery save on device.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Conditional native loading also works in Jest's CommonJS runtime.
+  const MediaLibrary: typeof import("expo-media-library") = require("expo-media-library");
   const permission = await MediaLibrary.requestPermissionsAsync(true, ["photo"]);
   if (!permission.granted) return "permission-denied";
 

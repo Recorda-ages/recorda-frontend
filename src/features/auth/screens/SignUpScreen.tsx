@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { Input } from "@/components/ui";
+import { getCurrentLanguage } from "@/features/language/languagePreference";
 import { ApiError } from "@/services/api/errors";
 
 import { AuthFormError } from "../components/AuthFormError";
@@ -71,6 +72,7 @@ export function SignUpScreen() {
     try {
       const response = await signUpMutation.mutateAsync({
         email: values.email.trim(),
+        language: getCurrentLanguage(),
         name: values.name.trim(),
         password: values.password,
         username: values.username.trim()

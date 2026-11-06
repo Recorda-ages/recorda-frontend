@@ -8,7 +8,10 @@ export function useRemoveFollower(userId: string) {
   return useMutation({
     mutationFn: (followerId: string) => removeFollower(followerId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["friends", "followers", userId] });
+      void queryClient.invalidateQueries({ queryKey: ["friends"] });
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
+      void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
     }
   });
 }

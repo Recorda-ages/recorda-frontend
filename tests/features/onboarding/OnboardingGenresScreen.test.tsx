@@ -20,9 +20,9 @@ const genres = [
 
 const mockedUseGenres = jest.mocked(useGenres);
 
-function renderScreen(onContinue = jest.fn()) {
+function renderScreen(onContinue = jest.fn(), initialGenres: MusicSelection[] = []) {
   function ControlledScreen() {
-    const [selectedGenres, setSelectedGenres] = useState<MusicSelection[]>([]);
+    const [selectedGenres, setSelectedGenres] = useState<MusicSelection[]>(initialGenres);
 
     return (
       <OnboardingGenresScreen
@@ -47,6 +47,7 @@ describe("OnboardingGenresScreen", () => {
     mockedUseGenres.mockReturnValue({
       data: genres,
       isError: false,
+      isSuccess: true,
       isPending: false
     } as ReturnType<typeof useGenres>);
   });
@@ -88,5 +89,30 @@ describe("OnboardingGenresScreen", () => {
     expect(screen.getByRole("checkbox", { name: "Pop" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Rock" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Jazz" })).toBeChecked();
+  });
+
+  it("keeps saved genres visible and selected when they are absent from the catalog", () => {
+    renderScreen(jest.fn(), [{ id: 99, name: "Saved genre" }]);
+
+    expect(screen.getByRole("checkbox", { name: "Saved genre" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Pop" })).toBeTruthy();
+  });
+
+  it("uses the editor labels when a custom flow supplies them", () => {
+    render(
+      <I18nextProvider i18n={i18n}>
+        <OnboardingGenresScreen
+          continueLabel="Continue editing"
+          headerTitle="Edit preferences"
+          onBack={jest.fn()}
+          onContinue={jest.fn()}
+          onSelectedGenresChange={jest.fn()}
+          selectedGenres={genres.map(({ id, name }) => ({ id, name }))}
+        />
+      </I18nextProvider>
+    );
+
+    expect(screen.getByText("Edit preferences")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Continue editing" })).toBeEnabled();
   });
 });

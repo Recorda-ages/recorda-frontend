@@ -126,7 +126,6 @@
     }
   },
   "admin": {
-    "title": "Área administrativa",
     "reasonDialog": {
       "label": "Motivo",
       "placeholder": "Describe el motivo",
@@ -149,7 +148,6 @@
     },
     "signOut": "Salir",
     "navigation": {
-      "home": "Inicio administrativo",
       "auditLog": "Auditoría",
       "reports": "Denuncias",
       "users": "Usuarios"
@@ -228,6 +226,16 @@
           "DISMISSED": "Denuncias descartadas"
         }
       },
+      "removeRecorda": {
+        "button": "Eliminar contenido",
+        "title": "¿Eliminar esta Recorda?",
+        "warning": "Esta acción retira la publicación de toda la aplicación (feed, búsquedas y perfil) y queda registrada en la auditoría.",
+        "confirm": "Eliminar",
+        "success": "Contenido eliminado",
+        "error": "No se pudo eliminar el contenido. Inténtalo de nuevo.",
+        "conflictTitle": "Este contenido ya fue tratado",
+        "conflictMessage": "Esta Recorda ya fue eliminada. Los datos se recargaron."
+      },
       "statusActions": {
         "DISMISSED": {
           "button": "Descartar denuncia",
@@ -253,11 +261,67 @@
         "conflictMessage": "Otra persona modificó estas denuncias. Los datos se volvieron a cargar."
       }
     },
-    "pending": {
-      "message": "Esta sección aún no está disponible.",
-      "users": "Gestión de usuarios",
-      "userDetail": "Detalles del usuario",
-      "auditLog": "Auditoría"
+    "users": {
+      "title": "Gestión de Usuarios",
+      "search": "Buscar por usuario o correo",
+      "loading": "Cargando usuarios",
+      "loadingMore": "Cargando más usuarios",
+      "loadError": "No se pudieron cargar los usuarios.",
+      "loadMoreError": "No se pudieron cargar más usuarios.",
+      "retry": "Intentar de nuevo",
+      "count_zero": "0 usuarios encontrados",
+      "count_one": "{{count}} usuario encontrado",
+      "count_other": "{{count}} usuarios encontrados",
+      "noReports": "sin denuncias",
+      "reportCount_zero": "sin denuncias",
+      "reportCount_one": "{{count}} denuncia",
+      "reportCount_other": "{{count}} denuncias",
+      "shortId": "ID #{{id}}",
+      "viewHistory": "Ver historial",
+      "status": { "active": "Activa", "suspended": "Suspendida" },
+      "filters": { "all": "Todas", "active": "Activos", "suspended": "Suspendidos" },
+      "empty": {
+        "list": "No se encontraron usuarios.",
+        "search": "Ningún usuario coincide con esta búsqueda."
+      }
+    },
+    "userDetail": {
+      "title": "Detalles del usuario",
+      "loading": "Cargando detalles del usuario",
+      "loadError": "No se pudieron cargar los detalles del usuario.",
+      "retry": "Intentar de nuevo",
+      "back": "Volver a usuarios",
+      "accountTitle": "Datos de la cuenta",
+      "email": "Correo",
+      "userId": "ID completo",
+      "copyId": "Copiar ID",
+      "copySuccess": "ID copiado.",
+      "copyError": "No se pudo copiar el ID.",
+      "createdAt": "Creada el",
+      "deletedAt": "Eliminada el",
+      "privacy": "Privacidad",
+      "private": "Privada",
+      "public": "Pública",
+      "recordas": "Recordas publicadas",
+      "reports": "Denuncias recibidas",
+      "reportsReceived": "Grupos de denuncias ({{count}})",
+      "reportCount_zero": "Ninguna denuncia",
+      "reportCount_one": "{{count}} denuncia",
+      "reportCount_other": "{{count}} denuncias",
+      "reportPeriod": "{{from}}–{{to}}",
+      "noReports": "No recibió denuncias.",
+      "historyTitle": "Historial de acciones",
+      "historyEmpty": "Ninguna acción registrada.",
+      "historyBy": "Por @{{username}} • {{date}}",
+      "reason": "Motivo: {{reason}}",
+      "role": { "admin": "Administrador", "user": "Usuario" },
+      "targetType": { "recorda": "Recorda", "user": "Perfil" },
+      "actionTypes": {
+        "SUSPEND_USER": "Cuenta suspendida",
+        "REACTIVATE_USER": "Cuenta reactivada",
+        "REMOVE_RECORDA": "Recorda eliminada",
+        "CHANGE_REPORT_STATUS": "Estado de las denuncias cambiado"
+      }
     },
     "auditLog": {
       "title": "Registro de Auditoría",
@@ -266,6 +330,9 @@
       "loadMoreError": "No se pudieron cargar más registros.",
       "retry": "Intentar de nuevo",
       "empty": "No se encontraron registros.",
+      "emptySearch": "No hay registros para esta búsqueda.",
+      "ownedBy": "de",
+      "search": "Buscar por admin, usuario, Recorda o motivo",
       "count_one": "{{count}} registro encontrado",
       "count_other": "{{count}} registros encontrados",
       "filters": {
@@ -275,8 +342,9 @@
         "allAdmins": "Todos los admins"
       },
       "actions": {
-        "REMOVE_RECORDA": "eliminó la Recorda de",
-        "CHANGE_REPORT_STATUS": "cambió las denuncias de",
+        "REMOVE_RECORDA": "eliminó la Recorda",
+        "CHANGE_REPORT_STATUS_RECORDA": "cambió las denuncias de la Recorda",
+        "CHANGE_REPORT_STATUS_USER": "cambió las denuncias del perfil",
         "SUSPEND_USER": "suspendió la cuenta de",
         "REACTIVATE_USER": "reactivó la cuenta de"
       },
@@ -291,12 +359,16 @@
     "avatarA11y": "Foto de perfil de {{name}}",
     "editAvatarA11y": "Cambiar foto de perfil",
     "favoriteSongA11y": "Canción favorita: {{title}}, de {{artist}}",
+    "favoriteArtistA11y": "Artista favorito: {{name}}",
+    "favoriteGenreA11y": "Género favorito: {{name}}",
     "counts": {
       "recordas_one": "Recorda",
       "recordas_other": "Recordas",
       "followers_one": "Seguidor",
       "followers_other": "Seguidores",
-      "following": "Siguiendo"
+      "following": "Siguiendo",
+      "followersHint": "Abre la lista de seguidores",
+      "followingHint": "Abre la lista de seguidos"
     },
     "tabs": {
       "recordas": "Recordas",
@@ -308,12 +380,83 @@
       "message": "Sigue este perfil para ver sus Recordas."
     },
     "comingSoon": "Próximamente",
-    "back": "Volver",
     "loading": "Cargando perfil",
     "loadError": "No se pudo cargar el perfil.",
     "retry": "Intentar de nuevo",
+    "back": "Volver",
     "unavailable": "Este perfil no está disponible.",
-    "report": "Denunciar perfil"
+    "report": "Denunciar perfil",
+    "grid": {
+      "empty": "Todavía no hay Recordas publicadas.",
+      "loadError": "No se pudieron cargar las Recordas.",
+      "loadMoreError": "No se pudieron cargar más Recordas.",
+      "retry": "Intentar de nuevo",
+      "loading": "Cargando Recordas",
+      "loadingMore": "Cargando más Recordas",
+      "photoA11y": "Recorda con foto: {{title}}, de {{artist}}",
+      "videoA11y": "Recorda en video: {{title}}, de {{artist}}"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "back": "Volver",
+    "editAccount": "Mi cuenta",
+    "editMusicPreferences": "Editar preferencias musicales",
+    "next": "Siguiente",
+    "save": "Guardar",
+    "retry": "Reintentar",
+    "continueEditing": "Seguir editando",
+    "discard": "Descartar",
+    "musicPreferences": {
+      "title": "Editar preferencias musicales",
+      "loading": "Cargando preferencias musicales",
+      "loadError": "No se pudieron cargar tus preferencias.",
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Tus selecciones aún no se han guardado.",
+      "updated": "Preferencias actualizadas"
+    },
+    "account": {
+      "title": "Mi cuenta",
+      "loading": "Cargando los datos de la cuenta",
+      "loadError": "No se pudieron cargar los datos de la cuenta.",
+      "save": "Guardar cambios",
+      "saveError": "No se pudieron guardar tus datos. Inténtalo de nuevo.",
+      "networkError": "No se puede conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+      "updated": "Datos de la cuenta actualizados",
+      "personalDetails": "Datos personales",
+      "name": "Nombre",
+      "username": "Usuario",
+      "email": "Correo electrónico",
+      "passwordSection": "Cambiar contraseña",
+      "passwordHint": "Completa ambos campos para cambiar la contraseña. Déjalos vacíos para conservarla.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "passwordRequired": "Introduce la nueva contraseña.",
+      "confirmPasswordRequired": "Confirma la nueva contraseña.",
+      "emailTaken": "Este correo electrónico ya está en uso.",
+      "usernameTaken": "Este nombre de usuario ya está en uso.",
+      "invalidField": "Revisa este campo e inténtalo de nuevo.",
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Aún no has guardado los cambios."
+    },
+    "loading": "Cargando configuración...",
+    "loadError": "No se pudo cargar la configuración.",
+    "privateAccount": "Cuenta privada",
+    "privacyHint": "Al hacer pública tu cuenta se aceptarán las solicitudes pendientes.",
+    "language": "Idioma",
+    "languages": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    },
+    "saved": "Configuración guardada.",
+    "acceptedRequests": "Configuración guardada. Solicitudes aceptadas: {{count}}.",
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteTitle": "¿Eliminar tu cuenta?",
+    "deleteMessage": "Se eliminarán tu cuenta y tus Recordas. Esta acción no se puede deshacer.",
+    "cancel": "Cancelar",
+    "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
   },
   "friends": {
     "title": "Amigos",
@@ -369,7 +512,8 @@
     "deleteError": "No se pudo eliminar la Recorda. Inténtalo de nuevo.",
     "confirmDelete": "Confirmar eliminación",
     "unavailable": "Esta Recorda ya no está disponible.",
-    "sharePending": "Compartir Recordas todavía no está disponible en esta versión."
+    "sharePending": "Compartir Recordas todavía no está disponible en esta versión.",
+    "commentDeleteError": "No se pudo eliminar el comentario. Inténtalo de nuevo."
   },
   "feed": {
     "logo": "recorda.",
@@ -520,15 +664,13 @@
     "account": {
       "suspendTitle": "Suspender cuenta",
       "reactivateTitle": "Reactivar cuenta",
-      "userLabel": "Usuario:",
-      "reasonLabel": "Motivo (obligatorio):",
-      "reasonInput": "Motivo de la moderación",
-      "reasonPlaceholder": "Indica el motivo de la acción (máx. {{max}} caracteres)...",
+      "suspendShort": "Suspender",
+      "reactivateShort": "Reactivar",
+      "suspendDialogTitle": "¿Suspender esta cuenta?",
+      "reactivateDialogTitle": "¿Reactivar esta cuenta?",
+      "suspendMessage": "La cuenta de @{{username}} quedará suspendida. La acción queda registrada en la auditoría.",
+      "reactivateMessage": "La cuenta de @{{username}} volverá a estar activa. La acción queda registrada en la auditoría.",
       "resolveReports": "Marcar las denuncias abiertas del perfil como resueltas",
-      "cancel": "Cancelar",
-      "confirmSuspend": "Confirmar suspensión",
-      "confirmReactivate": "Confirmar reactivación",
-      "submitting": "Enviando...",
       "adminNotice": "No está permitido suspender a otro administrador.",
       "unexpectedError": "Error inesperado al realizar la moderación."
     }
@@ -547,5 +689,124 @@
   },
   "splash": {
     "logo": "recorda."
+  },
+  "settings": {
+    "title": "Configuración",
+    "back": "Volver",
+    "accountSection": "Cuenta",
+    "account": "Mi cuenta",
+    "privateAccount": "Cuenta privada",
+    "privateSupport": "Solo los seguidores aprobados ven tus Recordas",
+    "publicSupport": "Cualquier persona ve tus Recordas",
+    "preferencesSection": "Preferencias",
+    "music": "Preferencias musicales",
+    "musicSupport": "Artistas, géneros y canción favorita",
+    "language": "Idioma",
+    "sessionSection": "Sesión",
+    "signOut": "Cerrar sesión",
+    "loading": "Cargando configuración…",
+    "saving": "Guardando privacidad…",
+    "loadError": "No se pudo cargar tu configuración.",
+    "updateError": "No se pudo cambiar la privacidad. Se restauró tu configuración anterior. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo",
+    "accepted_one": "Se aceptó {{count}} solicitud",
+    "accepted_other": "Se aceptaron {{count}} solicitudes",
+    "pending": "Esta configuración está en construcción. Pronto podrás cambiarla aquí.",
+    "signOutError": "No se pudo cerrar la sesión. Inténtalo de nuevo.",
+    "cancel": "Cancelar",
+    "confirmAction": "Confirmar",
+    "confirm": {
+      "private": {
+        "title": "¿Hacer privada tu cuenta?",
+        "message": "Tus Recordas, incluidas las antiguas, solo serán visibles para seguidores aprobados. Tus seguidores actuales siguen aprobados."
+      },
+      "public": {
+        "title": "¿Hacer pública tu cuenta?",
+        "message": "Cualquier persona podrá ver tus Recordas, incluidas las antiguas. Se aceptarán todas las solicitudes de seguimiento pendientes."
+      },
+      "signOut": {
+        "title": "Cerrar sesión",
+        "message": "¿Quieres cerrar la sesión de tu cuenta?"
+      }
+    },
+    "musicPreferences": {
+      "title": "Editar preferencias musicales",
+      "save": "Guardar",
+      "loading": "Cargando preferencias musicales",
+      "loadError": "No se pudieron cargar tus preferencias.",
+      "discardTitle": "¿Descartar cambios?",
+      "discardMessage": "Tus cambios aún no han sido guardados.",
+      "updated": "Preferencias actualizadas"
+    }
+  },
+  "account": {
+    "title": "Cuenta",
+    "back": "Volver",
+    "infoSection": "Información",
+    "name": "Nombre",
+    "username": "Usuario",
+    "email": "Correo electrónico",
+    "passwordSection": "Cambiar contraseña",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Repetir nueva contraseña",
+    "passwordPairRequired": "Completa los dos campos para cambiar la contraseña.",
+    "usernameTaken": "Ese usuario ya está en uso.",
+    "emailTaken": "Ese correo electrónico ya está en uso.",
+    "invalidField": "Campo inválido.",
+    "save": "Guardar",
+    "saveSuccess": "Tus datos se actualizaron.",
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
+    "noChanges": "No hay cambios para guardar.",
+    "loading": "Cargando tu cuenta",
+    "loadError": "No se pudo cargar tu cuenta.",
+    "retry": "Intentar de nuevo",
+    "sessionExpired": "Tu sesión expiró. Inicia sesión de nuevo.",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteSuccess": "Tu cuenta fue eliminada.",
+    "deleteDialog": {
+      "title": "Eliminar cuenta",
+      "message": "¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar",
+      "error": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+    }
+  },
+  "language": {
+    "title": "Idioma",
+    "back": "Volver",
+    "names": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "memoriesMetrics": {
+    "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo."
+  },
+  "memoriesCalendar": {
+    "grid": {
+      "monthTitle": "{{month}} {{year}}",
+      "previousMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "summary": "{{memories}} en {{days}}",
+      "summaryEmpty": "Ningún recuerdo este mes",
+      "memories_one": "{{count}} recuerdo",
+      "memories_other": "{{count}} recuerdos",
+      "days_one": "{{count}} día",
+      "days_other": "{{count}} días",
+      "dayLabel_one": "{{date}}, {{count}} recuerdo",
+      "dayLabel_other": "{{date}}, {{count}} recuerdos",
+      "extraMemories": "+{{extra}}"
+    },
+    "viewer": {
+      "close": "Cerrar",
+      "previousDay": "Día anterior",
+      "nextDay": "Día siguiente",
+      "play": "Reproducir canción",
+      "pause": "Pausar canción",
+      "error": "No se pudieron cargar los recuerdos de este día.",
+      "retry": "Intentar de nuevo",
+      "empty": "No hay recuerdos en este día."
+    }
   }
 }

@@ -25,6 +25,7 @@ export type AuditLogFilters = {
   actionType?: AdminActionType;
   dateFrom?: string;
   dateTo?: string;
+  query?: string;
 };
 
 export function useAuditLog(filters: AuditLogFilters) {
@@ -36,6 +37,7 @@ export function useAuditLog(filters: AuditLogFilters) {
     ...(filters.actionType ? { action_type: filters.actionType } : {}),
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
     ...(filters.dateTo ? { date_to: filters.dateTo } : {}),
+    ...(filters.query ? { q: filters.query } : {}),
     limit: PAGE_SIZE
   };
 

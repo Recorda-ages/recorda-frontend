@@ -1,9 +1,10 @@
+import type { FeedItem } from "@/features/feed/types";
 import type { FollowStatus } from "@/features/follow";
 
 /**
- * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend, na branch
- * `feat/113-calculo-streak-de-publicacoes`, ainda não mergeada. O perfil de terceiros é da
- * #109; até ela sair, este tipo segue aquele schema (ver IMPLEMENTATION_NOTES.md).
+ * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend. Já é a
+ * resposta de `GET /users/me/profile` na `dev` do backend. O perfil de terceiros (#109)
+ * usará o mesmo contrato quando existir (ver docs/issue-253.md).
  */
 export type ProfileRead = {
   can_view_content: boolean;
@@ -14,7 +15,7 @@ export type ProfileRead = {
   name: string;
   profile_picture_url: string | null;
   relationship: ProfileRelationship;
-  /** Faz parte do contrato, mas a badge é da US35: esta task não a exibe. */
+  /** Faz parte do contrato, mas a badge é da US35 (#260): estas telas não a exibem. */
   streak: ProfileStreak | null;
   user_id: string;
   username: string;
@@ -44,4 +45,25 @@ export type ProfileRelationship = {
 export type ProfileStreak = {
   current_days: number;
   published_today: boolean;
+};
+
+/**
+ * Espelha `RecordaGridItem` de `app/schemas/recorda.py`: só o necessário para a miniatura,
+ * sem curtidas nem descrição. Resposta de `GET /users/{user_id}/recordas`.
+ */
+export type RecordaGridItem = {
+  /** ISO 8601. A grade vem da mais recente para a mais antiga. */
+  created_at: string;
+  media_type: FeedItem["media_type"];
+  media_url: string;
+  recorda_id: string;
+  song_artist_name: string;
+  song_cover_url: string;
+  song_title: string;
+};
+
+/** Espelha `RecordaGridPage`: página paginada por cursor; `null` no fim da lista. */
+export type RecordaGridPage = {
+  items: RecordaGridItem[];
+  next_cursor: string | null;
 };

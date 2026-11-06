@@ -19,6 +19,7 @@ import { ToastProvider } from "@/components/ui/ToastProvider";
 import { paperTheme } from "@/theme";
 
 import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
+import { SessionProviders } from "../../providers/SessionProviders";
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -63,9 +64,11 @@ function renderDetail(targetType: AdminTargetType, targetId: string) {
     <QueryClientProvider client={client}>
       <I18nextProvider i18n={i18n}>
         <PaperProvider theme={paperTheme}>
-          <ToastProvider>
-            <AdminReportDetailScreen targetId={targetId} targetType={targetType} />
-          </ToastProvider>
+          <SessionProviders>
+            <ToastProvider>
+              <AdminReportDetailScreen targetId={targetId} targetType={targetType} />
+            </ToastProvider>
+          </SessionProviders>
         </PaperProvider>
       </I18nextProvider>
     </QueryClientProvider>
@@ -123,6 +126,12 @@ describe("AdminReportDetailScreen", () => {
     expect(screen.getByRole("button", { name: "Descartar denúncia" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Reabrir denúncias" })).toBeNull();
     expect(screen.queryByTestId("admin-report-open-user")).toBeNull();
+    // The actions scroll with the content instead of sticking to the bottom.
+    expect(
+      within(screen.getByTestId("admin-report-detail-content")).getByTestId(
+        "admin-report-status-actions"
+      )
+    ).toBeTruthy();
   });
 
   it("plays a removed Recorda video only on demand and without sound", async () => {

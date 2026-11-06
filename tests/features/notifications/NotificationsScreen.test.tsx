@@ -72,7 +72,10 @@ const REMOVED_NOTIFICATION = notification({
 
 function renderScreen(cachedPage?: NotificationPage) {
   queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false }, queries: { gcTime: Infinity, retry: false } }
+    defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
+      queries: { gcTime: Infinity, retry: false }
+    }
   });
   if (cachedPage) {
     queryClient.setQueryData(NOTIFICATIONS_QUERY_KEY, {

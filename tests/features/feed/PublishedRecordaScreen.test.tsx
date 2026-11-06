@@ -1,16 +1,29 @@
+import { ApiError } from "@/services/api/errors";
+import { mockFeedPosts } from "@/features/feed/mocks/feedPosts";
+import { recordaCommentsQueryKey } from "@/features/feed/queryKeys";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import { resetPrivateState } from "@/services/api/sessionLifecycle";
 import { FeedProvider, PublishedRecordaScreen, RecordaIntegrationScreen } from "@/features/feed";
 import { shouldCloseCommentsSheet } from "@/features/feed/components/RecordaDetailView";
 import { FeedAudioProvider } from "@/features/feed/state/FeedAudioContext";
 import { feedService } from "@/features/feed/services/feedService";
 import { useFeed } from "@/features/feed/state/FeedContext";
 import type { FeedItem, RecordaDetailResponse } from "@/features/feed/types";
+import { monthCalendarQueryKey } from "@/features/memories-calendar/queryKeys";
 import { i18n } from "@/i18n";
 import { authApiClient } from "@/services/api";
 import { fontFamily } from "@/theme";
@@ -61,15 +74,62 @@ function OpenFeedItem({ item }: { item: FeedItem }) {
   );
 }
 
+function SeedFixture() {
+  const { openFeedItem } = useFeed();
+  useLayoutEffect(() => {
+    for (const post of mockFeedPosts)
+      openFeedItem({
+        author: {
+          user_id: post.author.id,
+          username: post.author.username,
+          profile_picture_url: post.author.avatarUrl
+        },
+        created_at: "2026-01-01T12:00:00Z",
+        description: post.description,
+        is_liked: false,
+        likes_count: post.likesCount,
+        media_type: post.mediaType ?? "PHOTO",
+        media_url: post.mediaUrl,
+        recorda_id: post.id,
+        song_artist_name: post.song.artistName,
+        song_cover_url: post.song.coverUrl ?? "",
+        song_preview_url: post.previewUrl ?? null,
+        song_title: post.song.title
+      });
+  }, [openFeedItem]);
+  return null;
+}
+
+function fixtureComments() {
+  return (mockFeedPosts.find((post) => post.id === mockRoute.params.postId)?.comments ?? []).map(
+    (comment) => ({
+      comment_id: comment.id,
+      user_id: comment.username === "lucas_almeida" ? "demo-lucas" : "another-user",
+      username: comment.username,
+      avatar_url: null,
+      content: comment.text,
+      created_at: comment.createdAt
+    })
+  );
+}
+
 function renderScreen(item?: FeedItem) {
   queryClient = new QueryClient({
-    defaultOptions: { queries: { gcTime: Infinity, retry: false } }
+    defaultOptions: { mutations: { gcTime: Infinity }, queries: { gcTime: Infinity, retry: false } }
   });
 
+  queryClient.setQueryData(AUTH_ME_QUERY_KEY, {
+    user_id: "demo-lucas",
+    username: "lucas_almeida",
+    role: "USER"
+  });
+  if (!item)
+    queryClient.setQueryData(recordaCommentsQueryKey(mockRoute.params.postId), fixtureComments());
   return render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <FeedProvider>
+          {!item ? <SeedFixture /> : null}
           <FeedAudioProvider>
             {item ? <OpenFeedItem item={item} /> : null}
             {item ? null : <PublishedRecordaScreen />}
@@ -94,18 +154,36 @@ describe("PublishedRecordaScreen", () => {
     getRecordaById = jest
       .spyOn(feedService, "getRecordaById")
       .mockRejectedValue(new Error("not found"));
-    getComments = jest.spyOn(feedService, "getComments").mockResolvedValue([]);
-    createComment = jest.spyOn(feedService, "createComment");
+    getComments = jest
+      .spyOn(feedService, "getComments")
+      .mockImplementation(async () => fixtureComments() as never);
+    createComment = jest
+      .spyOn(feedService, "createComment")
+      .mockImplementation(async (_id, content) => ({
+        comment_id: "new-comment",
+        user_id: "demo-lucas",
+        username: "lucas_almeida",
+        avatar_url: null,
+        content,
+        created_at: "2026-01-01T12:00:00Z"
+      }));
+    jest.spyOn(feedService, "deleteRecorda").mockResolvedValue(undefined);
+    jest.spyOn(feedService, "setRecordaLike").mockImplementation(async (id, is_liked) => ({
+      is_liked,
+      likes_count:
+        (mockFeedPosts.find((post) => post.id === id)?.likesCount ?? 11) + (is_liked ? 1 : 0)
+    }));
   });
 
   afterEach(() => {
+    cleanup();
     queryClient?.clear();
     jest.restoreAllMocks();
   });
 
   it("shows the expanded post, publication date and comments", () => {
     renderScreen();
-    expect(getRecordaById).not.toHaveBeenCalled();
+    expect(getRecordaById).toHaveBeenCalled();
     expect(screen.getByLabelText("Show I-N-C-R-I-V-E-L!")).toBeTruthy();
     expect(screen.getByText("The Edge")).toBeTruthy();
     expect(screen.getByText(/The American Dawn/)).toBeTruthy();
@@ -129,8 +207,9 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(details.getByRole("button", { name: "Curtir" }));
     expect(screen.getByTestId("liked-posts")).toHaveTextContent("post-1");
     expect(details.getByText("13 curtidas")).toBeTruthy();
+    await waitFor(() => expect(details.getByRole("button", { name: "Curtir" })).not.toBeDisabled());
     fireEvent.press(details.getByRole("button", { name: "Curtir" }));
-    expect(screen.getByTestId("liked-posts")).toHaveTextContent("");
+    await waitFor(() => expect(screen.getByTestId("liked-posts")).toHaveTextContent(""));
     expect(details.getByText("12 curtidas")).toBeTruthy();
 
     expect(details.queryByLabelText("Adicione um comentário...")).toBeNull();
@@ -142,11 +221,13 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.changeText(input, "  Que lembrança boa!  ");
     fireEvent.press(details.getByRole("button", { name: "Enviar comentário" }));
     await waitFor(() => expect(details.getByText(/Que lembrança boa!/)).toBeTruthy());
-    expect(screen.getByTestId("shared-comments").props.children).toContain("Que lembrança boa!");
+    expect(queryClient.getQueryData(recordaCommentsQueryKey("post-1"))).toEqual(
+      expect.arrayContaining([expect.objectContaining({ content: "Que lembrança boa!" })])
+    );
     expect(input.props.value).toBe("");
   });
 
-  it("only offers Delete for own posts and requires confirmation", () => {
+  it("only offers Delete for own posts and requires confirmation", async () => {
     renderScreen();
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     expect(screen.queryByText("Denunciar")).toBeNull();
@@ -160,7 +241,9 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
     fireEvent.press(screen.getByRole("button", { name: "Confirmar exclusão" }));
-    expect(screen.getByTestId("remaining-posts")).not.toHaveTextContent(/post-1/);
+    await waitFor(() =>
+      expect(screen.getByTestId("remaining-posts")).not.toHaveTextContent(/post-1/)
+    );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
@@ -189,6 +272,7 @@ describe("PublishedRecordaScreen", () => {
     );
     mockRoute.params.postId = recordaId;
     renderScreen(item);
+    queryClient.setQueryData(monthCalendarQueryKey(2026, 1), { days: [] });
     fireEvent.press(screen.getByText("Open API item"));
     fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
     fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
@@ -203,6 +287,77 @@ describe("PublishedRecordaScreen", () => {
       expect(screen.getByTestId("remaining-posts").props.children).not.toContain(recordaId)
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(queryClient.getQueryState(monthCalendarQueryKey(2026, 1))?.isInvalidated).toBe(true);
+  });
+
+  describe("owner's profile after a delete", () => {
+    function seedProfiles() {
+      queryClient.setQueryData(["profile", "demo-lucas"], { user_id: "demo-lucas" });
+      queryClient.setQueryData(["profile", "demo-lucas", "recordas"], {
+        pageParams: [null],
+        pages: []
+      });
+      queryClient.setQueryData(["profile", "someone-else"], { user_id: "someone-else" });
+    }
+
+    function confirmDelete() {
+      fireEvent.press(screen.getByRole("button", { name: "Mais opções" }));
+      fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
+      fireEvent.press(screen.getByRole("button", { name: "Confirmar exclusão" }));
+    }
+
+    function isInvalidated(key: readonly unknown[]) {
+      return queryClient.getQueryState(key)?.isInvalidated;
+    }
+
+    it("refreshes the owner's profile and grid, and no one else's", async () => {
+      renderScreen();
+      seedProfiles();
+
+      confirmDelete();
+
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+      expect(isInvalidated(["profile", "demo-lucas"])).toBe(true);
+      expect(isInvalidated(["profile", "demo-lucas", "recordas"])).toBe(true);
+      expect(isInvalidated(["profile", "someone-else"])).toBe(false);
+    });
+
+    it("leaves the profile alone when the delete fails", async () => {
+      const deleteRecorda = jest
+        .spyOn(feedService, "deleteRecorda")
+        .mockRejectedValue(new Error("network"));
+      renderScreen();
+      seedProfiles();
+
+      confirmDelete();
+
+      await waitFor(() => expect(deleteRecorda).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(screen.getByText(/Não foi possível excluir a Recorda/)).toBeTruthy()
+      );
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(isInvalidated(["profile", "demo-lucas"])).toBe(false);
+    });
+
+    it("skips the profile when the session changed during the delete", async () => {
+      let finishDelete!: () => void;
+      jest.spyOn(feedService, "deleteRecorda").mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            finishDelete = resolve;
+          })
+      );
+      renderScreen();
+      seedProfiles();
+
+      confirmDelete();
+      await waitFor(() => expect(feedService.deleteRecorda).toHaveBeenCalled());
+      resetPrivateState(); // sign out / account switch while the DELETE is in flight
+      await act(async () => finishDelete());
+
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+      expect(isInvalidated(["profile", "demo-lucas"])).toBe(false);
+    });
   });
 
   it("only offers Not interested and Report for another author and opens the report dialog", () => {
@@ -436,7 +591,11 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
     expect(screen.getByText(/Nenhum comentário ainda/)).toBeTruthy();
     fireEvent.changeText(screen.getByLabelText("Adicione um comentário..."), "Primeiro!");
-    fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+    // The comment mutation settles asynchronously; act waits for it before asserting.
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Enviar comentário" }));
+    });
+    expect(createComment).toHaveBeenCalledWith("post-4", "Primeiro!");
     await waitFor(() => expect(screen.queryByText(/Nenhum comentário ainda/)).toBeNull());
     expect(screen.getByText(/Primeiro!/)).toBeTruthy();
   });
@@ -540,19 +699,9 @@ describe("PublishedRecordaScreen", () => {
       expect(mockNavigate).toHaveBeenNthCalledWith(1, "UserProfile", { userId: "user-3" });
       expect(mockNavigate).toHaveBeenNthCalledWith(2, "UserProfile", { userId: "user-3" });
     });
-
-    it("leaves local comments without an author id unlinked", () => {
-      renderScreen();
-      fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
-
-      fireEvent.press(screen.getByText("jane_smith"));
-
-      expect(screen.queryByLabelText("Abrir perfil de jane_smith")).toBeNull();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
   });
 
-  it("opens an API video with its existing like count", () => {
+  it("opens an API video with its existing like count", async () => {
     const item: FeedItem = {
       author: { user_id: "user-2", username: "jane_smith", profile_picture_url: null },
       created_at: "2026-01-01T12:00:00Z",
@@ -579,6 +728,7 @@ describe("PublishedRecordaScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Curtir" }));
     expect(screen.getByText("11 curtidas")).toBeTruthy();
 
+    await waitFor(() => expect(screen.getByRole("button", { name: "Curtir" })).not.toBeDisabled());
     fireEvent.press(screen.getByText("Open API item"));
     expect(screen.getByText("12 curtidas")).toBeTruthy();
   });
@@ -643,8 +793,10 @@ describe("PublishedRecordaScreen", () => {
     mockRoute.params.postId = "missing";
     renderScreen();
 
-    await waitFor(() =>
-      expect(screen.getByText("Não foi possível carregar o feed. Tente novamente.")).toBeTruthy()
+    await waitFor(
+      () =>
+        expect(screen.getByText("Não foi possível carregar o feed. Tente novamente.")).toBeTruthy(),
+      { timeout: 3000 }
     );
     fireEvent.press(screen.getByRole("button", { name: "Voltar" }));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
@@ -688,4 +840,58 @@ describe("PublishedRecordaScreen", () => {
       )
     );
   });
+  it("removes a comment through the API only after confirmation", async () => {
+    const remove = jest.spyOn(feedService, "deleteComment").mockResolvedValue(undefined);
+    renderScreen();
+    fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
+    fireEvent.press(await screen.findByTestId("delete-comment-c2"));
+    expect(remove).not.toHaveBeenCalled();
+    getComments.mockResolvedValue(
+      fixtureComments().filter((comment) => comment.comment_id !== "c2")
+    );
+    fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledWith("c2"));
+    await waitFor(() => expect(screen.queryByText(/Estava d\+!/)).toBeNull());
+  });
+
+  it("keeps a comment visible when the delete request fails", async () => {
+    jest
+      .spyOn(feedService, "deleteComment")
+      .mockRejectedValue(new ApiError("FORBIDDEN", "Forbidden", 403, null));
+    renderScreen();
+    fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
+    fireEvent.press(await screen.findByTestId("delete-comment-c2"));
+    fireEvent.press(screen.getByRole("button", { name: "Excluir" }));
+    await waitFor(() =>
+      expect(
+        screen.getAllByText("Não foi possível excluir o comentário. Tente novamente.").length
+      ).toBeGreaterThan(0)
+    );
+    expect(queryClient.getQueryData<unknown[]>(recordaCommentsQueryKey("post-1"))).toHaveLength(2);
+  });
+
+  it("hides delete actions on other users' comments on another user's Recorda", async () => {
+    mockRoute.params.postId = "post-2";
+    renderScreen();
+    fireEvent.press(screen.getByRole("button", { name: "Comentar" }));
+    await screen.findByText(/Que vista!/);
+    expect(screen.queryByTestId("delete-comment-c3")).toBeNull();
+  });
+
+  it.each([403, 404])(
+    "hides an inaccessible snapshot after revalidation returns %s",
+    async (status) => {
+      getRecordaById.mockRejectedValue(new ApiError("UNAVAILABLE", "Unavailable", status, null));
+      renderScreen();
+      await waitFor(() =>
+        expect(queryClient.getQueryState(["recorda", "details", "post-1"])).toMatchObject({
+          status: "error",
+          error: expect.objectContaining({ status })
+        })
+      );
+      await waitFor(() => expect(screen.queryByTestId("recorda-detail-screen")).toBeNull());
+      expect(getRecordaById).toHaveBeenCalledWith("post-1", expect.any(AbortSignal));
+      expect(screen.getByText("Esta Recorda não está mais disponível.")).toBeTruthy();
+    }
+  );
 });

@@ -1,0 +1,33 @@
+Validação de integração, 25/10/2026
+
+Frontend:
+> recorda-frontend@0.1.0 typecheck
+> tsc --noEmit
+> recorda-frontend@0.1.0 lint
+> eslint . --max-warnings=0
+> recorda-frontend@0.1.0 format:check
+> prettier . --check
+
+Checking formatting...
+All matched files use Prettier code style!
+
+
+Test Suites: 100 passed, 100 total
+Tests:       837 passed, 837 total
+Snapshots:   0 total
+Time:        60.195 s, estimated 61 s
+Ran all test suites.
+Processo Jest concluído com exit code 0, sem forceExit.
+
+Backend:
+ruff check .: All checks passed!
+--------------------------------------------------------------------------------
+TOTAL                                               3426     52    98%
+Coverage XML written to file coverage-unit.xml
+Required test coverage of 80% reached. Total coverage: 98.48%
+======================= 866 passed, 2 warnings in 26.34s =======================
+
+Smoke HTTP: 77 requisições verificadas, com PostgreSQL real.
+Bundles Android e iOS exportados para /private/tmp/recorda-integration-bundles.
+iOS: build e login executados no iPhone 18 Pro Simulator, iOS 27.0.
+Android: execução nativa pendente, SDK/emulador indisponíveis.

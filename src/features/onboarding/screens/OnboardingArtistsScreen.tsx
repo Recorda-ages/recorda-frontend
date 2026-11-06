@@ -1,27 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 
-import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, ErrorState, Loading } from "@/components/ui";
-import { clearSession } from "@/features/auth/session";
 import { useArtistSearch } from "@/features/music/hooks/useArtistSearch";
 import { usePopularArtists } from "@/features/music/hooks/usePopularArtists";
 import { colors, fontFamily, spacing } from "@/theme";
 
 import { ArtistChip, type ArtistOption } from "../components/ArtistChip";
 import { OnboardingStepLayout } from "../components/OnboardingStepLayout";
-import { useOnboarding } from "../state/OnboardingContext";
+import type { MusicSelection } from "../types";
 
 const MIN_ARTISTS = 3;
 
-export function OnboardingArtistsScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+export type OnboardingArtistsScreenProps = {
+  selectedArtists: MusicSelection[];
+  onSelectedArtistsChange: (artists: MusicSelection[]) => void;
+  onBack: () => void;
+  onContinue: () => void;
+  headerTitle?: string;
+  title?: string;
+  subtitle?: string;
+  continueLabel?: string;
+};
+
+export function OnboardingArtistsScreen({
+  selectedArtists,
+  onSelectedArtistsChange,
+  onBack,
+  onContinue,
+  headerTitle,
+  title,
+  subtitle,
+  continueLabel
+}: OnboardingArtistsScreenProps) {
   const { t } = useTranslation();
-  const { selectedArtists, setSelectedArtists } = useOnboarding();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -57,21 +71,11 @@ export function OnboardingArtistsScreen() {
   }, [hasSearched, popular.data, search.data, selectedArtistIds, selectedArtists]);
 
   const toggleArtist = (artist: ArtistOption) => {
-    setSelectedArtists((currentArtists) =>
-      currentArtists.some((selectedArtist) => selectedArtist.id === artist.id)
-        ? currentArtists.filter((selectedArtist) => selectedArtist.id !== artist.id)
-        : [...currentArtists, { id: artist.id, name: artist.name, pictureUrl: artist.pictureUrl }]
-    );
-  };
-
-  const goBack = async () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    await clearSession();
-    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+    const exists = selectedArtists.some((item) => item.id === artist.id);
+    const updated = exists
+      ? selectedArtists.filter((item) => item.id !== artist.id)
+      : [...selectedArtists, { id: artist.id, name: artist.name, pictureUrl: artist.pictureUrl }];
+    onSelectedArtistsChange(updated);
   };
 
   return (
@@ -80,17 +84,17 @@ export function OnboardingArtistsScreen() {
       backAccessibilityLabel={t("onboarding.artists.back")}
       backButtonTestID="onboarding-artists-back-button"
       continueDisabled={!canAdvance}
-      continueLabel={t("onboarding.artists.continue")}
+      continueLabel={continueLabel ?? t("onboarding.artists.continue")}
       continueTestID="onboarding-artists-next-button"
-      headerTitle={t("onboarding.artists.header")}
+      headerTitle={headerTitle ?? t("onboarding.artists.header")}
       keyboardShouldPersistTaps="handled"
-      onBack={() => void goBack()}
-      onContinue={() => navigation.navigate("OnboardingGenres")}
+      onBack={onBack}
+      onContinue={onContinue}
       selectionCount={selectedArtists.length}
       stepLabel={t("onboarding.artists.step")}
-      subtitle={t("onboarding.artists.subtitle")}
+      subtitle={subtitle ?? t("onboarding.artists.subtitle")}
       testID="onboarding-artists-screen"
-      title={t("onboarding.artists.title")}
+      title={title ?? t("onboarding.artists.title")}
     >
       <View style={styles.search}>
         <TextInput

@@ -120,6 +120,108 @@ describe("ProfileHeader", () => {
 
     expect(onEditAvatar).toHaveBeenCalledTimes(1);
   });
+
+  describe("favorite artists and genres", () => {
+    const ARTISTS = [
+      { id: 412, name: "Imagine Dragons", pictureUrl: "https://cdn.example.com/dragons.jpg" },
+      { id: 7, name: "Muse" }
+    ];
+    const GENRES = [
+      { id: 85, name: "Indie Rock", pictureUrl: "https://cdn.example.com/indie.jpg" },
+      { id: 152, name: "Rock" }
+    ];
+
+    it("shows a chip per artist and per genre, next to the favorite song", () => {
+      renderHeader({ favoriteArtists: ARTISTS, favoriteGenres: GENRES });
+
+      expect(screen.getByText("Starlight · Muse")).toBeTruthy();
+      expect(screen.getByLabelText("Artista favorito: Imagine Dragons")).toBeTruthy();
+      expect(screen.getByLabelText("Artista favorito: Muse")).toBeTruthy();
+      expect(screen.getByLabelText("Gênero favorito: Indie Rock")).toBeTruthy();
+      expect(screen.getByLabelText("Gênero favorito: Rock")).toBeTruthy();
+    });
+
+    it("uses the artist picture when there is one, and an icon otherwise", () => {
+      renderHeader({ favoriteArtists: ARTISTS });
+
+      expect(screen.getByTestId("profile-favorite-artist-412-image")).toHaveProp("source", [
+        { uri: "https://cdn.example.com/dragons.jpg" }
+      ]);
+      expect(screen.queryByTestId("profile-favorite-artist-7-image")).toBeNull();
+    });
+
+    it("shows genres with the icon, as in the visual reference", () => {
+      renderHeader({ favoriteGenres: GENRES });
+
+      expect(screen.queryByTestId("profile-favorite-genre-85-image")).toBeNull();
+    });
+
+    it("keeps long names on one line, ending in an ellipsis", () => {
+      const longName = "The Extraordinarily Long Named Orchestra Of Everything";
+      renderHeader({ favoriteArtists: [{ id: 1, name: longName }] });
+
+      expect(screen.getByText(longName)).toHaveProp("numberOfLines", 1);
+    });
+
+    it("renders no artist or genre chips when they are not given", () => {
+      renderHeader();
+
+      expect(screen.queryByTestId(/^profile-favorite-artist-\d+$/)).toBeNull();
+      expect(screen.queryByTestId(/^profile-favorite-genre-\d+$/)).toBeNull();
+      expect(screen.getByTestId("profile-favorite-song")).toBeTruthy();
+    });
+
+    it("shows the artist and genre chips even without a favorite song", () => {
+      renderHeader({ favoriteArtists: ARTISTS, favoriteGenres: [], favoriteSong: null });
+
+      expect(screen.queryByTestId("profile-favorite-song")).toBeNull();
+      expect(screen.getAllByTestId(/^profile-favorite-artist-\d+$/)).toHaveLength(2);
+    });
+  });
+
+  describe("counters", () => {
+    const COUNTS = { followers: 15, following: 256, recordas: 6 };
+
+    it("opens the followers and following lists when the screen passes callbacks", () => {
+      const onPressFollowers = jest.fn();
+      const onPressFollowing = jest.fn();
+      renderHeader({ counts: COUNTS, onPressFollowers, onPressFollowing });
+
+      fireEvent.press(screen.getByRole("button", { name: "15 Seguidores" }));
+      fireEvent.press(screen.getByRole("button", { name: "256 Seguindo" }));
+
+      expect(onPressFollowers).toHaveBeenCalledTimes(1);
+      expect(onPressFollowing).toHaveBeenCalledTimes(1);
+    });
+
+    it("describes where the pressable counters lead", () => {
+      renderHeader({ counts: COUNTS, onPressFollowers: jest.fn(), onPressFollowing: jest.fn() });
+
+      expect(screen.getByTestId("profile-count-followers")).toHaveProp(
+        "accessibilityHint",
+        "Abre a lista de seguidores"
+      );
+      expect(screen.getByTestId("profile-count-following")).toHaveProp(
+        "accessibilityHint",
+        "Abre a lista de quem você segue"
+      );
+    });
+
+    it("keeps the Recordas counter static", () => {
+      renderHeader({ counts: COUNTS, onPressFollowers: jest.fn(), onPressFollowing: jest.fn() });
+
+      expect(screen.queryByRole("button", { name: "6 Recordas" })).toBeNull();
+      expect(screen.getByLabelText("6 Recordas")).toBeTruthy();
+    });
+
+    it("keeps the counters static without callbacks", () => {
+      renderHeader({ counts: COUNTS });
+
+      expect(screen.queryByRole("button", { name: "15 Seguidores" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "256 Seguindo" })).toBeNull();
+      expect(screen.getByLabelText("15 Seguidores")).toBeTruthy();
+    });
+  });
 });
 
 describe("ProfileTabs", () => {

@@ -1,0 +1,92 @@
+> Jest --coverage --runInBand | auth session, useSignOut, settings, admin home
+(node:29112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ PASS  tests/features/settings/SettingsScreen.test.tsx (12.844 s)
+ PASS  tests/features/settings/SettingsNavigation.test.tsx (5.653 s)
+  ● Console
+
+    console.error
+      Cannot update a component (`SettingsScreen`) while rendering a different component (`SettingsScreen`). To locate the bad setState() call inside `SettingsScreen`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+
+      12 |   const user = useCurrentUser();
+      13 |   const isUpdating = useIsMutating({ mutationKey: SETTINGS_QUERY_KEY }) > 0;
+    > 14 |   const settings = useQuery({
+         |                            ^
+      15 |     enabled: Boolean(user?.user_id) && !isUpdating,
+      16 |     queryKey: SETTINGS_QUERY_KEY,
+      17 |     queryFn: ({ signal }) => getSettings(signal),
+
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12071:25)
+      at forceStoreRerender (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5432:24)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5417:11
+      at node_modules/@tanstack/query-core/src/queryCache.ts:203:9
+          at Set.forEach (<anonymous>)
+      at node_modules/@tanstack/query-core/src/queryCache.ts:202:22
+      at Object.batch (node_modules/@tanstack/query-core/src/notifyManager.ts:56:18)
+      at QueryCache.notify (node_modules/@tanstack/query-core/src/queryCache.ts:201:19)
+      at QueryCache.add (node_modules/@tanstack/query-core/src/queryCache.ts:137:12)
+      at QueryCache.build (node_modules/@tanstack/query-core/src/queryCache.ts:127:12)
+      at QueryObserver.getOptimisticResult (node_modules/@tanstack/query-core/src/queryObserver.ts:226:48)
+      at Module.useBaseQuery (node_modules/@tanstack/react-query/src/useBaseQuery.ts:95:27)
+      at useBaseQuery (node_modules/@tanstack/react-query/src/useQuery.ts:46:10)
+      at useSettings (src/features/settings/hooks/useSettings.ts:14:28)
+      at SettingsScreen (src/features/settings/screens/SettingsScreen.tsx:30:55)
+      at Object.react_stack_bottom_frame (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15670:20)
+      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4863:22)
+      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7018:19)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8499:18)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2315:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13224:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13068:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13049:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12181:11)
+      at performSyncWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2923:7)
+      at flushSyncWorkAcrossRoots_impl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2764:21)
+      at processRootScheduleInMicrotask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2796:9)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2933:11
+      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)
+      at node_modules/react/cjs/react.development.js:847:21
+
+ PASS  tests/features/auth/useSignOut.test.tsx
+ PASS  tests/features/admin/AdminHomeScreen.test.tsx
+ PASS  tests/features/settings/useSettings.test.tsx
+ PASS  tests/features/auth/session.test.ts
+ PASS  tests/features/settings/settingsService.test.ts
+----------------------------|---------|----------|---------|---------|-------------------
+File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+----------------------------|---------|----------|---------|---------|-------------------
+All files                   |   98.52 |       90 |     100 |     100 |
+ admin/components           |   94.44 |    83.33 |     100 |     100 |
+  AdminScreenLayout.tsx     |   94.44 |    83.33 |     100 |     100 | 41,68
+ auth                       |     100 |      100 |     100 |     100 |
+  session.ts                |     100 |      100 |     100 |     100 |
+ auth/hooks                 |     100 |      100 |     100 |     100 |
+  useSignOut.ts             |     100 |      100 |     100 |     100 |
+ settings                   |     100 |      100 |     100 |     100 |
+  index.ts                  |       0 |        0 |       0 |       0 |
+  queryKeys.ts              |     100 |      100 |     100 |     100 |
+  types.ts                  |       0 |        0 |       0 |       0 |
+ settings/components        |     100 |       50 |     100 |     100 |
+  SignOutDialog.tsx         |     100 |       50 |     100 |     100 | 31-44
+ settings/hooks             |     100 |    92.85 |     100 |     100 |
+  useSettings.ts            |     100 |    92.85 |     100 |     100 | 33
+ settings/screens           |    98.3 |    93.18 |     100 |     100 |
+  SettingsPendingScreen.tsx |     100 |      100 |     100 |     100 |
+  SettingsScreen.tsx        |   98.11 |    93.18 |     100 |     100 | 37,114,199
+ settings/services          |     100 |      100 |     100 |     100 |
+  settingsService.ts        |     100 |      100 |     100 |     100 |
+----------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 7 passed, 7 total
+Tests:       38 passed, 38 total
+Snapshots:   0 total
+Time:        21.398 s
+Ran all test suites matching /(settings|auth\\session|auth\\useSignOut|admin\\AdminHomeScreen)/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+
+Process exit code: 0
+
+Full-suite log (npm test -- --coverage --maxWorkers=50% --forceExit --testTimeout=30000):
+Test Suites: 96 passed, 96 total
+Tests:       809 passed, 809 total
+Time:        26.122 s

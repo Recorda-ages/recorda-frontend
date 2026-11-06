@@ -66,6 +66,10 @@ Use `npm run format` para formatar os arquivos com Prettier.
 
 `EXPO_PUBLIC_API_URL` define a URL do backend FastAPI.
 `EXPO_PUBLIC_META_APP_ID` define o ID do app Meta necessário para enviar cards diretamente ao Instagram Stories. Sem ele, o botão Stories abre o compartilhamento genérico do sistema.
+`EXPO_PUBLIC_MEMORY_CALENDAR_MOCK=true` faz o Calendário de Memórias usar dados mockados, sem chamar o backend.
+`EXPO_PUBLIC_MEMORY_CALENDAR_MOCK_FALLBACK=true` usa os dados mockados do calendário somente quando a API está inacessível (`NETWORK_ERROR`).
+`EXPO_PUBLIC_MEMORY_METRICS_MOCK=true` faz as métricas do Perfil usarem dados mockados, sem chamar o backend. Falhas da API nunca ativam esses dados.
+As variáveis de mock do calendário e das métricas só têm efeito em desenvolvimento (`__DEV__`) e exigem reiniciar o Expo após a alteração.
 
 Exemplo:
 

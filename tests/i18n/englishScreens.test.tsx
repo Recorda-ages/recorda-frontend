@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  render as nativeRender,
+  screen,
+  waitFor
+} from "@testing-library/react-native";
 import * as ExpoCamera from "expo-camera";
 import * as ExpoImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
@@ -8,11 +14,10 @@ import { I18nextProvider } from "react-i18next";
 import { passwordRecoverySchema } from "@/features/auth/validation/passwordRecoverySchema";
 import { signInSchema } from "@/features/auth/validation/signInSchema";
 import { signUpSchema } from "@/features/auth/validation/signUpSchema";
-import { AdminUserActions, UserModerationForm, type AdminUserRow } from "@/features/moderation";
+import { AdminUserActions, type AdminUserRow } from "@/features/moderation";
 import { musicService } from "@/features/music/services/musicService";
 import { OnboardingArtistsScreen } from "@/features/onboarding/screens/OnboardingArtistsScreen";
 import { ProfileHeader, ProfilePrivateNotice, ProfileTabs } from "@/features/profile";
-import { OnboardingProvider } from "@/features/onboarding/state/OnboardingContext";
 import { CameraScreen } from "@/features/recorda-creation/screens/CameraScreen";
 import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen";
 import { i18n } from "@/i18n";
@@ -108,6 +113,13 @@ function expectNoPortuguese() {
   expect(texts.filter((text) => /[ãõçâêô]/i.test(text))).toEqual([]);
 }
 
+function render(element: React.ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } }
+  });
+  return nativeRender(<QueryClientProvider client={client}>{element}</QueryClientProvider>);
+}
+
 function renderArtists() {
   const client = new QueryClient({
     defaultOptions: { queries: { gcTime: Infinity, retry: false } }
@@ -116,9 +128,12 @@ function renderArtists() {
   return render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={client}>
-        <OnboardingProvider>
-          <OnboardingArtistsScreen />
-        </OnboardingProvider>
+        <OnboardingArtistsScreen
+          onBack={jest.fn()}
+          onContinue={jest.fn()}
+          onSelectedArtistsChange={jest.fn()}
+          selectedArtists={[]}
+        />
       </QueryClientProvider>
     </I18nextProvider>
   );
@@ -149,7 +164,7 @@ const regularUser: AdminUserRow = {
 };
 
 describe("screens with the app in English", () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await i18n.changeLanguage("en");
   });
 
@@ -307,26 +322,22 @@ describe("screens with the app in English", () => {
     expectNoPortuguese();
   });
 
-  it("shows the account moderation form in English", () => {
+  it("shows the account suspension dialog in English", () => {
     render(
-      <UserModerationForm
-        action="SUSPEND"
-        onCancel={jest.fn()}
-        onSubmit={jest.fn()}
+      <AdminUserActions
+        currentAdmin={{ role: "ADMIN", user_id: "admin-1", username: "admin" }}
         targetUser={regularUser}
       />
     );
 
-    expect(screen.getByText("Suspend Account")).toBeTruthy();
-    expect(screen.getByText(/User:/)).toBeTruthy();
-    expect(screen.getByText("Reason (required):")).toBeTruthy();
-    expect(screen.getByLabelText("Moderation reason")).toBeTruthy();
-    expect(
-      screen.getByPlaceholderText("Enter the reason for this action (max. 500 characters)...")
-    ).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "Suspend Account" }));
+
+    expect(screen.getByText("Suspend this account?")).toBeTruthy();
+    expect(screen.getByText(/@regularuser's account will be suspended/)).toBeTruthy();
+    expect(screen.getByLabelText("Reason")).toBeTruthy();
     expect(screen.getByText("Mark the profile's open reports as resolved")).toBeTruthy();
-    expect(screen.getByText("Cancel")).toBeTruthy();
-    expect(screen.getByText("Confirm Suspension")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Suspend" })).toBeTruthy();
     expectNoPortuguese();
   });
 

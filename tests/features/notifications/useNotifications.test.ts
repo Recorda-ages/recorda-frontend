@@ -54,7 +54,10 @@ function notification(index: number, type: NotificationItem["type"] = "LIKE"): N
 
 function createWrapper() {
   queryClient = new QueryClient({
-    defaultOptions: { mutations: { retry: false }, queries: { gcTime: Infinity, retry: false } }
+    defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
+      queries: { gcTime: Infinity, retry: false }
+    }
   });
 
   return function Wrapper({ children }: { children: React.ReactNode }) {

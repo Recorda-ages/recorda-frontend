@@ -70,3 +70,10 @@ describe("resolveApiAssetUrl", () => {
     expect(resolveApiAssetUrl("file:///tmp/photo.jpg")).toBe("file:///tmp/photo.jpg");
   });
 });
+
+it("does not parse a successful 204 response as JSON", async () => {
+  const json = jest.fn();
+  fetchMock.mockResolvedValue({ ok: true, status: 204, json });
+  await expect(apiClient.delete("/comments/comment-id")).resolves.toBeNull();
+  expect(json).not.toHaveBeenCalled();
+});

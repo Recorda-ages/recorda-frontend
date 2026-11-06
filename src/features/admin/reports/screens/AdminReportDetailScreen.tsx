@@ -17,8 +17,10 @@ import { useAdminApiErrorHandler } from "../../hooks/useAdminApiErrorHandler";
 import type { AdminReportDetail, AdminReportStatus, AdminTargetType } from "../../types";
 import { ReportEntries, ReportHistory } from "../components/AdminReportSections";
 import { ReportedRecordaCard, ReportedUserCard } from "../components/AdminReportTargetCard";
+import { RemoveRecordaButton } from "../components/RemoveRecordaButton";
 import { ReportStatusActions } from "../components/ReportStatusActions";
 import { useAdminReportDetail } from "../hooks/useAdminReportDetail";
+import { useRemoveRecorda } from "../hooks/useRemoveRecorda";
 import { isConflict, useUpdateAdminReportStatus } from "../hooks/useUpdateAdminReportStatus";
 import { availableStatusChanges, currentReportStatus } from "../reportDetailStatus";
 
@@ -37,10 +39,14 @@ export function AdminReportDetailScreen({
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const detail = useAdminReportDetail(targetType, targetId);
   const updateStatus = useUpdateAdminReportStatus(targetType, targetId);
+  const removeRecorda = useRemoveRecorda(targetId);
   const handleAdminApiError = useAdminApiErrorHandler();
   const [pendingStatus, setPendingStatus] = useState<AdminReportStatus | null>(null);
   const [reason, setReason] = useState("");
   const [dialogError, setDialogError] = useState<string>();
+  const [removalOpen, setRemovalOpen] = useState(false);
+  const [removalReason, setRemovalReason] = useState("");
+  const [removalError, setRemovalError] = useState<string>();
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const goBack = () => {
@@ -111,6 +117,63 @@ export function AdminReportDetailScreen({
     }
   };
 
+  const openRemoval = () => {
+    setRemovalOpen(true);
+    setRemovalReason("");
+    setRemovalError(undefined);
+  };
+
+  const closeRemoval = () => {
+    if (!removeRecorda.isPending) {
+      setRemovalOpen(false);
+    }
+  };
+
+  const changeRemovalReason = (value: string) => {
+    setRemovalReason(value);
+    setRemovalError(undefined);
+  };
+
+  const confirmRemoval = async () => {
+    if (removeRecorda.isPending) {
+      return;
+    }
+
+    const trimmedReason = removalReason.trim();
+    if (!trimmedReason || trimmedReason.length > ADMIN_REASON_MAX_LENGTH) {
+      setRemovalError(t("admin.reportDetail.statusActions.invalidReason"));
+      return;
+    }
+
+    try {
+      await removeRecorda.mutateAsync({ reason: trimmedReason });
+      setRemovalOpen(false);
+      setRemovalReason("");
+      setFeedback(t("admin.reportDetail.removeRecorda.success"));
+    } catch (error) {
+      if (await handleAdminApiError(error)) {
+        return;
+      }
+
+      if (isConflict(error)) {
+        setRemovalOpen(false);
+        Alert.alert(
+          t("admin.reportDetail.removeRecorda.conflictTitle"),
+          t("admin.reportDetail.removeRecorda.conflictMessage")
+        );
+        return;
+      }
+
+      setRemovalError(
+        t(
+          error instanceof ApiError && error.status === 422
+            ? "admin.reportDetail.statusActions.invalidReason"
+            : "admin.reportDetail.removeRecorda.error"
+        )
+      );
+    }
+  };
+
   return (
     <AdminScreenLayout
       activeTab="reports"
@@ -129,9 +192,10 @@ export function AdminReportDetailScreen({
           detail={detail.data}
           onOpenUser={(userId) => navigation.navigate("AdminUserDetail", { userId })}
           onRefresh={() => void detail.refetch()}
+          onRemoveRecorda={openRemoval}
           onSelectStatus={openDialog}
-          refreshing={detail.isRefetching && !updateStatus.isPending}
-          updating={updateStatus.isPending}
+          refreshing={detail.isRefetching && !updateStatus.isPending && !removeRecorda.isPending}
+          updating={updateStatus.isPending || removeRecorda.isPending}
         />
       ) : null}
 
@@ -149,6 +213,19 @@ export function AdminReportDetailScreen({
         visible={pendingStatus !== null}
       />
 
+      <ReasonDialog
+        confirmLabel={t("admin.reportDetail.removeRecorda.confirm")}
+        error={removalError}
+        loading={removeRecorda.isPending}
+        message={t("admin.reportDetail.removeRecorda.warning")}
+        onCancel={closeRemoval}
+        onChangeReason={changeRemovalReason}
+        onConfirm={() => void confirmRemoval()}
+        reason={removalReason}
+        title={t("admin.reportDetail.removeRecorda.title")}
+        visible={removalOpen}
+      />
+
       <Snackbar
         duration={FEEDBACK_DURATION_MS}
         onDismiss={() => setFeedback(null)}
@@ -164,6 +241,7 @@ type DetailContentProps = {
   detail: AdminReportDetail;
   onOpenUser: (userId: string) => void;
   onRefresh: () => void;
+  onRemoveRecorda: () => void;
   onSelectStatus: (status: AdminReportStatus) => void;
   refreshing: boolean;
   updating: boolean;
@@ -173,6 +251,7 @@ function DetailContent({
   detail,
   onOpenUser,
   onRefresh,
+  onRemoveRecorda,
   onSelectStatus,
   refreshing,
   updating
@@ -182,54 +261,58 @@ function DetailContent({
   const statusCount = detail.reports.filter((report) => report.status === status).length;
   const statuses = availableStatusChanges(detail.reports);
   const target = t(`admin.reports.target.${detail.target.type.toLocaleLowerCase()}`);
+  const canRemove = detail.target.type === "RECORDA" && !detail.target.recorda.deletedAt;
 
   return (
-    <>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary[500]]}
-            onRefresh={onRefresh}
-            refreshing={refreshing}
-            tintColor={colors.primary[500]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        testID="admin-report-detail-content"
-      >
-        <AppText style={styles.summary} testID="admin-report-detail-summary" variant="caption">
-          <AppText style={styles.summaryTarget} variant="caption">
-            {target.toLocaleUpperCase(i18n.language)}
-          </AppText>
-          {status ? (
-            <>
-              {" • "}
-              <StatusBadge status={status} variant="text" />
-              {" • "}
-              <AppText style={styles.summaryCount} variant="caption">
-                {t("admin.reports.count", { count: statusCount })}
-              </AppText>
-            </>
-          ) : null}
+    <ScrollView
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.primary[500]]}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          tintColor={colors.primary[500]}
+        />
+      }
+      showsVerticalScrollIndicator={false}
+      testID="admin-report-detail-content"
+    >
+      <AppText style={styles.summary} testID="admin-report-detail-summary" variant="caption">
+        <AppText style={styles.summaryTarget} variant="caption">
+          {target.toLocaleUpperCase(i18n.language)}
         </AppText>
+        {status ? (
+          <>
+            {" • "}
+            <StatusBadge status={status} variant="text" />
+            {" • "}
+            <AppText style={styles.summaryCount} variant="caption">
+              {t("admin.reports.count", { count: statusCount })}
+            </AppText>
+          </>
+        ) : null}
+      </AppText>
 
-        {detail.target.type === "RECORDA" ? (
-          <ReportedRecordaCard recorda={detail.target.recorda} />
-        ) : (
-          <ReportedUserCard onOpenUser={onOpenUser} user={detail.target.user} />
-        )}
+      {detail.target.type === "RECORDA" ? (
+        <ReportedRecordaCard recorda={detail.target.recorda} />
+      ) : (
+        <ReportedUserCard onOpenUser={onOpenUser} user={detail.target.user} />
+      )}
 
-        <ReportEntries reports={detail.reports} />
-        <ReportHistory actions={detail.actions} />
-      </ScrollView>
+      <ReportEntries reports={detail.reports} />
+      <ReportHistory actions={detail.actions} />
 
-      {statuses.length > 0 ? (
-        <View style={styles.footer}>
-          <ReportStatusActions disabled={updating} onSelect={onSelectStatus} statuses={statuses} />
-        </View>
-      ) : null}
-    </>
+      <ReportStatusActions
+        disabled={updating}
+        onSelect={onSelectStatus}
+        primaryAction={
+          canRemove ? (
+            <RemoveRecordaButton disabled={updating} onPress={onRemoveRecorda} />
+          ) : undefined
+        }
+        statuses={statuses}
+      />
+    </ScrollView>
   );
 }
 
@@ -264,13 +347,6 @@ const styles = StyleSheet.create({
   feedback: {
     gap: spacing[3],
     padding: spacing[4]
-  },
-  footer: {
-    backgroundColor: colors.neutrals[900],
-    borderTopColor: colors.neutrals[800],
-    borderTopWidth: 1,
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3]
   },
   summary: {
     color: colors.neutrals[500]
