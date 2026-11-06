@@ -1,6 +1,5 @@
 import { authApiClient } from "@/services/api";
 
-import { getMockProfile, isMockProfileId, isProfileMockEnabled } from "../mocks/profileMocks";
 import type { ProfileRead } from "../types";
 
 /**
@@ -13,8 +12,5 @@ const userProfilePath = (userId: string) => `/users/${encodeURIComponent(userId)
 
 export const profileService = {
   getUserProfile: (userId: string, signal?: AbortSignal) =>
-    // Decided before any request, by the id alone: an HTTP error never falls back to a mock.
-    isProfileMockEnabled() && isMockProfileId(userId)
-      ? getMockProfile(userId)
-      : authApiClient.get<ProfileRead>(userProfilePath(userId), { signal })
+    authApiClient.get<ProfileRead>(userProfilePath(userId), { signal })
 };

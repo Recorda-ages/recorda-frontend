@@ -39,8 +39,6 @@ import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/Record
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
 import { UserProfileScreen } from "@/features/profile";
-import { isProfileMockEnabled, PROFILE_MOCK_LINKING } from "@/features/profile/mocks/profileMocks";
-import { ProfileMockPicker } from "@/features/profile/mocks/ProfileMockPicker.mock";
 import { RecordaViewScreen } from "@/features/recorda-view";
 import { ShareCardScreen } from "@/features/share/screens/ShareCardScreen";
 import { SplashScreen } from "@/features/splash";
@@ -116,13 +114,7 @@ function SessionPlaceholderScreen({ testID, title }: SessionPlaceholderScreenPro
 function ProfilePlaceholderScreen() {
   const { t } = useTranslation();
 
-  return (
-    <>
-      <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />
-      {/* Renders nothing unless the development profile mock is on. */}
-      <ProfileMockPicker />
-    </>
-  );
+  return <SessionPlaceholderScreen testID="profile-screen" title={t("profile.title")} />;
 }
 
 function AdminHomeRoute() {
@@ -191,8 +183,6 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer
-      // Development-only deep link to the mock profiles; undefined otherwise.
-      linking={isProfileMockEnabled() ? PROFILE_MOCK_LINKING : undefined}
       onReady={syncActiveRoute}
       onStateChange={syncActiveRoute}
       ref={navigationRef}

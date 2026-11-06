@@ -1,4 +1,3 @@
-import { isMockProfileId, rejectMockProfileAction } from "@/features/profile/mocks/profileMocks";
 import { authApiClient } from "@/services/api";
 
 import type { ReportCreatedResponse } from "../types";
@@ -20,12 +19,9 @@ export const reportService = {
     ),
 
   reportUser: (userId: string, description: string) =>
-    // Development mock profiles (#255) must never reach the backend.
-    isMockProfileId(userId)
-      ? rejectMockProfileAction()
-      : authApiClient.post<ReportCreatedResponse>(`/users/${encodeURIComponent(userId)}/reports`, {
-          description: toDescriptionPayload(description)
-        })
+    authApiClient.post<ReportCreatedResponse>(`/users/${encodeURIComponent(userId)}/reports`, {
+      description: toDescriptionPayload(description)
+    })
 };
 
 function toDescriptionPayload(description: string) {
