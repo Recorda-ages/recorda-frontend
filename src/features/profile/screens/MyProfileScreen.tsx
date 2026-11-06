@@ -82,7 +82,9 @@ export function MyProfileScreen() {
   };
 
   const loadMore = () => {
-    if (canLoadMore(recordas)) void recordas.fetchNextPage();
+    // cancelRefetch: false ignores a second request while a page is still on its way, even if
+    // a scroll event arrives before the screen re-renders with isFetchingNextPage.
+    if (canLoadMore(recordas)) void recordas.fetchNextPage({ cancelRefetch: false });
   };
 
   const handleScroll = ({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
