@@ -56,6 +56,8 @@ type Props = {
   onLike: () => void;
   onComment: (text: string) => Promise<void>;
   onDelete: () => void;
+  /** Opens a profile from the author or a commenter. */
+  onOpenProfile: (userId: string) => void;
   onReport: () => void;
   onShare: () => void;
   onTabPress: (tab: BottomTab) => void;
@@ -192,16 +194,35 @@ function SmallAvatar({ source }: Readonly<{ source: AuthImageSource | undefined 
 // A component of its own so each row can use the auth image hook.
 function CommentRow({
   comment,
-  onDelete
-}: Readonly<{ comment: FeedComment; onDelete?: () => void }>) {
+  onDelete,
+  onOpenProfile
+}: Readonly<{
+  comment: FeedComment;
+  onDelete?: () => void;
+  onOpenProfile: (userId: string) => void;
+}>) {
   const { t } = useTranslation();
   const avatarSource = useAuthImageSource(comment.avatarUrl);
+  const { userId } = comment;
+  const openAuthor = userId ? () => onOpenProfile(userId) : undefined;
 
   return (
     <View style={styles.commentRow}>
-      <SmallAvatar source={avatarSource} />
+      <Pressable
+        accessibilityLabel={
+          openAuthor ? t("profile.openA11y", { username: comment.username }) : undefined
+        }
+        accessibilityRole={openAuthor ? "button" : undefined}
+        disabled={!openAuthor}
+        onPress={openAuthor}
+      >
+        <SmallAvatar source={avatarSource} />
+      </Pressable>
       <AppText style={[styles.comment, styles.commentText]}>
-        <AppText style={styles.bold}>{comment.username}</AppText> {comment.text}
+        <AppText onPress={openAuthor} style={styles.bold}>
+          {comment.username}
+        </AppText>{" "}
+        {comment.text}
       </AppText>
       {onDelete ? (
         <Pressable
@@ -229,6 +250,7 @@ type CommentsSheetProps = Readonly<{
   height: number;
   onClose: () => void;
   onComment: (text: string) => Promise<void>;
+  onOpenProfile: (userId: string) => void;
   onRetryComments?: () => void;
   translateY: Animated.Value;
 }>;
@@ -245,6 +267,7 @@ function CommentsSheet({
   height,
   onClose,
   onComment,
+  onOpenProfile,
   onRetryComments,
   translateY
 }: CommentsSheetProps) {
@@ -325,6 +348,7 @@ function CommentsSheet({
           <CommentRow
             comment={item}
             onDelete={canDeleteComment?.(item) ? () => onDeleteComment?.(item.id) : undefined}
+            onOpenProfile={onOpenProfile}
           />
         )}
         showsVerticalScrollIndicator={false}
@@ -505,6 +529,7 @@ export function RecordaDetailView({
   onLike,
   onComment,
   onDelete,
+  onOpenProfile,
   onReport,
   onShare,
   onTabPress
@@ -626,17 +651,32 @@ export function RecordaDetailView({
               style={styles.topShade}
             />
             <View style={styles.author}>
-              {authorAvatarSource ? (
-                <Image source={authorAvatarSource} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatar, styles.avatarFallback]}>
-                  <Icon source="account" size={20} color={colors.neutrals[400]} />
-                </View>
-              )}
+              {/* The username below is the accessible control; the avatar only widens the target. */}
+              <Pressable
+                accessible={false}
+                onPress={() => onOpenProfile(post.author.id)}
+                testID="recorda-author-avatar-button"
+              >
+                {authorAvatarSource ? (
+                  <Image source={authorAvatarSource} style={styles.avatar} />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarFallback]}>
+                    <Icon source="account" size={20} color={colors.neutrals[400]} />
+                  </View>
+                )}
+              </Pressable>
               <View style={styles.authorText}>
-                <AppText numberOfLines={1} style={styles.username}>
-                  {post.author.username}
-                </AppText>
+                <Pressable
+                  accessibilityLabel={t("profile.openA11y", { username: post.author.username })}
+                  accessibilityRole="button"
+                  hitSlop={4}
+                  onPress={() => onOpenProfile(post.author.id)}
+                  style={styles.authorName}
+                >
+                  <AppText numberOfLines={1} style={styles.username}>
+                    {post.author.username}
+                  </AppText>
+                </Pressable>
                 <AppText numberOfLines={1} style={styles.songLine}>
                   <AppText style={styles.song}>{post.song.title}</AppText>
                   {` · ${post.song.artistName}`}
@@ -787,6 +827,7 @@ export function RecordaDetailView({
                   height={sheetHeight}
                   onClose={closeComments}
                   onComment={onComment}
+                  onOpenProfile={onOpenProfile}
                   onRetryComments={onRetryComments}
                   translateY={sheetY}
                 />
@@ -871,6 +912,8 @@ const styles = StyleSheet.create({
     gap: spacing[2]
   },
   authorText: { flex: 1 },
+  // Keeps the touch target as wide as the username, not the whole author row.
+  authorName: { alignSelf: "flex-start" },
   avatar: { width: 40, height: 40, borderRadius: 20 },
   avatarFallback: {
     backgroundColor: colors.neutrals[800],

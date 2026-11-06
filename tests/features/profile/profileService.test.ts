@@ -103,3 +103,30 @@ describe("profileService.getUserRecordas", () => {
     await expect(profileService.getUserRecordas("user-2")).rejects.toBe(error);
   });
 });
+
+describe("profileService.getUserProfile", () => {
+  it("fetches another user's profile and returns it unchanged", async () => {
+    mockGet.mockResolvedValueOnce(PROFILE);
+    const controller = new AbortController();
+
+    await expect(profileService.getUserProfile("user-2", controller.signal)).resolves.toEqual(
+      PROFILE
+    );
+    expect(mockGet).toHaveBeenCalledWith("/users/user-2/profile", { signal: controller.signal });
+  });
+
+  it("encodes the user id in the path", async () => {
+    mockGet.mockResolvedValueOnce(PROFILE);
+
+    await profileService.getUserProfile("a/b c");
+
+    expect(mockGet).toHaveBeenCalledWith("/users/a%2Fb%20c/profile", { signal: undefined });
+  });
+
+  it("propagates API errors", async () => {
+    const error = new ApiError("NOT_FOUND", "Usuário não encontrado.", 404, null);
+    mockGet.mockRejectedValueOnce(error);
+
+    await expect(profileService.getUserProfile("user-2")).rejects.toBe(error);
+  });
+});

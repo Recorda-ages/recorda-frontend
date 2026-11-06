@@ -14,7 +14,6 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { AppText, Button } from "@/components/ui";
 import { AccountScreen } from "@/features/account";
 import { LanguageSettingsScreen } from "@/features/language";
 import {
@@ -46,7 +45,7 @@ import { PreviewScreen } from "@/features/recorda-creation/screens/PreviewScreen
 import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/RecordaDetailsScreen";
 import { RecordaMusicScreen } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { FriendsScreen } from "@/features/friends";
-import { MyProfileScreen } from "@/features/profile";
+import { MyProfileScreen, UserProfileScreen } from "@/features/profile";
 import type { FriendsTab } from "@/features/friends/types";
 import { AdminUserActions } from "@/features/moderation/components/AdminUserActions";
 import { RecordaViewScreen } from "@/features/recorda-view";
@@ -56,7 +55,7 @@ import { SplashScreen } from "@/features/splash";
 import { clearSession } from "@/features/auth/session";
 import { onInvalidSession } from "@/services/api/sessionLifecycle";
 import { UserSearchScreen } from "@/features/user-search";
-import { baseColors, colors, navigationTheme, spacing } from "@/theme";
+import { navigationTheme } from "@/theme";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -244,22 +243,6 @@ function AdminAuditLogRoute() {
   );
 }
 
-function UserProfilePlaceholderScreen() {
-  const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, "UserProfile">>();
-
-  return (
-    <View style={styles.placeholder} testID="user-profile-screen">
-      <AppText style={styles.placeholderTitle} variant="headline3">
-        {t("profile.title")}
-      </AppText>
-      <AppText style={styles.placeholderTitle}>{route.params.userId}</AppText>
-      <Button label={t("userSearch.back")} onPress={() => navigation.goBack()} />
-    </View>
-  );
-}
-
 export function RootNavigator() {
   const { setActiveRoute } = useFeedAudioActions();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
@@ -316,23 +299,12 @@ export function RootNavigator() {
         <Stack.Screen name="RecordaView" component={RecordaViewScreen} />
         <Stack.Screen name="ShareCard" component={ShareCardScreen} />
         <Stack.Screen name="UserSearch" component={UserSearchScreen} />
-        <Stack.Screen name="UserProfile" component={UserProfilePlaceholderScreen} />
+        <Stack.Screen name="UserProfile" component={UserProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  placeholder: {
-    alignItems: "center",
-    backgroundColor: baseColors.black,
-    flex: 1,
-    gap: spacing[6],
-    justifyContent: "center",
-    paddingHorizontal: spacing[6]
-  },
-  placeholderTitle: {
-    color: colors.neutrals[100]
-  },
   userModerationActions: { width: "100%" }
 });

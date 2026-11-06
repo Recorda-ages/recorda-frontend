@@ -17,6 +17,14 @@ export const profileService = {
     authApiClient.get<ProfileRead>("/users/me/profile", { signal }),
 
   /**
+   * `GET /users/{id}/profile` (#109). Path and `ProfileRead` as in the backend PR #152, not
+   * yet merged into the backend `dev`. 404 for a missing, suspended or not onboarded user.
+   * No fallback to `GET /users/{id}`, which is an admin route.
+   */
+  getUserProfile: (userId: string, signal?: AbortSignal) =>
+    authApiClient.get<ProfileRead>(`/users/${encodeURIComponent(userId)}/profile`, { signal }),
+
+  /**
    * `GET /users/{id}/recordas`, newest first. 403 for a private account the viewer can't
    * see, 404 for a missing or suspended user, 400 for an invalid cursor.
    */

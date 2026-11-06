@@ -59,6 +59,7 @@ type FeedRowProps = Readonly<{
   currentUserId: string | undefined;
   item: FeedItem;
   onOpen: (item: FeedItem) => void;
+  onOpenAuthor: (userId: string) => void;
   onReport: (item: FeedItem) => void;
   onShare: (item: FeedItem) => void;
   onToggleLike: (recordaId: string, liked: boolean) => Promise<void>;
@@ -76,6 +77,7 @@ const FeedRow = memo(function FeedRow({
   currentUserId,
   item,
   onOpen,
+  onOpenAuthor,
   onReport,
   onShare,
   onToggleLike,
@@ -85,6 +87,7 @@ const FeedRow = memo(function FeedRow({
     <RecordaCard
       focusKey={focusKeyFor(tab, item)}
       item={item}
+      onAuthorPress={() => onOpenAuthor(item.author.user_id)}
       onPress={() => onOpen(item)}
       onReport={() => onReport(item)}
       onShare={() => onShare(item)}
@@ -181,6 +184,12 @@ export function FeedScreen() {
     [openReport]
   );
 
+  // The profile screen sends the signed-in user on to "Profile", so no check is needed here.
+  const handleAuthorPress = useCallback(
+    (userId: string) => navigation.navigate("UserProfile", { userId }),
+    [navigation]
+  );
+
   const renderItemByTab = useMemo(() => {
     const renderFor = (tab: FeedTab) =>
       function renderItem({ item }: { item: FeedItem }) {
@@ -189,6 +198,7 @@ export function FeedScreen() {
             currentUserId={currentUserId}
             item={item}
             onOpen={handleCardPress}
+            onOpenAuthor={handleAuthorPress}
             onReport={handleCardReport}
             onShare={handleCardShare}
             onToggleLike={handleToggleLike}
@@ -197,7 +207,14 @@ export function FeedScreen() {
         );
       };
     return { following: renderFor("following"), geral: renderFor("geral") };
-  }, [currentUserId, handleCardPress, handleCardReport, handleCardShare, handleToggleLike]);
+  }, [
+    currentUserId,
+    handleAuthorPress,
+    handleCardPress,
+    handleCardReport,
+    handleCardShare,
+    handleToggleLike
+  ]);
 
   const applyFocus = useCallback(
     (focused: FeedItem | null) => {

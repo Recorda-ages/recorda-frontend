@@ -240,6 +240,24 @@ describe("MyProfileScreen", () => {
       await waitFor(() => expect(tileIds()).toEqual(["r3", "r2", "r1"]));
     });
 
+    it("ignores repeated scroll events while the next page is on its way", async () => {
+      mockGetUserRecordas
+        .mockResolvedValueOnce({ ...PAGE, next_cursor: "cursor-2" })
+        .mockReturnValueOnce(new Promise(() => undefined));
+      await renderLoaded();
+      await screen.findByTestId("recorda-grid");
+
+      // Back to back, without waiting for the screen to show the "loading more" state.
+      scrollToEnd();
+      scrollToEnd();
+      scrollToEnd();
+
+      await waitFor(() => expect(mockGetUserRecordas).toHaveBeenCalledTimes(2));
+      expect(
+        mockGetUserRecordas.mock.calls.filter(([, cursor]) => cursor === "cursor-2")
+      ).toHaveLength(1);
+    });
+
     it("keeps the loaded Recordas when the next page fails", async () => {
       mockGetUserRecordas
         .mockResolvedValueOnce({ ...PAGE, next_cursor: "cursor-2" })

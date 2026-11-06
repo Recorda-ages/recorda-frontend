@@ -472,6 +472,16 @@ describe("FeedScreen", () => {
         expect(mockNavigate).toHaveBeenCalledWith("PublishedRecorda", { postId: "general-2" })
       );
     });
+
+    it("opens the author's profile, not the Recorda, from a general card", () => {
+      mockGeneral(successResult(GENERAL_PAGE, false, generalHandlers));
+      renderScreen();
+
+      fireEvent.press(screen.getByLabelText("Abrir perfil de maria.silva"));
+
+      expect(mockNavigate).toHaveBeenCalledWith("UserProfile", { userId: "user-a" });
+      expect(mockNavigate).not.toHaveBeenCalledWith("PublishedRecorda", expect.anything());
+    });
   });
 
   describe("tab switching", () => {
@@ -696,6 +706,17 @@ describe("FeedScreen", () => {
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith("PublishedRecorda", { postId: "recorda-1" })
       );
+    });
+
+    it("opens the author's profile, not the Recorda, from a following card", () => {
+      mockFollowing(successResult(FEED_PAGE));
+      renderScreen();
+
+      switchTab("Seguindo");
+      fireEvent.press(screen.getByLabelText("Abrir perfil de lucas_almeida"));
+
+      expect(mockNavigate).toHaveBeenCalledWith("UserProfile", { userId: "user-1" });
+      expect(mockNavigate).not.toHaveBeenCalledWith("PublishedRecorda", expect.anything());
     });
   });
 

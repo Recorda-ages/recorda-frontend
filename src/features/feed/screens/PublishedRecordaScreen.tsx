@@ -214,6 +214,7 @@ export function PublishedRecordaScreen() {
           if (!isOwnPost) return;
           removeRecorda.mutate();
         }}
+        onOpenProfile={(userId) => navigation.navigate("UserProfile", { userId })}
         onReport={() => openReport({ recordaId: post.id, type: "RECORDA" })}
         onShare={() =>
           navigation.navigate("ShareCard", {

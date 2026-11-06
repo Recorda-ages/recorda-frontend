@@ -355,6 +355,7 @@
   },
   "profile": {
     "title": "Profile",
+    "openA11y": "Open {{username}}'s profile",
     "avatarA11y": "{{name}}'s profile picture",
     "editAvatarA11y": "Change profile picture",
     "favoriteSongA11y": "Favorite song: {{title}}, by {{artist}}",
@@ -382,6 +383,9 @@
     "loading": "Loading profile",
     "loadError": "We couldn't load this profile.",
     "retry": "Try again",
+    "back": "Back",
+    "unavailable": "This profile isn't available.",
+    "report": "Report profile",
     "grid": {
       "empty": "No Recordas published yet.",
       "loadError": "We couldn't load the Recordas.",
@@ -631,7 +635,7 @@
     "followA11y": "Follow {{username}}",
     "requestedA11y": "Cancel follow request for {{username}}",
     "followingA11y": "Unfollow {{username}}",
-    "unfollowTitle": "Unfollow",
+    "unfollowTitle": "Unfollow?",
     "unfollowMessage": "Are you sure you want to unfollow {{username}}?",
     "unfollowCancel": "Cancel",
     "unfollowConfirm": "Unfollow"

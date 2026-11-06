@@ -356,6 +356,7 @@
   },
   "profile": {
     "title": "Perfil",
+    "openA11y": "Abrir perfil de {{username}}",
     "avatarA11y": "Foto de perfil de {{name}}",
     "editAvatarA11y": "Alterar foto de perfil",
     "favoriteSongA11y": "Música favorita: {{title}}, de {{artist}}",
@@ -383,6 +384,9 @@
     "loading": "Carregando perfil",
     "loadError": "Não foi possível carregar o perfil.",
     "retry": "Tentar novamente",
+    "back": "Voltar",
+    "unavailable": "Este perfil não está disponível.",
+    "report": "Denunciar perfil",
     "grid": {
       "empty": "Nenhuma Recorda publicada ainda.",
       "loadError": "Não foi possível carregar as Recordas.",
@@ -634,7 +638,7 @@
     "followA11y": "Seguir {{username}}",
     "requestedA11y": "Cancelar solicitação para seguir {{username}}",
     "followingA11y": "Deixar de seguir {{username}}",
-    "unfollowTitle": "Deixar de seguir",
+    "unfollowTitle": "Deixar de seguir?",
     "unfollowMessage": "Tem certeza que deseja deixar de seguir {{username}}?",
     "unfollowCancel": "Cancelar",
     "unfollowConfirm": "Deixar de seguir"

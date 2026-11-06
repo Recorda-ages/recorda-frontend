@@ -23,6 +23,8 @@ type RecordaCardProps = Readonly<{
   /** Tells apart the same Recorda shown in both feed tabs. Defaults to the Recorda id. */
   focusKey?: string;
   item: FeedItem;
+  /** Opens the author's profile from the avatar or username, without opening the Recorda. */
+  onAuthorPress: () => void;
   onPress: () => void;
   onReport: () => void;
   onToggleLike: (liked: boolean) => Promise<void>;
@@ -39,6 +41,7 @@ const MENU_ICON_SIZE = 20;
 export function RecordaCard({
   focusKey,
   item,
+  onAuthorPress,
   onPress,
   onReport,
   onToggleLike,
@@ -82,6 +85,11 @@ export function RecordaCard({
     setMenuAnchor(null);
   };
 
+  const openAuthor = (event?: { stopPropagation?: () => void }) => {
+    event?.stopPropagation?.();
+    onAuthorPress();
+  };
+
   return (
     <>
       <Pressable
@@ -91,15 +99,26 @@ export function RecordaCard({
         testID={`feed-post-${item.recorda_id}`}
       >
         <View style={styles.header}>
-          {avatarSource ? (
-            <Image source={avatarSource} style={styles.avatar} testID="recorda-author-avatar" />
-          ) : (
-            <View style={[styles.avatar, styles.avatarFallback]}>
-              <Icon color={colors.neutrals[400]} size={20} source="account" />
-            </View>
-          )}
+          {/* The username below is the accessible control; the avatar only widens the target. */}
+          <Pressable accessible={false} onPress={openAuthor} testID="recorda-author-avatar-button">
+            {avatarSource ? (
+              <Image source={avatarSource} style={styles.avatar} testID="recorda-author-avatar" />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <Icon color={colors.neutrals[400]} size={20} source="account" />
+              </View>
+            )}
+          </Pressable>
           <View style={styles.headerText}>
-            <AppText style={styles.username}>{item.author.username}</AppText>
+            <Pressable
+              accessibilityLabel={t("profile.openA11y", { username: item.author.username })}
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={openAuthor}
+              style={styles.authorName}
+            >
+              <AppText style={styles.username}>{item.author.username}</AppText>
+            </Pressable>
             <AppText numberOfLines={1} style={styles.song}>
               <AppText style={styles.songTitle}>{item.song_title}</AppText>
               {` • ${item.song_artist_name}`}
@@ -457,6 +476,10 @@ const styles = StyleSheet.create({
   actions: {
     alignItems: "center",
     flexDirection: "row"
+  },
+  // Keeps the touch target as wide as the username, not the whole header row.
+  authorName: {
+    alignSelf: "flex-start"
   },
   avatar: {
     borderRadius: 20,
