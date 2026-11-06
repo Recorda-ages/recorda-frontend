@@ -15,7 +15,7 @@ export type ProfileRead = {
   name: string;
   profile_picture_url: string | null;
   relationship: ProfileRelationship;
-  /** Faz parte do contrato, mas a badge é da US35 (#260): estas telas não a exibem. */
+  /** Exibido pelo `StreakBadge` (US35, #260), que oculta o valor sem `can_view_content`. */
   streak: ProfileStreak | null;
   user_id: string;
   username: string;
