@@ -72,7 +72,11 @@ describe("FollowButton", () => {
 
     fireEvent.press(screen.getByTestId("follow-button-user-1"));
 
-    expect(mockMutate).toHaveBeenCalledWith({ action: "unfollow", userId: "user-1" });
+    expect(mockMutate).toHaveBeenCalledWith({
+      action: "unfollow",
+      previousStatus: "solicitado",
+      userId: "user-1"
+    });
     expect(screen.queryByTestId("unfollow-dialog")).toBeNull();
   });
 
@@ -122,7 +126,7 @@ describe("FollowButton", () => {
 
       expect(mockMutate).toHaveBeenCalledTimes(1);
       expect(mockMutate).toHaveBeenCalledWith(
-        { action: "unfollow", userId: "user-1" },
+        { action: "unfollow", previousStatus: "seguindo", userId: "user-1" },
         expect.objectContaining({ onSettled: expect.any(Function) })
       );
       // Still open while the request is in flight.
@@ -208,7 +212,11 @@ describe("FollowButton", () => {
           </I18nextProvider>
         );
         fireEvent.press(screen.getByTestId("follow-button-user-1"));
-        expect(mockMutate).toHaveBeenLastCalledWith({ action: "unfollow", userId: "user-1" });
+        expect(mockMutate).toHaveBeenLastCalledWith({
+          action: "unfollow",
+          previousStatus: "solicitado",
+          userId: "user-1"
+        });
         expect(screen.queryByTestId("unfollow-dialog")).toBeNull();
 
         rerender(
@@ -220,7 +228,7 @@ describe("FollowButton", () => {
         expect(mockMutate).toHaveBeenCalledTimes(2);
         fireEvent.press(dialog().getByRole("button", { name: "Deixar de seguir" }));
         expect(mockMutate).toHaveBeenLastCalledWith(
-          { action: "unfollow", userId: "user-1" },
+          { action: "unfollow", previousStatus: "seguindo", userId: "user-1" },
           expect.objectContaining({ onSettled: expect.any(Function) })
         );
       }

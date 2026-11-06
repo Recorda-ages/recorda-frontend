@@ -30,13 +30,17 @@ export function FollowButton({ size = "compact", status, userId, username }: Fol
   const isBlock = size === "block";
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const runUnfollow = () => mutation.mutate({ action: "unfollow", userId });
+  const runUnfollow = () =>
+    mutation.mutate({ action: "unfollow", previousStatus: "solicitado", userId });
 
   // The dialog stays open, with confirm disabled, until the request settles: a second tap
   // can't send a second unfollow. Errors keep going through useFollowMutation.
   const confirmUnfollow = () => {
     if (mutation.isPending) return;
-    mutation.mutate({ action: "unfollow", userId }, { onSettled: () => setIsConfirmOpen(false) });
+    mutation.mutate(
+      { action: "unfollow", previousStatus: "seguindo", userId },
+      { onSettled: () => setIsConfirmOpen(false) }
+    );
   };
 
   const handlePress = () => {

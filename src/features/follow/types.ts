@@ -16,5 +16,10 @@ export type FollowAction = "follow" | "unfollow";
 
 export type FollowMutationInput = {
   action: FollowAction;
+  /**
+   * Relationship before an unfollow: tells cancelling a request ("solicitado") apart from
+   * unfollowing ("seguindo"). Optional; when absent, the own profile is refreshed anyway.
+   */
+  previousStatus?: FollowStatus;
   userId: string;
 };
