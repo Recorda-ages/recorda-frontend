@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
@@ -42,6 +42,8 @@ export type ProfileHeaderMusicItem = {
 
 type ProfileHeaderProps = Readonly<{
   avatarUrl: string | null;
+  /** When true, shows a loading indicator over the avatar (US28 optimistic upload). */
+  avatarUploadingOverlay?: boolean;
   name: string;
   username: string;
   favoriteSong: ProfileHeaderFavoriteSong | null;
@@ -70,6 +72,7 @@ type ProfileHeaderProps = Readonly<{
 export function ProfileHeader({
   actionSlot,
   avatarUrl,
+  avatarUploadingOverlay = false,
   counts,
   favoriteArtists = [],
   favoriteGenres = [],
@@ -83,7 +86,7 @@ export function ProfileHeader({
   const { t } = useTranslation();
   const avatarSource = useAuthImageSource(avatarUrl ? resolveApiAssetUrl(avatarUrl) : null);
 
-  const avatar = avatarSource ? (
+  const avatarContent = avatarSource ? (
     <Image
       accessibilityLabel={t("profile.avatarA11y", { name })}
       contentFit="cover"
@@ -98,6 +101,17 @@ export function ProfileHeader({
       testID="profile-avatar-fallback"
     >
       <Icon color={colors.neutrals[400]} size={72} source="account" />
+    </View>
+  );
+
+  const avatar = (
+    <View>
+      {avatarContent}
+      {avatarUploadingOverlay ? (
+        <View style={styles.avatarOverlay} testID="profile-avatar-uploading">
+          <ActivityIndicator color={colors.neutrals[100]} size="large" />
+        </View>
+      ) : null}
     </View>
   );
 
@@ -298,6 +312,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.neutrals[800],
     justifyContent: "center"
+  },
+  avatarOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: AVATAR_SIZE / 2,
+    bottom: 0,
+    justifyContent: "center",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
   },
   chip: {
     alignItems: "center",
