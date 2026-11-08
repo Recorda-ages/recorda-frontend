@@ -30,7 +30,7 @@ export function useUploadAvatarMutation(userId: string) {
     mutationFn: (localUri: string) => profileService.uploadAvatar(localUri),
 
     onError: (_error, localUri, context) => {
-      if (!context || context.generation !== getSessionGeneration()) return;
+      if (context?.generation !== getSessionGeneration()) return;
 
       queryClient.setQueryData<ProfileRead>(profileQueryKey(userId), (current) => {
         if (!current) return current;
@@ -67,7 +67,7 @@ export function useUploadAvatarMutation(userId: string) {
     },
 
     onSuccess: (response, _localUri, context) => {
-      if (!context || context.generation !== getSessionGeneration()) return;
+      if (context?.generation !== getSessionGeneration()) return;
 
       queryClient.setQueryData<ProfileRead>(profileQueryKey(userId), (data) => {
         if (!data) return data;

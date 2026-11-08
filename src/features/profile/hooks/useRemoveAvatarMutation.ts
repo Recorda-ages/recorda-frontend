@@ -28,7 +28,7 @@ export function useRemoveAvatarMutation(userId: string) {
     mutationFn: () => profileService.deleteAvatar(),
 
     onError: (_error, _vars, context) => {
-      if (!context || context.generation !== getSessionGeneration()) return;
+      if (context?.generation !== getSessionGeneration()) return;
       queryClient.setQueryData<ProfileRead>(profileQueryKey(userId), (current) => {
         if (!current) return current;
         return { ...current, profile_picture_url: context.previousAvatarUrl };
@@ -53,7 +53,7 @@ export function useRemoveAvatarMutation(userId: string) {
     },
 
     onSuccess: (_response, _vars, context) => {
-      if (!context || context.generation !== getSessionGeneration()) return;
+      if (context?.generation !== getSessionGeneration()) return;
       INVALIDATE_ON_AVATAR_CHANGE.forEach((key) => {
         void queryClient.invalidateQueries({ queryKey: key });
       });

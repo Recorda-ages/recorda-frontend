@@ -1,7 +1,7 @@
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useTranslation } from "react-i18next";
-import { Alert, Linking, Platform } from "react-native";
+import { Alert, Linking } from "react-native";
 import { Menu } from "react-native-paper";
 
 const AVATAR_SIZE = 512;
@@ -16,6 +16,16 @@ type AvatarPickerMenuProps = {
   visible: boolean;
 };
 
+async function compress(uri: string): Promise<string> {
+  const context = ImageManipulator.manipulate(uri);
+  context.resize({ height: AVATAR_SIZE, width: AVATAR_SIZE });
+  const image = await context.renderAsync();
+  const result = await image.saveAsync({ compress: AVATAR_QUALITY, format: SaveFormat.JPEG });
+  image.release();
+  context.release();
+  return result.uri;
+}
+
 /**
  * Menu opened when the user taps the avatar edit button (US28).
  * Captures or selects a square image, compresses to 512×512 JPEG.
@@ -28,18 +38,8 @@ export function AvatarPickerMenu({
   onPick,
   onRemove,
   visible
-}: AvatarPickerMenuProps) {
+}: Readonly<AvatarPickerMenuProps>) {
   const { t } = useTranslation();
-
-  async function compress(uri: string): Promise<string> {
-    const context = ImageManipulator.manipulate(uri);
-    context.resize({ height: AVATAR_SIZE, width: AVATAR_SIZE });
-    const image = await context.renderAsync();
-    const result = await image.saveAsync({ compress: AVATAR_QUALITY, format: SaveFormat.JPEG });
-    image.release();
-    context.release();
-    return result.uri;
-  }
 
   function showPermissionDenied(titleKey: string, messageKey: string) {
     Alert.alert(t(titleKey), t(messageKey), [
@@ -50,23 +50,6 @@ export function AvatarPickerMenu({
 
   async function takePhoto() {
     onDismiss();
-
-    if (Platform.OS === "web") {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.capture = "environment";
-      input.onchange = async () => {
-        const file = input.files?.[0];
-        if (!file) return;
-        const uri = URL.createObjectURL(file);
-        const compressedUri = await compress(uri);
-        onPick(compressedUri);
-      };
-      input.click();
-      return;
-    }
-
     const current = await ImagePicker.getCameraPermissionsAsync();
     const permission = current.granted
       ? current
