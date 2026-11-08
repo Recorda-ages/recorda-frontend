@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { I18nextProvider } from "react-i18next";
+import { PaperProvider } from "react-native-paper";
 
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
 import { getMusicPreferences } from "@/features/onboarding/api/music";
 import type { MusicPreferences } from "@/features/onboarding/types";
@@ -10,9 +12,10 @@ import { profileService } from "@/features/profile/services/profileService";
 import type { ProfileRead, RecordaGridItem, RecordaGridPage } from "@/features/profile/types";
 import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
+import { paperTheme } from "@/theme";
 
 jest.mock("@/features/profile/services/profileService", () => ({
-  profileService: { getMyProfile: jest.fn(), getUserRecordas: jest.fn() }
+  profileService: { deleteAvatar: jest.fn(), getMyProfile: jest.fn(), getUserRecordas: jest.fn() }
 }));
 
 jest.mock("@/features/onboarding/api/music", () => ({
@@ -30,6 +33,7 @@ jest.mock("@react-navigation/native", () => ({
 
 const mockGetMyProfile = profileService.getMyProfile as jest.Mock;
 const mockGetUserRecordas = profileService.getUserRecordas as jest.Mock;
+const mockDeleteAvatar = profileService.deleteAvatar as jest.Mock;
 const mockGetMusicPreferences = getMusicPreferences as jest.Mock;
 
 const ME: CurrentUser = {
@@ -104,7 +108,11 @@ function renderScreen() {
   render(
     <I18nextProvider i18n={i18n}>
       <QueryClientProvider client={client}>
-        <MyProfileScreen />
+        <PaperProvider theme={paperTheme}>
+          <ToastProvider>
+            <MyProfileScreen />
+          </ToastProvider>
+        </PaperProvider>
       </QueryClientProvider>
     </I18nextProvider>
   );
@@ -352,5 +360,19 @@ describe("MyProfileScreen", () => {
       expect(mockGetMyProfile).toHaveBeenCalledTimes(1);
       expect(screen.queryByText("Não foi possível carregar o perfil.")).toBeNull();
     });
+  });
+});
+
+describe("MyProfileScreen avatar", () => {
+  it("removes the photo through the edit menu and the confirmation dialog", async () => {
+    mockGetMyProfile.mockResolvedValue({ ...PROFILE, profile_picture_url: "/media/me.jpg" });
+    mockDeleteAvatar.mockResolvedValue(undefined);
+    await renderLoaded();
+
+    fireEvent.press(screen.getByTestId("profile-edit-avatar"));
+    fireEvent.press(await screen.findByTestId("avatar-menu-remove"));
+    fireEvent.press(await screen.findByTestId("remove-avatar-confirm"));
+
+    await waitFor(() => expect(mockDeleteAvatar).toHaveBeenCalledTimes(1));
   });
 });

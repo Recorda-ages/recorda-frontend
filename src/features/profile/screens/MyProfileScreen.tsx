@@ -23,11 +23,15 @@ import { getMusicPreferences } from "@/features/onboarding/api/music";
 import { MUSIC_PREFERENCES_QUERY_KEY } from "@/features/onboarding/queryKeys";
 import { colors, fontFamily, spacing } from "@/theme";
 
+import { AvatarPickerMenu } from "../components/AvatarPickerMenu";
 import { ProfileGlow } from "../components/ProfileGlow";
 import { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "../components/ProfileHeader";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
 import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
-import { isIncompleteProfileError, useMyProfile } from "../hooks/useMyProfile";
+import { RemoveAvatarDialog } from "../components/RemoveAvatarDialog";
+import { useMyProfile, isIncompleteProfileError } from "../hooks/useMyProfile";
+import { useRemoveAvatarMutation } from "../hooks/useRemoveAvatarMutation";
+import { useUploadAvatarMutation } from "../hooks/useUploadAvatarMutation";
 import { useProfileRecordas } from "../hooks/useProfileRecordas";
 import type { ProfileRead } from "../types";
 
@@ -58,7 +62,12 @@ export function MyProfileScreen() {
   });
   const [activeTab, setActiveTab] = useState<ProfileTab>("recordas");
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const [isAvatarMenuVisible, setIsAvatarMenuVisible] = useState(false);
+  const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const redirected = useRef(false);
+
+  const uploadAvatar = useUploadAvatarMutation(myUserId ?? "");
+  const removeAvatar = useRemoveAvatarMutation(myUserId ?? "");
 
   useEffect(() => {
     if (isIncomplete && !redirected.current) {
@@ -131,21 +140,46 @@ export function MyProfileScreen() {
             showsVerticalScrollIndicator={false}
             testID="profile-scroll"
           >
-            <ProfileHeader
-              avatarUrl={data.profile_picture_url}
-              counts={data.counts}
-              // First item only, for now (#253 review); the header accepts more.
-              favoriteArtists={preferences.data?.artists.slice(0, 1)}
-              favoriteGenres={preferences.data?.genres.slice(0, 1)}
-              favoriteSong={toHeaderSong(data.favorite_song)}
-              name={data.name}
-              onPressFollowers={() =>
-                navigation.navigate("Friends", { tab: "seguidores", userId: myUserId })
+            <AvatarPickerMenu
+              anchor={
+                <ProfileHeader
+                  avatarUrl={data.profile_picture_url}
+                  counts={data.counts}
+                  // First item only, for now (#253 review); the header accepts more.
+                  favoriteArtists={preferences.data?.artists.slice(0, 1)}
+                  favoriteGenres={preferences.data?.genres.slice(0, 1)}
+                  favoriteSong={toHeaderSong(data.favorite_song)}
+                  name={data.name}
+                  onEditAvatar={() => {
+                    // One avatar operation at a time, so a DELETE can't land after a newer PUT.
+                    if (!uploadAvatar.isPending && !removeAvatar.isPending) {
+                      setIsAvatarMenuVisible(true);
+                    }
+                  }}
+                  onPressFollowers={() =>
+                    navigation.navigate("Friends", { tab: "seguidores", userId: myUserId })
+                  }
+                  onPressFollowing={() =>
+                    navigation.navigate("Friends", { tab: "seguindo", userId: myUserId })
+                  }
+                  username={data.username}
+                  avatarUploadingOverlay={uploadAvatar.isPending}
+                />
               }
-              onPressFollowing={() =>
-                navigation.navigate("Friends", { tab: "seguindo", userId: myUserId })
-              }
-              username={data.username}
+              hasAvatar={Boolean(data.profile_picture_url)}
+              onDismiss={() => setIsAvatarMenuVisible(false)}
+              onPick={(uri) => uploadAvatar.mutate(uri)}
+              onRemove={() => setIsRemoveDialogVisible(true)}
+              visible={isAvatarMenuVisible}
+            />
+            <RemoveAvatarDialog
+              onCancel={() => setIsRemoveDialogVisible(false)}
+              onConfirm={() => {
+                setIsRemoveDialogVisible(false);
+                removeAvatar.mutate();
+              }}
+              removing={removeAvatar.isPending}
+              visible={isRemoveDialogVisible}
             />
             <View style={styles.tabs}>
               <ProfileTabs activeTab={activeTab} onChange={setActiveTab} />

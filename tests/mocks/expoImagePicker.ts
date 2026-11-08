@@ -23,7 +23,9 @@ type MockImagePickerResult =
     };
 
 type MockImagePickerOptions = {
+  allowsEditing?: boolean;
   allowsMultipleSelection?: boolean;
+  aspect?: [number, number];
   mediaTypes?: string[];
   quality?: number;
   selectionLimit?: number;
@@ -45,6 +47,12 @@ export const mockLaunchImageLibraryAsync = jest.fn<
   Promise<MockImagePickerResult>,
   [MockImagePickerOptions?]
 >();
+export const mockGetCameraPermissionsAsync = jest.fn<Promise<MockPermissionResponse>, []>();
+export const mockRequestCameraPermissionsAsync = jest.fn<Promise<MockPermissionResponse>, []>();
+export const mockLaunchCameraAsync = jest.fn<
+  Promise<MockImagePickerResult>,
+  [MockImagePickerOptions?]
+>();
 
 export function resetImagePickerMock() {
   mockGetMediaLibraryPermissionsAsync.mockReset();
@@ -58,6 +66,18 @@ export function resetImagePickerMock() {
     assets: null,
     canceled: true
   });
+
+  mockGetCameraPermissionsAsync.mockReset();
+  mockGetCameraPermissionsAsync.mockResolvedValue(grantedPermission);
+
+  mockRequestCameraPermissionsAsync.mockReset();
+  mockRequestCameraPermissionsAsync.mockResolvedValue(grantedPermission);
+
+  mockLaunchCameraAsync.mockReset();
+  mockLaunchCameraAsync.mockResolvedValue({
+    assets: null,
+    canceled: true
+  });
 }
 
 resetImagePickerMock();
@@ -65,3 +85,6 @@ resetImagePickerMock();
 export const getMediaLibraryPermissionsAsync = mockGetMediaLibraryPermissionsAsync;
 export const requestMediaLibraryPermissionsAsync = mockRequestMediaLibraryPermissionsAsync;
 export const launchImageLibraryAsync = mockLaunchImageLibraryAsync;
+export const getCameraPermissionsAsync = mockGetCameraPermissionsAsync;
+export const requestCameraPermissionsAsync = mockRequestCameraPermissionsAsync;
+export const launchCameraAsync = mockLaunchCameraAsync;
