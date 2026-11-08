@@ -780,7 +780,27 @@
     }
   },
   "memoriesMetrics": {
-    "loadError": "Não foi possível carregar suas métricas. Tente novamente."
+    "loadError": "Não foi possível carregar suas métricas. Tente novamente.",
+    "widgets": {
+      "topArtist": {
+        "title": "Artista mais ouvido",
+        "empty": "Ainda não há um artista em destaque neste período.",
+        "photo": "Foto de {{name}}",
+        "countSingular": "{{count}} Recorda",
+        "countPlural": "{{count}} Recordas"
+      },
+      "topGenres": {
+        "title": "Gêneros mais frequentes",
+        "empty": "Ainda não há gêneros neste período."
+      },
+      "streak": {
+        "title": "Sequência diária",
+        "none": "Nenhuma sequência ativa",
+        "daySingular": "dia seguido",
+        "dayPlural": "dias seguidos",
+        "explanation": "A sequência é diária e zera se um dia terminar sem publicação."
+      }
+    }
   },
   "memoriesCalendar": {
     "grid": {

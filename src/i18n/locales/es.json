@@ -777,7 +777,27 @@
     }
   },
   "memoriesMetrics": {
-    "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo."
+    "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo.",
+    "widgets": {
+      "topArtist": {
+        "title": "Artista más escuchado",
+        "empty": "Aún no hay un artista destacado en este período.",
+        "photo": "Foto de {{name}}",
+        "countSingular": "{{count}} Recorda",
+        "countPlural": "{{count}} Recordas"
+      },
+      "topGenres": {
+        "title": "Géneros más frecuentes",
+        "empty": "Aún no hay géneros en este período."
+      },
+      "streak": {
+        "title": "Racha diaria",
+        "none": "Ninguna racha activa",
+        "daySingular": "día seguido",
+        "dayPlural": "días seguidos",
+        "explanation": "La racha es diaria y vuelve a cero si un día termina sin publicación."
+      }
+    }
   },
   "memoriesCalendar": {
     "grid": {
