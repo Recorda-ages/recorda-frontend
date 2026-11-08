@@ -3,7 +3,7 @@ import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 
 import { AppText, destructiveDialogStyles } from "@/components/ui";
-import { baseColors, colors, fontFamily, spacing } from "@/theme";
+import { baseColors, colors } from "@/theme";
 
 type DeleteAccountDialogProps = {
   deleting: boolean;
@@ -95,32 +95,10 @@ export function DeleteAccountDialog({
 const styles = {
   ...destructiveDialogStyles,
   ...StyleSheet.create({
-    confirmButton: {
-      backgroundColor: colors.error[300]
-    },
-    confirmLabel: {
-      color: baseColors.white
-    },
-    copy: {
-      alignItems: "center",
-      gap: spacing[2]
-    },
     error: {
       color: colors.error[200],
       fontSize: 12,
       lineHeight: 18,
-      textAlign: "center"
-    },
-    message: {
-      color: colors.neutrals[300],
-      fontSize: 12,
-      lineHeight: 18,
-      textAlign: "center"
-    },
-    title: {
-      color: colors.neutrals[100],
-      fontFamily: fontFamily.primary.semiBold,
-      fontSize: 20,
       textAlign: "center"
     }
   })

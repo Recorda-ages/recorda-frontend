@@ -4,10 +4,12 @@ import { ApiError, authApiClient } from "@/services/api";
 
 jest.mock("@/services/api", () => ({
   ...jest.requireActual("@/services/api"),
-  authApiClient: { get: jest.fn() }
+  authApiClient: { delete: jest.fn(), get: jest.fn(), put: jest.fn() }
 }));
 
 const mockGet = authApiClient.get as jest.Mock;
+const mockPut = authApiClient.put as jest.Mock;
+const mockDelete = authApiClient.delete as jest.Mock;
 
 const PROFILE: ProfileRead = {
   can_view_content: true,
@@ -128,5 +130,26 @@ describe("profileService.getUserProfile", () => {
     mockGet.mockRejectedValueOnce(error);
 
     await expect(profileService.getUserProfile("user-2")).rejects.toBe(error);
+  });
+});
+
+describe("profileService avatar", () => {
+  it("uploads the photo as multipart `file` to PUT /users/me/avatar", async () => {
+    mockPut.mockResolvedValueOnce({ profile_picture_url: "/media/new.jpg" });
+
+    await expect(profileService.uploadAvatar("file:///avatar.jpg")).resolves.toEqual({
+      profile_picture_url: "/media/new.jpg"
+    });
+    const [path, body] = mockPut.mock.calls[0] as [string, FormData];
+    expect(path).toBe("/users/me/avatar");
+    expect(body.get("file")).toBeTruthy();
+  });
+
+  it("removes the photo with DELETE /users/me/avatar", async () => {
+    mockDelete.mockResolvedValueOnce(undefined);
+
+    await profileService.deleteAvatar();
+
+    expect(mockDelete).toHaveBeenCalledWith("/users/me/avatar");
   });
 });

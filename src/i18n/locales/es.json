@@ -370,6 +370,14 @@
       "followersHint": "Abre la lista de seguidores",
       "followingHint": "Abre la lista de seguidos"
     },
+    "streak": {
+      "days_one": "{{count}} día de racha",
+      "days_other": "{{count}} días de racha",
+      "none": "Sin racha",
+      "hintStart": "Publica hoy para empezar",
+      "hintKeep": "Publica hoy para mantenerla",
+      "a11y": "Racha de publicaciones: {{value}}"
+    },
     "tabs": {
       "recordas": "Recordas",
       "metrics": "Métricas",
@@ -386,6 +394,21 @@
     "back": "Volver",
     "unavailable": "Este perfil no está disponible.",
     "report": "Denunciar perfil",
+    "avatarMenuCamera": "Tomar foto",
+    "avatarMenuGallery": "Elegir de la galería",
+    "avatarMenuRemove": "Eliminar foto",
+    "avatarCameraPermissionTitle": "Permiso requerido",
+    "avatarCameraPermissionMessage": "Permite el acceso a la cámara para tomar una foto de perfil.",
+    "avatarGalleryPermissionTitle": "Permiso requerido",
+    "avatarGalleryPermissionMessage": "Permite el acceso a la galería para elegir una foto de perfil.",
+    "avatarPermissionCancel": "Cancelar",
+    "avatarPermissionSettings": "Abrir configuración",
+    "avatarUploadError": "No se pudo actualizar la foto de perfil. Inténtalo de nuevo.",
+    "avatarRemoveError": "No se pudo eliminar la foto de perfil. Inténtalo de nuevo.",
+    "removeAvatarTitle": "¿Eliminar foto de perfil?",
+    "removeAvatarMessage": "Tu foto de perfil será eliminada.",
+    "removeAvatarCancel": "Cancelar",
+    "removeAvatarConfirm": "Eliminar",
     "grid": {
       "empty": "Todavía no hay Recordas publicadas.",
       "loadError": "No se pudieron cargar las Recordas.",
@@ -781,7 +804,27 @@
     }
   },
   "memoriesMetrics": {
-    "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo."
+    "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo.",
+    "widgets": {
+      "topArtist": {
+        "title": "Artista más escuchado",
+        "empty": "Aún no hay un artista destacado en este período.",
+        "photo": "Foto de {{name}}",
+        "countSingular": "{{count}} Recorda",
+        "countPlural": "{{count}} Recordas"
+      },
+      "topGenres": {
+        "title": "Géneros más frecuentes",
+        "empty": "Aún no hay géneros en este período."
+      },
+      "streak": {
+        "title": "Racha diaria",
+        "none": "Ninguna racha activa",
+        "daySingular": "día seguido",
+        "dayPlural": "días seguidos",
+        "explanation": "La racha es diaria y vuelve a cero si un día termina sin publicación."
+      }
+    }
   },
   "memoriesCalendar": {
     "grid": {

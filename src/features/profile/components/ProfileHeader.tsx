@@ -1,16 +1,17 @@
 import { Image } from "expo-image";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
 import { resolveApiAssetUrl, useAuthImageSource } from "@/services/api";
-import { colors, fontFamily, radius, spacing } from "@/theme";
+import { colors, fontFamily, spacing } from "@/theme";
+
+import { ProfileInfoChip } from "./ProfileInfoChip";
 
 const AVATAR_SIZE = 160;
 const AVATAR_AREA_HEIGHT = AVATAR_SIZE + spacing[12] * 2;
-const CHIP_IMAGE_SIZE = 32;
 
 /**
  * Distance from the top of the header to the avatar's center. The screen draws the green
@@ -42,6 +43,8 @@ export type ProfileHeaderMusicItem = {
 
 type ProfileHeaderProps = Readonly<{
   avatarUrl: string | null;
+  /** When true, shows a loading indicator over the avatar (US28 optimistic upload). */
+  avatarUploadingOverlay?: boolean;
   name: string;
   username: string;
   favoriteSong: ProfileHeaderFavoriteSong | null;
@@ -57,6 +60,14 @@ type ProfileHeaderProps = Readonly<{
   actionSlot?: ReactNode;
   /** Makes the avatar pressable; only the own profile passes it. */
   onEditAvatar?: () => void;
+  /**
+   * First cell of the information grid, before the music chips, e.g. the StreakBadge
+   * (#260). Rendered as is, without a wrapper, so a content that renders nothing leaves no
+   * empty cell.
+   */
+  streakSlot?: ReactNode;
+  /** Auxiliary text below the information grid, e.g. the StreakHint. Rendered as is. */
+  streakHintSlot?: ReactNode;
 }>;
 
 /**
@@ -70,6 +81,7 @@ type ProfileHeaderProps = Readonly<{
 export function ProfileHeader({
   actionSlot,
   avatarUrl,
+  avatarUploadingOverlay = false,
   counts,
   favoriteArtists = [],
   favoriteGenres = [],
@@ -78,12 +90,14 @@ export function ProfileHeader({
   onEditAvatar,
   onPressFollowers,
   onPressFollowing,
+  streakHintSlot,
+  streakSlot,
   username
 }: ProfileHeaderProps) {
   const { t } = useTranslation();
   const avatarSource = useAuthImageSource(avatarUrl ? resolveApiAssetUrl(avatarUrl) : null);
 
-  const avatar = avatarSource ? (
+  const avatarContent = avatarSource ? (
     <Image
       accessibilityLabel={t("profile.avatarA11y", { name })}
       contentFit="cover"
@@ -98,6 +112,17 @@ export function ProfileHeader({
       testID="profile-avatar-fallback"
     >
       <Icon color={colors.neutrals[400]} size={72} source="account" />
+    </View>
+  );
+
+  const avatar = (
+    <View>
+      {avatarContent}
+      {avatarUploadingOverlay ? (
+        <View style={styles.avatarOverlay} testID="profile-avatar-uploading">
+          <ActivityIndicator color={colors.neutrals[100]} size="large" />
+        </View>
+      ) : null}
     </View>
   );
 
@@ -125,8 +150,9 @@ export function ProfileHeader({
         @{username}
       </AppText>
 
-      {favoriteSong || favoriteArtists.length > 0 || favoriteGenres.length > 0 ? (
-        <View style={styles.chips}>
+      {streakSlot || favoriteSong || favoriteArtists.length > 0 || favoriteGenres.length > 0 ? (
+        <View style={styles.chips} testID="profile-chips">
+          {streakSlot}
           {favoriteSong ? (
             <ProfileChip
               accessibilityLabel={t("profile.favoriteSongA11y", {
@@ -163,6 +189,7 @@ export function ProfileHeader({
           ))}
         </View>
       ) : null}
+      {streakHintSlot}
 
       {actionSlot ? <View style={styles.action}>{actionSlot}</View> : null}
 
@@ -200,7 +227,7 @@ type ProfileChipProps = Readonly<{
   testID: string;
 }>;
 
-/** Music chip: picture (or icon) and a one-line label that ends in "…" when too long. */
+/** Music chip: resolves the (authenticated) picture and draws a ProfileInfoChip. */
 function ProfileChip({
   accessibilityLabel,
   fallbackIcon,
@@ -211,23 +238,13 @@ function ProfileChip({
   const imageSource = useAuthImageSource(imageUrl ? resolveApiAssetUrl(imageUrl) : null);
 
   return (
-    <View accessibilityLabel={accessibilityLabel} accessible style={styles.chip} testID={testID}>
-      {imageSource ? (
-        <Image
-          contentFit="cover"
-          source={imageSource}
-          style={styles.chipImage}
-          testID={`${testID}-image`}
-        />
-      ) : (
-        <View style={[styles.chipImage, styles.chipIcon]}>
-          <Icon color={colors.neutrals[900]} size={18} source={fallbackIcon} />
-        </View>
-      )}
-      <AppText numberOfLines={1} style={styles.chipLabel}>
-        {label}
-      </AppText>
-    </View>
+    <ProfileInfoChip
+      accessibilityLabel={accessibilityLabel}
+      icon={fallbackIcon}
+      imageSource={imageSource}
+      label={label}
+      testID={testID}
+    />
   );
 }
 
@@ -299,30 +316,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutrals[800],
     justifyContent: "center"
   },
-  chip: {
+  avatarOverlay: {
     alignItems: "center",
-    backgroundColor: colors.secondary[900],
-    borderRadius: radius.full,
-    flexDirection: "row",
-    gap: spacing[2],
-    minHeight: CHIP_IMAGE_SIZE + spacing[2],
-    paddingLeft: spacing[1],
-    paddingRight: spacing[3],
-    width: "48%"
-  },
-  chipIcon: {
-    alignItems: "center",
-    backgroundColor: colors.primary[500],
-    justifyContent: "center"
-  },
-  chipImage: {
-    borderRadius: CHIP_IMAGE_SIZE / 2,
-    height: CHIP_IMAGE_SIZE,
-    width: CHIP_IMAGE_SIZE
-  },
-  chipLabel: {
-    color: colors.neutrals[100],
-    flexShrink: 1
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: AVATAR_SIZE / 2,
+    bottom: 0,
+    justifyContent: "center",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
   },
   // Two columns, ready for the other music chips once their data exists.
   chips: {

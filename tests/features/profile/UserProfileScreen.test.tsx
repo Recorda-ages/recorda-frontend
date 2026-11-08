@@ -249,6 +249,13 @@ describe("UserProfileScreen", () => {
       expect(screen.queryByTestId("profile-private-notice")).toBeNull();
     });
 
+    it("renders the streak badge when the profile has a streak, without the own-profile hint", async () => {
+      await renderProfile(makeProfile({ streak: { current_days: 5, published_today: false } }));
+
+      expect(header().getByText("5 dias de streak")).toBeTruthy();
+      expect(screen.queryByTestId("profile-streak-hint")).toBeNull();
+    });
+
     it("titles the top bar with the user's name and goes back", async () => {
       await renderProfile(makeProfile());
 

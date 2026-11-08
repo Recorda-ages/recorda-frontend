@@ -1,9 +1,9 @@
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 import { Icon } from "react-native-paper";
 import { useTranslation } from "react-i18next";
 
 import { AppText, destructiveDialogStyles } from "@/components/ui";
-import { baseColors, colors, fontFamily, spacing } from "@/theme";
+import { baseColors } from "@/theme";
 
 type DeleteCommentDialogProps = {
   onCancel: () => void;
@@ -84,30 +84,4 @@ export function DeleteCommentDialog({
   );
 }
 
-const styles = {
-  ...destructiveDialogStyles,
-  ...StyleSheet.create({
-    confirmButton: {
-      backgroundColor: colors.error[300]
-    },
-    confirmLabel: {
-      color: baseColors.white
-    },
-    copy: {
-      alignItems: "center",
-      gap: spacing[2]
-    },
-    message: {
-      color: colors.neutrals[300],
-      fontSize: 12,
-      lineHeight: 18,
-      textAlign: "center"
-    },
-    title: {
-      color: colors.neutrals[100],
-      fontFamily: fontFamily.primary.semiBold,
-      fontSize: 20,
-      textAlign: "center"
-    }
-  })
-};
+const styles = destructiveDialogStyles;

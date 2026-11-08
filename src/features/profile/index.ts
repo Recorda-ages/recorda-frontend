@@ -3,6 +3,7 @@ export { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "./components/ProfileHead
 export { ProfilePrivateNotice } from "./components/ProfilePrivateNotice";
 export { ProfileTabs, type ProfileTab } from "./components/ProfileTabs";
 export { RecordaGrid } from "./components/RecordaGrid";
+export { StreakBadge, StreakHint } from "./components/StreakBadge";
 export { useUserProfile } from "./hooks/useUserProfile";
 export { profileQueryKey } from "./queryKeys";
 export { MyProfileScreen } from "./screens/MyProfileScreen";

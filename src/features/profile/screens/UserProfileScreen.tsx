@@ -30,6 +30,7 @@ import { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "../components/ProfileHea
 import { ProfilePrivateNotice } from "../components/ProfilePrivateNotice";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
 import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
+import { StreakBadge } from "../components/StreakBadge";
 import { useProfileRecordas } from "../hooks/useProfileRecordas";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { profileRecordasQueryKey } from "../queryKeys";
@@ -241,6 +242,7 @@ function ProfileContent({
         counts={profile.can_view_content ? profile.counts : null}
         favoriteSong={{ artistName: song.artist_name, coverUrl: song.cover_url, title: song.title }}
         name={profile.name}
+        streakSlot={<StreakBadge profile={profile} />}
         username={profile.username}
       />
       <View style={styles.tabs}>
