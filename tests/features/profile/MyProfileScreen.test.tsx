@@ -15,8 +15,55 @@ import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { paperTheme } from "@/theme";
 
 jest.mock("@/features/profile/services/profileService", () => ({
-  profileService: { deleteAvatar: jest.fn(), getMyProfile: jest.fn(), getUserRecordas: jest.fn() }
+  profileService: {
+    deleteAvatar: jest.fn(),
+    getMyProfile: jest.fn(),
+    getUserRecordas: jest.fn(),
+    uploadAvatar: jest.fn()
+  }
 }));
+
+// The real picker/menu is covered by avatarUpload.test.tsx. This screen harness
+// exercises its callbacks without Paper's native measurement and animation timers.
+jest.mock("@/features/profile/components/AvatarPickerMenu", () => {
+  const { Pressable, View } = jest.requireActual("react-native") as typeof import("react-native");
+  return {
+    AvatarPickerMenu: ({
+      anchor,
+      hasAvatar,
+      onDismiss,
+      onPick,
+      onRemove,
+      visible
+    }: import("react").ComponentProps<
+      typeof import("@/features/profile/components/AvatarPickerMenu").AvatarPickerMenu
+    >) => (
+      <View>
+        {anchor}
+        {visible ? (
+          <View>
+            <Pressable
+              testID="avatar-menu-gallery"
+              onPress={() => {
+                onDismiss();
+                onPick("file://compressed.jpg");
+              }}
+            />
+            {hasAvatar ? (
+              <Pressable
+                testID="avatar-menu-remove"
+                onPress={() => {
+                  onDismiss();
+                  onRemove();
+                }}
+              />
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+    )
+  };
+});
 
 jest.mock("@/features/onboarding/api/music", () => ({
   ...jest.requireActual("@/features/onboarding/api/music"),
@@ -33,6 +80,7 @@ jest.mock("@react-navigation/native", () => ({
 
 const mockGetMyProfile = profileService.getMyProfile as jest.Mock;
 const mockGetUserRecordas = profileService.getUserRecordas as jest.Mock;
+const mockUploadAvatar = profileService.uploadAvatar as jest.Mock;
 const mockDeleteAvatar = profileService.deleteAvatar as jest.Mock;
 const mockGetMusicPreferences = getMusicPreferences as jest.Mock;
 
@@ -97,6 +145,7 @@ const clients: QueryClient[] = [];
 function renderScreen() {
   const client = new QueryClient({
     defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
       // `retry` comes from the hooks; only the delay is removed here.
       queries: { gcTime: Infinity, retryDelay: 0 }
     }
@@ -144,6 +193,8 @@ function scrollToEnd() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUploadAvatar.mockReset();
+  mockDeleteAvatar.mockReset();
   [mockGetMyProfile, mockGetUserRecordas, mockGetMusicPreferences].forEach((mock) =>
     mock.mockReset()
   );
@@ -415,9 +466,38 @@ describe("MyProfileScreen avatar", () => {
     await renderLoaded();
 
     fireEvent.press(screen.getByTestId("profile-edit-avatar"));
-    fireEvent.press(await screen.findByTestId("avatar-menu-remove"));
+    const removeItem = await screen.findByTestId("avatar-menu-remove");
+    await act(async () => fireEvent.press(removeItem));
     fireEvent.press(await screen.findByTestId("remove-avatar-confirm"));
 
     await waitFor(() => expect(mockDeleteAvatar).toHaveBeenCalledTimes(1));
+    expect(await screen.findByTestId("profile-avatar-fallback")).toBeTruthy();
+    expect(screen.getAllByTestId("profile-streak-active")).toHaveLength(1);
+    expect(screen.getByText("12 dias de streak")).toBeTruthy();
+  });
+});
+
+describe("MyProfileScreen avatar and streak integration", () => {
+  it("preserves the streak and hint when an avatar upload completes", async () => {
+    const serverUrl = "https://cdn.example.com/new-avatar.jpg";
+    mockUploadAvatar.mockResolvedValueOnce({ profile_picture_url: serverUrl });
+    mockGetMyProfile.mockResolvedValue({
+      ...PROFILE,
+      streak: { current_days: 3, published_today: false }
+    });
+    await renderLoaded();
+
+    fireEvent.press(screen.getByTestId("profile-edit-avatar"));
+    const galleryItem = await screen.findByTestId("avatar-menu-gallery");
+    await act(async () => fireEvent.press(galleryItem));
+    await waitFor(() =>
+      expect(screen.getByTestId("profile-avatar").props.source[0].uri).toBe(serverUrl)
+    );
+    expect(mockUploadAvatar).toHaveBeenCalledWith("file://compressed.jpg");
+    await waitFor(() => expect(screen.queryByTestId("profile-avatar-uploading")).toBeNull());
+    expect(screen.getByTestId("profile-avatar").props.source[0].uri).toBe(serverUrl);
+    expect(screen.getAllByTestId("profile-streak-active")).toHaveLength(1);
+    expect(screen.getByText("3 dias de streak")).toBeTruthy();
+    expect(screen.getByText("Publique hoje para manter")).toBeTruthy();
   });
 });
