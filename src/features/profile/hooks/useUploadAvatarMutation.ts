@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 
-import { useToast } from "@/components/ui/ToastProvider";
 import { getSessionGeneration } from "@/services/api/sessionLifecycle";
 
 import { profileQueryKey } from "../queryKeys";
@@ -20,18 +20,16 @@ type AvatarUploadContext = {
  *
  * onMutate: patches the profile cache with the local URI so the avatar
  * changes immediately. onError: rolls back to the previous URL and shows
- * a "Tentar de novo" toast. onSuccess: writes the server URL and
+ * an alert with "Tentar de novo", which resends the same photo. onSuccess: writes the server URL and
  * invalidates feed, notifications and user-search caches.
  */
 export function useUploadAvatarMutation(userId: string) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const { showToast } = useToast();
-
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (localUri: string) => profileService.uploadAvatar(localUri),
 
-    onError: (_error, _localUri, context) => {
+    onError: (_error, localUri, context) => {
       if (!context || context.generation !== getSessionGeneration()) return;
 
       queryClient.setQueryData<ProfileRead>(profileQueryKey(userId), (current) => {
@@ -39,7 +37,16 @@ export function useUploadAvatarMutation(userId: string) {
         return { ...current, profile_picture_url: context.previousAvatarUrl };
       });
 
-      showToast(t("profile.avatarUploadError"));
+      Alert.alert(t("profile.avatarUploadError"), undefined, [
+        { style: "cancel", text: t("profile.avatarPermissionCancel") },
+        {
+          // The alert can outlive the session; never resend a photo into another account.
+          onPress: () => {
+            if (context.generation === getSessionGeneration()) mutation.mutate(localUri);
+          },
+          text: t("profile.retry")
+        }
+      ]);
     },
 
     onMutate: async (localUri: string): Promise<AvatarUploadContext> => {
@@ -72,4 +79,6 @@ export function useUploadAvatarMutation(userId: string) {
       });
     }
   });
+
+  return mutation;
 }

@@ -150,7 +150,12 @@ export function MyProfileScreen() {
                   favoriteGenres={preferences.data?.genres.slice(0, 1)}
                   favoriteSong={toHeaderSong(data.favorite_song)}
                   name={data.name}
-                  onEditAvatar={() => setIsAvatarMenuVisible(true)}
+                  onEditAvatar={() => {
+                    // One avatar operation at a time, so a DELETE can't land after a newer PUT.
+                    if (!uploadAvatar.isPending && !removeAvatar.isPending) {
+                      setIsAvatarMenuVisible(true);
+                    }
+                  }}
                   onPressFollowers={() =>
                     navigation.navigate("Friends", { tab: "seguidores", userId: myUserId })
                   }

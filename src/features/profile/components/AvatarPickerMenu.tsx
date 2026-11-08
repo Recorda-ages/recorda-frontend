@@ -32,9 +32,8 @@ export function AvatarPickerMenu({
   const { t } = useTranslation();
 
   async function compress(uri: string): Promise<string> {
-    const context = ImageManipulator.manipulate(uri, [
-      { resize: { height: AVATAR_SIZE, width: AVATAR_SIZE } }
-    ]);
+    const context = ImageManipulator.manipulate(uri);
+    context.resize({ height: AVATAR_SIZE, width: AVATAR_SIZE });
     const image = await context.renderAsync();
     const result = await image.saveAsync({ compress: AVATAR_QUALITY, format: SaveFormat.JPEG });
     image.release();

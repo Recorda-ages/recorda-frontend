@@ -20,8 +20,7 @@ import { paperTheme } from "@/theme";
 import type * as ExpoImageManipulatorMock from "../../mocks/expoImageManipulator";
 import type * as ExpoImagePickerMock from "../../mocks/expoImagePicker";
 
-const imageManipulatorMock =
-  ExpoImageManipulator as unknown as typeof ExpoImageManipulatorMock;
+const imageManipulatorMock = ExpoImageManipulator as unknown as typeof ExpoImageManipulatorMock;
 const imagePickerMock = ExpoImagePicker as unknown as typeof ExpoImagePickerMock;
 
 jest.mock("@/features/profile/services/profileService", () => ({
@@ -52,15 +51,17 @@ function makeQueryClient() {
 }
 
 function makeWrapper(queryClient: QueryClient) {
-  return ({ children }: PropsWithChildren) => (
-    <QueryClientProvider client={queryClient}>
-      <I18nextProvider i18n={i18n}>
-        <PaperProvider theme={paperTheme}>
-          <ToastProvider>{children}</ToastProvider>
-        </PaperProvider>
-      </I18nextProvider>
-    </QueryClientProvider>
-  );
+  return function Wrapper({ children }: PropsWithChildren) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <I18nextProvider i18n={i18n}>
+          <PaperProvider theme={paperTheme}>
+            <ToastProvider>{children}</ToastProvider>
+          </PaperProvider>
+        </I18nextProvider>
+      </QueryClientProvider>
+    );
+  };
 }
 
 const BASE_PROFILE = {
@@ -237,9 +238,8 @@ describe("AvatarPickerMenu", () => {
       });
 
       await waitFor(() => {
-        expect(imageManipulatorMock.mockManipulate).toHaveBeenCalledWith(LOCAL_URI, [
-          { resize: { height: 512, width: 512 } }
-        ]);
+        expect(imageManipulatorMock.mockManipulate).toHaveBeenCalledWith(LOCAL_URI);
+        expect(imageManipulatorMock.mockResize).toHaveBeenCalledWith({ height: 512, width: 512 });
         expect(imageManipulatorMock.mockSaveAsync).toHaveBeenCalledWith({
           compress: 0.8,
           format: "jpeg"
@@ -287,10 +287,9 @@ describe("useUploadAvatarMutation (optimistic update)", () => {
       })
     );
 
-    const { result } = renderHook(
-      () => useUploadAvatarMutation(USER_ID),
-      { wrapper: makeWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useUploadAvatarMutation(USER_ID), {
+      wrapper: makeWrapper(queryClient)
+    });
 
     act(() => {
       result.current.mutate(LOCAL_URI);
@@ -319,10 +318,9 @@ describe("useUploadAvatarMutation (optimistic update)", () => {
     seedProfile(EXISTING_AVATAR_URL);
     mockedUploadAvatar.mockRejectedValueOnce(new Error("Network error"));
 
-    const { result } = renderHook(
-      () => useUploadAvatarMutation(USER_ID),
-      { wrapper: makeWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useUploadAvatarMutation(USER_ID), {
+      wrapper: makeWrapper(queryClient)
+    });
 
     await act(async () => {
       result.current.mutate(LOCAL_URI);
@@ -336,20 +334,37 @@ describe("useUploadAvatarMutation (optimistic update)", () => {
     expect(cached?.profile_picture_url).toBe(EXISTING_AVATAR_URL);
   });
 
-  it("shows an error toast on upload failure", async () => {
+  it("offers 'try again' on upload failure, which resends the same photo", async () => {
     seedProfile(EXISTING_AVATAR_URL);
-    mockedUploadAvatar.mockRejectedValueOnce(new Error("Network error"));
+    mockedUploadAvatar
+      .mockRejectedValueOnce(new Error("Network error"))
+      .mockResolvedValueOnce({ profile_picture_url: SERVER_URL });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
 
-    const { result } = renderHook(
-      () => useUploadAvatarMutation(USER_ID),
-      { wrapper: makeWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useUploadAvatarMutation(USER_ID), {
+      wrapper: makeWrapper(queryClient)
+    });
 
     await act(async () => {
       result.current.mutate(LOCAL_URI);
     });
 
-    await waitFor(() => expect(result.current.isError).toBe(true));
+    await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1));
+    const buttons = alertSpy.mock.calls[0]?.[2] ?? [];
+    const retry = buttons.find((button) => button.text === i18n.t("profile.retry"));
+
+    await act(async () => {
+      retry?.onPress?.();
+    });
+
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<{ profile_picture_url: string | null }>(
+        profileQueryKey(USER_ID)
+      );
+      expect(cached?.profile_picture_url).toBe(SERVER_URL);
+    });
+    expect(mockedUploadAvatar).toHaveBeenNthCalledWith(2, LOCAL_URI);
+    alertSpy.mockRestore();
   });
 });
 
@@ -376,10 +391,9 @@ describe("useRemoveAvatarMutation", () => {
     seedProfile(EXISTING_AVATAR_URL);
     mockedDeleteAvatar.mockResolvedValueOnce(null);
 
-    const { result } = renderHook(
-      () => useRemoveAvatarMutation(USER_ID),
-      { wrapper: makeWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useRemoveAvatarMutation(USER_ID), {
+      wrapper: makeWrapper(queryClient)
+    });
 
     await act(async () => {
       result.current.mutate();
@@ -397,10 +411,9 @@ describe("useRemoveAvatarMutation", () => {
     seedProfile(EXISTING_AVATAR_URL);
     mockedDeleteAvatar.mockRejectedValueOnce(new Error("Network error"));
 
-    const { result } = renderHook(
-      () => useRemoveAvatarMutation(USER_ID),
-      { wrapper: makeWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useRemoveAvatarMutation(USER_ID), {
+      wrapper: makeWrapper(queryClient)
+    });
 
     await act(async () => {
       result.current.mutate();
@@ -418,10 +431,9 @@ describe("useRemoveAvatarMutation", () => {
     seedProfile(EXISTING_AVATAR_URL);
     mockedDeleteAvatar.mockRejectedValueOnce(new Error("Network error"));
 
-    const { result } = renderHook(
-      () => useRemoveAvatarMutation(USER_ID),
-      { wrapper: makeWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useRemoveAvatarMutation(USER_ID), {
+      wrapper: makeWrapper(queryClient)
+    });
 
     await act(async () => {
       result.current.mutate();

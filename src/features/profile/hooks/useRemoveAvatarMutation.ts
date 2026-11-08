@@ -60,4 +60,3 @@ export function useRemoveAvatarMutation(userId: string) {
     }
   });
 }
-
