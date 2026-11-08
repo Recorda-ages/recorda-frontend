@@ -270,15 +270,17 @@ describe("MyProfileScreen", () => {
   });
 
   describe("tabs", () => {
-    it.each([
-      ["Métricas", "metrics"],
-      ["Calendário", "calendar"]
-    ])("shows 'Em breve' on %s instead of the grid", async (name, key) => {
+    it("shows the metrics dashboard instead of the grid", async () => {
       await renderLoaded();
+      fireEvent.press(screen.getByRole("tab", { name: "Métricas" }));
+      expect(screen.getByText("30 dias")).toBeTruthy();
+      expect(screen.queryByTestId("recorda-grid")).toBeNull();
+    });
 
-      fireEvent.press(screen.getByRole("tab", { name }));
-
-      expect(screen.getByTestId(`profile-coming-soon-${key}`)).toHaveTextContent("Em breve");
+    it("shows 'Em breve' on Calendário instead of the grid", async () => {
+      await renderLoaded();
+      fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
+      expect(screen.getByTestId("profile-coming-soon-calendar")).toHaveTextContent("Em breve");
       expect(screen.queryByTestId("recorda-grid")).toBeNull();
     });
   });

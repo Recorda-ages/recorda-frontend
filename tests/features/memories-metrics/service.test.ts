@@ -213,3 +213,19 @@ describe("useUserMetrics", () => {
     consoleError.mockRestore();
   });
 });
+
+test("retains the current user's data while loading another period", async () => {
+  mockGet.mockResolvedValueOnce(profileMetricsMock);
+  const { result, rerender } = renderHook(
+    ({ period }: { period: string }) => useUserMetrics(period),
+    {
+      initialProps: { period: "last_30_days" },
+      wrapper
+    }
+  );
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  mockGet.mockImplementationOnce(() => new Promise(() => {}));
+  rerender({ period: "last_90_days" });
+  await waitFor(() => expect(result.current.isPlaceholderData).toBe(true));
+  expect(result.current.data).toEqual(profileMetricsMock);
+});

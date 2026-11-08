@@ -19,6 +19,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomTabBar";
+import { DynamicMetricsDashboard } from "@/features/memories-metrics/components/DynamicMetricsDashboard";
 import { getMusicPreferences } from "@/features/onboarding/api/music";
 import { MUSIC_PREFERENCES_QUERY_KEY } from "@/features/onboarding/queryKeys";
 import { colors, fontFamily, spacing } from "@/theme";
@@ -164,8 +165,10 @@ export function MyProfileScreen() {
                   onRetry={() => void recordas.refetch()}
                   status={gridStatus(recordas)}
                 />
+              ) : activeTab === "metrics" ? (
+                <DynamicMetricsDashboard onCreateRecorda={() => navigation.navigate("Camera")} />
               ) : (
-                // Metrics and Calendar belong to Epic 07.
+                // Calendar belongs to Epic 07.
                 <AppText style={styles.comingSoon} testID={`profile-coming-soon-${activeTab}`}>
                   {t("profile.comingSoon")}
                 </AppText>
