@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
 
-import { colors, radius, spacing } from "@/theme";
+import { baseColors, colors, fontFamily, radius, spacing } from "@/theme";
 
 /**
- * Layout shared by confirmation dialogs with a destructive primary action.
- * Feature-specific typography and action colors remain in each dialog.
+ * Layout, typography and action colors shared by confirmation dialogs with a destructive
+ * primary action. Feature-specific extras (e.g. an error line) remain in each dialog.
  */
 export const destructiveDialogStyles = StyleSheet.create({
   actions: {
@@ -35,6 +35,16 @@ export const destructiveDialogStyles = StyleSheet.create({
   cancelLabel: {
     color: colors.neutrals[100]
   },
+  confirmButton: {
+    backgroundColor: colors.error[300]
+  },
+  confirmLabel: {
+    color: baseColors.white
+  },
+  copy: {
+    alignItems: "center",
+    gap: spacing[2]
+  },
   dialog: {
     alignItems: "center",
     backgroundColor: colors.neutrals[800],
@@ -55,7 +65,19 @@ export const destructiveDialogStyles = StyleSheet.create({
     justifyContent: "center",
     width: 56
   },
+  message: {
+    color: colors.neutrals[300],
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center"
+  },
   pressed: {
     opacity: 0.82
+  },
+  title: {
+    color: colors.neutrals[100],
+    fontFamily: fontFamily.primary.semiBold,
+    fontSize: 20,
+    textAlign: "center"
   }
 });

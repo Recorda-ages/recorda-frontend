@@ -390,6 +390,21 @@
     "loading": "Loading profile",
     "loadError": "We couldn't load this profile.",
     "retry": "Try again",
+    "avatarMenuCamera": "Take photo",
+    "avatarMenuGallery": "Choose from gallery",
+    "avatarMenuRemove": "Remove photo",
+    "avatarCameraPermissionTitle": "Permission required",
+    "avatarCameraPermissionMessage": "Allow camera access to take a profile photo.",
+    "avatarGalleryPermissionTitle": "Permission required",
+    "avatarGalleryPermissionMessage": "Allow gallery access to choose a profile photo.",
+    "avatarPermissionCancel": "Cancel",
+    "avatarPermissionSettings": "Open settings",
+    "avatarUploadError": "Could not update profile photo. Try again.",
+    "avatarRemoveError": "Could not remove profile photo. Try again.",
+    "removeAvatarTitle": "Remove profile photo?",
+    "removeAvatarMessage": "Your profile photo will be removed.",
+    "removeAvatarCancel": "Cancel",
+    "removeAvatarConfirm": "Remove",
     "grid": {
       "empty": "No Recordas published yet.",
       "loadError": "We couldn't load the Recordas.",
@@ -785,7 +800,27 @@
     }
   },
   "memoriesMetrics": {
-    "loadError": "Unable to load your metrics. Please try again."
+    "loadError": "Unable to load your metrics. Please try again.",
+    "widgets": {
+      "topArtist": {
+        "title": "Top artist",
+        "empty": "No top artist in this period yet.",
+        "photo": "Photo of {{name}}",
+        "countSingular": "{{count}} Recorda",
+        "countPlural": "{{count}} Recordas"
+      },
+      "topGenres": {
+        "title": "Top genres",
+        "empty": "No genres in this period yet."
+      },
+      "streak": {
+        "title": "Daily streak",
+        "none": "No active streak",
+        "daySingular": "day in a row",
+        "dayPlural": "days in a row",
+        "explanation": "The streak is daily and resets if a day ends without a post."
+      }
+    }
   },
   "memoriesCalendar": {
     "grid": {

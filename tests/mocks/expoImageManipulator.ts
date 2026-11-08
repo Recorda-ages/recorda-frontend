@@ -4,6 +4,7 @@ export const SaveFormat = {
 };
 
 export const mockContextRelease = jest.fn<void, []>();
+export const mockResize = jest.fn<void, [{ height?: number; width?: number }]>();
 export const mockImageRelease = jest.fn<void, []>();
 export const mockSaveAsync = jest.fn<
   Promise<{ uri: string }>,
@@ -14,12 +15,13 @@ export const mockRenderAsync = jest.fn<
   []
 >();
 export const mockManipulate = jest.fn<
-  { release: () => void; renderAsync: typeof mockRenderAsync },
+  { release: () => void; renderAsync: typeof mockRenderAsync; resize: typeof mockResize },
   [string]
 >();
 
 export function resetImageManipulatorMock() {
   mockContextRelease.mockReset();
+  mockResize.mockReset();
   mockImageRelease.mockReset();
   mockSaveAsync.mockReset();
   mockSaveAsync.mockResolvedValue({ uri: "file://compressed.jpg" });
@@ -31,7 +33,8 @@ export function resetImageManipulatorMock() {
   mockManipulate.mockReset();
   mockManipulate.mockReturnValue({
     release: mockContextRelease,
-    renderAsync: mockRenderAsync
+    renderAsync: mockRenderAsync,
+    resize: mockResize
   });
 }
 

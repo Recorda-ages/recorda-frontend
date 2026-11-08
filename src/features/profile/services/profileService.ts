@@ -1,3 +1,5 @@
+import { File } from "expo-file-system";
+
 import { authApiClient } from "@/services/api";
 
 import type { ProfileRead, RecordaGridPage } from "../types";
@@ -7,6 +9,8 @@ function buildRecordasPath(userId: string, cursor: string | null) {
   // No `limit`: the backend default (24) is the page size of the grid.
   return cursor ? `${path}?cursor=${encodeURIComponent(cursor)}` : path;
 }
+
+type UploadAvatarResponse = { profile_picture_url: string };
 
 export const profileService = {
   /**
@@ -21,5 +25,15 @@ export const profileService = {
    * see, 404 for a missing or suspended user, 400 for an invalid cursor.
    */
   getUserRecordas: (userId: string, cursor: string | null = null, signal?: AbortSignal) =>
-    authApiClient.get<RecordaGridPage>(buildRecordasPath(userId, cursor), { signal })
+    authApiClient.get<RecordaGridPage>(buildRecordasPath(userId, cursor), { signal }),
+
+  /** `PUT /users/me/avatar`: upload a JPEG and return the new `profile_picture_url`. */
+  uploadAvatar: (uri: string) => {
+    const formData = new FormData();
+    formData.append("file", new File(uri) as unknown as Blob, "avatar.jpg");
+    return authApiClient.put<UploadAvatarResponse>("/users/me/avatar", formData);
+  },
+
+  /** `DELETE /users/me/avatar`: remove the avatar and revert to the default icon. */
+  deleteAvatar: () => authApiClient.delete<void>("/users/me/avatar")
 };
