@@ -311,6 +311,7 @@ describe("useUploadAvatarMutation (optimistic update)", () => {
         profileQueryKey(USER_ID)
       );
       expect(cached?.profile_picture_url).toBe(SERVER_URL);
+      expect(result.current.isSuccess).toBe(true);
     });
   });
 
@@ -362,6 +363,7 @@ describe("useUploadAvatarMutation (optimistic update)", () => {
         profileQueryKey(USER_ID)
       );
       expect(cached?.profile_picture_url).toBe(SERVER_URL);
+      expect(result.current.isSuccess).toBe(true);
     });
     expect(mockedUploadAvatar).toHaveBeenNthCalledWith(2, LOCAL_URI);
     alertSpy.mockRestore();

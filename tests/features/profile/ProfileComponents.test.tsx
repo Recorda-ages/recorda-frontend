@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ComponentProps, ReactElement } from "react";
 import { Text } from "react-native";
 import { I18nextProvider } from "react-i18next";
@@ -9,6 +9,9 @@ import { ProfilePrivateNotice } from "@/features/profile/components/ProfilePriva
 import { ProfileTabs } from "@/features/profile/components/ProfileTabs";
 import { i18n } from "@/i18n";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api";
+import { colors } from "@/theme";
+
+type HostChild = ReturnType<typeof screen.getByTestId> | string;
 
 function renderWithProviders(element: ReactElement) {
   const queryClient = new QueryClient({
@@ -69,6 +72,14 @@ describe("ProfileHeader", () => {
     expect(screen.getByLabelText("Música favorita: Starlight, de Muse")).toBeTruthy();
   });
 
+  it("keeps the music chips on their regular background", () => {
+    renderHeader();
+
+    expect(screen.getByTestId("profile-favorite-song")).toHaveStyle({
+      backgroundColor: colors.secondary[900]
+    });
+  });
+
   it("keeps the favorite song chip when the cover is missing", () => {
     renderHeader({ favoriteSong: { artistName: "Muse", coverUrl: "", title: "Starlight" } });
 
@@ -103,6 +114,47 @@ describe("ProfileHeader", () => {
     renderHeader({ actionSlot: <Text>Ação</Text> });
 
     expect(screen.getByText("Ação")).toBeTruthy();
+  });
+
+  it("renders the streak slot as the first cell of the information grid", () => {
+    renderHeader({
+      favoriteArtists: [{ id: 7, name: "Muse" }],
+      streakSlot: <Text testID="streak-slot">Sequência</Text>
+    });
+
+    // Direct children of the grid, identified by their testID.
+    const order = screen
+      .getByTestId("profile-chips")
+      .children.map((child: HostChild) =>
+        typeof child === "string" ? child : String(child.props.testID)
+      );
+
+    expect(order).toEqual(["streak-slot", "profile-favorite-song", "profile-favorite-artist-7"]);
+  });
+
+  it("renders the streak hint slot below the information grid", () => {
+    renderHeader({
+      actionSlot: <Text testID="action-slot">Ação</Text>,
+      streakHintSlot: <Text testID="streak-hint-slot">Dica</Text>
+    });
+
+    // Direct children of the header, identified by their testID.
+    const order = screen
+      .getByTestId("profile-header")
+      .children.map((child: HostChild) =>
+        typeof child === "string" ? child : String(child.props.testID ?? "")
+      );
+    const chipsIndex = order.indexOf("profile-chips");
+
+    expect(chipsIndex).toBeGreaterThan(-1);
+    expect(order[chipsIndex + 1]).toBe("streak-hint-slot");
+    expect(within(screen.getByTestId("profile-chips")).queryByText("Dica")).toBeNull();
+  });
+
+  it("shows the information grid with only the streak slot", () => {
+    renderHeader({ favoriteSong: null, streakSlot: <Text testID="streak-slot">Sequência</Text> });
+
+    expect(within(screen.getByTestId("profile-chips")).getByTestId("streak-slot")).toBeTruthy();
   });
 
   it("keeps the avatar read-only without onEditAvatar", () => {

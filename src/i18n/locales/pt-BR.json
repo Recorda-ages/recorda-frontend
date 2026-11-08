@@ -370,6 +370,14 @@
       "followersHint": "Abre a lista de seguidores",
       "followingHint": "Abre a lista de quem você segue"
     },
+    "streak": {
+      "days_one": "{{count}} dia de streak",
+      "days_other": "{{count}} dias de streak",
+      "none": "Sem sequência",
+      "hintStart": "Publique hoje para começar",
+      "hintKeep": "Publique hoje para manter",
+      "a11y": "Sequência de publicações: {{value}}"
+    },
     "tabs": {
       "recordas": "Recordas",
       "metrics": "Métricas",

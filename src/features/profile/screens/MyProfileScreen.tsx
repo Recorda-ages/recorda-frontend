@@ -29,7 +29,8 @@ import { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "../components/ProfileHea
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
 import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
 import { RemoveAvatarDialog } from "../components/RemoveAvatarDialog";
-import { useMyProfile, isIncompleteProfileError } from "../hooks/useMyProfile";
+import { StreakBadge, StreakHint } from "../components/StreakBadge";
+import { isIncompleteProfileError, useMyProfile } from "../hooks/useMyProfile";
 import { useRemoveAvatarMutation } from "../hooks/useRemoveAvatarMutation";
 import { useUploadAvatarMutation } from "../hooks/useUploadAvatarMutation";
 import { useProfileRecordas } from "../hooks/useProfileRecordas";
@@ -162,6 +163,8 @@ export function MyProfileScreen() {
                   onPressFollowing={() =>
                     navigation.navigate("Friends", { tab: "seguindo", userId: myUserId })
                   }
+                  streakHintSlot={<StreakHint profile={data} />}
+                  streakSlot={<StreakBadge profile={data} />}
                   username={data.username}
                   avatarUploadingOverlay={uploadAvatar.isPending}
                 />

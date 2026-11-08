@@ -369,6 +369,14 @@
       "followersHint": "Opens the followers list",
       "followingHint": "Opens the following list"
     },
+    "streak": {
+      "days_one": "{{count}}-day streak",
+      "days_other": "{{count}}-day streak",
+      "none": "No streak",
+      "hintStart": "Post today to start",
+      "hintKeep": "Post today to keep it",
+      "a11y": "Posting streak: {{value}}"
+    },
     "tabs": {
       "recordas": "Recordas",
       "metrics": "Metrics",
