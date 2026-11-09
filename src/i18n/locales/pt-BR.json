@@ -858,9 +858,14 @@
     "emptyOther": "Este perfil ainda não tem Recordas neste período.",
     "loadErrorOther": "Não foi possível carregar as métricas deste perfil. Tente novamente.",
     "widgets": {
-      "topArtist": {
-        "title": "Artista mais ouvido",
-        "empty": "Ainda não há um artista em destaque neste período.",
+      "total": {
+        "title": "Total de Recordas",
+        "singular": "Recorda publicada",
+        "plural": "Recordas publicadas"
+      },
+      "topArtists": {
+        "title": "Artistas mais recorrentes",
+        "empty": "Ainda não há artistas neste período.",
         "photo": "Foto de {{name}}",
         "countSingular": "{{count}} Recorda",
         "countPlural": "{{count}} Recordas"
@@ -868,6 +873,11 @@
       "topGenres": {
         "title": "Gêneros mais frequentes",
         "empty": "Ainda não há gêneros neste período."
+      },
+      "monthly": {
+        "title": "Recordas por mês",
+        "empty": "Ainda não há Recordas neste período.",
+        "a11y": "{{month}}: {{count}} Recordas"
       },
       "streak": {
         "title": "Sequência diária",
@@ -895,6 +905,8 @@
       "loading": "Carregando calendário"
     },
     "viewer": {
+      "likes": "{{count}} curtidas",
+      "comments": "{{count}} comentários",
       "close": "Fechar",
       "previousDay": "Dia anterior",
       "nextDay": "Próximo dia",
@@ -911,6 +923,18 @@
       "emptyMessage": "Cada dia pode virar uma memória. Que tal registrar a trilha sonora de hoje?",
       "emptyAction": "Criar Recorda"
     }
+  },
+  "retrospectiveFlow": {
+    "title": "Retrospectivas",
+    "monthly": "Mensal",
+    "yearly": "Anual",
+    "preview": "Prévia",
+    "retry": "Tentar novamente",
+    "choose": "Escolher outro período",
+    "periodsError": "Não foi possível carregar suas retrospectivas.",
+    "detailsError": "Não foi possível carregar esta retrospectiva.",
+    "noPeriods": "Suas retrospectivas aparecem aqui depois que você publicar Recordas.",
+    "emptyPeriod": "Não há Recordas neste período."
   },
   "retrospective": {
     "open": "Abrir retrospectiva",

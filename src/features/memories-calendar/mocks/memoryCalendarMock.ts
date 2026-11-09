@@ -32,7 +32,6 @@ function createMemories(date: string, index: number): DayRecordaDetail[] {
       media_url: isVideo
         ? "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
         : thumbnail,
-      thumbnail_url: thumbnail,
       deezer_track_id: "3135556",
       song_title: "Harder, Better, Faster, Stronger",
       song_artist_name: "Daft Punk",
@@ -40,20 +39,7 @@ function createMemories(date: string, index: number): DayRecordaDetail[] {
       song_preview_url: "/api/v1/music/tracks/3135556/preview",
       is_liked: post === 0,
       likes_count: 4 + index + post,
-      comments_count: post === 0 ? 1 : 0,
-      comments:
-        post === 0
-          ? [
-              {
-                comment_id: `comment-${id}`,
-                user_id: "mock-friend",
-                username: "pedro",
-                avatar_url: null,
-                content: "Que lembrança boa!",
-                created_at: `${date}T18:00:00-03:00`
-              }
-            ]
-          : []
+      comments_count: post === 0 ? 1 : 0
     };
   });
 }
@@ -74,9 +60,10 @@ export const memoryCalendarMock: MemoryCalendarService = {
         date,
         day: Number(date.slice(-2)),
         count: memories.length,
-        thumbnail_url: memories[0].thumbnail_url,
+        thumbnail_url: memories[0].media_url,
         media_type: memories[0].media_type,
-        first_recorda_id: memories[0].recorda_id
+        first_recorda_id: memories[0].recorda_id,
+        song_cover_url: memories[0].song_cover_url
       }));
     return {
       year,

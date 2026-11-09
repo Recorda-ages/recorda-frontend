@@ -243,7 +243,8 @@ describe("MyProfileScreen", () => {
     expect(screen.queryByTestId("retrospective-screen")).toBeNull();
 
     fireEvent.press(await screen.findByLabelText("Abrir retrospectiva"));
-    expect(screen.getByTestId("retrospective-screen")).toBeTruthy();
+    fireEvent.press(await screen.findByTestId("retrospective-period-MONTHLY-2026-11"));
+    expect(await screen.findByTestId("retrospective-screen")).toBeTruthy();
     expect(screen.getByText("3 Recordas")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText("Fechar"));

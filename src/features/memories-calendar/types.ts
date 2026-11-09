@@ -1,4 +1,4 @@
-import type { RecordaCommentResponse, RecordaDetailResponse } from "@/features/feed";
+import type { RecordaDetailResponse } from "@/features/feed";
 
 export type CalendarDaySummary = {
   date: string;
@@ -7,6 +7,7 @@ export type CalendarDaySummary = {
   thumbnail_url: string;
   media_type: "PHOTO" | "VIDEO";
   first_recorda_id: string;
+  song_cover_url: string;
 };
 
 export type MonthlyCalendarResponse = {
@@ -17,10 +18,7 @@ export type MonthlyCalendarResponse = {
   days: CalendarDaySummary[];
 };
 
-// Provisional extension of the existing Recorda wire contract; confirm with backend.
 export type DayRecordaDetail = RecordaDetailResponse & {
-  thumbnail_url: string;
-  comments: RecordaCommentResponse[];
   comments_count: number;
   formatted_time: string;
 };
@@ -37,7 +35,12 @@ export type MemoryCalendarService = {
   getMonthCalendar: (
     year: number,
     month: number,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    userId?: string
   ) => Promise<MonthlyCalendarResponse>;
-  getDayMemories: (date: string, signal?: AbortSignal) => Promise<DailyMemoriesResponse>;
+  getDayMemories: (
+    date: string,
+    signal?: AbortSignal,
+    userId?: string
+  ) => Promise<DailyMemoriesResponse>;
 };

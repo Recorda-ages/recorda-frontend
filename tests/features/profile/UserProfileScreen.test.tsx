@@ -82,10 +82,13 @@ function makeProfile(overrides: Partial<ProfileRead> = {}): ProfileRead {
 }
 
 const METRICS = {
+  monthly_distribution: [],
   period: "last_30_days",
   streak: { current_streak_days: 0, last_post_date: null },
   top_artist: null,
-  top_genres: []
+  top_artists: [],
+  top_genres: [],
+  total_recordas: 0
 };
 
 const PRIVATE_LOCKED = makeProfile({ can_view_content: false, counts: null, is_private: true });

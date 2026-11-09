@@ -71,7 +71,10 @@ function ActiveDayCell({
   summary
 }: ActiveDayCellProps) {
   const { t } = useTranslation();
-  const source = useAuthImageSource(resolveApiAssetUrl(summary.thumbnail_url));
+  const isVideo = summary.media_type === "VIDEO";
+  const source = useAuthImageSource(
+    resolveApiAssetUrl(isVideo ? summary.song_cover_url : summary.thumbnail_url)
+  );
   const extra = summary.count - 1;
 
   return (

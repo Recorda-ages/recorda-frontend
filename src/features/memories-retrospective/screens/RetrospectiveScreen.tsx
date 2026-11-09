@@ -14,6 +14,8 @@ import { GenresSlide } from "../components/slides/GenresSlide";
 import { TaggedUsersSlide } from "../components/slides/TaggedUsersSlide";
 import { TopArtistsSlide } from "../components/slides/TopArtistsSlide";
 import { TotalRecordasSlide } from "../components/slides/TotalRecordasSlide";
+import { RetrospectiveSummaryCard } from "../components/RetrospectiveSummaryCard";
+import type { RetrospectiveSummary } from "../components/RetrospectiveSummaryPoster";
 import { StoryProgressBar } from "../components/StoryProgressBar";
 import type { RetrospectiveStory } from "../storyData";
 
@@ -23,16 +25,25 @@ const LONG_PRESS_MS = 250;
 type RetrospectiveScreenProps = Readonly<{
   onClose: () => void;
   story: RetrospectiveStory;
+  summary?: RetrospectiveSummary;
   title: string;
   visible: boolean;
 }>;
 
 /** Story Viewer da Retrospectiva (US39): cinco slides que avançam sozinhos. */
-export function RetrospectiveScreen({ onClose, story, title, visible }: RetrospectiveScreenProps) {
+export function RetrospectiveScreen({
+  onClose,
+  story,
+  summary,
+  title,
+  visible
+}: RetrospectiveScreenProps) {
   return (
     <Modal animationType="fade" onRequestClose={onClose} statusBarTranslucent visible={visible}>
       {/* Desmontar o conteúdo ao fechar libera o player e o timer. */}
-      {visible ? <StoryViewer onClose={onClose} story={story} title={title} /> : null}
+      {visible ? (
+        <StoryViewer onClose={onClose} story={story} summary={summary} title={title} />
+      ) : null}
     </Modal>
   );
 }
@@ -54,11 +65,18 @@ function buildSlides(story: RetrospectiveStory): ReactNode[] {
 function StoryViewer({
   onClose,
   story,
+  summary,
   title
-}: Readonly<{ onClose: () => void; story: RetrospectiveStory; title: string }>) {
+}: Readonly<{
+  onClose: () => void;
+  story: RetrospectiveStory;
+  summary?: RetrospectiveSummary;
+  title: string;
+}>) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const slides = buildSlides(story);
+  const stepCount = slides.length + (summary ? 1 : 0);
   const [index, setIndex] = useState(0);
   // Conta reinícios: voltar no primeiro slide recomeça o mesmo índice.
   const [run, setRun] = useState(0);
@@ -73,10 +91,12 @@ function StoryViewer({
     onClose();
   }, [onClose, stop]);
 
+  const isSummary = summary !== undefined && index >= slides.length;
+
   const next = useCallback(() => {
-    if (index >= slides.length - 1) close();
+    if (index >= stepCount - 1) close();
     else setIndex(index + 1);
-  }, [close, index, slides.length]);
+  }, [close, index, stepCount]);
 
   const previous = () => {
     setIndex((current) => Math.max(0, current - 1));
@@ -86,12 +106,12 @@ function StoryViewer({
   // Slide novo (ou reiniciado) começa do zero.
   useEffect(() => {
     elapsed.current = 0;
-    progress.setValue(0);
-  }, [index, progress, run]);
+    progress.setValue(isSummary ? 1 : 0);
+  }, [index, isSummary, progress, run]);
 
   // Pausar guarda o tempo já corrido; retomar continua dali.
   useEffect(() => {
-    if (paused) return;
+    if (paused || isSummary) return;
     const remaining = Math.max(0, SLIDE_DURATION_MS - elapsed.current);
     const startedAt = Date.now();
     const animation = Animated.timing(progress, {
@@ -107,7 +127,7 @@ function StoryViewer({
       animation.stop();
       elapsed.current += Date.now() - startedAt;
     };
-  }, [index, next, paused, progress, run]);
+  }, [index, isSummary, next, paused, progress, run]);
 
   const zoneProps = {
     delayLongPress: LONG_PRESS_MS,
@@ -118,7 +138,7 @@ function StoryViewer({
   return (
     <View style={styles.screen} testID="retrospective-screen">
       <View style={[styles.header, { paddingTop: insets.top + spacing[2] }]}>
-        <StoryProgressBar activeIndex={index} count={slides.length} progress={progress} />
+        <StoryProgressBar activeIndex={index} count={stepCount} progress={progress} />
         <View style={styles.titleRow}>
           <AppText style={styles.title} variant="buttonLarge">
             {title}
@@ -135,33 +155,39 @@ function StoryViewer({
           </Pressable>
         </View>
         <AppText style={styles.step} variant="caption">
-          {t("retrospective.step", { current: index + 1, total: slides.length })}
+          {t("retrospective.step", { current: index + 1, total: stepCount })}
         </AppText>
       </View>
 
       <View style={styles.body}>
-        {slides[index]}
-        {/* Toques por cima do slide: esquerda volta, direita avança, segurar pausa. */}
-        <View style={StyleSheet.absoluteFill}>
-          <View style={styles.zones}>
-            <Pressable
-              {...zoneProps}
-              accessibilityLabel={t("retrospective.previous")}
-              accessibilityRole="button"
-              onPress={previous}
-              style={styles.previousZone}
-              testID="retrospective-previous"
-            />
-            <Pressable
-              {...zoneProps}
-              accessibilityLabel={t("retrospective.next")}
-              accessibilityRole="button"
-              onPress={next}
-              style={styles.nextZone}
-              testID="retrospective-next"
-            />
-          </View>
-        </View>
+        {isSummary && summary ? (
+          <RetrospectiveSummaryCard onFinish={close} summary={summary} />
+        ) : (
+          <>
+            {slides[index]}
+            {/* Toques por cima do slide: esquerda volta, direita avança, segurar pausa. */}
+            <View style={StyleSheet.absoluteFill}>
+              <View style={styles.zones}>
+                <Pressable
+                  {...zoneProps}
+                  accessibilityLabel={t("retrospective.previous")}
+                  accessibilityRole="button"
+                  onPress={previous}
+                  style={styles.previousZone}
+                  testID="retrospective-previous"
+                />
+                <Pressable
+                  {...zoneProps}
+                  accessibilityLabel={t("retrospective.next")}
+                  accessibilityRole="button"
+                  onPress={next}
+                  style={styles.nextZone}
+                  testID="retrospective-next"
+                />
+              </View>
+            </View>
+          </>
+        )}
       </View>
     </View>
   );

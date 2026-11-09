@@ -22,10 +22,8 @@ import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomT
 import { MemoryCalendarTab } from "@/features/memories-calendar/components/MemoryCalendarTab";
 import { DynamicMetricsDashboard } from "@/features/memories-metrics/components/DynamicMetricsDashboard";
 import { RetrospectiveButton } from "@/features/memories-retrospective/components/RetrospectiveButton";
-import { useRetrospective } from "@/features/memories-retrospective/hooks/useRetrospective";
+import { RetrospectiveFlow } from "@/features/memories-retrospective/components/RetrospectiveFlow";
 import { useRetrospectivePeriods } from "@/features/memories-retrospective/hooks/useRetrospectivePeriods";
-import { RetrospectiveScreen } from "@/features/memories-retrospective/screens/RetrospectiveScreen";
-import { toRetrospectiveStory } from "@/features/memories-retrospective/storyData";
 import { getMusicPreferences } from "@/features/onboarding/api/music";
 import { MUSIC_PREFERENCES_QUERY_KEY } from "@/features/onboarding/queryKeys";
 import { colors, fontFamily, spacing } from "@/theme";
@@ -63,7 +61,7 @@ export function MyProfileScreen() {
   const isIncomplete = isIncompleteProfileError(profile.error);
   const recordas = useProfileRecordas(myUserId, !isIncomplete);
   const retrospectivePeriods = useRetrospectivePeriods();
-  const latestPeriod = retrospectivePeriods.data?.periods[0] ?? null;
+  const hasRetrospective = (retrospectivePeriods.data?.periods.length ?? 0) > 0;
   // Same query and cache as the music preferences editor; failures only hide the chips.
   const preferences = useQuery({
     enabled: Boolean(myUserId) && !isIncomplete,
@@ -75,10 +73,6 @@ export function MyProfileScreen() {
   const [isAvatarMenuVisible, setIsAvatarMenuVisible] = useState(false);
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const [isRetrospectiveOpen, setIsRetrospectiveOpen] = useState(false);
-  const retrospectiveDetails = useRetrospective(latestPeriod);
-  const retrospectiveStory = retrospectiveDetails.data
-    ? toRetrospectiveStory(retrospectiveDetails.data)
-    : null;
   const redirected = useRef(false);
 
   const uploadAvatar = useUploadAvatarMutation(myUserId ?? "");
@@ -127,7 +121,7 @@ export function MyProfileScreen() {
       <ProfileGlow centerY={insets.top + TOP_BAR_HEIGHT + PROFILE_AVATAR_CENTER_Y} />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <View style={styles.topBar}>
-          {retrospectiveStory ? (
+          {hasRetrospective ? (
             <RetrospectiveButton
               onPress={() => setIsRetrospectiveOpen(true)}
               size={BAR_ICON_SIZE}
@@ -251,14 +245,10 @@ export function MyProfileScreen() {
         )}
       </SafeAreaView>
       <BottomTabBar activeTab="profile" onPress={handleTabBarPress} />
-      {retrospectiveStory ? (
-        <RetrospectiveScreen
-          onClose={() => setIsRetrospectiveOpen(false)}
-          story={retrospectiveStory}
-          title={t("retrospective.title")}
-          visible={isRetrospectiveOpen}
-        />
-      ) : null}
+      <RetrospectiveFlow
+        onClose={() => setIsRetrospectiveOpen(false)}
+        visible={isRetrospectiveOpen}
+      />
     </View>
   );
 }

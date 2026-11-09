@@ -122,6 +122,17 @@ it("opens on the first Recorda of the day and plays its song preview", async () 
   expect(mockAudioPlayer.replace).toHaveBeenCalledTimes(1);
 });
 
+it("shows the like and comment counters of the Recorda", async () => {
+  renderViewer();
+  await screen.findByTestId("day-memories-carousel");
+
+  const first = (await memoryCalendarMock.getDayMemories(DAY_WITH_THREE)).memories[0];
+  const likes = screen.getByTestId(`day-memory-likes-${first.recorda_id}`);
+  const comments = screen.getByTestId(`day-memory-comments-${first.recorda_id}`);
+  expect(likes.props.accessibilityLabel).toBe(`${first.likes_count} curtidas`);
+  expect(comments.props.accessibilityLabel).toBe(`${first.comments_count} comentários`);
+});
+
 it("moves to the next Recorda when the carousel is swiped", async () => {
   renderViewer();
   await screen.findByTestId("day-memories-carousel");
@@ -150,7 +161,11 @@ it("jumps between days that have memories without closing", async () => {
 
   fireEvent.press(screen.getByLabelText("Próximo dia"));
   await waitFor(() =>
-    expect(getDayMemories).toHaveBeenLastCalledWith("2026-10-12", expect.any(AbortSignal))
+    expect(getDayMemories).toHaveBeenLastCalledWith(
+      "2026-10-12",
+      expect.any(AbortSignal),
+      undefined
+    )
   );
   await waitFor(() => expect(screen.getAllByTestId(/^day-pagination-segment-/)).toHaveLength(1));
 
@@ -284,7 +299,11 @@ it("follows a new date chosen while the viewer is open", async () => {
   setDate("2026-10-12");
 
   await waitFor(() =>
-    expect(getDayMemories).toHaveBeenLastCalledWith("2026-10-12", expect.any(AbortSignal))
+    expect(getDayMemories).toHaveBeenLastCalledWith(
+      "2026-10-12",
+      expect.any(AbortSignal),
+      undefined
+    )
   );
 });
 
