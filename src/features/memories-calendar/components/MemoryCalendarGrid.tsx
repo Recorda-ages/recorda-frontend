@@ -17,6 +17,8 @@ import { CalendarHeader } from "./CalendarHeader";
 
 type MemoryCalendarGridProps = Readonly<{
   calendar?: MonthlyCalendarResponse;
+  /** Shows a placeholder for every day while the month loads; the header stays usable. */
+  loading?: boolean;
   month: number;
   onChangeMonth: (year: number, month: number) => void;
   onSelectDay?: (day: CalendarDaySummary) => void;
@@ -59,13 +61,14 @@ function useMonthSwipe(onSwipe: (delta: number) => void) {
 
 export function MemoryCalendarGrid({
   calendar,
+  loading = false,
   month,
   onChangeMonth,
   onSelectDay,
   selectedDate = null,
   year
 }: MemoryCalendarGridProps) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const locale = i18n.language;
   const weeks = useMemo(() => buildCalendarWeeks(year, month), [year, month]);
   const weekdays = useMemo(() => getWeekdayLabels(locale), [locale]);
@@ -100,7 +103,13 @@ export function MemoryCalendarGrid({
         year={year}
       />
 
-      <View {...swipeHandlers} style={styles.days} testID="memory-calendar-days">
+      <View
+        {...swipeHandlers}
+        accessibilityLabel={loading ? t("memoriesCalendar.grid.loading") : undefined}
+        accessibilityRole={loading ? "progressbar" : undefined}
+        style={styles.days}
+        testID="memory-calendar-days"
+      >
         <View style={styles.row}>
           {weekdays.map((weekday) => (
             <AppText
@@ -117,7 +126,9 @@ export function MemoryCalendarGrid({
         {weeks.map((week) => (
           <View key={week.id} style={styles.row} testID="calendar-week">
             {week.slots.map((slot) =>
-              slot.kind === "day" ? (
+              slot.kind === "day" && loading ? (
+                <View key={slot.id} style={styles.skeleton} testID="calendar-skeleton-cell" />
+              ) : slot.kind === "day" ? (
                 <CalendarDayThumbnailCell
                   accessibilityDate={formatDay(year, month, slot.day)}
                   date={slot.date}
@@ -152,6 +163,13 @@ const styles = StyleSheet.create({
   },
   days: {
     gap: CELL_GAP
+  },
+  skeleton: {
+    aspectRatio: 0.95,
+    backgroundColor: colors.neutrals[800],
+    borderCurve: "continuous",
+    borderRadius: 10,
+    flex: 1
   },
   row: {
     flexDirection: "row",

@@ -888,7 +888,8 @@
       "days_other": "{{count}} días",
       "dayLabel_one": "{{date}}, {{count}} recuerdo",
       "dayLabel_other": "{{date}}, {{count}} recuerdos",
-      "extraMemories": "+{{extra}}"
+      "extraMemories": "+{{extra}}",
+      "loading": "Cargando calendario"
     },
     "viewer": {
       "close": "Cerrar",
@@ -899,6 +900,13 @@
       "error": "No se pudieron cargar los recuerdos de este día.",
       "retry": "Intentar de nuevo",
       "empty": "No hay recuerdos en este día."
+    },
+    "tab": {
+      "loadError": "No se pudo cargar el calendario.",
+      "retry": "Intentar de nuevo",
+      "emptyTitle": "Tu mes todavía está en blanco",
+      "emptyMessage": "Cada día puede convertirse en un recuerdo. ¿Qué tal registrar la banda sonora de hoy?",
+      "emptyAction": "Crear Recorda"
     }
   },
   "retrospective": {

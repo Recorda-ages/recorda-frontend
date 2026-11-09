@@ -74,6 +74,15 @@ jest.mock("@/features/profile/components/AvatarPickerMenu", () => {
   };
 });
 
+jest.mock("@/features/memories-calendar/services/memoryCalendarService", () => ({
+  memoryCalendarService: {
+    getDayMemories: jest.fn(),
+    getMonthCalendar: jest.fn((year: number, month: number) =>
+      Promise.resolve({ active_days_count: 0, days: [], month, total_memories: 0, year })
+    )
+  }
+}));
+
 jest.mock("@/features/onboarding/api/music", () => ({
   ...jest.requireActual("@/features/onboarding/api/music"),
   getMusicPreferences: jest.fn()
@@ -440,11 +449,20 @@ describe("MyProfileScreen", () => {
       expect(screen.queryByTestId("recorda-grid")).toBeNull();
     });
 
-    it("shows 'Em breve' on Calendário instead of the grid", async () => {
+    it("shows the memory calendar on Calendário instead of the grid", async () => {
       await renderLoaded();
       fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
-      expect(screen.getByTestId("profile-coming-soon-calendar")).toHaveTextContent("Em breve");
+      expect(await screen.findByText("Nenhuma memória neste mês")).toBeTruthy();
+      expect(screen.getByTestId("memory-calendar-grid")).toBeTruthy();
+      expect(screen.queryByTestId("profile-coming-soon-calendar")).toBeNull();
       expect(screen.queryByTestId("recorda-grid")).toBeNull();
+    });
+
+    it("opens the camera from the empty calendar", async () => {
+      await renderLoaded();
+      fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
+      fireEvent.press(await screen.findByRole("button", { name: "Criar Recorda" }));
+      expect(mockNavigate).toHaveBeenCalledWith("Camera");
     });
   });
 

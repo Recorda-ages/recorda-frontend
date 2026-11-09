@@ -888,7 +888,8 @@
       "days_other": "{{count}} days",
       "dayLabel_one": "{{date}}, {{count}} memory",
       "dayLabel_other": "{{date}}, {{count}} memories",
-      "extraMemories": "+{{extra}}"
+      "extraMemories": "+{{extra}}",
+      "loading": "Loading calendar"
     },
     "viewer": {
       "close": "Close",
@@ -899,6 +900,13 @@
       "error": "Could not load this day’s memories.",
       "retry": "Try again",
       "empty": "No memories on this day."
+    },
+    "tab": {
+      "loadError": "We couldn't load the calendar.",
+      "retry": "Try again",
+      "emptyTitle": "Your month is still blank",
+      "emptyMessage": "Every day can become a memory. How about capturing today's soundtrack?",
+      "emptyAction": "Create Recorda"
     }
   },
   "retrospective": {

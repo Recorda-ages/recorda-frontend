@@ -10,9 +10,9 @@ export type ProfileTab = "recordas" | "metrics" | "calendar";
 type ProfileTabsProps = Readonly<{
   activeTab: ProfileTab;
   onChange: (tab: ProfileTab) => void;
-  /** Filled by Epic 07 (X-01). Until then, the tab shows a translated empty state. */
+  /** Content of the Metrics tab. Left out, the tab shows a translated "coming soon". */
   metricsContent?: ReactNode;
-  /** Filled by Epic 07 (X-01). Until then, the tab shows a translated empty state. */
+  /** Content of the Calendar tab. Left out, the tab shows a translated "coming soon". */
   calendarContent?: ReactNode;
 }>;
 

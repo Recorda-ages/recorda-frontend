@@ -19,6 +19,7 @@ import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomTabBar";
+import { MemoryCalendarTab } from "@/features/memories-calendar/components/MemoryCalendarTab";
 import { DynamicMetricsDashboard } from "@/features/memories-metrics/components/DynamicMetricsDashboard";
 import { RetrospectiveButton } from "@/features/memories-retrospective/components/RetrospectiveButton";
 import { useRetrospective } from "@/features/memories-retrospective/hooks/useRetrospective";
@@ -210,7 +211,9 @@ export function MyProfileScreen() {
             <View style={styles.tabs}>
               <ProfileTabs
                 activeTab={activeTab}
-                // Calendar belongs to Epic 07; until then the tab shows its empty state.
+                calendarContent={
+                  <MemoryCalendarTab onCreateRecorda={() => navigation.navigate("Camera")} />
+                }
                 metricsContent={
                   <DynamicMetricsDashboard onCreateRecorda={() => navigation.navigate("Camera")} />
                 }

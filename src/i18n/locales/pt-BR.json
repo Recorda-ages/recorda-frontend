@@ -891,7 +891,8 @@
       "days_other": "{{count}} dias",
       "dayLabel_one": "{{date}}, {{count}} memória",
       "dayLabel_other": "{{date}}, {{count}} memórias",
-      "extraMemories": "+{{extra}}"
+      "extraMemories": "+{{extra}}",
+      "loading": "Carregando calendário"
     },
     "viewer": {
       "close": "Fechar",
@@ -902,6 +903,13 @@
       "error": "Não foi possível carregar as memórias deste dia.",
       "retry": "Tentar novamente",
       "empty": "Nenhuma memória neste dia."
+    },
+    "tab": {
+      "loadError": "Não foi possível carregar o calendário.",
+      "retry": "Tentar novamente",
+      "emptyTitle": "Seu mês ainda está em branco",
+      "emptyMessage": "Cada dia pode virar uma memória. Que tal registrar a trilha sonora de hoje?",
+      "emptyAction": "Criar Recorda"
     }
   },
   "retrospective": {

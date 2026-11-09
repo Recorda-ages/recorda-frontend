@@ -265,7 +265,8 @@ function ProfileContent({
       <View style={styles.tabs}>
         <ProfileTabs
           activeTab={activeTab}
-          // Calendar belongs to Epic 07 (#284); a private profile restricts every tab.
+          // The calendar API only serves the signed-in user (/users/me/calendar), so other
+          // profiles keep the placeholder; a private profile restricts every tab.
           calendarContent={privateNotice}
           metricsContent={privateNotice ?? <DynamicMetricsDashboard userId={profile.user_id} />}
           onChange={onTabChange}
