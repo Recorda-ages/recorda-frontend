@@ -21,8 +21,10 @@ import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomTabBar";
 import { DynamicMetricsDashboard } from "@/features/memories-metrics/components/DynamicMetricsDashboard";
 import { RetrospectiveButton } from "@/features/memories-retrospective/components/RetrospectiveButton";
+import { useRetrospective } from "@/features/memories-retrospective/hooks/useRetrospective";
+import { useRetrospectivePeriods } from "@/features/memories-retrospective/hooks/useRetrospectivePeriods";
 import { RetrospectiveScreen } from "@/features/memories-retrospective/screens/RetrospectiveScreen";
-import { retrospectiveStoryMock } from "@/features/memories-retrospective/storyData";
+import { toRetrospectiveStory } from "@/features/memories-retrospective/storyData";
 import { getMusicPreferences } from "@/features/onboarding/api/music";
 import { MUSIC_PREFERENCES_QUERY_KEY } from "@/features/onboarding/queryKeys";
 import { colors, fontFamily, spacing } from "@/theme";
@@ -59,6 +61,8 @@ export function MyProfileScreen() {
   const profile = useMyProfile();
   const isIncomplete = isIncompleteProfileError(profile.error);
   const recordas = useProfileRecordas(myUserId, !isIncomplete);
+  const retrospectivePeriods = useRetrospectivePeriods();
+  const latestPeriod = retrospectivePeriods.data?.periods[0] ?? null;
   // Same query and cache as the music preferences editor; failures only hide the chips.
   const preferences = useQuery({
     enabled: Boolean(myUserId) && !isIncomplete,
@@ -70,6 +74,10 @@ export function MyProfileScreen() {
   const [isAvatarMenuVisible, setIsAvatarMenuVisible] = useState(false);
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const [isRetrospectiveOpen, setIsRetrospectiveOpen] = useState(false);
+  const retrospectiveDetails = useRetrospective(latestPeriod);
+  const retrospectiveStory = retrospectiveDetails.data
+    ? toRetrospectiveStory(retrospectiveDetails.data)
+    : null;
   const redirected = useRef(false);
 
   const uploadAvatar = useUploadAvatarMutation(myUserId ?? "");
@@ -118,8 +126,7 @@ export function MyProfileScreen() {
       <ProfileGlow centerY={insets.top + TOP_BAR_HEIGHT + PROFILE_AVATAR_CENTER_Y} />
       <SafeAreaView edges={["top"]} style={styles.content}>
         <View style={styles.topBar}>
-          {/* ponytail: só em dev, com dados simulados, até a FE.01 (#288) trazer a disponibilidade real. */}
-          {__DEV__ ? (
+          {retrospectiveStory ? (
             <RetrospectiveButton
               onPress={() => setIsRetrospectiveOpen(true)}
               size={BAR_ICON_SIZE}
@@ -241,12 +248,14 @@ export function MyProfileScreen() {
         )}
       </SafeAreaView>
       <BottomTabBar activeTab="profile" onPress={handleTabBarPress} />
-      <RetrospectiveScreen
-        onClose={() => setIsRetrospectiveOpen(false)}
-        story={retrospectiveStoryMock}
-        title={t("retrospective.title")}
-        visible={isRetrospectiveOpen}
-      />
+      {retrospectiveStory ? (
+        <RetrospectiveScreen
+          onClose={() => setIsRetrospectiveOpen(false)}
+          story={retrospectiveStory}
+          title={t("retrospective.title")}
+          visible={isRetrospectiveOpen}
+        />
+      ) : null}
     </View>
   );
 }

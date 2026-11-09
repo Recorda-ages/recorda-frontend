@@ -92,7 +92,7 @@ function StoryViewer({
   // Pausar guarda o tempo já corrido; retomar continua dali.
   useEffect(() => {
     if (paused) return;
-    const remaining = SLIDE_DURATION_MS - elapsed.current;
+    const remaining = Math.max(0, SLIDE_DURATION_MS - elapsed.current);
     const startedAt = Date.now();
     const animation = Animated.timing(progress, {
       duration: remaining,

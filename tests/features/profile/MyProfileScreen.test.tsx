@@ -5,6 +5,8 @@ import { PaperProvider } from "react-native-paper";
 
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
+import { retrospectiveServiceMock } from "@/features/memories-retrospective/mocks/retrospectiveMock";
+import { retrospectiveService } from "@/features/memories-retrospective/services/retrospectiveService";
 import { getMusicPreferences } from "@/features/onboarding/api/music";
 import type { MusicPreferences } from "@/features/onboarding/types";
 import { MyProfileScreen } from "@/features/profile";
@@ -20,6 +22,13 @@ jest.mock("@/features/profile/services/profileService", () => ({
     getMyProfile: jest.fn(),
     getUserRecordas: jest.fn(),
     uploadAvatar: jest.fn()
+  }
+}));
+
+jest.mock("@/features/memories-retrospective/services/retrospectiveService", () => ({
+  retrospectiveService: {
+    getAvailablePeriods: jest.fn(),
+    getRetrospective: jest.fn()
   }
 }));
 
@@ -83,6 +92,8 @@ const mockGetUserRecordas = profileService.getUserRecordas as jest.Mock;
 const mockUploadAvatar = profileService.uploadAvatar as jest.Mock;
 const mockDeleteAvatar = profileService.deleteAvatar as jest.Mock;
 const mockGetMusicPreferences = getMusicPreferences as jest.Mock;
+const mockGetAvailablePeriods = retrospectiveService.getAvailablePeriods as jest.Mock;
+const mockGetRetrospective = retrospectiveService.getRetrospective as jest.Mock;
 
 const ME: CurrentUser = {
   name: "Natalia Yuk",
@@ -195,12 +206,22 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockUploadAvatar.mockReset();
   mockDeleteAvatar.mockReset();
-  [mockGetMyProfile, mockGetUserRecordas, mockGetMusicPreferences].forEach((mock) =>
-    mock.mockReset()
-  );
+  [
+    mockGetMyProfile,
+    mockGetUserRecordas,
+    mockGetMusicPreferences,
+    mockGetAvailablePeriods,
+    mockGetRetrospective
+  ].forEach((mock) => mock.mockReset());
   mockGetMyProfile.mockResolvedValue(PROFILE);
   mockGetUserRecordas.mockResolvedValue(PAGE);
   mockGetMusicPreferences.mockResolvedValue(PREFERENCES);
+  mockGetAvailablePeriods.mockImplementation((signal) =>
+    retrospectiveServiceMock.getAvailablePeriods(signal)
+  );
+  mockGetRetrospective.mockImplementation((period, signal) =>
+    retrospectiveServiceMock.getRetrospective(period, signal)
+  );
 });
 
 afterEach(() => {
@@ -208,15 +229,24 @@ afterEach(() => {
 });
 
 describe("MyProfileScreen", () => {
-  it("opens the retrospective story viewer from the top bar", async () => {
+  it("opens the retrospective story viewer from the top bar when a period is available", async () => {
     await renderLoaded();
     expect(screen.queryByTestId("retrospective-screen")).toBeNull();
 
-    fireEvent.press(screen.getByLabelText("Abrir retrospectiva"));
+    fireEvent.press(await screen.findByLabelText("Abrir retrospectiva"));
     expect(screen.getByTestId("retrospective-screen")).toBeTruthy();
+    expect(screen.getByText("3 Recordas")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText("Fechar"));
     expect(screen.queryByTestId("retrospective-screen")).toBeNull();
+  });
+
+  it("hides the retrospective button when the user has no eligible periods", async () => {
+    mockGetAvailablePeriods.mockResolvedValueOnce({ periods: [] });
+    await renderLoaded();
+
+    await waitFor(() => expect(mockGetAvailablePeriods).toHaveBeenCalled());
+    expect(screen.queryByLabelText("Abrir retrospectiva")).toBeNull();
   });
 
   it("shows the own profile: identity, counters and favorite song, without a follow button", async () => {

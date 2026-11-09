@@ -1,20 +1,28 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 import { RetrospectiveButton } from "@/features/memories-retrospective/components/RetrospectiveButton";
+import { retrospectiveServiceMock } from "@/features/memories-retrospective/mocks/retrospectiveMock";
 import {
   RetrospectiveScreen,
   SLIDE_DURATION_MS
 } from "@/features/memories-retrospective/screens/RetrospectiveScreen";
-import { retrospectiveStoryMock } from "@/features/memories-retrospective/storyData";
+import {
+  retrospectiveStoryMock,
+  toRetrospectiveStory
+} from "@/features/memories-retrospective/storyData";
 import { authApiClient } from "@/services/api";
 
 import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
-const FRESH_PREVIEW = "https://cdn.example.com/vienna.mp3";
+const FRESH_PREVIEW = "https://cdn.example.com/harder-better-faster-stronger.mp3";
 
 function renderStory(onClose = jest.fn(), story = retrospectiveStoryMock) {
-  render(<RetrospectiveScreen onClose={onClose} story={story} title="Sua retrospectiva" visible />);
-  return { onClose };
+  return {
+    onClose,
+    ...render(
+      <RetrospectiveScreen onClose={onClose} story={story} title="Sua retrospectiva" visible />
+    )
+  };
 }
 
 // Lets the preview link resolve and the player react to it.
@@ -48,6 +56,7 @@ it("opens on the first slide and plays the featured song in a loop", async () =>
   expect(step(1)).toBeTruthy();
   expect(screen.getByText("28 Recordas")).toBeTruthy();
   expect(screen.getAllByTestId(/^story-progress-segment-/)).toHaveLength(5);
+  expect(authApiClient.get).toHaveBeenCalledWith("/api/v1/music/tracks/3135556/preview");
   expect(mockAudioPlayer.replace).toHaveBeenCalledWith(FRESH_PREVIEW);
   expect(mockAudioPlayer.loop).toBe(true);
   expect(mockAudioPlayer.play).toHaveBeenCalled();
@@ -61,7 +70,7 @@ it("advances every five seconds and closes after the last slide", async () => {
   expect(step(1)).toBeTruthy();
   advance(1);
   expect(step(2)).toBeTruthy();
-  expect(screen.getAllByText("Billy Joel").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("Daft Punk").length).toBeGreaterThan(0);
 
   // One slide at a time: each timer is scheduled once the previous slide renders.
   for (const current of [3, 4, 5]) {
@@ -75,8 +84,9 @@ it("advances every five seconds and closes after the last slide", async () => {
   expect(mockAudioPlayer.pause).toHaveBeenCalled();
 });
 
-it("moves with taps on the sides and restarts the first slide", () => {
+it("moves with taps on the sides and restarts the first slide", async () => {
   renderStory();
+  await flush();
 
   fireEvent.press(screen.getByLabelText("Próximo slide"));
   expect(step(2)).toBeTruthy();
@@ -114,13 +124,14 @@ it("pauses the progress and the audio while holding, then resumes where it stopp
   expect(step(2)).toBeTruthy();
 });
 
-it("shows the five themed slides with the six metrics", () => {
+it("shows the five themed slides with the six metrics", async () => {
   renderStory();
+  await flush();
   const next = () => fireEvent.press(screen.getByLabelText("Próximo slide"));
 
   expect(screen.getByText("28 Recordas")).toBeTruthy();
   next();
-  expect(screen.getByText("Vienna")).toBeTruthy();
+  expect(screen.getByText("Harder, Better, Faster, Stronger")).toBeTruthy();
   expect(screen.getByText("The Beatles")).toBeTruthy();
   next();
   expect(screen.getByText("Rock")).toBeTruthy();
@@ -143,6 +154,56 @@ it("closes from the X button and releases the audio", async () => {
 
   expect(onClose).toHaveBeenCalledTimes(1);
   expect(mockAudioPlayer.pause).toHaveBeenCalled();
+});
+
+it("releases the audio player without touching the released native object when unmounted", async () => {
+  const { onClose, rerender } = renderStory();
+  await flush();
+
+  rerender(
+    <RetrospectiveScreen
+      onClose={onClose}
+      story={retrospectiveStoryMock}
+      title="Sua retrospectiva"
+      visible={false}
+    />
+  );
+
+  expect(mockAudioPlayer.release).toHaveBeenCalledTimes(1);
+});
+
+it("maps canonical retrospective details to the story model", async () => {
+  const details = await retrospectiveServiceMock.getRetrospective({
+    month: 10,
+    period_type: "MONTHLY",
+    year: 2026
+  });
+  expect(details).not.toBeNull();
+  const story = toRetrospectiveStory(details!);
+
+  expect(story.total_recordas).toBe(details!.total_recordas);
+  expect(story.top_artists[0]).toEqual({
+    name: details!.top_artists[0].artist_name,
+    recordas_count: details!.top_artists[0].memory_count
+  });
+  expect(story.top_genres[0]).toEqual({
+    name: details!.top_genres[0].genre_name,
+    percentage: details!.top_genres[0].percentage
+  });
+  expect(story.tagged_users[0]).toEqual({
+    avatar_url: details!.tagged_users[0].profile_picture_url,
+    tags_count: details!.tagged_users[0].tag_count,
+    user_id: details!.tagged_users[0].user_id,
+    username: details!.tagged_users[0].username
+  });
+  expect(story.engagement).toEqual({
+    comments: details!.engagement.comments_received,
+    likes: details!.engagement.likes_received
+  });
+  expect(story.featured_song?.title).toBe(details!.featured_song?.song_title);
+
+  const withoutSong = toRetrospectiveStory({ ...details!, featured_song: null });
+  expect(withoutSong.featured_song).toBeNull();
 });
 
 it("keeps working without a featured song", () => {
