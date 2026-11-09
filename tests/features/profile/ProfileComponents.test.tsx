@@ -7,6 +7,7 @@ import { I18nextProvider } from "react-i18next";
 import { ProfileHeader } from "@/features/profile/components/ProfileHeader";
 import { ProfilePrivateNotice } from "@/features/profile/components/ProfilePrivateNotice";
 import { ProfileTabs } from "@/features/profile/components/ProfileTabs";
+import { mockOpenProfile } from "@/features/profile/mocks/profileMocks";
 import { i18n } from "@/i18n";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { colors } from "@/theme";
@@ -110,6 +111,23 @@ describe("ProfileHeader", () => {
     expect(screen.queryByText("Seguidores")).toBeNull();
   });
 
+  it("renders the headerRight slot in the top-right corner", () => {
+    renderHeader({
+      headerRight: <Text>Engrenagem</Text>,
+      name: mockOpenProfile.name,
+      username: mockOpenProfile.username
+    });
+
+    expect(within(screen.getByTestId("profile-header-right")).getByText("Engrenagem")).toBeTruthy();
+    expect(screen.getByText(mockOpenProfile.name)).toBeTruthy();
+  });
+
+  it("omits the headerRight area without the slot", () => {
+    renderHeader();
+
+    expect(screen.queryByTestId("profile-header-right")).toBeNull();
+  });
+
   it("renders the action slot", () => {
     renderHeader({ actionSlot: <Text>Ação</Text> });
 
@@ -162,6 +180,15 @@ describe("ProfileHeader", () => {
 
     expect(screen.queryByTestId("profile-edit-avatar")).toBeNull();
     expect(screen.queryByLabelText("Alterar foto de perfil")).toBeNull();
+    expect(screen.queryByTestId("profile-edit-avatar-icon")).toBeNull();
+  });
+
+  it("shows the edit icon next to the photo with onEditAvatar", () => {
+    renderHeader({ onEditAvatar: jest.fn() });
+
+    expect(
+      within(screen.getByTestId("profile-edit-avatar")).getByTestId("profile-edit-avatar-icon")
+    ).toBeTruthy();
   });
 
   it("makes the avatar pressable with onEditAvatar", () => {
@@ -303,6 +330,45 @@ describe("ProfileTabs", () => {
 
     expect(onChange).toHaveBeenNthCalledWith(1, "calendar");
     expect(onChange).toHaveBeenNthCalledWith(2, "metrics");
+  });
+
+  it("renders metricsContent and calendarContent under their tabs", () => {
+    const tabs = (activeTab: "metrics" | "calendar") => (
+      <ProfileTabs
+        activeTab={activeTab}
+        calendarContent={<Text>Calendário do E7</Text>}
+        metricsContent={<Text>Métricas do E7</Text>}
+        onChange={jest.fn()}
+      />
+    );
+    const { rerender } = renderWithProviders(tabs("metrics"));
+
+    expect(screen.getByText("Métricas do E7")).toBeTruthy();
+    expect(screen.queryByText("Calendário do E7")).toBeNull();
+
+    rerender(<I18nextProvider i18n={i18n}>{tabs("calendar")}</I18nextProvider>);
+
+    expect(screen.getByText("Calendário do E7")).toBeTruthy();
+    expect(screen.queryByText("Métricas do E7")).toBeNull();
+  });
+
+  it("shows a translated empty state while a slot is not filled", () => {
+    renderWithProviders(<ProfileTabs activeTab="calendar" onChange={jest.fn()} />);
+
+    expect(screen.getByTestId("profile-coming-soon-calendar")).toHaveTextContent("Em breve");
+  });
+
+  it("leaves the Recordas tab content to the screen", () => {
+    renderWithProviders(
+      <ProfileTabs
+        activeTab="recordas"
+        metricsContent={<Text>Métricas do E7</Text>}
+        onChange={jest.fn()}
+      />
+    );
+
+    expect(screen.queryByText("Métricas do E7")).toBeNull();
+    expect(screen.queryByTestId("profile-coming-soon-recordas")).toBeNull();
   });
 });
 

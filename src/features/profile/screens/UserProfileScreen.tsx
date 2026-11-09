@@ -21,6 +21,8 @@ import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomTabBar";
 import { FollowButton } from "@/features/follow";
+import { DynamicMetricsDashboard } from "@/features/memories-metrics/components/DynamicMetricsDashboard";
+import { USER_METRICS_QUERY_KEY } from "@/features/memories-metrics/queryKeys";
 import { useReportDialog } from "@/features/moderation";
 import { ApiError } from "@/services/api";
 import { colors, fontFamily, radius, spacing } from "@/theme";
@@ -31,9 +33,10 @@ import { ProfilePrivateNotice } from "../components/ProfilePrivateNotice";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
 import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
 import { StreakBadge } from "../components/StreakBadge";
+import { type ProfileMusicChips, useProfileMusicTastes } from "../hooks/useProfileMusicTastes";
 import { useProfileRecordas } from "../hooks/useProfileRecordas";
 import { useUserProfile } from "../hooks/useUserProfile";
-import { profileRecordasQueryKey } from "../queryKeys";
+import { profileMusicTastesQueryKey, profileRecordasQueryKey } from "../queryKeys";
 import type { ProfileRead } from "../types";
 
 const BAR_ICON_SIZE = 28;
@@ -62,6 +65,8 @@ export function UserProfileScreen() {
   // The grid is only ever requested when the backend says the viewer may see the content.
   const canViewContent = profile.data?.can_view_content === true;
   const recordas = useProfileRecordas(userId, !isSelf && canViewContent);
+  // Chips only: a failure just leaves them out.
+  const tastes = useProfileMusicTastes(userId, !isSelf && canViewContent);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ProfileTab>("recordas");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -83,6 +88,8 @@ export function UserProfileScreen() {
   useEffect(() => {
     if (hasProfile && !canViewContent) {
       queryClient.removeQueries({ exact: true, queryKey: profileRecordasQueryKey(userId) });
+      queryClient.removeQueries({ exact: true, queryKey: profileMusicTastesQueryKey(userId) });
+      queryClient.removeQueries({ queryKey: [...USER_METRICS_QUERY_KEY, "profile", userId] });
     }
   }, [canViewContent, hasProfile, queryClient, userId]);
 
@@ -100,7 +107,11 @@ export function UserProfileScreen() {
     setIsPullRefreshing(true);
     try {
       // `refetch` ignores `enabled`: the grid is refreshed only when it may be seen.
-      await Promise.all([profile.refetch(), canViewContent ? recordas.refetch() : null]);
+      await Promise.all([
+        profile.refetch(),
+        canViewContent ? recordas.refetch() : null,
+        canViewContent ? tastes.refetch() : null
+      ]);
     } finally {
       setIsPullRefreshing(false);
     }
@@ -167,6 +178,7 @@ export function UserProfileScreen() {
             onTabChange={setActiveTab}
             profile={data}
             recordas={recordas}
+            tastes={tastes.data}
           />
         ) : (
           <ProfileStatus profile={profile} />
@@ -198,6 +210,7 @@ type ProfileContentProps = Readonly<{
   onTabChange: (tab: ProfileTab) => void;
   profile: ProfileRead;
   recordas: ReturnType<typeof useProfileRecordas>;
+  tastes: ProfileMusicChips | undefined;
 }>;
 
 function ProfileContent({
@@ -209,10 +222,11 @@ function ProfileContent({
   onScroll,
   onTabChange,
   profile,
-  recordas
+  recordas,
+  tastes
 }: ProfileContentProps) {
-  const { t } = useTranslation();
   const song = profile.favorite_song;
+  const privateNotice = profile.can_view_content ? undefined : <ProfilePrivateNotice />;
 
   return (
     <ScrollView
@@ -240,35 +254,39 @@ function ProfileContent({
         }
         avatarUrl={profile.profile_picture_url}
         counts={profile.can_view_content ? profile.counts : null}
+        // First item only, as on the own profile.
+        favoriteArtists={tastes?.artists.slice(0, 1)}
+        favoriteGenres={tastes?.genres.slice(0, 1)}
         favoriteSong={{ artistName: song.artist_name, coverUrl: song.cover_url, title: song.title }}
         name={profile.name}
         streakSlot={<StreakBadge profile={profile} />}
         username={profile.username}
       />
       <View style={styles.tabs}>
-        <ProfileTabs activeTab={activeTab} onChange={onTabChange} />
+        <ProfileTabs
+          activeTab={activeTab}
+          // Calendar belongs to Epic 07 (#284); a private profile restricts every tab.
+          calendarContent={privateNotice}
+          metricsContent={privateNotice ?? <DynamicMetricsDashboard userId={profile.user_id} />}
+          onChange={onTabChange}
+        />
       </View>
-      <View style={styles.tabContent}>
-        {!profile.can_view_content ? (
-          <ProfilePrivateNotice />
-        ) : activeTab === "recordas" ? (
-          <RecordaGrid
-            hasNextPage={recordas.hasNextPage}
-            isFetchNextPageError={recordas.isFetchNextPageError}
-            isFetchingNextPage={recordas.isFetchingNextPage}
-            items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
-            onLoadMore={onLoadMore}
-            onPressItem={onPressRecorda}
-            onRetry={() => void recordas.refetch()}
-            status={gridStatus(recordas)}
-          />
-        ) : (
-          // Metrics and Calendar belong to Epic 07.
-          <AppText style={styles.comingSoon} testID={`profile-coming-soon-${activeTab}`}>
-            {t("profile.comingSoon")}
-          </AppText>
-        )}
-      </View>
+      {activeTab === "recordas" ? (
+        <View style={styles.tabContent}>
+          {privateNotice ?? (
+            <RecordaGrid
+              hasNextPage={recordas.hasNextPage}
+              isFetchNextPageError={recordas.isFetchNextPageError}
+              isFetchingNextPage={recordas.isFetchingNextPage}
+              items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
+              onLoadMore={onLoadMore}
+              onPressItem={onPressRecorda}
+              onRetry={() => void recordas.refetch()}
+              status={gridStatus(recordas)}
+            />
+          )}
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
@@ -337,11 +355,6 @@ const styles = StyleSheet.create({
     height: BAR_BUTTON_SIZE,
     justifyContent: "center",
     width: BAR_BUTTON_SIZE
-  },
-  comingSoon: {
-    color: colors.neutrals[300],
-    paddingVertical: spacing[8],
-    textAlign: "center"
   },
   content: {
     flex: 1

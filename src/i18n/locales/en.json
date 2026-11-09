@@ -852,6 +852,8 @@
     "create": "Create Recorda",
     "loading": "Loading metrics",
     "loadError": "Unable to load your metrics. Please try again.",
+    "emptyOther": "This profile has no Recordas in this period yet.",
+    "loadErrorOther": "We couldn't load this profile's metrics. Try again.",
     "widgets": {
       "topArtist": {
         "title": "Top artist",

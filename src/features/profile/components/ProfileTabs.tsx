@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +10,10 @@ export type ProfileTab = "recordas" | "metrics" | "calendar";
 type ProfileTabsProps = Readonly<{
   activeTab: ProfileTab;
   onChange: (tab: ProfileTab) => void;
+  /** Filled by Epic 07 (X-01). Until then, the tab shows a translated empty state. */
+  metricsContent?: ReactNode;
+  /** Filled by Epic 07 (X-01). Until then, the tab shows a translated empty state. */
+  calendarContent?: ReactNode;
 }>;
 
 const TABS: { key: ProfileTab; labelKey: `profile.tabs.${ProfileTab}` }[] = [
@@ -18,34 +23,51 @@ const TABS: { key: ProfileTab; labelKey: `profile.tabs.${ProfileTab}` }[] = [
 ];
 
 /**
- * Only the tab bar: the screen decides what goes below each tab, so the own profile (US28)
- * and the third-party one can fill or restrict the content their own way.
+ * The tab bar, plus the content of Metrics and Calendar through `metricsContent` and
+ * `calendarContent`. The Recordas tab's content (the grid) stays with the screen.
  */
-export function ProfileTabs({ activeTab, onChange }: ProfileTabsProps) {
+export function ProfileTabs({
+  activeTab,
+  calendarContent,
+  metricsContent,
+  onChange
+}: ProfileTabsProps) {
   const { t } = useTranslation();
+  const slot = activeTab === "metrics" ? metricsContent : calendarContent;
 
   return (
-    <View accessibilityRole="tablist" style={styles.container}>
-      {TABS.map((tab) => {
-        const isActive = tab.key === activeTab;
+    <>
+      <View accessibilityRole="tablist" style={styles.container}>
+        {TABS.map((tab) => {
+          const isActive = tab.key === activeTab;
 
-        return (
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityState={{ selected: isActive }}
-            key={tab.key}
-            onPress={() => onChange(tab.key)}
-            style={styles.tab}
-            testID={`profile-tab-${tab.key}`}
-          >
-            <AppText style={[styles.label, isActive && styles.labelActive]} variant="buttonLarge">
-              {t(tab.labelKey)}
+          return (
+            <Pressable
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              key={tab.key}
+              onPress={() => onChange(tab.key)}
+              style={styles.tab}
+              testID={`profile-tab-${tab.key}`}
+            >
+              <AppText style={[styles.label, isActive && styles.labelActive]} variant="buttonLarge">
+                {t(tab.labelKey)}
+              </AppText>
+              {isActive ? <View style={styles.indicator} /> : null}
+            </Pressable>
+          );
+        })}
+      </View>
+      {activeTab === "recordas" ? null : (
+        <View style={styles.content}>
+          {slot ?? (
+            <AppText style={styles.empty} testID={`profile-coming-soon-${activeTab}`}>
+              {t("profile.comingSoon")}
             </AppText>
-            {isActive ? <View style={styles.indicator} /> : null}
-          </Pressable>
-        );
-      })}
-    </View>
+          )}
+        </View>
+      )}
+    </>
   );
 }
 
@@ -54,6 +76,14 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.neutrals[700],
     borderBottomWidth: 1,
     flexDirection: "row"
+  },
+  content: {
+    marginTop: spacing[4]
+  },
+  empty: {
+    color: colors.neutrals[300],
+    paddingVertical: spacing[8],
+    textAlign: "center"
   },
   indicator: {
     backgroundColor: colors.primary[500],

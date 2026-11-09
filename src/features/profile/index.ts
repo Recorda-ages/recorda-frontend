@@ -4,6 +4,7 @@ export { ProfilePrivateNotice } from "./components/ProfilePrivateNotice";
 export { ProfileTabs, type ProfileTab } from "./components/ProfileTabs";
 export { RecordaGrid } from "./components/RecordaGrid";
 export { StreakBadge, StreakHint } from "./components/StreakBadge";
+export { useProfile } from "./hooks/useProfile";
 export { useUserProfile } from "./hooks/useUserProfile";
 export { profileQueryKey } from "./queryKeys";
 export { MyProfileScreen } from "./screens/MyProfileScreen";

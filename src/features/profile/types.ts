@@ -3,8 +3,8 @@ import type { FollowStatus } from "@/features/follow";
 
 /**
  * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend. É a resposta
- * de `GET /users/me/profile` na `dev` e de `GET /users/{id}/profile` no backend PR #152, ainda
- * não integrado (ver docs/issue-253.md e docs/issue-255.md).
+ * de `GET /users/me/profile` e de `GET /users/{id}/profile`, ambos na `dev` do backend
+ * (o segundo desde o merge do PR #152).
  */
 export type ProfileRead = {
   can_view_content: boolean;
@@ -45,6 +45,22 @@ export type ProfileRelationship = {
 export type ProfileStreak = {
   current_days: number;
   published_today: boolean;
+};
+
+/** Artista ou gênero favorito (`MusicItem` do backend), exibido como chip no cabeçalho. */
+export type ProfileMusicItem = {
+  deezer_id: number;
+  name: string;
+  picture_url: string | null;
+};
+
+/**
+ * Espelha `ProfileMusicTastes`: resposta de `GET /users/{id}/music-preferences`. Sem a música
+ * favorita, que já vem em `ProfileRead`.
+ */
+export type ProfileMusicTastes = {
+  artists: ProfileMusicItem[];
+  genres: ProfileMusicItem[];
 };
 
 /**

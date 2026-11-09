@@ -27,7 +27,7 @@ test("selects the requested period", () => {
   metrics.mockReturnValue(response(profileMetricsMock));
   render(<DynamicMetricsDashboard onCreateRecorda={jest.fn()} />);
   fireEvent.press(screen.getByText("90 dias"));
-  expect(metrics).toHaveBeenLastCalledWith("last_90_days");
+  expect(metrics).toHaveBeenLastCalledWith("last_90_days", undefined);
 });
 
 test("shows the empty state and opens creation", () => {
@@ -51,4 +51,12 @@ test("shows an error and retries", () => {
   expect(screen.getByText("Erro")).toBeTruthy();
   fireEvent.press(screen.getByText("Tentar novamente"));
   expect(result.refetch).toHaveBeenCalledTimes(1);
+});
+
+test("loads another user's metrics without nudging to create a Recorda", () => {
+  metrics.mockReturnValue(response(emptyProfileMetricsMock));
+  render(<DynamicMetricsDashboard userId="user-2" />);
+  expect(metrics).toHaveBeenLastCalledWith("last_30_days", "user-2");
+  expect(screen.getByText("Este perfil ainda não tem Recordas neste período.")).toBeTruthy();
+  expect(screen.queryByText("Criar Recorda")).toBeNull();
 });
