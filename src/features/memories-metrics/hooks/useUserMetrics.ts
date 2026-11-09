@@ -14,6 +14,8 @@ export function useUserMetrics(period: string) {
     queryKey: profileMetricsQueryKey(currentUser?.user_id ?? null, period),
     queryFn: ({ signal }) => userMetricsService.getProfileMetrics(period, signal),
     enabled: Boolean(currentUser),
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === currentUser?.user_id ? previous : undefined,
     retry: (failureCount, error) =>
       !(error instanceof ApiError && (error.status === 401 || error.status === 403)) &&
       failureCount < 1

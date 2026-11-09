@@ -804,6 +804,15 @@
     }
   },
   "memoriesMetrics": {
+    "periods": {
+      "last_30_days": "30 days",
+      "last_90_days": "90 days",
+      "last_year": "1 year",
+      "all_time": "All time"
+    },
+    "empty": "There are no Recordas in this period yet. Capture a memory!",
+    "create": "Create Recorda",
+    "loading": "Loading metrics",
     "loadError": "Unable to load your metrics. Please try again.",
     "widgets": {
       "topArtist": {

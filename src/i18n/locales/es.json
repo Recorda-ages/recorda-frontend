@@ -804,6 +804,15 @@
     }
   },
   "memoriesMetrics": {
+    "periods": {
+      "last_30_days": "30 días",
+      "last_90_days": "90 días",
+      "last_year": "1 año",
+      "all_time": "Todo el historial"
+    },
+    "empty": "Aún no hay Recordas en este período. ¡Guarda un recuerdo!",
+    "create": "Crear Recorda",
+    "loading": "Cargando métricas",
     "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo.",
     "widgets": {
       "topArtist": {
