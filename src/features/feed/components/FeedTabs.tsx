@@ -52,7 +52,7 @@ export function FeedTabs({ activeTab, onChange, position }: FeedTabsProps) {
         const isActive = tab === shownTab;
         // 1 when the pager rests on this tab, 0 one page away: the outgoing bar drains
         // while the incoming one fills, and nothing is drawn across the gap between them.
-        const fill = progress.interpolate({
+        const fill = (progress as Animated.Value).interpolate({
           extrapolate: "clamp",
           inputRange: [index - 1, index, index + 1],
           outputRange: [0, 1, 0]

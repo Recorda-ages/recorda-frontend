@@ -225,7 +225,7 @@ export function AdminAuditLogScreen() {
               {t(debouncedSearch ? "admin.auditLog.emptySearch" : "admin.auditLog.empty")}
             </AppText>
           }
-          ListFooterComponent={renderFooter()}
+          ListFooterComponent={renderFooter() ?? undefined}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.4}
           refreshControl={

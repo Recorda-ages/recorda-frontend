@@ -242,7 +242,7 @@ export function OnboardingMusicScreen({
               </View>
             ) : visibleTracks.length > 0 && isError ? (
               errorContent
-            ) : null
+            ) : undefined
           }
         />
 

@@ -11,7 +11,8 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://77-113-61-139.sslip.io"
+        "EXPO_PUBLIC_API_URL": "https://77-113-61-139.sslip.io",
+        "EXPO_PUBLIC_META_APP_ID": "1404088284010952"
       }
     }
   },

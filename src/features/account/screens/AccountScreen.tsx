@@ -395,7 +395,7 @@ function AccountForm({ account }: Readonly<{ account: Account }>) {
           accessibilityRole="button"
           accessibilityState={{ busy: isSaving, disabled: !isDirty || isSaving }}
           disabled={!isDirty || isSaving}
-          onPress={onSubmit}
+          onPress={() => void onSubmit()}
           style={({ pressed }) => [
             styles.saveButton,
             !isDirty || isSaving ? styles.saveButtonDisabled : null,

@@ -210,7 +210,7 @@ export function SignUpScreen() {
         disabled={signUpMutation.isPending}
         label={t("auth.signUp.submit")}
         loading={signUpMutation.isPending}
-        onPress={onSubmit}
+        onPress={() => void onSubmit()}
       />
     </AuthScreenLayout>
   );

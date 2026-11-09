@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ComponentRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -11,7 +11,7 @@ import {
   StyleSheet,
   useWindowDimensions,
   View,
-  type ViewToken
+  type ListViewToken
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -116,7 +116,7 @@ export function FeedScreen() {
   const currentUserId = currentUser?.user_id;
   const { openReport, reportDialog } = useReportDialog();
 
-  const pagerRef = useRef<ScrollView>(null);
+  const pagerRef = useRef<ComponentRef<typeof ScrollView>>(null);
   // Horizontal offset of the pager, read by the tab indicator on the native thread.
   const [scrollX] = useState(() => new Animated.Value(0));
   // Memoized: a new node every render would make the tab indicators re-attach their animation.
@@ -246,7 +246,7 @@ export function FeedScreen() {
   const isPagerAnimating = useRef(false);
 
   const takeFocus = useCallback(
-    (tab: FeedTab, viewableItems: ViewToken[]) => {
+    (tab: FeedTab, viewableItems: ListViewToken[]) => {
       const focused = (viewableItems[0]?.item as FeedItem | undefined) ?? null;
       focusedCardByTab.current[tab] = focused;
 
@@ -367,12 +367,13 @@ export function FeedScreen() {
   }, [activeTab, applyFocus]);
 
   const handleGeralViewable = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("geral", viewableItems),
+    ({ viewableItems }: { viewableItems: ListViewToken[] }) => takeFocus("geral", viewableItems),
     [takeFocus]
   );
 
   const handleFollowingViewable = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => takeFocus("following", viewableItems),
+    ({ viewableItems }: { viewableItems: ListViewToken[] }) =>
+      takeFocus("following", viewableItems),
     [takeFocus]
   );
 
@@ -422,7 +423,7 @@ export function FeedScreen() {
             data={items}
             keyExtractor={(item) => item.recorda_id}
             ListEmptyComponent={<FeedEmptyState variant={variant} />}
-            ListFooterComponent={footer}
+            ListFooterComponent={footer ?? undefined}
             onEndReached={() => {
               if (
                 isActive &&

@@ -172,7 +172,7 @@ export function NotificationsScreen() {
           <FlatList
             data={items}
             keyExtractor={(item) => item.notification_id}
-            ListFooterComponent={renderFooter()}
+            ListFooterComponent={renderFooter() ?? undefined}
             ListEmptyComponent={
               <AppText style={styles.empty} testID="notifications-empty">
                 {t("notifications.empty")}

@@ -190,7 +190,7 @@ export function AdminReportsScreen() {
               {t(filters.query ? "admin.reports.empty.search" : emptyMessageKeys[status])}
             </AppText>
           }
-          ListFooterComponent={renderFooter()}
+          ListFooterComponent={renderFooter() ?? undefined}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.4}
           refreshControl={

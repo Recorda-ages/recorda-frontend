@@ -109,7 +109,7 @@ export function FriendsScreen() {
                       variant="secondary"
                     />
                   </View>
-                ) : null
+                ) : undefined
               }
               onEndReached={() => {
                 if (

@@ -16,7 +16,7 @@ export const IMAGE_PRELOAD_TIMEOUT_MS = 3000;
 export async function preloadStartupImages() {
   if (Platform.OS === "web") return;
 
-  const uris = STARTUP_IMAGES.map((image) => RNImage.resolveAssetSource(image).uri);
+  const uris = STARTUP_IMAGES.map((image) => RNImage.resolveAssetSource(image)?.uri ?? "");
   const preload = Promise.allSettled(
     uris.flatMap((uri) => [RNImage.prefetch(uri), ExpoImage.prefetch(uri)])
   );
