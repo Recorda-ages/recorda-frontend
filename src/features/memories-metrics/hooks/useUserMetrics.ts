@@ -7,15 +7,17 @@ import { ApiError } from "@/services/api";
 import { profileMetricsQueryKey } from "../queryKeys";
 import { userMetricsService } from "../services/userMetricsService";
 
-export function useUserMetrics(period: string) {
+/** Metrics of the signed-in user, or of another user when `userId` is given. */
+export function useUserMetrics(period: string, userId?: string) {
   const currentUser = useCurrentUser();
   const { t } = useTranslation();
+  const targetUserId = userId ?? currentUser?.user_id ?? null;
   const query = useQuery({
-    queryKey: profileMetricsQueryKey(currentUser?.user_id ?? null, period),
-    queryFn: ({ signal }) => userMetricsService.getProfileMetrics(period, signal),
+    queryKey: profileMetricsQueryKey(targetUserId, period),
+    queryFn: ({ signal }) => userMetricsService.getProfileMetrics(period, signal, userId),
     enabled: Boolean(currentUser),
     placeholderData: (previous, previousQuery) =>
-      previousQuery?.queryKey[2] === currentUser?.user_id ? previous : undefined,
+      previousQuery?.queryKey[2] === targetUserId ? previous : undefined,
     retry: (failureCount, error) =>
       !(error instanceof ApiError && (error.status === 401 || error.status === 403)) &&
       failureCount < 1
@@ -23,6 +25,8 @@ export function useUserMetrics(period: string) {
 
   return {
     ...query,
-    errorMessage: query.isError ? t("memoriesMetrics.loadError") : null
+    errorMessage: query.isError
+      ? t(userId ? "memoriesMetrics.loadErrorOther" : "memoriesMetrics.loadError")
+      : null
   };
 }

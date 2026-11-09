@@ -63,16 +63,16 @@ vêm das preferências musicais.
 
 ## Divergências com a #252
 
-| #252                                                   | Implementação                                            | Justificativa                                                          |
-| ------------------------------------------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `headerRight` no `ProfileHeader`                       | Barra superior na tela                                   | A barra muda entre o perfil próprio e o de terceiros; decisão da US29. |
-| `streakSlot` no `ProfileHeader`                        | Não existe ainda                                         | A #260 entra com uma prop opcional nova, sem quebrar nada.             |
-| Ícone de editar ao lado da foto                        | `onEditAvatar` torna o avatar tocável, sem ícone         | O visual e o comportamento são da #254.                                |
-| `ProfileTabs` com `metricsContent` e `calendarContent` | O conteúdo de cada aba é decidido pela tela              | O Épico 07 encaixa o conteúdo na tela.                                 |
-| `useProfile(userId \| "me")`                           | `useMyProfile` (perfil próprio)                          | Mesma chave da US29 (`useUserProfile`); endpoints diferentes.          |
-| Toque na grade → `RecordaView`                         | `PublishedRecorda({ postId })`                           | `RecordaView` não tem rota de entrada e usa dados simulados.           |
-| `mocks/profileMocks.ts`                                | Não incluído                                             | O backend já atende o perfil próprio; o mock é da US29.                |
-| `PrivateProfileNotice`                                 | `ProfilePrivateNotice`, com o texto aprovado pelo senior | Veio da US29.                                                          |
+| #252                                                   | Implementação                                             | Justificativa                                                          |
+| ------------------------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `headerRight` no `ProfileHeader`                       | Barra superior na tela                                    | A barra muda entre o perfil próprio e o de terceiros; decisão da US29. |
+| `streakSlot` no `ProfileHeader`                        | Não existe ainda                                          | A #260 entra com uma prop opcional nova, sem quebrar nada.             |
+| Ícone de editar ao lado da foto                        | `onEditAvatar` torna o avatar tocável, com badge de lápis | O menu e a edição são da #254; o badge entrou na #252.                 |
+| `ProfileTabs` com `metricsContent` e `calendarContent` | O conteúdo de cada aba é decidido pela tela               | O Épico 07 encaixa o conteúdo na tela.                                 |
+| `useProfile(userId \| "me")`                           | `useMyProfile` (perfil próprio)                           | Mesma chave da US29 (`useUserProfile`); endpoints diferentes.          |
+| Toque na grade → `RecordaView`                         | `PublishedRecorda({ postId })`                            | `RecordaView` não tem rota de entrada e usa dados simulados.           |
+| `mocks/profileMocks.ts`                                | Não incluído                                              | O backend já atende o perfil próprio; o mock é da US29.                |
+| `PrivateProfileNotice`                                 | `ProfilePrivateNotice`, com o texto aprovado pelo senior  | Veio da US29.                                                          |
 
 ## Dependências
 

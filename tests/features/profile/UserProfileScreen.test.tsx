@@ -6,13 +6,22 @@ import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurr
 import { followService } from "@/features/follow/services/followService";
 import { reportService } from "@/features/moderation/services/reportService";
 import { PROFILE_AVATAR_CENTER_Y, UserProfileScreen } from "@/features/profile";
+import { userMetricsService } from "@/features/memories-metrics/services/userMetricsService";
 import { profileService } from "@/features/profile/services/profileService";
 import type { ProfileRead, RecordaGridItem, RecordaGridPage } from "@/features/profile/types";
 import { i18n } from "@/i18n";
 import { ApiError, AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 
 jest.mock("@/features/profile/services/profileService", () => ({
-  profileService: { getUserProfile: jest.fn(), getUserRecordas: jest.fn() }
+  profileService: {
+    getUserMusicTastes: jest.fn(),
+    getUserProfile: jest.fn(),
+    getUserRecordas: jest.fn()
+  }
+}));
+
+jest.mock("@/features/memories-metrics/services/userMetricsService", () => ({
+  userMetricsService: { getProfileMetrics: jest.fn() }
 }));
 
 jest.mock("@/features/follow/services/followService", () => ({
@@ -36,6 +45,8 @@ jest.mock("@react-navigation/native", () => ({
 
 const mockGetUserProfile = profileService.getUserProfile as jest.Mock;
 const mockGetUserRecordas = profileService.getUserRecordas as jest.Mock;
+const mockGetTastes = profileService.getUserMusicTastes as jest.Mock;
+const mockGetMetrics = userMetricsService.getProfileMetrics as jest.Mock;
 const mockFollow = followService.follow as jest.Mock;
 const mockUnfollow = followService.unfollow as jest.Mock;
 const mockReportUser = reportService.reportUser as jest.Mock;
@@ -69,6 +80,13 @@ function makeProfile(overrides: Partial<ProfileRead> = {}): ProfileRead {
     ...overrides
   };
 }
+
+const METRICS = {
+  period: "last_30_days",
+  streak: { current_streak_days: 0, last_post_date: null },
+  top_artist: null,
+  top_genres: []
+};
 
 const PRIVATE_LOCKED = makeProfile({ can_view_content: false, counts: null, is_private: true });
 
@@ -156,10 +174,18 @@ function followButton() {
 beforeEach(() => {
   jest.clearAllMocks();
   // mockReset also drops queued *Once values a failed test may have left behind.
-  [mockGetUserProfile, mockGetUserRecordas, mockFollow, mockUnfollow, mockReportUser].forEach(
-    (mock) => mock.mockReset()
-  );
+  [
+    mockGetUserProfile,
+    mockGetUserRecordas,
+    mockGetTastes,
+    mockGetMetrics,
+    mockFollow,
+    mockUnfollow,
+    mockReportUser
+  ].forEach((mock) => mock.mockReset());
   mockGetUserRecordas.mockResolvedValue(GRID_PAGE);
+  mockGetTastes.mockResolvedValue({ artists: [], genres: [] });
+  mockGetMetrics.mockResolvedValue(METRICS);
   mockRoute = { params: { userId: "user-2" } };
 });
 
@@ -276,12 +302,45 @@ describe("UserProfileScreen", () => {
       expect(within(screen.getByTestId("profile-header")).queryByTestId("profile-glow")).toBeNull();
     });
 
-    it("keeps 'Em breve' on Métricas and Calendário (Epic 07)", async () => {
+    it("shows the user's favorite artist and genre chips", async () => {
+      mockGetTastes.mockResolvedValue({
+        artists: [
+          { deezer_id: 27, name: "Daft Punk", picture_url: null },
+          { deezer_id: 13, name: "Eminem", picture_url: null }
+        ],
+        genres: [{ deezer_id: 132, name: "Pop", picture_url: null }]
+      });
+      await renderProfile(makeProfile());
+
+      expect(mockGetTastes).toHaveBeenCalledWith("user-2", expect.any(AbortSignal));
+      expect(await screen.findByTestId("profile-favorite-artist-27")).toBeTruthy();
+      expect(screen.getByTestId("profile-favorite-genre-132")).toBeTruthy();
+      expect(screen.queryByTestId("profile-favorite-artist-13")).toBeNull();
+    });
+
+    it("keeps the header when the chips fail to load", async () => {
+      mockGetTastes.mockRejectedValue(new ApiError("SERVER", "Boom", 500, null));
+      await renderProfile(makeProfile());
+
+      await waitFor(() => expect(mockGetTastes).toHaveBeenCalledTimes(2));
+      expect(screen.getByTestId("profile-favorite-song")).toBeTruthy();
+      expect(screen.queryByTestId(/^profile-favorite-artist-/)).toBeNull();
+    });
+
+    it("shows the user's metrics on Métricas and keeps 'Em breve' on Calendário", async () => {
       await renderProfile(makeProfile());
 
       fireEvent.press(screen.getByRole("tab", { name: "Métricas" }));
       expect(screen.getByRole("tab", { name: "Métricas" })).toBeSelected();
-      expect(screen.getByTestId("profile-coming-soon-metrics")).toHaveTextContent("Em breve");
+      expect(
+        await screen.findByText("Este perfil ainda não tem Recordas neste período.")
+      ).toBeTruthy();
+      expect(mockGetMetrics).toHaveBeenCalledWith(
+        "last_30_days",
+        expect.any(AbortSignal),
+        "user-2"
+      );
+      expect(screen.queryByTestId("profile-coming-soon-metrics")).toBeNull();
 
       fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
       expect(screen.getByRole("tab", { name: "Calendário" })).toBeSelected();
@@ -454,7 +513,7 @@ describe("UserProfileScreen", () => {
       expect(tileIds()).toEqual(["r3", "r2"]);
     });
 
-    it("drops only this profile's Recordas from the cache when access is lost", async () => {
+    it("drops only this profile's restricted data from the cache when access is lost", async () => {
       mockUnfollow.mockResolvedValue({ follow_status: "nenhuma" });
       mockGetUserProfile
         .mockResolvedValueOnce(
@@ -468,7 +527,12 @@ describe("UserProfileScreen", () => {
       const otherGrid = { pageParams: [null], pages: [GRID_PAGE] };
       client.setQueryData(["profile", "user-3", "recordas"], otherGrid);
       client.setQueryData(["profile", VIEWER.user_id, "recordas"], otherGrid);
+      client.setQueryData(["user-metrics", "profile", "user-2", "last_30_days"], METRICS);
+      client.setQueryData(["user-metrics", "profile", "user-3", "last_30_days"], METRICS);
       await screen.findByTestId("recorda-grid");
+      await waitFor(() =>
+        expect(client.getQueryData(["profile", "user-2", "music-tastes"])).toBeDefined()
+      );
 
       fireEvent.press(followButton());
       fireEvent.press(
@@ -483,6 +547,13 @@ describe("UserProfileScreen", () => {
       );
       expect(client.getQueryData(["profile", "user-3", "recordas"])).toEqual(otherGrid);
       expect(client.getQueryData(["profile", VIEWER.user_id, "recordas"])).toEqual(otherGrid);
+      expect(client.getQueryData(["profile", "user-2", "music-tastes"])).toBeUndefined();
+      expect(
+        client.getQueryData(["user-metrics", "profile", "user-2", "last_30_days"])
+      ).toBeUndefined();
+      expect(client.getQueryData(["user-metrics", "profile", "user-3", "last_30_days"])).toEqual(
+        METRICS
+      );
     });
 
     it("shows the empty state for a profile without Recordas", async () => {
@@ -576,6 +647,14 @@ describe("UserProfileScreen", () => {
         expect(screen.getByTestId("profile-private-notice")).toBeTruthy();
         expect(screen.queryByText("Em breve")).toBeNull();
       }
+    });
+
+    it("requests neither the chips nor the metrics without access", async () => {
+      await renderProfile(PRIVATE_LOCKED);
+      fireEvent.press(screen.getByRole("tab", { name: "Métricas" }));
+
+      expect(mockGetTastes).not.toHaveBeenCalled();
+      expect(mockGetMetrics).not.toHaveBeenCalled();
     });
 
     it("hides counters even if the backend sends them without access", async () => {

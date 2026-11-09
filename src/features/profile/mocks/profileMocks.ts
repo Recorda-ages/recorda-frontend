@@ -23,6 +23,15 @@ export const mockOpenProfile: ProfileRead = {
   username: "anasouza"
 };
 
+/** The signed-in user's own profile: `is_self` and the counters always visible. */
+export const mockOwnProfile: ProfileRead = {
+  ...mockOpenProfile,
+  name: "Natalia Costa",
+  relationship: { follow_id: null, follow_status: "nenhuma", is_self: true },
+  user_id: "mock-user-natalia",
+  username: "nataliacosta"
+};
+
 /** A private account the viewer doesn't follow: no counters, no content. */
 export const mockPrivateProfile: ProfileRead = {
   ...mockOpenProfile,

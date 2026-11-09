@@ -153,3 +153,31 @@ describe("profileService avatar", () => {
     expect(mockDelete).toHaveBeenCalledWith("/users/me/avatar");
   });
 });
+
+describe("profileService.getUserMusicTastes", () => {
+  it("requests another user's favorite artists and genres with cancellation", async () => {
+    const controller = new AbortController();
+    const tastes = {
+      artists: [{ deezer_id: 27, name: "Daft Punk", picture_url: null }],
+      genres: []
+    };
+    mockGet.mockResolvedValueOnce(tastes);
+
+    await expect(profileService.getUserMusicTastes("user-2", controller.signal)).resolves.toBe(
+      tastes
+    );
+    expect(mockGet).toHaveBeenCalledWith("/users/user-2/music-preferences", {
+      signal: controller.signal
+    });
+  });
+
+  it("encodes the user id", async () => {
+    mockGet.mockResolvedValueOnce({ artists: [], genres: [] });
+
+    await profileService.getUserMusicTastes("a/b c");
+
+    expect(mockGet).toHaveBeenCalledWith("/users/a%2Fb%20c/music-preferences", {
+      signal: undefined
+    });
+  });
+});

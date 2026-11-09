@@ -9,3 +9,7 @@ export const profileQueryKey = (userId: string) => ["profile", userId] as const;
 /** Paginated Recordas grid of a profile (`GET /users/{id}/recordas`). */
 export const profileRecordasQueryKey = (userId: string) =>
   [...profileQueryKey(userId), "recordas"] as const;
+
+/** Favorite artists and genres of a profile (`GET /users/{id}/music-preferences`). */
+export const profileMusicTastesQueryKey = (userId: string) =>
+  [...profileQueryKey(userId), "music-tastes"] as const;

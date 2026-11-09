@@ -852,6 +852,8 @@
     "create": "Crear Recorda",
     "loading": "Cargando métricas",
     "loadError": "No se pudieron cargar tus métricas. Inténtalo de nuevo.",
+    "emptyOther": "Este perfil aún no tiene Recordas en este período.",
+    "loadErrorOther": "No se pudieron cargar las métricas de este perfil. Inténtalo de nuevo.",
     "widgets": {
       "topArtist": {
         "title": "Artista más escuchado",

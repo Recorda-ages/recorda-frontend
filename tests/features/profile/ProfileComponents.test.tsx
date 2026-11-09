@@ -180,6 +180,15 @@ describe("ProfileHeader", () => {
 
     expect(screen.queryByTestId("profile-edit-avatar")).toBeNull();
     expect(screen.queryByLabelText("Alterar foto de perfil")).toBeNull();
+    expect(screen.queryByTestId("profile-edit-avatar-icon")).toBeNull();
+  });
+
+  it("shows the edit icon next to the photo with onEditAvatar", () => {
+    renderHeader({ onEditAvatar: jest.fn() });
+
+    expect(
+      within(screen.getByTestId("profile-edit-avatar")).getByTestId("profile-edit-avatar-icon")
+    ).toBeTruthy();
   });
 
   it("makes the avatar pressable with onEditAvatar", () => {

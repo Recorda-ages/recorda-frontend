@@ -3,12 +3,16 @@ import { useTranslation } from "react-i18next";
 import { AppText, Button } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
-export function MetricsEmptyState({ onCreateRecorda }: Readonly<{ onCreateRecorda: () => void }>) {
+export function MetricsEmptyState({ onCreateRecorda }: Readonly<{ onCreateRecorda?: () => void }>) {
   const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <AppText style={styles.text}>{t("memoriesMetrics.empty")}</AppText>
-      <Button label={t("memoriesMetrics.create")} onPress={onCreateRecorda} />
+      <AppText style={styles.text}>
+        {t(onCreateRecorda ? "memoriesMetrics.empty" : "memoriesMetrics.emptyOther")}
+      </AppText>
+      {onCreateRecorda ? (
+        <Button label={t("memoriesMetrics.create")} onPress={onCreateRecorda} />
+      ) : null}
     </View>
   );
 }

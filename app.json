@@ -2,11 +2,26 @@
   "expo": {
     "name": "Recorda",
     "slug": "recorda",
-    "version": "0.1.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.camana.Recorda",
+      "buildNumber": "2.0",
+      "supportsTablet": true,
+      "requireFullScreen": false,
+      "infoPlist": {
+        "CFBundleDisplayName": "Recorda",
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow Recorda to access your camera",
+        "NSMicrophoneUsageDescription": "Allow Recorda to access your microphone",
+        "NSFaceIDUsageDescription": "Allow Recorda to access your Face ID biometric data.",
+        "NSPhotoLibraryUsageDescription": "Allow Recorda to access your photos.",
+        "NSPhotoLibraryAddUsageDescription": "Allow Recorda to save images to your photo library.",
+        "LSApplicationQueriesSchemes": [
+          "instagram-stories"
+        ]
+      }
     },
     "web": {
       "bundler": "metro"
@@ -23,14 +38,20 @@
         {
           "photosPermission": "Allow Recorda to access your photos.",
           "savePhotosPermission": "Allow Recorda to save images to your photo library.",
-          "granularPermissions": ["photo"]
+          "granularPermissions": [
+            "photo"
+          ]
         }
       ],
       [
         "react-native-share",
         {
-          "android": ["com.instagram.android"],
-          "ios": ["instagram-stories"]
+          "android": [
+            "com.instagram.android"
+          ],
+          "ios": [
+            "instagram-stories"
+          ]
         }
       ],
       [
@@ -42,6 +63,13 @@
         }
       ],
       "expo-audio"
-    ]
+    ],
+    "scheme": "recorda",
+    "extra": {
+      "eas": {
+        "projectId": "9918795c-c677-47a1-8e35-b4a9f6d59586"
+      }
+    },
+    "owner": "andrech"
   }
 }

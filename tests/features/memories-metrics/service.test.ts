@@ -53,6 +53,15 @@ describe("userMetricsService", () => {
     );
   });
 
+  it("requests another user's metrics by encoded id", async () => {
+    mockGet.mockResolvedValueOnce(profileMetricsMock);
+    await userMetricsService.getProfileMetrics("last_30_days", undefined, "a/b c");
+    expect(mockGet).toHaveBeenCalledWith(
+      "/users/a%2Fb%20c/metrics?bundle=profile&period=last_30_days",
+      { signal: undefined }
+    );
+  });
+
   it("propagates API failures without falling back to fixtures", async () => {
     const error = new ApiError("UNAVAILABLE", "Internal details", 503, null);
     mockGet.mockRejectedValueOnce(error);
@@ -228,4 +237,27 @@ test("retains the current user's data while loading another period", async () =>
   rerender({ period: "last_90_days" });
   await waitFor(() => expect(result.current.isPlaceholderData).toBe(true));
   expect(result.current.data).toEqual(profileMetricsMock);
+});
+
+describe("useUserMetrics for another user", () => {
+  it("requests that user's metrics and caches them apart from the own ones", async () => {
+    mockGet.mockResolvedValue(profileMetricsMock);
+    const { result } = renderHook(() => useUserMetrics("30d", "user-2"), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGet).toHaveBeenCalledWith("/users/user-2/metrics?bundle=profile&period=30d", {
+      signal: expect.any(AbortSignal)
+    });
+    expect(client.getQueryData(["user-metrics", "profile", "user-2", "30d"])).toEqual(
+      profileMetricsMock
+    );
+    expect(client.getQueryData(["user-metrics", "profile", "user-1", "30d"])).toBeUndefined();
+  });
+
+  it("uses the neutral error message for another user", async () => {
+    mockGet.mockRejectedValue(new ApiError("FORBIDDEN", "No", 403, null));
+    const { result } = renderHook(() => useUserMetrics("30d", "user-2"), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.errorMessage).toBe(i18n.t("memoriesMetrics.loadErrorOther"));
+    expect(mockGet).toHaveBeenCalledTimes(1);
+  });
 });

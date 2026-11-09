@@ -4,9 +4,8 @@ T-E6.US29.FE.01. Substitui o placeholder da rota `UserProfile` pela `UserProfile
 todo avatar ou username de outra pessoa abrir o perfil dela. Inclui, por decisão explícita da
 responsável, o item "Denunciar perfil" da T-E9.US41.FE.01.
 
-Branch `feat/255-user-profile-screen`, Draft PR #268. O merge depende da validação contra o
-backend PR #152 (T-E6.US29.BE.01, #109), que **ainda não foi aprovado nem integrado à `dev`**
-do backend.
+Branch `feat/255-user-profile-screen`, Draft PR #268. O backend PR #152
+(T-E6.US29.BE.01, #109) já foi integrado à `dev` do backend (merge `b316b4e`).
 
 ## Escopo e critérios de aceite
 
@@ -325,5 +324,5 @@ Sem evidência individual, estes cenários não contam como verificados:
 
 ### Situação da integração
 
-A validação foi local. O PR #152 continua aberto e fora da `dev` do backend; a integração
-oficial depende do merge dele.
+A validação foi local, contra o PR #152. Ele já foi mergeado na `dev` do backend (`b316b4e`),
+com o mesmo contrato `ProfileRead`.

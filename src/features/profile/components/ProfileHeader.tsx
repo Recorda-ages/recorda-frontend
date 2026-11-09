@@ -11,6 +11,8 @@ import { colors, fontFamily, spacing } from "@/theme";
 import { ProfileInfoChip } from "./ProfileInfoChip";
 
 const AVATAR_SIZE = 160;
+const EDIT_BADGE_SIZE = 40;
+const EDIT_BADGE_ICON_SIZE = 20;
 const AVATAR_AREA_HEIGHT = AVATAR_SIZE + spacing[12] * 2;
 
 /**
@@ -145,6 +147,9 @@ export function ProfileHeader({
             testID="profile-edit-avatar"
           >
             {avatar}
+            <View pointerEvents="none" style={styles.editBadge} testID="profile-edit-avatar-icon">
+              <Icon color={colors.neutrals[100]} size={EDIT_BADGE_ICON_SIZE} source="pencil" />
+            </View>
           </Pressable>
         ) : (
           avatar
@@ -360,6 +365,19 @@ const styles = StyleSheet.create({
   counts: {
     flexDirection: "row",
     marginTop: spacing[6]
+  },
+  editBadge: {
+    alignItems: "center",
+    backgroundColor: colors.primary[500],
+    borderColor: colors.neutrals[900],
+    borderRadius: EDIT_BADGE_SIZE / 2,
+    borderWidth: 3,
+    bottom: 4,
+    height: EDIT_BADGE_SIZE,
+    justifyContent: "center",
+    position: "absolute",
+    right: 4,
+    width: EDIT_BADGE_SIZE
   },
   headerRight: {
     position: "absolute",

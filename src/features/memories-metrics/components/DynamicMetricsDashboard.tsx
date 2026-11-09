@@ -10,11 +10,16 @@ import { DailyStreakCard } from "./widgets/DailyStreakCard";
 import { TopArtistHighlightCard } from "./widgets/TopArtistHighlightCard";
 import { TopGenresRankingCard } from "./widgets/TopGenresRankingCard";
 
+/**
+ * Metrics of the signed-in user, or of another user with `userId` (who can't be nudged to
+ * create a Recorda, so `onCreateRecorda` is left out).
+ */
 export function DynamicMetricsDashboard({
-  onCreateRecorda
-}: Readonly<{ onCreateRecorda: () => void }>) {
+  onCreateRecorda,
+  userId
+}: Readonly<{ onCreateRecorda?: () => void; userId?: string }>) {
   const [period, setPeriod] = useState<MetricsPeriod>("last_30_days");
-  const metrics = useUserMetrics(period);
+  const metrics = useUserMetrics(period, userId);
   const { t } = useTranslation();
   return (
     <View style={styles.container}>
@@ -31,7 +36,12 @@ export function DynamicMetricsDashboard({
         </View>
       ) : metrics.isError ? (
         <View style={styles.container}>
-          <ErrorState message={metrics.errorMessage ?? t("memoriesMetrics.loadError")} />
+          <ErrorState
+            message={
+              metrics.errorMessage ??
+              t(userId ? "memoriesMetrics.loadErrorOther" : "memoriesMetrics.loadError")
+            }
+          />
           <Button
             label={t("profile.retry")}
             onPress={() => void metrics.refetch()}

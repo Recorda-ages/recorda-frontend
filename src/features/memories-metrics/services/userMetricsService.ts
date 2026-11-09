@@ -4,9 +4,9 @@ import { userMetricsServiceMock } from "../mocks/metricsMock";
 import type { ProfileMetricsResponse, UserMetricsService } from "../types";
 
 const apiService: UserMetricsService = {
-  getProfileMetrics: (period, signal) =>
+  getProfileMetrics: (period, signal, userId) =>
     authApiClient.get<ProfileMetricsResponse>(
-      `/users/me/metrics?bundle=profile&period=${encodeURIComponent(period)}`,
+      `/users/${userId ? encodeURIComponent(userId) : "me"}/metrics?bundle=profile&period=${encodeURIComponent(period)}`,
       { signal }
     )
 };

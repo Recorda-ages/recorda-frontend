@@ -23,5 +23,9 @@ export type ProfileMetricsResponse = {
 };
 
 export type UserMetricsService = {
-  getProfileMetrics: (period: string, signal?: AbortSignal) => Promise<ProfileMetricsResponse>;
+  getProfileMetrics: (
+    period: string,
+    signal?: AbortSignal,
+    userId?: string
+  ) => Promise<ProfileMetricsResponse>;
 };
