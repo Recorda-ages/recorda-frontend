@@ -68,6 +68,8 @@ type ProfileHeaderProps = Readonly<{
   streakSlot?: ReactNode;
   /** Auxiliary text below the information grid, e.g. the StreakHint. Rendered as is. */
   streakHintSlot?: ReactNode;
+  /** Top-right corner of the header, e.g. the settings gear or the three-dots menu. */
+  headerRight?: ReactNode;
 }>;
 
 /**
@@ -86,6 +88,7 @@ export function ProfileHeader({
   favoriteArtists = [],
   favoriteGenres = [],
   favoriteSong,
+  headerRight,
   name,
   onEditAvatar,
   onPressFollowers,
@@ -128,6 +131,11 @@ export function ProfileHeader({
 
   return (
     <View testID="profile-header">
+      {headerRight ? (
+        <View style={styles.headerRight} testID="profile-header-right">
+          {headerRight}
+        </View>
+      ) : null}
       <View style={styles.avatarArea}>
         {onEditAvatar ? (
           <Pressable
@@ -352,6 +360,12 @@ const styles = StyleSheet.create({
   counts: {
     flexDirection: "row",
     marginTop: spacing[6]
+  },
+  headerRight: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 1
   },
   name: {
     color: colors.neutrals[100],

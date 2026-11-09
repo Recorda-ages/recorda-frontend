@@ -211,8 +211,8 @@ function ProfileContent({
   profile,
   recordas
 }: ProfileContentProps) {
-  const { t } = useTranslation();
   const song = profile.favorite_song;
+  const privateNotice = profile.can_view_content ? undefined : <ProfilePrivateNotice />;
 
   return (
     <ScrollView
@@ -246,29 +246,30 @@ function ProfileContent({
         username={profile.username}
       />
       <View style={styles.tabs}>
-        <ProfileTabs activeTab={activeTab} onChange={onTabChange} />
+        <ProfileTabs
+          activeTab={activeTab}
+          // Metrics and Calendar belong to Epic 07; a private profile restricts every tab.
+          calendarContent={privateNotice}
+          metricsContent={privateNotice}
+          onChange={onTabChange}
+        />
       </View>
-      <View style={styles.tabContent}>
-        {!profile.can_view_content ? (
-          <ProfilePrivateNotice />
-        ) : activeTab === "recordas" ? (
-          <RecordaGrid
-            hasNextPage={recordas.hasNextPage}
-            isFetchNextPageError={recordas.isFetchNextPageError}
-            isFetchingNextPage={recordas.isFetchingNextPage}
-            items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
-            onLoadMore={onLoadMore}
-            onPressItem={onPressRecorda}
-            onRetry={() => void recordas.refetch()}
-            status={gridStatus(recordas)}
-          />
-        ) : (
-          // Metrics and Calendar belong to Epic 07.
-          <AppText style={styles.comingSoon} testID={`profile-coming-soon-${activeTab}`}>
-            {t("profile.comingSoon")}
-          </AppText>
-        )}
-      </View>
+      {activeTab === "recordas" ? (
+        <View style={styles.tabContent}>
+          {privateNotice ?? (
+            <RecordaGrid
+              hasNextPage={recordas.hasNextPage}
+              isFetchNextPageError={recordas.isFetchNextPageError}
+              isFetchingNextPage={recordas.isFetchingNextPage}
+              items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
+              onLoadMore={onLoadMore}
+              onPressItem={onPressRecorda}
+              onRetry={() => void recordas.refetch()}
+              status={gridStatus(recordas)}
+            />
+          )}
+        </View>
+      ) : null}
     </ScrollView>
   );
 }
@@ -337,11 +338,6 @@ const styles = StyleSheet.create({
     height: BAR_BUTTON_SIZE,
     justifyContent: "center",
     width: BAR_BUTTON_SIZE
-  },
-  comingSoon: {
-    color: colors.neutrals[300],
-    paddingVertical: spacing[8],
-    textAlign: "center"
   },
   content: {
     flex: 1

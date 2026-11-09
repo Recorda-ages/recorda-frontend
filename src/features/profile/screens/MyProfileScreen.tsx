@@ -208,10 +208,17 @@ export function MyProfileScreen() {
               visible={isRemoveDialogVisible}
             />
             <View style={styles.tabs}>
-              <ProfileTabs activeTab={activeTab} onChange={setActiveTab} />
+              <ProfileTabs
+                activeTab={activeTab}
+                // Calendar belongs to Epic 07; until then the tab shows its empty state.
+                metricsContent={
+                  <DynamicMetricsDashboard onCreateRecorda={() => navigation.navigate("Camera")} />
+                }
+                onChange={setActiveTab}
+              />
             </View>
-            <View style={styles.tabContent}>
-              {activeTab === "recordas" ? (
+            {activeTab === "recordas" ? (
+              <View style={styles.tabContent}>
                 <RecordaGrid
                   hasNextPage={recordas.hasNextPage}
                   isFetchNextPageError={recordas.isFetchNextPageError}
@@ -224,15 +231,8 @@ export function MyProfileScreen() {
                   onRetry={() => void recordas.refetch()}
                   status={gridStatus(recordas)}
                 />
-              ) : activeTab === "metrics" ? (
-                <DynamicMetricsDashboard onCreateRecorda={() => navigation.navigate("Camera")} />
-              ) : (
-                // Calendar belongs to Epic 07.
-                <AppText style={styles.comingSoon} testID={`profile-coming-soon-${activeTab}`}>
-                  {t("profile.comingSoon")}
-                </AppText>
-              )}
-            </View>
+              </View>
+            ) : null}
           </ScrollView>
         ) : profile.isError && !isIncomplete ? (
           <View style={styles.feedback}>
@@ -275,11 +275,6 @@ const styles = StyleSheet.create({
     height: BAR_BUTTON_SIZE,
     justifyContent: "center",
     width: BAR_BUTTON_SIZE
-  },
-  comingSoon: {
-    color: colors.neutrals[300],
-    paddingVertical: spacing[8],
-    textAlign: "center"
   },
   content: {
     flex: 1
