@@ -180,11 +180,29 @@ describe("MemoryCalendarGrid", () => {
     expect(weekdays[6].props.accessibilityLabel).toBe("sábado");
   });
 
+  it("uses the song cover as the thumbnail of days that start with a video", () => {
+    const video = {
+      ...october,
+      days: [
+        {
+          ...october.days[2],
+          media_type: "VIDEO" as const,
+          song_cover_url: "https://cdn.example.com/cover.jpg",
+          thumbnail_url: "https://cdn.example.com/clip.mp4"
+        }
+      ]
+    };
+    renderGrid({ calendar: video, month: 10, year: 2026 });
+
+    const thumbnail = screen.getByTestId("calendar-day-thumbnail-2026-10-12");
+    expect(thumbnail.props.source).toEqual({ uri: "https://cdn.example.com/cover.jpg" });
+  });
+
   it("fills days with memories with the thumbnail and a readable day number", () => {
     renderGrid({ calendar: october, month: 10, year: 2026 });
 
-    const thumbnail = screen.getByTestId("calendar-day-thumbnail-2026-10-12");
-    expect(thumbnail.props.source).toEqual({ uri: october.days[2].thumbnail_url });
+    const thumbnail = screen.getByTestId("calendar-day-thumbnail-2026-10-03");
+    expect(thumbnail.props.source).toEqual({ uri: october.days[1].thumbnail_url });
     expect(thumbnail.props.cachePolicy).toBe("memory-disk");
 
     const number = within(screen.getByTestId("calendar-day-2026-10-12")).getByText("12");

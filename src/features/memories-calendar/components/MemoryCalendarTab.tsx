@@ -20,13 +20,16 @@ function currentMonth() {
  * while it loads, and the day viewer for a day with Recordas. The header stays on screen in
  * every state, so another month is always one arrow away.
  */
-export function MemoryCalendarTab({ onCreateRecorda }: Readonly<{ onCreateRecorda: () => void }>) {
+export function MemoryCalendarTab({
+  onCreateRecorda,
+  userId
+}: Readonly<{ onCreateRecorda?: () => void; userId?: string }>) {
   const { t } = useTranslation();
   const [today] = useState(currentMonth);
   const [visibleMonth, setVisibleMonth] = useState(today);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { month, year } = visibleMonth;
-  const calendar = useMemoryCalendar(year, month);
+  const calendar = useMemoryCalendar(year, month, userId);
   const isCurrentMonth = year === today.year && month === today.month;
 
   return (
@@ -58,7 +61,12 @@ export function MemoryCalendarTab({ onCreateRecorda }: Readonly<{ onCreateRecord
         <CalendarEmptyState onCreateRecorda={onCreateRecorda} />
       ) : null}
       {selectedDate ? (
-        <DayMemoriesViewerModal date={selectedDate} onClose={() => setSelectedDate(null)} visible />
+        <DayMemoriesViewerModal
+          date={selectedDate}
+          onClose={() => setSelectedDate(null)}
+          userId={userId}
+          visible
+        />
       ) : null}
     </View>
   );

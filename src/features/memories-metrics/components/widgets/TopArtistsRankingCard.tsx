@@ -10,56 +10,66 @@ import { colors, fontFamily, radius, spacing } from "@/theme";
 import type { TopArtistMetric } from "../../types";
 import { WidgetCard } from "./WidgetCard";
 
-type TopArtistHighlightCardProps = {
-  artist: TopArtistMetric | null;
+type TopArtistsRankingCardProps = {
+  artists: readonly TopArtistMetric[];
 };
 
-export function TopArtistHighlightCard({ artist }: Readonly<TopArtistHighlightCardProps>) {
+export function TopArtistsRankingCard({ artists }: Readonly<TopArtistsRankingCardProps>) {
   const { t } = useTranslation();
 
   return (
-    <WidgetCard testID="top-artist-card" title={t("memoriesMetrics.widgets.topArtist.title")}>
-      {artist ? (
-        <ArtistContent artist={artist} />
+    <WidgetCard testID="top-artists-card" title={t("memoriesMetrics.widgets.topArtists.title")}>
+      {artists.length > 0 ? (
+        <View style={styles.list}>
+          {artists.map((artist, index) => (
+            <ArtistRow artist={artist} key={artist.artist_name} position={index + 1} />
+          ))}
+        </View>
       ) : (
         <AppText style={styles.empty} variant="body2">
-          {t("memoriesMetrics.widgets.topArtist.empty")}
+          {t("memoriesMetrics.widgets.topArtists.empty")}
         </AppText>
       )}
     </WidgetCard>
   );
 }
 
-function ArtistContent({ artist }: Readonly<{ artist: TopArtistMetric }>) {
+function ArtistRow({ artist, position }: Readonly<{ artist: TopArtistMetric; position: number }>) {
   const { t } = useTranslation();
   const source = useAuthImageSource(artist.image_url ? resolveApiAssetUrl(artist.image_url) : null);
   const countKey =
     artist.memory_count === 1
-      ? "memoriesMetrics.widgets.topArtist.countSingular"
-      : "memoriesMetrics.widgets.topArtist.countPlural";
+      ? "memoriesMetrics.widgets.topArtists.countSingular"
+      : "memoriesMetrics.widgets.topArtists.countPlural";
 
   return (
-    <View style={styles.row}>
+    <View style={styles.row} testID={`top-artist-row-${position}`}>
+      <AppText style={styles.position} variant="body2">
+        {String(position)}
+      </AppText>
       {source ? (
         <Image
-          accessibilityLabel={t("memoriesMetrics.widgets.topArtist.photo", {
+          accessibilityLabel={t("memoriesMetrics.widgets.topArtists.photo", {
             name: artist.artist_name
           })}
           contentFit="cover"
           source={source}
           style={styles.photo}
-          testID="top-artist-photo"
+          testID={`top-artist-photo-${position}`}
         />
       ) : (
-        <View style={[styles.photo, styles.photoFallback]} testID="top-artist-photo-fallback">
-          <Icon color={colors.neutrals[400]} size={32} source="music-note" />
+        <View
+          style={[styles.photo, styles.photoFallback]}
+          testID={`top-artist-fallback-${position}`}
+        >
+          <Icon color={colors.neutrals[400]} size={22} source="music-note" />
         </View>
       )}
       <View style={styles.copy}>
-        <AppText numberOfLines={2} style={styles.name} variant="headline4">
+        <AppText numberOfLines={1} style={styles.name} variant="body1">
           {artist.artist_name}
         </AppText>
-        <AppText style={styles.count} variant="body2">
+        <AppText style={styles.count} variant="caption">
           {t(countKey, { count: artist.memory_count })}
         </AppText>
       </View>
@@ -70,7 +80,7 @@ function ArtistContent({ artist }: Readonly<{ artist: TopArtistMetric }>) {
 const styles = StyleSheet.create({
   copy: {
     flex: 1,
-    gap: spacing[1],
+    gap: 2,
     minWidth: 0
   },
   count: {
@@ -79,19 +89,28 @@ const styles = StyleSheet.create({
   empty: {
     color: colors.neutrals[300]
   },
+  list: {
+    gap: spacing[3]
+  },
   name: {
     color: colors.neutrals[100],
     fontFamily: fontFamily.display.semiBold
   },
   photo: {
     backgroundColor: colors.neutrals[700],
-    borderRadius: radius.lg,
-    height: 72,
-    width: 72
+    borderRadius: radius.md,
+    height: 44,
+    width: 44
   },
   photoFallback: {
     alignItems: "center",
     justifyContent: "center"
+  },
+  position: {
+    color: colors.neutrals[300],
+    fontFamily: fontFamily.primary.semiBold,
+    textAlign: "center",
+    width: 16
   },
   row: {
     alignItems: "center",

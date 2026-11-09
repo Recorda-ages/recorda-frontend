@@ -855,9 +855,14 @@
     "emptyOther": "This profile has no Recordas in this period yet.",
     "loadErrorOther": "We couldn't load this profile's metrics. Try again.",
     "widgets": {
-      "topArtist": {
-        "title": "Top artist",
-        "empty": "No top artist in this period yet.",
+      "total": {
+        "title": "Total Recordas",
+        "singular": "Recorda posted",
+        "plural": "Recordas posted"
+      },
+      "topArtists": {
+        "title": "Most frequent artists",
+        "empty": "No artists in this period yet.",
         "photo": "Photo of {{name}}",
         "countSingular": "{{count}} Recorda",
         "countPlural": "{{count}} Recordas"
@@ -865,6 +870,11 @@
       "topGenres": {
         "title": "Top genres",
         "empty": "No genres in this period yet."
+      },
+      "monthly": {
+        "title": "Recordas per month",
+        "empty": "No Recordas in this period yet.",
+        "a11y": "{{month}}: {{count}} Recordas"
       },
       "streak": {
         "title": "Daily streak",
@@ -892,6 +902,8 @@
       "loading": "Loading calendar"
     },
     "viewer": {
+      "likes": "{{count}} likes",
+      "comments": "{{count}} comments",
       "close": "Close",
       "previousDay": "Previous day",
       "nextDay": "Next day",
@@ -906,8 +918,22 @@
       "retry": "Try again",
       "emptyTitle": "Your month is still blank",
       "emptyMessage": "Every day can become a memory. How about capturing today's soundtrack?",
+      "emptyOtherTitle": "This month is still blank",
+      "emptyOtherMessage": "Memories this profile records will show up here.",
       "emptyAction": "Create Recorda"
     }
+  },
+  "retrospectiveFlow": {
+    "title": "Retrospectives",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "preview": "Preview",
+    "retry": "Try again",
+    "choose": "Choose another period",
+    "periodsError": "We couldn’t load your retrospectives.",
+    "detailsError": "We couldn’t load this retrospective.",
+    "noPeriods": "Your retrospectives will show up here once you post Recordas.",
+    "emptyPeriod": "There are no Recordas in this period."
   },
   "retrospective": {
     "open": "Open recap",

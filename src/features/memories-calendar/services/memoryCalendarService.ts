@@ -9,15 +9,18 @@ import type {
 } from "../types";
 import { assertDate, assertMonth, throwIfAborted } from "../validation";
 
-// Routes defined by backend issues #144 (month) and #145 (day).
+const calendarBase = (userId?: string) =>
+  `/users/${userId ? encodeURIComponent(userId) : "me"}/calendar`;
+
 const apiAdapter: MemoryCalendarService = {
-  getMonthCalendar: (year, month, signal) =>
-    authApiClient.get<MonthlyCalendarResponse>(`/users/me/calendar?year=${year}&month=${month}`, {
-      signal
-    }),
-  getDayMemories: (date, signal) =>
+  getMonthCalendar: (year, month, signal, userId) =>
+    authApiClient.get<MonthlyCalendarResponse>(
+      `${calendarBase(userId)}?year=${year}&month=${month}`,
+      { signal }
+    ),
+  getDayMemories: (date, signal, userId) =>
     authApiClient.get<DailyMemoriesResponse>(
-      `/users/me/calendar/day?date=${encodeURIComponent(date)}`,
+      `${calendarBase(userId)}/day?date=${encodeURIComponent(date)}`,
       { signal }
     )
 };
@@ -47,18 +50,18 @@ export function createMemoryCalendarService(options: Options = {}): MemoryCalend
     }
   }
   return {
-    async getMonthCalendar(year, month, signal) {
+    async getMonthCalendar(year, month, signal, userId) {
       assertMonth(year, month);
       return read(
-        () => apiAdapter.getMonthCalendar(year, month, signal),
+        () => apiAdapter.getMonthCalendar(year, month, signal, userId),
         () => memoryCalendarMock.getMonthCalendar(year, month, signal),
         signal
       );
     },
-    async getDayMemories(date, signal) {
+    async getDayMemories(date, signal, userId) {
       assertDate(date);
       return read(
-        () => apiAdapter.getDayMemories(date, signal),
+        () => apiAdapter.getDayMemories(date, signal, userId),
         () => memoryCalendarMock.getDayMemories(date, signal),
         signal
       );

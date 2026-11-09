@@ -44,14 +44,33 @@ it("loads both resources, exposes data and caches them for five minutes", async 
   await waitFor(() => expect(result.current.day.isSuccess).toBe(true));
   expect(result.current.month.data?.active_days_count).toBe(5);
   expect(result.current.day.data?.total_count).toBe(3);
-  expect(month).toHaveBeenCalledWith(2026, 10, expect.any(AbortSignal));
-  expect(day).toHaveBeenCalledWith("2026-10-03", expect.any(AbortSignal));
+  expect(month).toHaveBeenCalledWith(2026, 10, expect.any(AbortSignal), undefined);
+  expect(day).toHaveBeenCalledWith("2026-10-03", expect.any(AbortSignal), undefined);
   const query = client.getQueryCache().find({ queryKey: monthCalendarQueryKey(2026, 10) });
   expect(query?.gcTime).toBe(300000);
   unmount();
   const second = renderHook(() => useMemoryCalendar(2026, 10), { wrapper });
   expect(second.result.current.isSuccess).toBe(true);
   expect(month).toHaveBeenCalledTimes(1);
+});
+it("scopes another user's calendar by user id, apart from the own one", async () => {
+  const { client, wrapper } = setup();
+  const { result } = renderHook(
+    () => ({
+      other: useMemoryCalendar(2026, 10, "user-2"),
+      otherDay: useDayMemories("2026-10-03", "user-2"),
+      own: useMemoryCalendar(2026, 10)
+    }),
+    { wrapper }
+  );
+  await waitFor(() => expect(result.current.otherDay.isSuccess).toBe(true));
+  await waitFor(() => expect(result.current.own.isSuccess).toBe(true));
+  expect(month).toHaveBeenCalledWith(2026, 10, expect.any(AbortSignal), "user-2");
+  expect(month).toHaveBeenCalledWith(2026, 10, expect.any(AbortSignal), undefined);
+  expect(day).toHaveBeenCalledWith("2026-10-03", expect.any(AbortSignal), "user-2");
+  expect(client.getQueryData(monthCalendarQueryKey(2026, 10, "user-2"))).toBeDefined();
+  expect(client.getQueryData(dayMemoriesQueryKey("2026-10-03", "user-2"))).toBeDefined();
+  expect(client.getQueryData(monthCalendarQueryKey(2026, 10))).toBeDefined();
 });
 it("keeps invalid input idle", () => {
   const { wrapper } = setup();

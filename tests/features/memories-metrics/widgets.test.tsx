@@ -6,8 +6,10 @@ import { I18nextProvider } from "react-i18next";
 import { PaperProvider } from "react-native-paper";
 
 import { DailyStreakCard } from "@/features/memories-metrics/components/widgets/DailyStreakCard";
-import { TopArtistHighlightCard } from "@/features/memories-metrics/components/widgets/TopArtistHighlightCard";
+import { MonthlyDistributionCard } from "@/features/memories-metrics/components/widgets/MonthlyDistributionCard";
+import { TopArtistsRankingCard } from "@/features/memories-metrics/components/widgets/TopArtistsRankingCard";
 import { TopGenresRankingCard } from "@/features/memories-metrics/components/widgets/TopGenresRankingCard";
+import { TotalRecordasCard } from "@/features/memories-metrics/components/widgets/TotalRecordasCard";
 import {
   emptyProfileMetricsMock,
   profileMetricsMock
@@ -29,46 +31,99 @@ function renderWidget(ui: ReactElement) {
   );
 }
 
-describe("TopArtistHighlightCard", () => {
-  it("shows the photo, the name and the Recorda count", () => {
-    renderWidget(
-      <TopArtistHighlightCard
-        artist={{
-          ...profileMetricsMock.top_artist,
-          image_url: "https://cdn.example.com/liniker.jpg"
-        }}
-      />
-    );
+describe("TotalRecordasCard", () => {
+  it("shows the total with the plural label", () => {
+    renderWidget(<TotalRecordasCard total={30} />);
 
-    expect(screen.getByText("Liniker")).toBeTruthy();
-    expect(screen.getByText("12 Recordas")).toBeTruthy();
-    expect(screen.getByTestId("top-artist-photo")).toBeTruthy();
-    expect(screen.queryByTestId("top-artist-photo-fallback")).toBeNull();
-  });
-
-  it("falls back to an icon when there is no photo", () => {
-    renderWidget(<TopArtistHighlightCard artist={profileMetricsMock.top_artist} />);
-
-    expect(screen.getByTestId("top-artist-photo-fallback")).toBeTruthy();
-    expect(screen.queryByTestId("top-artist-photo")).toBeNull();
-    expect(screen.getByText("Liniker")).toBeTruthy();
-    expect(screen.getByText("12 Recordas")).toBeTruthy();
+    expect(screen.getByTestId("total-recordas-value")).toBeTruthy();
+    expect(screen.getByText("30")).toBeTruthy();
+    expect(screen.getByText("Recordas publicadas")).toBeTruthy();
   });
 
   it("uses the singular for a single Recorda", () => {
+    renderWidget(<TotalRecordasCard total={1} />);
+
+    expect(screen.getByText("Recorda publicada")).toBeTruthy();
+    expect(screen.queryByText("Recordas publicadas")).toBeNull();
+  });
+});
+
+describe("TopArtistsRankingCard", () => {
+  it("lists the artists in the order received with their Recorda count", () => {
+    renderWidget(<TopArtistsRankingCard artists={profileMetricsMock.top_artists} />);
+
+    const expected = [
+      { count: "12 Recordas", name: "Liniker" },
+      { count: "9 Recordas", name: "Djavan" },
+      { count: "9 Recordas", name: "Anitta" }
+    ];
+
+    expected.forEach(({ count, name }, index) => {
+      const row = screen.getByTestId(`top-artist-row-${index + 1}`);
+      expect(within(row).getByText(name)).toBeTruthy();
+      expect(within(row).getByText(count)).toBeTruthy();
+      expect(within(row).getByText(String(index + 1))).toBeTruthy();
+    });
+  });
+
+  it("shows the photo when available and an icon otherwise", () => {
     renderWidget(
-      <TopArtistHighlightCard artist={{ ...profileMetricsMock.top_artist, memory_count: 1 }} />
+      <TopArtistsRankingCard
+        artists={[
+          {
+            artist_name: "Liniker",
+            image_url: "https://cdn.example.com/liniker.jpg",
+            memory_count: 2
+          },
+          { artist_name: "Djavan", image_url: null, memory_count: 1 }
+        ]}
+      />
     );
 
+    expect(screen.getByTestId("top-artist-photo-1")).toBeTruthy();
+    expect(screen.queryByTestId("top-artist-fallback-1")).toBeNull();
+    expect(screen.getByTestId("top-artist-fallback-2")).toBeTruthy();
     expect(screen.getByText("1 Recorda")).toBeTruthy();
   });
 
-  it("shows an empty message when there is no top artist", () => {
-    renderWidget(<TopArtistHighlightCard artist={emptyProfileMetricsMock.top_artist} />);
+  it("shows an empty message when there are no artists", () => {
+    renderWidget(<TopArtistsRankingCard artists={emptyProfileMetricsMock.top_artists} />);
 
-    expect(screen.getByText("Ainda não há um artista em destaque neste período.")).toBeTruthy();
-    expect(screen.queryByTestId("top-artist-photo")).toBeNull();
-    expect(screen.queryByTestId("top-artist-photo-fallback")).toBeNull();
+    expect(screen.getByText("Ainda não há artistas neste período.")).toBeTruthy();
+    expect(screen.queryByTestId("top-artist-row-1")).toBeNull();
+  });
+});
+
+describe("MonthlyDistributionCard", () => {
+  it("draws one bar per month proportional to the highest count", () => {
+    renderWidget(<MonthlyDistributionCard months={profileMetricsMock.monthly_distribution} />);
+
+    const september = screen.getByTestId("monthly-bar-2026-9");
+    const october = screen.getByTestId("monthly-bar-2026-10");
+    expect(within(september).getByText("8")).toBeTruthy();
+    expect(within(october).getByText("22")).toBeTruthy();
+    expect(october.props.accessibilityLabel).toContain("22 Recordas");
+  });
+
+  it("keeps only the latest twelve months", () => {
+    const months = Array.from({ length: 14 }, (_, index) => ({
+      count: index + 1,
+      month: (index % 12) + 1,
+      year: 2025 + Math.floor(index / 12)
+    }));
+
+    renderWidget(<MonthlyDistributionCard months={months} />);
+
+    expect(screen.queryByTestId("monthly-bar-2025-1")).toBeNull();
+    expect(screen.queryByTestId("monthly-bar-2025-2")).toBeNull();
+    expect(screen.getByTestId("monthly-bar-2025-3")).toBeTruthy();
+    expect(screen.getByTestId("monthly-bar-2026-2")).toBeTruthy();
+  });
+
+  it("shows an empty message when there are no months", () => {
+    renderWidget(<MonthlyDistributionCard months={emptyProfileMetricsMock.monthly_distribution} />);
+
+    expect(screen.getByText("Ainda não há Recordas neste período.")).toBeTruthy();
   });
 });
 

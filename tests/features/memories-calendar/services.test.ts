@@ -23,6 +23,20 @@ it("requests month and day through the authenticated client with cancellation", 
   expect(get).toHaveBeenNthCalledWith(2, "/users/me/calendar/day?date=2026-10-03", { signal });
 });
 
+it("requests another user's calendar through the user-scoped routes", async () => {
+  const service = createMemoryCalendarService();
+  const signal = new AbortController().signal;
+  get.mockResolvedValue({});
+  await service.getMonthCalendar(2026, 10, signal, "user/2");
+  await service.getDayMemories("2026-10-03", signal, "user/2");
+  expect(get).toHaveBeenNthCalledWith(1, "/users/user%2F2/calendar?year=2026&month=10", {
+    signal
+  });
+  expect(get).toHaveBeenNthCalledWith(2, "/users/user%2F2/calendar/day?date=2026-10-03", {
+    signal
+  });
+});
+
 it("uses explicit mocks without HTTP and keeps month and daily details consistent", async () => {
   const service = createMemoryCalendarService({ mock: true });
   const month = await service.getMonthCalendar(2026, 10);
@@ -33,7 +47,8 @@ it("uses explicit mocks without HTTP and keeps month and daily details consisten
     const day = await service.getDayMemories(summary.date);
     expect(day.total_count).toBe(summary.count);
     expect(day.memories[0].recorda_id).toBe(summary.first_recorda_id);
-    expect(day.memories[0].thumbnail_url).toBe(summary.thumbnail_url);
+    expect(day.memories[0].media_url).toBe(summary.thumbnail_url);
+    expect(day.memories[0].song_cover_url).toBe(summary.song_cover_url);
     expect(day.memories[0].song_preview_url).toContain("/api/v1/music/tracks/");
   }
   expect(get).not.toHaveBeenCalled();
@@ -42,10 +57,10 @@ it("uses explicit mocks without HTTP and keeps month and daily details consisten
 it("returns isolated fixtures and navigation across months and empty days", async () => {
   const first = await memoryCalendarMock.getDayMemories("2026-10-01");
   expect(first.previous_date_with_memories).toBe("2026-09-30");
-  first.memories[0].comments[0].content = "changed";
-  expect(
-    (await memoryCalendarMock.getDayMemories(first.date)).memories[0].comments[0].content
-  ).not.toBe("changed");
+  first.memories[0].description = "changed";
+  expect((await memoryCalendarMock.getDayMemories(first.date)).memories[0].description).not.toBe(
+    "changed"
+  );
   expect((await memoryCalendarMock.getDayMemories("2026-10-29")).next_date_with_memories).toBe(
     "2026-11-02"
   );
@@ -132,7 +147,7 @@ it("keeps mock times chronological and includes both media types in the mosaic",
     const times = memories.map((memory) => Date.parse(memory.created_at));
     expect(times).toEqual([...times].sort((a, b) => a - b));
     for (const memory of memories) {
-      expect(memory.comments_count).toBe(memory.comments.length);
+      expect(memory.comments_count).toBeGreaterThanOrEqual(0);
       expect(memory.formatted_time).toBe(memory.created_at.slice(11, 16));
     }
   }

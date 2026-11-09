@@ -855,9 +855,14 @@
     "emptyOther": "Este perfil aún no tiene Recordas en este período.",
     "loadErrorOther": "No se pudieron cargar las métricas de este perfil. Inténtalo de nuevo.",
     "widgets": {
-      "topArtist": {
-        "title": "Artista más escuchado",
-        "empty": "Aún no hay un artista destacado en este período.",
+      "total": {
+        "title": "Total de Recordas",
+        "singular": "Recorda publicada",
+        "plural": "Recordas publicadas"
+      },
+      "topArtists": {
+        "title": "Artistas más frecuentes",
+        "empty": "Aún no hay artistas en este período.",
         "photo": "Foto de {{name}}",
         "countSingular": "{{count}} Recorda",
         "countPlural": "{{count}} Recordas"
@@ -865,6 +870,11 @@
       "topGenres": {
         "title": "Géneros más frecuentes",
         "empty": "Aún no hay géneros en este período."
+      },
+      "monthly": {
+        "title": "Recordas por mes",
+        "empty": "Aún no hay Recordas en este período.",
+        "a11y": "{{month}}: {{count}} Recordas"
       },
       "streak": {
         "title": "Racha diaria",
@@ -892,6 +902,8 @@
       "loading": "Cargando calendario"
     },
     "viewer": {
+      "likes": "{{count}} me gusta",
+      "comments": "{{count}} comentarios",
       "close": "Cerrar",
       "previousDay": "Día anterior",
       "nextDay": "Día siguiente",
@@ -906,8 +918,22 @@
       "retry": "Intentar de nuevo",
       "emptyTitle": "Tu mes todavía está en blanco",
       "emptyMessage": "Cada día puede convertirse en un recuerdo. ¿Qué tal registrar la banda sonora de hoy?",
+      "emptyOtherTitle": "Este mes aún está en blanco",
+      "emptyOtherMessage": "Los recuerdos que este perfil registre aparecerán aquí.",
       "emptyAction": "Crear Recorda"
     }
+  },
+  "retrospectiveFlow": {
+    "title": "Retrospectivas",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "preview": "Avance",
+    "retry": "Intentar de nuevo",
+    "choose": "Elegir otro período",
+    "periodsError": "No se pudieron cargar tus retrospectivas.",
+    "detailsError": "No se pudo cargar esta retrospectiva.",
+    "noPeriods": "Tus retrospectivas aparecerán aquí cuando publiques Recordas.",
+    "emptyPeriod": "No hay Recordas en este período."
   },
   "retrospective": {
     "open": "Abrir retrospectiva",

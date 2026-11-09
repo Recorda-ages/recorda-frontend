@@ -7,8 +7,14 @@ import {
 } from "@/features/memories-metrics/mocks/metricsMock";
 
 jest.mock("@/features/memories-metrics/hooks/useUserMetrics");
-jest.mock("@/features/memories-metrics/components/widgets/TopArtistHighlightCard", () => ({
-  TopArtistHighlightCard: () => null
+jest.mock("@/features/memories-metrics/components/widgets/TotalRecordasCard", () => ({
+  TotalRecordasCard: () => null
+}));
+jest.mock("@/features/memories-metrics/components/widgets/TopArtistsRankingCard", () => ({
+  TopArtistsRankingCard: () => null
+}));
+jest.mock("@/features/memories-metrics/components/widgets/MonthlyDistributionCard", () => ({
+  MonthlyDistributionCard: () => null
 }));
 jest.mock("@/features/memories-metrics/components/widgets/TopGenresRankingCard", () => ({
   TopGenresRankingCard: () => null

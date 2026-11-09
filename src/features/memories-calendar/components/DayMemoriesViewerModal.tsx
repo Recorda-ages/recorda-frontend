@@ -40,30 +40,39 @@ export function shouldDismiss(dy: number, vy: number) {
 type DayMemoriesViewerModalProps = Readonly<{
   date: string;
   onClose: () => void;
+  userId?: string;
   visible: boolean;
 }>;
 
 /** Visualizador em tela cheia das Recordas de um dia do calendário (US37). */
-export function DayMemoriesViewerModal({ date, onClose, visible }: DayMemoriesViewerModalProps) {
+export function DayMemoriesViewerModal({
+  date,
+  onClose,
+  userId,
+  visible
+}: DayMemoriesViewerModalProps) {
   return (
     <Modal animationType="fade" onRequestClose={onClose} statusBarTranslucent visible={visible}>
       {/* Desmontar o conteúdo ao fechar libera o player de áudio. */}
       {/* A chave recomeça o visualizador se o pai trocar a data com ele aberto. */}
-      {visible ? <ViewerContent initialDate={date} key={date} onClose={onClose} /> : null}
+      {visible ? (
+        <ViewerContent initialDate={date} key={date} onClose={onClose} userId={userId} />
+      ) : null}
     </Modal>
   );
 }
 
 function ViewerContent({
   initialDate,
-  onClose
-}: Readonly<{ initialDate: string; onClose: () => void }>) {
+  onClose,
+  userId
+}: Readonly<{ initialDate: string; onClose: () => void; userId?: string }>) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [activeIndex, setActiveIndex] = useState(0);
-  const { data, isError, isLoading, isRefetching, refetch } = useDayMemories(currentDate);
+  const { data, isError, isLoading, isRefetching, refetch } = useDayMemories(currentDate, userId);
   const memories = data?.memories ?? [];
   const previousDate = data?.previous_date_with_memories ?? null;
   const nextDate = data?.next_date_with_memories ?? null;

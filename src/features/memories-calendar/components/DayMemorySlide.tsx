@@ -1,7 +1,9 @@
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
+import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
 import { resolveApiAssetUrl, useAuthImageSource, type AuthImageSource } from "@/services/api";
@@ -18,6 +20,7 @@ type DayMemorySlideProps = Readonly<{
 
 /** Uma Recorda do dia: foto ou vídeo, horário e descrição. */
 export function DayMemorySlide({ height, isActive, memory, width }: DayMemorySlideProps) {
+  const { t } = useTranslation();
   const source = useAuthImageSource(resolveApiAssetUrl(memory.media_url));
 
   return (
@@ -36,6 +39,36 @@ export function DayMemorySlide({ height, isActive, memory, width }: DayMemorySli
             {memory.description}
           </AppText>
         ) : null}
+        <View style={styles.engagement}>
+          <View
+            accessibilityLabel={t("memoriesCalendar.viewer.likes", { count: memory.likes_count })}
+            accessible
+            style={styles.stat}
+            testID={`day-memory-likes-${memory.recorda_id}`}
+          >
+            <Icon
+              color={baseColors.white}
+              size={16}
+              source={memory.is_liked ? "heart" : "heart-outline"}
+            />
+            <AppText style={styles.statText} variant="caption">
+              {String(memory.likes_count)}
+            </AppText>
+          </View>
+          <View
+            accessibilityLabel={t("memoriesCalendar.viewer.comments", {
+              count: memory.comments_count
+            })}
+            accessible
+            style={styles.stat}
+            testID={`day-memory-comments-${memory.recorda_id}`}
+          >
+            <Icon color={baseColors.white} size={16} source="comment-outline" />
+            <AppText style={styles.statText} variant="caption">
+              {String(memory.comments_count)}
+            </AppText>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -79,6 +112,19 @@ const styles = StyleSheet.create({
     right: 0
   },
   description: {
+    color: baseColors.white
+  },
+  engagement: {
+    flexDirection: "row",
+    gap: spacing[4],
+    marginTop: spacing[1]
+  },
+  stat: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing[1]
+  },
+  statText: {
     color: baseColors.white
   },
   time: {

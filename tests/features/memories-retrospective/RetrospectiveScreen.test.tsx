@@ -145,6 +145,41 @@ it("shows the five themed slides with the six metrics", async () => {
   expect(screen.getByText("12 dias")).toBeTruthy();
 });
 
+it("adds the shareable summary as a sixth step that waits for the user", async () => {
+  const onClose = jest.fn();
+  render(
+    <RetrospectiveScreen
+      onClose={onClose}
+      story={retrospectiveStoryMock}
+      summary={{
+        activeDays: 19,
+        commentsReceived: 37,
+        featuredSongTitle: "Vienna",
+        likesReceived: 214,
+        maxStreak: 12,
+        periodLabel: "2026",
+        topArtistName: "Daft Punk",
+        topGenreName: "Rock",
+        topTaggedUsername: "pedro",
+        totalRecordas: 28
+      }}
+      title="Sua retrospectiva"
+      visible
+    />
+  );
+  await flush();
+
+  for (let slide = 0; slide < 5; slide += 1) advance(SLIDE_DURATION_MS);
+  expect(screen.getByText("Etapa 6 de 6")).toBeTruthy();
+  expect(screen.getByTestId("retrospective-summary")).toBeTruthy();
+
+  for (let wait = 0; wait < 3; wait += 1) advance(SLIDE_DURATION_MS);
+  expect(onClose).not.toHaveBeenCalled();
+
+  fireEvent.press(screen.getByTestId("retrospective-summary-finish"));
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
 it("closes from the X button and releases the audio", async () => {
   const { onClose } = renderStory();
   await flush();
