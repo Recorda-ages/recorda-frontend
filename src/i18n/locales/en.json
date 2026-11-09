@@ -918,6 +918,8 @@
       "retry": "Try again",
       "emptyTitle": "Your month is still blank",
       "emptyMessage": "Every day can become a memory. How about capturing today's soundtrack?",
+      "emptyOtherTitle": "This month is still blank",
+      "emptyOtherMessage": "Memories this profile records will show up here.",
       "emptyAction": "Create Recorda"
     }
   },

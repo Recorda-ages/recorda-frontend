@@ -5,6 +5,8 @@ import { I18nextProvider } from "react-i18next";
 import { AUTH_ME_QUERY_KEY, type CurrentUser } from "@/features/auth/api/getCurrentUser";
 import { followService } from "@/features/follow/services/followService";
 import { reportService } from "@/features/moderation/services/reportService";
+import { memoryCalendarMock } from "@/features/memories-calendar/mocks/memoryCalendarMock";
+import { memoryCalendarService } from "@/features/memories-calendar/services/memoryCalendarService";
 import { PROFILE_AVATAR_CENTER_Y, UserProfileScreen } from "@/features/profile";
 import { userMetricsService } from "@/features/memories-metrics/services/userMetricsService";
 import { profileService } from "@/features/profile/services/profileService";
@@ -22,6 +24,10 @@ jest.mock("@/features/profile/services/profileService", () => ({
 
 jest.mock("@/features/memories-metrics/services/userMetricsService", () => ({
   userMetricsService: { getProfileMetrics: jest.fn() }
+}));
+
+jest.mock("@/features/memories-calendar/services/memoryCalendarService", () => ({
+  memoryCalendarService: { getDayMemories: jest.fn(), getMonthCalendar: jest.fn() }
 }));
 
 jest.mock("@/features/follow/services/followService", () => ({
@@ -47,6 +53,7 @@ const mockGetUserProfile = profileService.getUserProfile as jest.Mock;
 const mockGetUserRecordas = profileService.getUserRecordas as jest.Mock;
 const mockGetTastes = profileService.getUserMusicTastes as jest.Mock;
 const mockGetMetrics = userMetricsService.getProfileMetrics as jest.Mock;
+const mockGetMonthCalendar = memoryCalendarService.getMonthCalendar as jest.Mock;
 const mockFollow = followService.follow as jest.Mock;
 const mockUnfollow = followService.unfollow as jest.Mock;
 const mockReportUser = reportService.reportUser as jest.Mock;
@@ -182,6 +189,7 @@ beforeEach(() => {
     mockGetUserRecordas,
     mockGetTastes,
     mockGetMetrics,
+    mockGetMonthCalendar,
     mockFollow,
     mockUnfollow,
     mockReportUser
@@ -189,6 +197,7 @@ beforeEach(() => {
   mockGetUserRecordas.mockResolvedValue(GRID_PAGE);
   mockGetTastes.mockResolvedValue({ artists: [], genres: [] });
   mockGetMetrics.mockResolvedValue(METRICS);
+  mockGetMonthCalendar.mockImplementation(memoryCalendarMock.getMonthCalendar);
   mockRoute = { params: { userId: "user-2" } };
 });
 
@@ -330,7 +339,7 @@ describe("UserProfileScreen", () => {
       expect(screen.queryByTestId(/^profile-favorite-artist-/)).toBeNull();
     });
 
-    it("shows the user's metrics on Métricas and keeps 'Em breve' on Calendário", async () => {
+    it("shows the user's metrics on Métricas and the user's calendar on Calendário", async () => {
       await renderProfile(makeProfile());
 
       fireEvent.press(screen.getByRole("tab", { name: "Métricas" }));
@@ -347,7 +356,31 @@ describe("UserProfileScreen", () => {
 
       fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
       expect(screen.getByRole("tab", { name: "Calendário" })).toBeSelected();
-      expect(screen.getByTestId("profile-coming-soon-calendar")).toHaveTextContent("Em breve");
+      expect(await screen.findByTestId("memory-calendar-grid")).toBeTruthy();
+      expect(screen.queryByTestId("profile-coming-soon-calendar")).toBeNull();
+      expect(mockGetMonthCalendar).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.any(Number),
+        expect.any(AbortSignal),
+        "user-2"
+      );
+    });
+
+    it("shows an empty calendar without nudging to create a Recorda", async () => {
+      mockGetMonthCalendar.mockImplementation(async (year: number, month: number) => ({
+        active_days_count: 0,
+        days: [],
+        month,
+        total_memories: 0,
+        year
+      }));
+      await renderProfile(makeProfile());
+
+      fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
+
+      expect(await screen.findByTestId("calendar-empty-state")).toBeTruthy();
+      expect(screen.getByText("Este mês ainda está em branco")).toBeTruthy();
+      expect(screen.queryByText("Criar Recorda")).toBeNull();
     });
 
     it("updates the counters and the button after following", async () => {
@@ -652,12 +685,14 @@ describe("UserProfileScreen", () => {
       }
     });
 
-    it("requests neither the chips nor the metrics without access", async () => {
+    it("requests neither the chips, the metrics nor the calendar without access", async () => {
       await renderProfile(PRIVATE_LOCKED);
       fireEvent.press(screen.getByRole("tab", { name: "Métricas" }));
+      fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
 
       expect(mockGetTastes).not.toHaveBeenCalled();
       expect(mockGetMetrics).not.toHaveBeenCalled();
+      expect(mockGetMonthCalendar).not.toHaveBeenCalled();
     });
 
     it("hides counters even if the backend sends them without access", async () => {

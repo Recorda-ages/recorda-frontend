@@ -83,7 +83,9 @@ function setToday(date: Date) {
   });
 }
 
-function renderTab(onCreateRecorda = jest.fn()) {
+function renderTab(options: { onCreateRecorda?: () => void; userId?: string } = {}) {
+  const { userId } = options;
+  const onCreateRecorda = userId ? undefined : (options.onCreateRecorda ?? jest.fn());
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // Thumbnails read the token from the cache; seeding it keeps them from updating after render.
   client.setQueryData(AUTH_TOKEN_QUERY_KEY, "token");
@@ -94,7 +96,9 @@ function renderTab(onCreateRecorda = jest.fn()) {
       </I18nextProvider>
     </QueryClientProvider>
   );
-  return render(<MemoryCalendarTab onCreateRecorda={onCreateRecorda} />, { wrapper });
+  return render(<MemoryCalendarTab onCreateRecorda={onCreateRecorda} userId={userId} />, {
+    wrapper
+  });
 }
 
 describe("MemoryCalendarTab", () => {
@@ -109,7 +113,7 @@ describe("MemoryCalendarTab", () => {
       "Carregando calendário"
     );
     expect(screen.getByRole("button", { name: "Próximo mês" })).toBeTruthy();
-    expect(mockGetMonthCalendar).toHaveBeenCalledWith(2026, 10, expect.anything());
+    expect(mockGetMonthCalendar).toHaveBeenCalledWith(2026, 10, expect.anything(), undefined);
   });
 
   it("renders the current month's days without the empty state", async () => {
@@ -140,6 +144,28 @@ describe("MemoryCalendarTab", () => {
     expect(screen.queryByTestId("viewer-date")).toBeNull();
   });
 
+  it("loads another user's calendar and hands the user to the day viewer", async () => {
+    setToday(OCTOBER);
+
+    renderTab({ userId: "user-2" });
+
+    fireEvent.press(await screen.findByTestId(`calendar-day-${october.days[0].date}`));
+    expect(mockGetMonthCalendar).toHaveBeenCalledWith(2026, 10, expect.any(AbortSignal), "user-2");
+    expect(mockViewer).toHaveBeenLastCalledWith(
+      expect.objectContaining({ date: october.days[0].date, userId: "user-2" })
+    );
+  });
+
+  it("shows an empty state without a camera shortcut on another user's empty month", async () => {
+    setToday(DECEMBER);
+
+    renderTab({ userId: "user-2" });
+
+    expect(await screen.findByTestId("calendar-empty-state")).toBeTruthy();
+    expect(screen.getByText("Este mês ainda está em branco")).toBeTruthy();
+    expect(screen.queryByText("Criar Recorda")).toBeNull();
+  });
+
   it("ignores a day summary without Recordas", async () => {
     setToday(OCTOBER);
     const zero = { ...october.days[0], count: 0 };
@@ -155,7 +181,7 @@ describe("MemoryCalendarTab", () => {
     setToday(DECEMBER);
     const onCreateRecorda = jest.fn();
 
-    renderTab(onCreateRecorda);
+    renderTab({ onCreateRecorda });
 
     expect(await screen.findByText("Seu mês ainda está em branco")).toBeTruthy();
     expect(screen.getByTestId("memory-calendar-grid")).toBeTruthy();
@@ -188,7 +214,7 @@ describe("MemoryCalendarTab", () => {
     fireEvent.press(screen.getByRole("button", { name: "Mês anterior" }));
 
     expect(await screen.findByText("Nenhuma memória neste mês")).toBeTruthy();
-    expect(mockGetMonthCalendar).toHaveBeenLastCalledWith(2026, 8, expect.anything());
+    expect(mockGetMonthCalendar).toHaveBeenLastCalledWith(2026, 8, expect.anything(), undefined);
     expect(screen.queryByTestId("calendar-empty-state")).toBeNull();
   });
 

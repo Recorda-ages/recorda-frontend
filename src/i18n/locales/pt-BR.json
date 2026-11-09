@@ -921,6 +921,8 @@
       "retry": "Tentar novamente",
       "emptyTitle": "Seu mês ainda está em branco",
       "emptyMessage": "Cada dia pode virar uma memória. Que tal registrar a trilha sonora de hoje?",
+      "emptyOtherTitle": "Este mês ainda está em branco",
+      "emptyOtherMessage": "Quando este perfil registrar memórias, elas aparecem aqui.",
       "emptyAction": "Criar Recorda"
     }
   },

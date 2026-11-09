@@ -918,6 +918,8 @@
       "retry": "Intentar de nuevo",
       "emptyTitle": "Tu mes todavía está en blanco",
       "emptyMessage": "Cada día puede convertirse en un recuerdo. ¿Qué tal registrar la banda sonora de hoy?",
+      "emptyOtherTitle": "Este mes aún está en blanco",
+      "emptyOtherMessage": "Los recuerdos que este perfil registre aparecerán aquí.",
       "emptyAction": "Crear Recorda"
     }
   },

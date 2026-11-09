@@ -21,7 +21,9 @@ import { AppText, Button, ErrorState, Loading } from "@/components/ui";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { BottomTabBar, type BottomTab } from "@/features/feed/components/BottomTabBar";
 import { FollowButton } from "@/features/follow";
+import { MemoryCalendarTab } from "@/features/memories-calendar/components/MemoryCalendarTab";
 import { DynamicMetricsDashboard } from "@/features/memories-metrics/components/DynamicMetricsDashboard";
+import { MEMORY_CALENDAR_QUERY_KEY } from "@/features/memories-calendar/queryKeys";
 import { USER_METRICS_QUERY_KEY } from "@/features/memories-metrics/queryKeys";
 import { useReportDialog } from "@/features/moderation";
 import { ApiError } from "@/services/api";
@@ -90,6 +92,10 @@ export function UserProfileScreen() {
       queryClient.removeQueries({ exact: true, queryKey: profileRecordasQueryKey(userId) });
       queryClient.removeQueries({ exact: true, queryKey: profileMusicTastesQueryKey(userId) });
       queryClient.removeQueries({ queryKey: [...USER_METRICS_QUERY_KEY, "profile", userId] });
+      queryClient.removeQueries({
+        queryKey: [...MEMORY_CALENDAR_QUERY_KEY],
+        predicate: (query) => query.queryKey.includes(userId)
+      });
     }
   }, [canViewContent, hasProfile, queryClient, userId]);
 
@@ -265,9 +271,7 @@ function ProfileContent({
       <View style={styles.tabs}>
         <ProfileTabs
           activeTab={activeTab}
-          // The calendar API only serves the signed-in user (/users/me/calendar), so other
-          // profiles keep the placeholder; a private profile restricts every tab.
-          calendarContent={privateNotice}
+          calendarContent={privateNotice ?? <MemoryCalendarTab userId={profile.user_id} />}
           metricsContent={privateNotice ?? <DynamicMetricsDashboard userId={profile.user_id} />}
           onChange={onTabChange}
         />

@@ -6,21 +6,35 @@ import { AppText, Button } from "@/components/ui";
 import { colors, fontFamily, spacing } from "@/theme";
 
 /** Shown under the grid when the current month has no Recordas yet. */
-export function CalendarEmptyState({ onCreateRecorda }: Readonly<{ onCreateRecorda: () => void }>) {
+export function CalendarEmptyState({
+  onCreateRecorda
+}: Readonly<{ onCreateRecorda?: () => void }>) {
   const { t } = useTranslation();
 
   return (
     <View style={styles.container} testID="calendar-empty-state">
       <Icon color={colors.primary[500]} size={40} source="calendar-heart" />
       <AppText style={styles.title} variant="headline4">
-        {t("memoriesCalendar.tab.emptyTitle")}
+        {t(
+          onCreateRecorda
+            ? "memoriesCalendar.tab.emptyTitle"
+            : "memoriesCalendar.tab.emptyOtherTitle"
+        )}
       </AppText>
-      <AppText style={styles.message}>{t("memoriesCalendar.tab.emptyMessage")}</AppText>
-      <Button
-        label={t("memoriesCalendar.tab.emptyAction")}
-        onPress={onCreateRecorda}
-        style={styles.button}
-      />
+      <AppText style={styles.message}>
+        {t(
+          onCreateRecorda
+            ? "memoriesCalendar.tab.emptyMessage"
+            : "memoriesCalendar.tab.emptyOtherMessage"
+        )}
+      </AppText>
+      {onCreateRecorda ? (
+        <Button
+          label={t("memoriesCalendar.tab.emptyAction")}
+          onPress={onCreateRecorda}
+          style={styles.button}
+        />
+      ) : null}
     </View>
   );
 }
