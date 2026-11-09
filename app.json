@@ -18,7 +18,9 @@
         "NSFaceIDUsageDescription": "Allow Recorda to access your Face ID biometric data.",
         "NSPhotoLibraryUsageDescription": "Allow Recorda to access your photos.",
         "NSPhotoLibraryAddUsageDescription": "Allow Recorda to save images to your photo library.",
-        "LSApplicationQueriesSchemes": ["instagram-stories"]
+        "LSApplicationQueriesSchemes": [
+          "instagram-stories"
+        ]
       }
     },
     "web": {
@@ -36,25 +38,26 @@
         {
           "photosPermission": "Allow Recorda to access your photos.",
           "savePhotosPermission": "Allow Recorda to save images to your photo library.",
-          "granularPermissions": ["photo"]
+          "granularPermissions": [
+            "photo"
+          ]
         }
       ],
       [
         "react-native-share",
         {
-          "android": ["com.instagram.android"],
-          "ios": ["instagram-stories"]
+          "android": [
+            "com.instagram.android"
+          ],
+          "ios": [
+            "instagram-stories"
+          ]
         }
       ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "enableSceneSupport": true
-          }
-        }
-      ],
-      "expo-audio"
+      "expo-audio",
+      "expo-localization",
+      "expo-sharing",
+      "expo-asset"
     ],
     "scheme": "recorda",
     "extra": {
