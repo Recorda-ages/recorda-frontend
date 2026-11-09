@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { type ComponentRef, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -37,7 +37,7 @@ type RetrospectiveSummaryCardProps = Readonly<{
 export function RetrospectiveSummaryCard({ onFinish, summary }: RetrospectiveSummaryCardProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const posterRef = useRef<View>(null);
+  const posterRef = useRef<ComponentRef<typeof View>>(null);
   const { exportPoster, pendingAction } = useRetrospectiveExport(posterRef);
   const [area, setArea] = useState<{ height: number; width: number } | null>(null);
   const [isShareMenuOpen, setShareMenuOpen] = useState(false);

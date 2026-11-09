@@ -1,3 +1,4 @@
+import type { ComponentRef } from "react";
 import { act, renderHook } from "@testing-library/react-native";
 import { Alert, type AlertButton, Linking, type View } from "react-native";
 import { captureRef } from "react-native-view-shot";
@@ -35,7 +36,7 @@ let alertSpy: jest.SpyInstance;
 let consoleErrorSpy: jest.SpyInstance;
 
 function renderExportHook(mounted = true) {
-  const posterRef = { current: mounted ? ({} as View) : null };
+  const posterRef = { current: mounted ? ({} as ComponentRef<typeof View>) : null };
   return { posterRef, ...renderHook(() => useRetrospectiveExport(posterRef)) };
 }
 

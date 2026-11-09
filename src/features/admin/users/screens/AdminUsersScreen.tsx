@@ -114,7 +114,7 @@ export function AdminUsersScreen({
               {t(debouncedSearch ? "admin.users.empty.search" : "admin.users.empty.list")}
             </AppText>
           }
-          ListFooterComponent={renderFooter()}
+          ListFooterComponent={renderFooter() ?? undefined}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.4}
           refreshControl={

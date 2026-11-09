@@ -1,5 +1,5 @@
 import { File } from "expo-file-system";
-import { type RefObject, useCallback, useRef, useState } from "react";
+import { type ComponentRef, type RefObject, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, type AlertButton, Linking, Platform, type View } from "react-native";
 import { captureRef } from "react-native-view-shot";
@@ -46,7 +46,7 @@ function deleteTemporaryFile(uri: string) {
  * Captures the retrospective poster as a PNG and hands it to Instagram Stories, the
  * system share menu or the gallery, telling the user how each attempt ended.
  */
-export function useRetrospectiveExport(posterRef: RefObject<View | null>) {
+export function useRetrospectiveExport(posterRef: RefObject<ComponentRef<typeof View> | null>) {
   const { t } = useTranslation();
   const [pendingAction, setPendingAction] = useState<RetrospectiveExportAction | null>(null);
   const inProgress = useRef(false);

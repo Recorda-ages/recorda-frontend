@@ -46,15 +46,10 @@
           "ios": ["instagram-stories"]
         }
       ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "enableSceneSupport": true
-          }
-        }
-      ],
-      "expo-audio"
+      "expo-audio",
+      "expo-localization",
+      "expo-sharing",
+      "expo-asset"
     ],
     "scheme": "recorda",
     "extra": {

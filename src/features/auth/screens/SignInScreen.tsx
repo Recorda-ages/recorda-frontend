@@ -144,7 +144,7 @@ export function SignInScreen() {
         disabled={submitDisabled}
         label={t("auth.signIn.submit")}
         loading={signInMutation.isPending}
-        onPress={onSubmit}
+        onPress={() => void onSubmit()}
       />
     </AuthScreenLayout>
   );

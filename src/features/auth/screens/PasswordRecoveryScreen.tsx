@@ -158,7 +158,7 @@ export function PasswordRecoveryScreen({ navigation }: PasswordRecoveryScreenPro
         disabled={submitDisabled}
         label={t("auth.passwordRecovery.submit")}
         loading={passwordRecoveryMutation.isPending}
-        onPress={onSubmit}
+        onPress={() => void onSubmit()}
         testID="submit-button"
       />
     </AuthScreenLayout>

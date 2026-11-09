@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { useEffect, useId, useRef, useState } from "react";
+import { type ComponentRef, useEffect, useId, useRef, useState } from "react";
 import { Dimensions, Modal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
@@ -49,7 +49,7 @@ export function RecordaCard({
   ownership
 }: RecordaCardProps) {
   const { t, i18n } = useTranslation();
-  const moreButton = useRef<View>(null);
+  const moreButton = useRef<ComponentRef<typeof View>>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<MenuAnchor | null>(null);
   const [prevItem, setPrevItem] = useState(item);
