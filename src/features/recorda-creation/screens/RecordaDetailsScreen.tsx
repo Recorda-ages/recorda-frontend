@@ -157,7 +157,7 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoiding}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback accessible={false} onPress={Keyboard.dismiss}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}

@@ -19,7 +19,8 @@ export function FriendMentionPicker({
   const user = useCurrentUser();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const friends = useFollowing(user?.user_id ?? "", search, open);
+  const usernameQuery = search.trim().replace(/^@+/, "");
+  const friends = useFollowing(user?.user_id ?? "", usernameQuery, open);
   return (
     <View>
       <Button disabled={disabled} onPress={() => setOpen(!open)}>
@@ -30,6 +31,8 @@ export function FriendMentionPicker({
           <TextInput
             accessibilityLabel={t("recordaDetails.mentions.search")}
             placeholder={t("recordaDetails.mentions.search")}
+            autoCapitalize="none"
+            autoCorrect={false}
             value={search}
             onChangeText={setSearch}
           />
