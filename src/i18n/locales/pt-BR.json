@@ -107,6 +107,13 @@
     "selectedCount_other": "{{count}} selecionados"
   },
   "recordaDetails": {
+    "mentions": {
+      "label": "Marcar amigos ({{count}})",
+      "search": "Buscar amigos",
+      "loading": "Carregando amigos…",
+      "more": "Ver mais",
+      "clear": "Limpar marcações"
+    },
     "back": "Voltar",
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "Adicione uma descrição...",
@@ -153,6 +160,7 @@
       "users": "Usuários"
     },
     "reports": {
+      "contentRemoved": "Conteúdo removido",
       "title": "Denúncias",
       "search": "Buscar por usuário ou conteúdo",
       "loading": "Carregando denúncias",

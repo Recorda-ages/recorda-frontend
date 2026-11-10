@@ -29,6 +29,10 @@ jest.mock("@/features/recorda-publish", () => ({
   usePublishRecorda: jest.fn()
 }));
 
+jest.mock("@/features/friends/hooks/useFollowing", () => ({
+  useFollowing: () => ({ data: { pages: [[{ id: "friend-1", username: "amiga" }]] } })
+}));
+
 const mockedUsePublishRecorda = usePublishRecorda as jest.Mock;
 
 function renderScreen(ui: ReactElement) {
@@ -87,6 +91,17 @@ describe("RecordaDetailsScreen", () => {
     expect(screen.queryByText(/\/2200/)).toBeNull();
     expect(screen.getByPlaceholderText("Adicione uma descrição...")).toBeTruthy();
     expect(screen.getByText("Descrição")).toBeTruthy();
+  });
+
+  it("publishes the selected friend tags", () => {
+    const onPublish = jest.fn();
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onPublish={onPublish} />);
+    fireEvent.press(screen.getByText("Marcar amigos (0)"));
+    fireEvent.press(screen.getByRole("checkbox", { name: "@amiga" }));
+    fireEvent.press(screen.getByRole("button", { name: "Publicar" }));
+    expect(onPublish).toHaveBeenCalledWith(
+      expect.objectContaining({ mentionedUserIds: ["friend-1"] })
+    );
   });
 
   it("goes back when the header back button is pressed", () => {

@@ -108,6 +108,12 @@ describe("recordaPublishApi", () => {
       });
     });
 
+    it("sends selected friend IDs to the API", async () => {
+      mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
+      await createRecorda({ ...payload, mentionedUserIds: ["friend-1"] });
+      expect(mockedPost.mock.calls[0][1].mentioned_user_ids).toEqual(["friend-1"]);
+    });
+
     it("never sends the legacy midia and music fields", async () => {
       mockedPost.mockResolvedValueOnce({ recorda_id: "recorda-1" });
 

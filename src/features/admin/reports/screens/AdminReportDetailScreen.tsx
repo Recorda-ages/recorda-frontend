@@ -260,7 +260,9 @@ function DetailContent({
   const status = currentReportStatus(detail.reports);
   const statusCount = detail.reports.filter((report) => report.status === status).length;
   const statuses = availableStatusChanges(detail.reports);
-  const target = t(`admin.reports.target.${detail.target.type.toLocaleLowerCase()}`);
+  const target = t(
+    `admin.reports.target.${(detail.target.type === "REMOVED" ? "RECORDA" : detail.target.type).toLocaleLowerCase()}`
+  );
   const canRemove = detail.target.type === "RECORDA" && !detail.target.recorda.deletedAt;
 
   return (
@@ -295,6 +297,8 @@ function DetailContent({
 
       {detail.target.type === "RECORDA" ? (
         <ReportedRecordaCard recorda={detail.target.recorda} />
+      ) : detail.target.type === "REMOVED" ? (
+        <AppText>{t("admin.reports.contentRemoved")}</AppText>
       ) : (
         <ReportedUserCard onOpenUser={onOpenUser} user={detail.target.user} />
       )}

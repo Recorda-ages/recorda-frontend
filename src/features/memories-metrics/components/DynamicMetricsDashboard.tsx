@@ -7,7 +7,6 @@ import { useUserMetrics } from "../hooks/useUserMetrics";
 import { MetricsEmptyState } from "./MetricsEmptyState";
 import { type MetricsPeriod, PeriodFilterSelector } from "./PeriodFilterSelector";
 import { DailyStreakCard } from "./widgets/DailyStreakCard";
-import { MonthlyDistributionCard } from "./widgets/MonthlyDistributionCard";
 import { TopArtistsRankingCard } from "./widgets/TopArtistsRankingCard";
 import { TopGenresRankingCard } from "./widgets/TopGenresRankingCard";
 import { TotalRecordasCard } from "./widgets/TotalRecordasCard";
@@ -57,7 +56,6 @@ export function DynamicMetricsDashboard({
           <TotalRecordasCard total={metrics.data.total_recordas} />
           <TopArtistsRankingCard artists={metrics.data.top_artists} />
           <TopGenresRankingCard genres={metrics.data.top_genres} />
-          <MonthlyDistributionCard months={metrics.data.monthly_distribution} />
           <DailyStreakCard streak={metrics.data.streak} />
         </View>
       ) : null}

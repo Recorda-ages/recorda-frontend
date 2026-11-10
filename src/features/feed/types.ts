@@ -11,6 +11,7 @@ export type FeedAuthor = {
 export type FeedItem = {
   author: FeedAuthor;
   created_at: string;
+  mentioned_users?: { user_id: string; username: string; avatar_url: string | null }[];
   description: string | null;
   is_liked: boolean;
   likes_count: number;
@@ -36,6 +37,7 @@ export type RecordaDetailResponse = {
   };
   created_at: string;
   deezer_track_id: string;
+  mentioned_users?: { user_id: string; username: string; avatar_url: string | null }[];
   description: string | null;
   is_liked: boolean;
   likes_count: number;
@@ -75,6 +77,7 @@ export type FeedPost = {
   author: { id: string; avatarUrl: string; username: string };
   comments: FeedComment[];
   createdAt?: string;
+  mentionedUsers?: { user_id: string; username: string }[];
   description: string;
   id: string;
   likedBy: { avatarUrl: string; username: string };

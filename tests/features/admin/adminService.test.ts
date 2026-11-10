@@ -168,6 +168,18 @@ describe("adminService HTTP contract", () => {
     await expect(adminService.listAdmins()).rejects.toBe(error);
   });
 
+  it("keeps reports and history readable after physical content removal", async () => {
+    mockGet.mockResolvedValue({
+      ...detailBase,
+      target_type: "RECORDA",
+      target: { recorda_id: "removed-1", removed: true }
+    });
+    const detail = await adminService.getReportDetail("RECORDA", "removed-1");
+    expect(detail.target).toEqual({ type: "REMOVED", recordaId: "removed-1" });
+    expect(detail.actions).toHaveLength(detailBase.actions.length);
+    expect(detail.reports).toHaveLength(detailBase.reports.length);
+  });
+
   it("reads the full detail of a reported Recorda and maps it for the screen", async () => {
     const response: AdminReportDetailResponse = {
       ...detailBase,

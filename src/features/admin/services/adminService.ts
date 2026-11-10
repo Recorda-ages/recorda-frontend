@@ -111,6 +111,7 @@ function toReportDetail(response: AdminReportDetailResponse): AdminReportDetail 
 function toReportTarget(response: AdminReportDetailResponse): AdminReportTarget {
   if (response.target_type === "RECORDA") {
     const { target } = response;
+    if ("removed" in target) return { type: "REMOVED", recordaId: target.recorda_id };
     return {
       recorda: {
         author: toAccount(target.author),

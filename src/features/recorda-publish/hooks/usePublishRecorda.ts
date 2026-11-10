@@ -49,6 +49,7 @@ export function usePublishRecorda(): UsePublishRecordaResult {
       setStatus("creating");
       const created = await createRecorda({
         description: draft.description,
+        mentionedUserIds: draft.mentionedUserIds,
         mediaType: draft.media.type,
         mediaUrl: mediaUrl as string,
         song: draft.song
@@ -56,6 +57,10 @@ export function usePublishRecorda(): UsePublishRecordaResult {
       // A atualização do feed não deve atrasar nem reverter um POST concluído.
       void queryClient.invalidateQueries({ queryKey: ["feed"] }).catch(() => undefined);
       void invalidateMemoryCalendar(queryClient).catch(() => undefined);
+      void queryClient.invalidateQueries({ queryKey: ["user-metrics"] }).catch(() => undefined);
+      void queryClient
+        .invalidateQueries({ queryKey: ["memories-retrospective"] })
+        .catch(() => undefined);
       // The author's profile (grid and counter, both under this key) gets the new Recorda.
       // The owner comes from the response; skipped if the session changed meanwhile.
       const authorId = created?.user_id;
