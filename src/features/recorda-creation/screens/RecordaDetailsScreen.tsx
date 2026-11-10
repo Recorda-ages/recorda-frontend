@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { Button, IconButton, Text, TextInput } from "react-native-paper";
 
+import { FriendMentionPicker } from "../components/FriendMentionPicker";
 import { Screen } from "@/components/ui";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { usePublishRecorda, type PublishRecordaDraft } from "@/features/recorda-publish";
@@ -50,13 +51,21 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
   const currentDraft = useMemo<RecordaDraft>(
     () =>
       draft ?? {
+        mentionedUserIds: storedDraft.mentionedUserIds,
         description: storedDraft.description,
         media: storedDraft.media,
         song: storedDraft.song
       },
-    [draft, storedDraft.description, storedDraft.media, storedDraft.song]
+    [
+      draft,
+      storedDraft.description,
+      storedDraft.media,
+      storedDraft.song,
+      storedDraft.mentionedUserIds
+    ]
   );
   const [description, setDescription] = useState(currentDraft.description);
+  const [mentionedUserIds, setMentionedUserIds] = useState(currentDraft.mentionedUserIds ?? []);
   const [coverLoadFailed, setCoverLoadFailed] = useState(false);
   const videoPlayer = useVideoPlayer(
     currentDraft.media?.type === "video" ? currentDraft.media.uri : null
@@ -88,7 +97,11 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
   }
 
   function getCurrentDraft(): RecordaDraft {
-    return { ...currentDraft, description };
+    return {
+      ...currentDraft,
+      description,
+      mentionedUserIds: mentionedUserIds.length ? mentionedUserIds : undefined
+    };
   }
 
   async function handlePublish() {
@@ -243,6 +256,14 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
                 value={description}
               />
 
+              <FriendMentionPicker
+                selectedIds={mentionedUserIds}
+                onChange={(ids) => {
+                  setMentionedUserIds(ids);
+                  if (!draft) storedDraft.setMentionedUserIds(ids);
+                }}
+                disabled={isPublishing}
+              />
               <View style={styles.actions}>
                 <IconButton
                   accessibilityLabel={t("recordaDetails.share")}
@@ -437,6 +458,7 @@ function toPublishRecordaDraft(draft: RecordaDraft): PublishRecordaDraft | null 
 
   return {
     description: draft.description || undefined,
+    mentionedUserIds: draft.mentionedUserIds,
     media: {
       fileName: getMediaFileName(draft.media, mediaType),
       mimeType: mediaType === "VIDEO" ? "video/mp4" : "image/jpeg",

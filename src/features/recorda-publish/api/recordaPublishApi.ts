@@ -18,6 +18,7 @@ type UploadRecordaMediaApiResponse = {
 
 type CreateRecordaApiPayload = {
   deezer_track_id: string;
+  mentioned_user_ids?: string[];
   description?: string;
   media_type: CreateRecordaPayload["mediaType"];
   media_url: string;
@@ -52,6 +53,7 @@ export async function createRecorda(payload: CreateRecordaPayload): Promise<Crea
   const body: CreateRecordaApiPayload = {
     deezer_track_id: payload.song.deezerTrackId,
     description: payload.description,
+    mentioned_user_ids: payload.mentionedUserIds,
     media_type: payload.mediaType,
     media_url: payload.mediaUrl,
     song_artist_name: payload.song.artistName,

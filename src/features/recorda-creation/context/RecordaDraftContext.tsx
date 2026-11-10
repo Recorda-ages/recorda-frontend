@@ -9,6 +9,7 @@ export type DraftMedia = RecordaDraftMedia;
 type RecordaDraftContextValue = RecordaDraft & {
   clearMedia: () => void;
   reset: () => void;
+  setMentionedUserIds: (ids: string[]) => void;
   setDescription: (description: string) => void;
   setMedia: (media: RecordaDraftMedia) => void;
   setSong: (song: RecordaDraftSong | null) => void;
@@ -41,13 +42,17 @@ export function RecordaDraftProvider({ children }: PropsWithChildren) {
     setDraft((current) => ({ ...current, description }));
   }, []);
 
+  const setMentionedUserIds = useCallback((mentionedUserIds: string[]) => {
+    setDraft((current) => ({ ...current, mentionedUserIds }));
+  }, []);
+
   const reset = useCallback(() => setDraft(EMPTY_DRAFT), []);
 
   useEffect(() => onPrivateStateReset(reset), [reset]);
 
   const value = useMemo<RecordaDraftContextValue>(
-    () => ({ ...draft, clearMedia, reset, setDescription, setMedia, setSong }),
-    [clearMedia, draft, reset, setDescription, setMedia, setSong]
+    () => ({ ...draft, clearMedia, reset, setDescription, setMedia, setSong, setMentionedUserIds }),
+    [clearMedia, draft, reset, setDescription, setMedia, setSong, setMentionedUserIds]
   );
 
   return <RecordaDraftContext.Provider value={value}>{children}</RecordaDraftContext.Provider>;

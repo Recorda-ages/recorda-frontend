@@ -12,6 +12,7 @@ export type RecordaDraftSong = {
 };
 
 export type RecordaDraft = {
+  mentionedUserIds?: string[];
   media: RecordaDraftMedia | null;
   song: RecordaDraftSong | null;
   description: string;

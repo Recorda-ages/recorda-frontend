@@ -107,6 +107,13 @@
     "selectedCount_other": "{{count}} selected"
   },
   "recordaDetails": {
+    "mentions": {
+      "label": "Tag friends ({{count}})",
+      "search": "Search friends",
+      "loading": "Loading friends…",
+      "more": "Show more",
+      "clear": "Clear tags"
+    },
     "back": "Back",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Add a description...",
@@ -153,6 +160,7 @@
       "users": "Users"
     },
     "reports": {
+      "contentRemoved": "Content removed",
       "title": "Reports",
       "search": "Search by user or content",
       "loading": "Loading reports",

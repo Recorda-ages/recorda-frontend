@@ -74,7 +74,9 @@ export type AdminReportedUser = AdminReportAccount & {
 };
 
 export type AdminReportTarget =
-  { recorda: AdminReportedRecorda; type: "RECORDA" } | { type: "USER"; user: AdminReportedUser };
+  | { recorda: AdminReportedRecorda; type: "RECORDA" }
+  | { type: "REMOVED"; recordaId: string }
+  | { type: "USER"; user: AdminReportedUser };
 
 export type AdminReportEntry = {
   createdAt: string;
@@ -239,18 +241,20 @@ export type AdminReportDetailResponse = {
   }[];
 } & (
   | {
-      target: {
-        author: AdminReportAccountResponse;
-        created_at: string;
-        deleted_at: string | null;
-        description: string | null;
-        media_type: AdminMediaType;
-        media_url: string;
-        recorda_id: string;
-        song_artist_name: string;
-        song_cover_url: string;
-        song_title: string;
-      };
+      target:
+        | { recorda_id: string; removed: true }
+        | {
+            author: AdminReportAccountResponse;
+            created_at: string;
+            deleted_at: string | null;
+            description: string | null;
+            media_type: AdminMediaType;
+            media_url: string;
+            recorda_id: string;
+            song_artist_name: string;
+            song_cover_url: string;
+            song_title: string;
+          };
       target_type: "RECORDA";
     }
   | {

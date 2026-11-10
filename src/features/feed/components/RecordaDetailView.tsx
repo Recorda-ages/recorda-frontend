@@ -701,6 +701,16 @@ export function RecordaDetailView({
                 <View style={styles.soundSlot}>
                   <RecordaSoundControl hasPreview={Boolean(post.previewUrl)} recordaId={post.id} />
                 </View>
+                {post.mentionedUsers?.map((user) => (
+                  <Pressable
+                    key={user.user_id}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("profile.openA11y", { username: user.username })}
+                    onPress={() => onOpenProfile(user.user_id)}
+                  >
+                    <AppText style={styles.username}>@{user.username}</AppText>
+                  </Pressable>
+                ))}
                 {post.description ? (
                   <View style={styles.descriptionRow} testID="recorda-description">
                     <SmallAvatar source={authorAvatarSource} />

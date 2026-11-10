@@ -16,6 +16,7 @@ export type RecordaSongSnapshot = {
 };
 
 export type PublishRecordaDraft = {
+  mentionedUserIds?: string[];
   description?: string;
   media: RecordaMediaDraft;
   song: RecordaSongSnapshot;
@@ -26,6 +27,7 @@ export type UploadRecordaMediaResult = {
 };
 
 export type CreateRecordaPayload = {
+  mentionedUserIds?: string[];
   description?: string;
   mediaType: MediaType;
   mediaUrl: string;

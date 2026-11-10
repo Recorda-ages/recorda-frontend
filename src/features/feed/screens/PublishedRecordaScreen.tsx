@@ -93,6 +93,8 @@ export function PublishedRecordaScreen() {
       void queryClient.invalidateQueries({ queryKey: ["feed"] });
       void queryClient.invalidateQueries({ queryKey: ["notifications"] });
       void invalidateMemoryCalendar(queryClient);
+      void queryClient.invalidateQueries({ queryKey: ["user-metrics"] });
+      void queryClient.invalidateQueries({ queryKey: ["memories-retrospective"] });
       // Grid and counter of the owner's profile, both under this key.
       if (context?.ownerId && context.generation === getSessionGeneration()) {
         void queryClient.invalidateQueries({ queryKey: profileQueryKey(context.ownerId) });
