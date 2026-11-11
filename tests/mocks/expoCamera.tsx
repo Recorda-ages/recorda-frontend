@@ -8,10 +8,12 @@ type CameraFacing = "back" | "front";
 type MockCameraProps = {
   active?: boolean;
   facing?: CameraFacing;
+  mirror?: boolean;
   mode?: CameraMode;
   onCameraReady?: () => void;
   onMountError?: () => void;
   style?: StyleProp<ViewStyle>;
+  zoom?: number;
 };
 
 type MockCapture = {

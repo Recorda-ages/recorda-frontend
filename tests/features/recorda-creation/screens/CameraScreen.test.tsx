@@ -286,6 +286,25 @@ describe("CameraScreen", () => {
     });
   });
 
+  it("mirrors the captured photo only with the front camera", async () => {
+    await renderCamera();
+    expect(expoCameraMock.mockCameraViewState.latestProps?.mirror).toBe(false);
+
+    fireEvent.press(screen.getByTestId("camera-flip-button"));
+
+    await waitFor(() => {
+      expect(expoCameraMock.mockCameraViewState.latestProps?.facing).toBe("front");
+    });
+    expect(expoCameraMock.mockCameraViewState.latestProps?.mirror).toBe(true);
+  });
+
+  it("starts unzoomed and handles two-finger gestures on the camera stage", async () => {
+    await renderCamera();
+
+    expect(expoCameraMock.mockCameraViewState.latestProps?.zoom).toBe(0);
+    expect(screen.getByTestId("camera-stage").props.onMoveShouldSetResponderCapture).toBeDefined();
+  });
+
   it("does not open the gallery picker when gallery permission is denied", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     const deniedPermission = {

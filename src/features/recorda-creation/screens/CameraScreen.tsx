@@ -4,12 +4,13 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { CameraMode, PermissionResponse } from "expo-camera";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
   Image,
+  PanResponder,
   Pressable,
   StyleSheet,
   TouchableOpacity,
@@ -20,6 +21,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { AppText, Button, Screen } from "@/components/ui";
 import { baseColors, radius, spacing } from "@/theme";
+
+import { PinchZoomTracker } from "../utils/pinchZoom";
 
 let MediaLibrary: typeof import("expo-media-library/legacy") | null = null;
 try {
@@ -47,6 +50,7 @@ function useMediaLibraryPermissions() {
 const HOLD_THRESHOLD_MS = 300;
 const MAX_VIDEO_DURATION_SECONDS = 60;
 const MAX_VIDEO_DURATION_MS = MAX_VIDEO_DURATION_SECONDS * 1000;
+const MAX_ZOOM = 0.5;
 
 export function CameraScreen() {
   const { t } = useTranslation();
@@ -60,6 +64,20 @@ export function CameraScreen() {
   const [lastGalleryUri, setLastGalleryUri] = useState<null | string>(null);
   const isFocused = useIsFocused();
   const cameraRef = useRef<CameraView>(null);
+  const [zoom, setZoom] = useState(0);
+  const [pinch] = useState(() => new PinchZoomTracker(MAX_ZOOM));
+  const pinchHandlers = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (event) => event.nativeEvent.touches.length === 2,
+        onMoveShouldSetPanResponderCapture: (event) => event.nativeEvent.touches.length === 2,
+        onPanResponderMove: (event) => setZoom(pinch.update(event.nativeEvent.touches)),
+        onPanResponderRelease: () => pinch.end(),
+        onPanResponderTerminate: () => pinch.end(),
+        onPanResponderTerminationRequest: () => false
+      }).panHandlers,
+    [pinch]
+  );
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cameraModeRef = useRef<CameraMode>("picture");
@@ -438,6 +456,8 @@ export function CameraScreen() {
     }
 
     markCameraNotReady();
+    pinch.reset();
+    setZoom(0);
     setFacing((current) => (current === "back" ? "front" : "back"));
   }
 
@@ -515,17 +535,19 @@ export function CameraScreen() {
       />
 
       <View style={styles.content}>
-        <View style={styles.stage}>
+        <View {...pinchHandlers} style={styles.stage} testID="camera-stage">
           {isFocused ? (
             <CameraView
               ref={cameraRef}
               active={isFocused}
               facing={facing}
               key={`${facing}-${cameraMode}`}
+              mirror={facing === "front"}
               mode={cameraMode}
               onCameraReady={handleCameraReady}
               onMountError={markCameraNotReady}
               style={StyleSheet.absoluteFill}
+              zoom={zoom}
             />
           ) : null}
 
