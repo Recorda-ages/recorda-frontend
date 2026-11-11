@@ -8,6 +8,7 @@ import { RecordaDetailsScreen } from "@/features/recorda-creation/screens/Record
 import type { RecordaDraft } from "@/features/recorda-creation/types";
 import { usePublishRecorda } from "@/features/recorda-publish";
 
+import { mockAudioPlayer, resetAudioMock } from "../../../mocks/expoAudio";
 import { mockRecordaDraft } from "../../../mocks/recordaDraft";
 
 const mockGoBack = jest.fn();
@@ -72,6 +73,7 @@ describe("RecordaDetailsScreen", () => {
       retry: mockRetry,
       status: "idle"
     });
+    resetAudioMock();
     jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
   });
 
@@ -287,7 +289,7 @@ describe("RecordaDetailsScreen", () => {
     });
   });
 
-  it("shows confirmation and redirects to the Feed on successful publish", async () => {
+  it("redirects to the Feed on successful publish without a native alert", async () => {
     mockedUsePublishRecorda.mockReturnValue({
       error: null,
       publish: mockPublish,
@@ -298,10 +300,7 @@ describe("RecordaDetailsScreen", () => {
     renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} />);
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        "Recorda publicada",
-        "Sua Recorda foi publicada com sucesso."
-      );
+      expect(Alert.alert).not.toHaveBeenCalled();
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: "Feed" }]
@@ -366,5 +365,29 @@ describe("RecordaDetailsScreen", () => {
     );
 
     expect(screen.getByText("Mídia indisponível")).toBeTruthy();
+  });
+
+  it("plays the song preview while the Recorda is being created and can be muted", async () => {
+    const draft = createDraft({
+      song: { ...mockRecordaDraft.song!, previewUrl: "https://cdn.example.com/preview.mp3" }
+    });
+    renderScreen(<RecordaDetailsScreen draft={draft} onPublish={jest.fn()} />);
+
+    await waitFor(() => expect(mockAudioPlayer.play).toHaveBeenCalled());
+    expect(mockAudioPlayer.replace).toHaveBeenCalledWith("https://cdn.example.com/preview.mp3");
+    expect(mockAudioPlayer.muted).toBe(false);
+
+    fireEvent.press(screen.getByRole("button", { name: "Silenciar música" }));
+    await waitFor(() => expect(mockAudioPlayer.muted).toBe(true));
+
+    fireEvent.press(screen.getByRole("button", { name: "Reativar música" }));
+    await waitFor(() => expect(mockAudioPlayer.muted).toBe(false));
+  });
+
+  it("has no sound control when the song has no preview", () => {
+    renderScreen(<RecordaDetailsScreen draft={mockRecordaDraft} onPublish={jest.fn()} />);
+
+    expect(screen.queryByTestId("draft-sound-toggle")).toBeNull();
+    expect(mockAudioPlayer.play).not.toHaveBeenCalled();
   });
 });

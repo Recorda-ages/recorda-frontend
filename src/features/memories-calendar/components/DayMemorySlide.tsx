@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
@@ -15,16 +15,22 @@ type DayMemorySlideProps = Readonly<{
   height: number;
   isActive: boolean;
   memory: DayRecordaDetail;
+  onTap: (pageX: number) => void;
   width: number;
 }>;
 
 /** Uma Recorda do dia: foto ou vídeo, horário e descrição. */
-export function DayMemorySlide({ height, isActive, memory, width }: DayMemorySlideProps) {
+export function DayMemorySlide({ height, isActive, memory, onTap, width }: DayMemorySlideProps) {
   const { t } = useTranslation();
   const source = useAuthImageSource(resolveApiAssetUrl(memory.media_url));
 
   return (
-    <View style={{ height, width }} testID={`day-memory-slide-${memory.recorda_id}`}>
+    <Pressable
+      accessible={false}
+      onPress={(event) => onTap(event.nativeEvent.pageX)}
+      style={{ height, width }}
+      testID={`day-memory-slide-${memory.recorda_id}`}
+    >
       {source && memory.media_type === "VIDEO" ? (
         <SlideVideo isActive={isActive} source={source} />
       ) : (
@@ -70,7 +76,7 @@ export function DayMemorySlide({ height, isActive, memory, width }: DayMemorySli
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

@@ -366,7 +366,7 @@ describe("UserProfileScreen", () => {
       );
     });
 
-    it("shows an empty calendar without nudging to create a Recorda", async () => {
+    it("shows only the month grid, without an empty message, on a month with no Recordas", async () => {
       mockGetMonthCalendar.mockImplementation(async (year: number, month: number) => ({
         active_days_count: 0,
         days: [],
@@ -378,9 +378,9 @@ describe("UserProfileScreen", () => {
 
       fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
 
-      expect(await screen.findByTestId("calendar-empty-state")).toBeTruthy();
-      expect(screen.getByText("Este mês ainda está em branco")).toBeTruthy();
-      expect(screen.queryByText("Criar Recorda")).toBeNull();
+      expect(await screen.findByTestId("memory-calendar-grid")).toBeTruthy();
+      expect(screen.queryByTestId("calendar-empty-state")).toBeNull();
+      expect(screen.queryByText("Este mês ainda está em branco")).toBeNull();
     });
 
     it("updates the counters and the button after following", async () => {

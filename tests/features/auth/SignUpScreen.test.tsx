@@ -145,6 +145,26 @@ describe("SignUpScreen", () => {
     expect(registerSpy).not.toHaveBeenCalled();
   });
 
+  it("lowercases the username as it is typed and when submitted", async () => {
+    const registerSpy = jest
+      .spyOn(registerApi, "registerUser")
+      .mockRejectedValueOnce(new Error("x"));
+    renderSignUpScreen();
+
+    fireEvent.changeText(screen.getByTestId("input-name"), "Eduardo");
+    fireEvent.changeText(screen.getByTestId("input-username"), "EduardoBastiani");
+    expect(screen.getByTestId("input-username").props.value).toBe("eduardobastiani");
+    fireEvent.changeText(screen.getByTestId("input-email"), "eduardo@example.com");
+    fireEvent.changeText(screen.getByTestId("input-password"), "senhaForte123");
+    fireEvent.press(screen.getByTestId("submit-button"));
+
+    await waitFor(() => {
+      expect(registerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ username: "eduardobastiani" })
+      );
+    });
+  });
+
   it("blocks short password from reaching the backend", async () => {
     const registerSpy = jest.spyOn(registerApi, "registerUser");
     renderSignUpScreen();

@@ -75,7 +75,7 @@ export function SignUpScreen() {
         language: getCurrentLanguage(),
         name: values.name.trim(),
         password: values.password,
-        username: values.username.trim()
+        username: values.username.trim().toLowerCase()
       });
 
       navigation.reset({
@@ -152,7 +152,7 @@ export function SignUpScreen() {
             autoCorrect={false}
             error={errors.username?.message}
             onBlur={onBlur}
-            onChangeText={onChange}
+            onChangeText={(text) => onChange(text.toLowerCase())}
             placeholder={t("auth.signUp.username")}
             testID="input-username"
             textContentType="username"

@@ -1,4 +1,4 @@
-import { type InfiniteData, useInfiniteQuery } from "@tanstack/react-query";
+import { type InfiniteData, keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 
 import { listFollowing } from "../api/friendsApi";
 import type { FriendProfile } from "../types";
@@ -22,6 +22,7 @@ export function useFollowing(userId: string, search: string, enabled = true) {
     enabled: !!userId && enabled,
     getNextPageParam: (lastPage, pages) =>
       lastPage.length < FRIENDS_PAGE_SIZE ? undefined : pages.length * FRIENDS_PAGE_SIZE,
-    initialPageParam: 0
+    initialPageParam: 0,
+    placeholderData: keepPreviousData
   });
 }

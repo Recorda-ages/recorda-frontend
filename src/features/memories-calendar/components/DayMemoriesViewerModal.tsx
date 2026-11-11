@@ -1,5 +1,5 @@
 import { useAudioPlayer } from "expo-audio";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -10,11 +10,9 @@ import {
   type NativeSyntheticEvent,
   PanResponder,
   Pressable,
-  type StyleProp,
   StyleSheet,
   useWindowDimensions,
-  View,
-  type ViewStyle
+  View
 } from "react-native";
 import { Icon } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,6 +29,7 @@ import { MusicPreviewPill } from "./MusicPreviewPill";
 
 const DISMISS_DISTANCE = 120;
 const DISMISS_VELOCITY = 0.8;
+const EDGE_SWIPE_DISTANCE = 48;
 
 /** Pull-down fecha quando o arrasto passa da distância ou é rápido o bastante. */
 export function shouldDismiss(dy: number, vy: number) {
@@ -86,15 +85,44 @@ function ViewerContent({
     stop();
     onClose();
   }, [onClose, stop]);
+  const listRef = useRef<FlatList<DayRecordaDetail>>(null);
   const goToDate = (next: string) => {
     setCurrentDate(next);
     setActiveIndex(0);
+  };
+  const goNext = () => {
+    if (index < memories.length - 1) {
+      listRef.current?.scrollToOffset({ animated: true, offset: (index + 1) * width });
+      setActiveIndex(index + 1);
+    } else if (nextDate) {
+      goToDate(nextDate);
+    }
+  };
+  const goPrevious = () => {
+    if (index > 0) {
+      listRef.current?.scrollToOffset({ animated: true, offset: (index - 1) * width });
+      setActiveIndex(index - 1);
+    } else if (previousDate) {
+      goToDate(previousDate);
+    }
   };
 
   const { panHandlers, style: dragStyle } = usePullDownToDismiss(height, close);
 
   const onScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     setActiveIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+  };
+
+  const onScrollEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offset = event.nativeEvent.contentOffset.x;
+    const lastOffset = (memories.length - 1) * width;
+    if (offset > lastOffset + EDGE_SWIPE_DISTANCE && nextDate) goToDate(nextDate);
+    else if (offset < -EDGE_SWIPE_DISTANCE && previousDate) goToDate(previousDate);
+  };
+
+  const onTapSlide = (pageX: number) => {
+    if (pageX < width / 2) goPrevious();
+    else goNext();
   };
 
   return (
@@ -127,12 +155,15 @@ function ViewerContent({
           key={currentDate}
           keyExtractor={(memory) => memory.recorda_id}
           onMomentumScrollEnd={onScrollEnd}
+          onScrollEndDrag={onScrollEndDrag}
           pagingEnabled
+          ref={listRef}
           renderItem={({ index: itemIndex, item }) => (
             <DayMemorySlide
               height={height}
               isActive={itemIndex === index}
               memory={item}
+              onTap={onTapSlide}
               width={width}
             />
           )}
@@ -155,25 +186,6 @@ function ViewerContent({
         </Pressable>
       </View>
 
-      {previousDate ? (
-        <DayNavButton
-          icon="chevron-left"
-          label={t("memoriesCalendar.viewer.previousDay")}
-          onPress={() => goToDate(previousDate)}
-          style={styles.previous}
-          testID="day-memories-previous"
-        />
-      ) : null}
-      {nextDate ? (
-        <DayNavButton
-          icon="chevron-right"
-          label={t("memoriesCalendar.viewer.nextDay")}
-          onPress={() => goToDate(nextDate)}
-          style={styles.next}
-          testID="day-memories-next"
-        />
-      ) : null}
-
       {active ? (
         <View style={[styles.pill, { bottom: insets.bottom + spacing[6] }]}>
           <MusicPreviewPill
@@ -188,33 +200,6 @@ function ViewerContent({
         </View>
       ) : null}
     </Animated.View>
-  );
-}
-
-function DayNavButton({
-  icon,
-  label,
-  onPress,
-  style,
-  testID
-}: Readonly<{
-  icon: string;
-  label: string;
-  onPress: () => void;
-  style: StyleProp<ViewStyle>;
-  testID: string;
-}>) {
-  return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      hitSlop={8}
-      onPress={onPress}
-      style={[styles.roundButton, styles.navButton, style]}
-      testID={testID}
-    >
-      <Icon color={baseColors.white} size={26} source={icon} />
-    </Pressable>
   );
 }
 
@@ -328,20 +313,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[6],
     textAlign: "center"
   },
-  navButton: {
-    position: "absolute",
-    top: "50%"
-  },
-  next: {
-    right: spacing[2]
-  },
   pill: {
     left: spacing[4],
     position: "absolute",
     right: spacing[4]
-  },
-  previous: {
-    left: spacing[2]
   },
   roundButton: {
     alignItems: "center",

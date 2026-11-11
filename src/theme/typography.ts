@@ -4,7 +4,8 @@ export const fontFamily = {
   primary: {
     regular: "Inter_400Regular",
     semiBold: "Inter_600SemiBold",
-    bold: "Inter_700Bold"
+    bold: "Inter_700Bold",
+    extraBold: "Inter_800ExtraBold"
   },
   display: {
     regular: "BaiJamjuree_400Regular",

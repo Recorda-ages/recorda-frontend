@@ -53,7 +53,7 @@ function toFormValues(account: Account): AccountFormValues {
 function getChanges(account: Account, values: AccountFormValues): AccountChanges | null {
   const changes: AccountChanges = {};
   const name = values.name.trim();
-  const username = values.username.trim();
+  const username = values.username.trim().toLowerCase();
   const email = values.email.trim();
 
   if (name !== account.name) changes.name = name;
@@ -276,7 +276,7 @@ function AccountForm({ account }: Readonly<{ account: Account }>) {
                 <Icon color={colors.primary[200]} size={22} source="account-circle-outline" />
               }
               onBlur={onBlur}
-              onChangeText={(text) => onChange(text.replace(/^@+/, ""))}
+              onChangeText={(text) => onChange(text.replace(/^@+/, "").toLowerCase())}
               placeholder={t("account.username")}
               placeholderTextColor={PLACEHOLDER_COLOR}
               style={styles.inputText}

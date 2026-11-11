@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import type { ComponentProps, ReactElement } from "react";
 import { Text } from "react-native";
 import { I18nextProvider } from "react-i18next";
@@ -11,6 +11,8 @@ import { mockOpenProfile } from "@/features/profile/mocks/profileMocks";
 import { i18n } from "@/i18n";
 import { AUTH_TOKEN_QUERY_KEY } from "@/services/api";
 import { colors } from "@/theme";
+
+import { mockAudioPlayer, resetAudioMock } from "../../mocks/expoAudio";
 
 type HostChild = ReturnType<typeof screen.getByTestId> | string;
 
@@ -303,6 +305,65 @@ describe("ProfileHeader", () => {
   });
 });
 
+describe("ProfileHeader favorite song playback", () => {
+  const withPreview = {
+    favoriteSong: {
+      artistName: "Muse",
+      coverUrl: "https://cdn.example.com/starlight.jpg",
+      previewUrl: "https://cdn.example.com/preview.mp3",
+      title: "Starlight"
+    }
+  };
+
+  beforeEach(() => {
+    resetAudioMock();
+  });
+
+  it("plays the preview when the song chip is pressed and pauses on a second press", async () => {
+    renderHeader(withPreview);
+    const chip = screen.getByTestId("profile-favorite-song");
+
+    fireEvent.press(chip);
+
+    await waitFor(() => expect(mockAudioPlayer.play).toHaveBeenCalledTimes(1));
+    expect(mockAudioPlayer.replace).toHaveBeenCalledWith("https://cdn.example.com/preview.mp3");
+    expect(mockAudioPlayer.loop).toBe(true);
+    expect(screen.getByTestId("profile-favorite-song")).toBeSelected();
+
+    mockAudioPlayer.pause.mockClear();
+    fireEvent.press(screen.getByTestId("profile-favorite-song"));
+
+    await waitFor(() => expect(mockAudioPlayer.pause).toHaveBeenCalled());
+    expect(screen.getByTestId("profile-favorite-song")).not.toBeSelected();
+  });
+
+  it("stops the preview when the stop token changes", async () => {
+    const { rerender } = renderHeader({ ...withPreview, songStopToken: 0 });
+    fireEvent.press(screen.getByTestId("profile-favorite-song"));
+    await waitFor(() => expect(mockAudioPlayer.play).toHaveBeenCalled());
+    mockAudioPlayer.pause.mockClear();
+
+    rerender(
+      <I18nextProvider i18n={i18n}>
+        <QueryClientProvider client={new QueryClient()}>
+          <ProfileHeader {...HEADER_PROPS} {...withPreview} songStopToken={1} />
+        </QueryClientProvider>
+      </I18nextProvider>
+    );
+
+    await waitFor(() => expect(mockAudioPlayer.pause).toHaveBeenCalled());
+  });
+
+  it("is not pressable when the song has no preview", () => {
+    renderHeader();
+
+    fireEvent.press(screen.getByTestId("profile-favorite-song"));
+
+    expect(mockAudioPlayer.play).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /Música favorita/ })).toBeNull();
+  });
+});
+
 describe("ProfileTabs", () => {
   it("shows the three tabs", () => {
     renderWithProviders(<ProfileTabs activeTab="recordas" onChange={jest.fn()} />);
@@ -350,6 +411,34 @@ describe("ProfileTabs", () => {
 
     expect(screen.getByText("Calendário do E7")).toBeTruthy();
     expect(screen.queryByText("Métricas do E7")).toBeNull();
+  });
+
+  it("renders recordasContent under the Recordas tab and swaps it when the tab changes", () => {
+    const tabs = (activeTab: "recordas" | "metrics") => (
+      <ProfileTabs
+        activeTab={activeTab}
+        metricsContent={<Text>Métricas do E7</Text>}
+        onChange={jest.fn()}
+        recordasContent={<Text>Grade de Recordas</Text>}
+      />
+    );
+    const { rerender } = renderWithProviders(tabs("recordas"));
+
+    expect(screen.getByText("Grade de Recordas")).toBeTruthy();
+    expect(screen.queryByText("Métricas do E7")).toBeNull();
+
+    rerender(<I18nextProvider i18n={i18n}>{tabs("metrics")}</I18nextProvider>);
+
+    expect(screen.getByText("Métricas do E7")).toBeTruthy();
+    expect(screen.queryByText("Grade de Recordas")).toBeNull();
+  });
+
+  it("draws a fill indicator per tab like the feed tabs", () => {
+    renderWithProviders(<ProfileTabs activeTab="metrics" onChange={jest.fn()} />);
+
+    expect(screen.getByTestId("profile-tabfill-recordas")).toBeTruthy();
+    expect(screen.getByTestId("profile-tabfill-metrics")).toBeTruthy();
+    expect(screen.getByTestId("profile-tabfill-calendar")).toBeTruthy();
   });
 
   it("shows a translated empty state while a slot is not filled", () => {

@@ -83,9 +83,8 @@ function setToday(date: Date) {
   });
 }
 
-function renderTab(options: { onCreateRecorda?: () => void; userId?: string } = {}) {
+function renderTab(options: { userId?: string } = {}) {
   const { userId } = options;
-  const onCreateRecorda = userId ? undefined : (options.onCreateRecorda ?? jest.fn());
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // Thumbnails read the token from the cache; seeding it keeps them from updating after render.
   client.setQueryData(AUTH_TOKEN_QUERY_KEY, "token");
@@ -96,7 +95,7 @@ function renderTab(options: { onCreateRecorda?: () => void; userId?: string } = 
       </I18nextProvider>
     </QueryClientProvider>
   );
-  return render(<MemoryCalendarTab onCreateRecorda={onCreateRecorda} userId={userId} />, {
+  return render(<MemoryCalendarTab userId={userId} />, {
     wrapper
   });
 }
@@ -156,16 +155,6 @@ describe("MemoryCalendarTab", () => {
     );
   });
 
-  it("shows an empty state without a camera shortcut on another user's empty month", async () => {
-    setToday(DECEMBER);
-
-    renderTab({ userId: "user-2" });
-
-    expect(await screen.findByTestId("calendar-empty-state")).toBeTruthy();
-    expect(screen.getByText("Este mês ainda está em branco")).toBeTruthy();
-    expect(screen.queryByText("Criar Recorda")).toBeNull();
-  });
-
   it("ignores a day summary without Recordas", async () => {
     setToday(OCTOBER);
     const zero = { ...october.days[0], count: 0 };
@@ -177,32 +166,15 @@ describe("MemoryCalendarTab", () => {
     expect(screen.queryByTestId("viewer-date")).toBeNull();
   });
 
-  it("shows the empty state with a camera shortcut when the current month has no Recordas", async () => {
+  it("shows no empty message on a month without Recordas", async () => {
     setToday(DECEMBER);
-    const onCreateRecorda = jest.fn();
-
-    renderTab({ onCreateRecorda });
-
-    expect(await screen.findByText("Seu mês ainda está em branco")).toBeTruthy();
-    expect(screen.getByTestId("memory-calendar-grid")).toBeTruthy();
-
-    fireEvent.press(screen.getByRole("button", { name: "Criar Recorda" }));
-
-    expect(onCreateRecorda).toHaveBeenCalledTimes(1);
-  });
-
-  it("decides emptiness by the month's total, not by the days listed", async () => {
-    setToday(OCTOBER);
-    mockGetMonthCalendar.mockResolvedValue({
-      ...october,
-      active_days_count: 0,
-      days: [{ ...october.days[0], count: 0 }],
-      total_memories: 0
-    });
 
     renderTab();
 
-    expect(await screen.findByTestId("calendar-empty-state")).toBeTruthy();
+    expect(await screen.findByTestId("memory-calendar-grid")).toBeTruthy();
+    await screen.findByText("Nenhuma memória neste mês");
+    expect(screen.queryByTestId("calendar-empty-state")).toBeNull();
+    expect(screen.queryByText("Seu mês ainda está em branco")).toBeNull();
   });
 
   it("leaves other empty months to the header summary", async () => {
@@ -233,18 +205,5 @@ describe("MemoryCalendarTab", () => {
       await screen.findByTestId(`calendar-day-thumbnail-${october.days[0].date}`)
     ).toBeTruthy();
     expect(screen.queryByText("Não foi possível carregar o calendário.")).toBeNull();
-  });
-
-  it.each([
-    ["en", "Your month is still blank", "Create Recorda"],
-    ["es", "Tu mes todavía está en blanco", "Crear Recorda"]
-  ])("translates the empty state to %s", async (language, title, action) => {
-    setToday(DECEMBER);
-    await act(() => i18n.changeLanguage(language));
-
-    renderTab();
-
-    expect(await screen.findByText(title)).toBeTruthy();
-    expect(screen.getByRole("button", { name: action })).toBeTruthy();
   });
 });

@@ -20,6 +20,9 @@ export type NotificationItem = {
   is_read: boolean;
   notification_id: string;
   recorda_id: string | null;
+  recorda_media_type?: "PHOTO" | "VIDEO" | null;
+  recorda_media_url?: string | null;
+  recorda_song_cover_url?: string | null;
   recorda_song_title?: string | null;
   removal_reason?: string | null;
   sender: NotificationSender | null;

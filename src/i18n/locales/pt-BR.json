@@ -112,7 +112,8 @@
       "search": "Buscar amigos",
       "loading": "Carregando amigos…",
       "more": "Ver mais",
-      "clear": "Limpar marcações"
+      "clear": "Limpar marcações",
+      "empty": "Nenhum amigo encontrado"
     },
     "back": "Voltar",
     "descriptionLabel": "Descrição",
@@ -916,8 +917,6 @@
       "likes": "{{count}} curtidas",
       "comments": "{{count}} comentários",
       "close": "Fechar",
-      "previousDay": "Dia anterior",
-      "nextDay": "Próximo dia",
       "play": "Tocar música",
       "pause": "Pausar música",
       "error": "Não foi possível carregar as memórias deste dia.",
@@ -926,12 +925,7 @@
     },
     "tab": {
       "loadError": "Não foi possível carregar o calendário.",
-      "retry": "Tentar novamente",
-      "emptyTitle": "Seu mês ainda está em branco",
-      "emptyMessage": "Cada dia pode virar uma memória. Que tal registrar a trilha sonora de hoje?",
-      "emptyOtherTitle": "Este mês ainda está em branco",
-      "emptyOtherMessage": "Quando este perfil registrar memórias, elas aparecem aqui.",
-      "emptyAction": "Criar Recorda"
+      "retry": "Tentar novamente"
     }
   },
   "retrospectiveFlow": {

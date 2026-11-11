@@ -112,7 +112,8 @@
       "search": "Search friends",
       "loading": "Loading friends…",
       "more": "Show more",
-      "clear": "Clear tags"
+      "clear": "Clear tags",
+      "empty": "No friends found"
     },
     "back": "Back",
     "descriptionLabel": "Description",
@@ -913,8 +914,6 @@
       "likes": "{{count}} likes",
       "comments": "{{count}} comments",
       "close": "Close",
-      "previousDay": "Previous day",
-      "nextDay": "Next day",
       "play": "Play song",
       "pause": "Pause song",
       "error": "Could not load this day’s memories.",
@@ -923,12 +922,7 @@
     },
     "tab": {
       "loadError": "We couldn't load the calendar.",
-      "retry": "Try again",
-      "emptyTitle": "Your month is still blank",
-      "emptyMessage": "Every day can become a memory. How about capturing today's soundtrack?",
-      "emptyOtherTitle": "This month is still blank",
-      "emptyOtherMessage": "Memories this profile records will show up here.",
-      "emptyAction": "Create Recorda"
+      "retry": "Try again"
     }
   },
   "retrospectiveFlow": {

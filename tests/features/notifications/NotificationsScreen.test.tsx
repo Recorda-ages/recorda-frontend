@@ -162,6 +162,53 @@ describe("NotificationsScreen", () => {
     expect(row.queryByTestId("notification-decline-n-removed")).toBeNull();
   });
 
+  it("shows the Recorda photo on like, comment and mention notifications", async () => {
+    serverPage = {
+      items: [
+        notification({
+          notification_id: "n-photo",
+          recorda_id: "recorda-1",
+          recorda_media_type: "PHOTO",
+          recorda_media_url: "https://cdn.example.com/photo.jpg",
+          recorda_song_cover_url: "https://cdn.example.com/cover.jpg",
+          type: "LIKE"
+        }),
+        notification({
+          notification_id: "n-video",
+          recorda_id: "recorda-2",
+          recorda_media_type: "VIDEO",
+          recorda_media_url: "https://cdn.example.com/video.mp4",
+          recorda_song_cover_url: "https://cdn.example.com/cover.jpg",
+          type: "MENTION"
+        }),
+        notification({ notification_id: "n-follower", type: "NEW_FOLLOWER" })
+      ],
+      unread_count: 3
+    };
+    renderScreen();
+
+    expect(await screen.findByTestId("notification-thumbnail-n-photo")).toBeTruthy();
+    expect(screen.getByTestId("notification-thumbnail-n-video")).toBeTruthy();
+    expect(screen.queryByTestId("notification-thumbnail-n-follower")).toBeNull();
+  });
+
+  it("does not show a Recorda photo on a removal notification", async () => {
+    serverPage = {
+      items: [
+        {
+          ...REMOVED_NOTIFICATION,
+          recorda_media_type: "PHOTO",
+          recorda_media_url: "https://cdn.example.com/photo.jpg"
+        }
+      ],
+      unread_count: 1
+    };
+    renderScreen();
+
+    await screen.findByTestId("notification-n-removed");
+    expect(screen.queryByTestId("notification-thumbnail-n-removed")).toBeNull();
+  });
+
   it("never displays the sender avatar or username for a removal notification", async () => {
     serverPage = {
       items: [

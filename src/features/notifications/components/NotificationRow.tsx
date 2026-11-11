@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
-import { resolveApiAssetUrl } from "@/services/api";
+import { resolveApiAssetUrl, useAuthImageSource } from "@/services/api";
 import { baseColors, colors, fontFamily, radius, spacing } from "@/theme";
 
 import type { FollowRequestDecision, NotificationItem } from "../types";
@@ -51,6 +51,38 @@ function NotificationIndicator({
   return (
     <View style={[styles.avatar, styles.avatarFallback]}>
       <AppText style={styles.avatarInitial}>{username?.charAt(0).toUpperCase()}</AppText>
+    </View>
+  );
+}
+
+function RecordaThumbnail({ item }: Readonly<{ item: NotificationItem }>) {
+  const isVideo = item.recorda_media_type === "VIDEO";
+  const photoSource = useAuthImageSource(
+    !isVideo && item.recorda_media_url ? resolveApiAssetUrl(item.recorda_media_url) : null
+  );
+  const source = isVideo
+    ? item.recorda_song_cover_url
+      ? { uri: item.recorda_song_cover_url }
+      : null
+    : photoSource;
+
+  if (!item.recorda_media_url && !item.recorda_song_cover_url) return null;
+
+  return (
+    <View style={styles.thumbnail} testID={`notification-thumbnail-${item.notification_id}`}>
+      {source ? (
+        <Image
+          contentFit="cover"
+          source={source}
+          style={StyleSheet.absoluteFill}
+          transition={150}
+        />
+      ) : null}
+      {isVideo ? (
+        <View pointerEvents="none" style={styles.thumbnailBadge}>
+          <Icon color={colors.neutrals[100]} size={18} source="play-circle-outline" />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -127,6 +159,7 @@ export function NotificationRow({ item, onPress, onRespond, responding }: Notifi
       </View>
 
       <AppText style={styles.time}>{t(`notifications.time.${elapsed.unit}`, elapsed)}</AppText>
+      {isContentRemoved ? null : <RecordaThumbnail item={item} />}
     </>
   );
 
@@ -230,6 +263,24 @@ const styles = StyleSheet.create({
     gap: spacing[3],
     marginHorizontal: spacing[4],
     paddingVertical: spacing[3]
+  },
+  thumbnail: {
+    alignItems: "center",
+    backgroundColor: colors.neutrals[800],
+    borderRadius: radius.sm,
+    height: 44,
+    justifyContent: "center",
+    overflow: "hidden",
+    width: 44
+  },
+  thumbnailBadge: {
+    alignItems: "center",
+    bottom: 0,
+    justifyContent: "center",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
   },
   time: {
     color: colors.neutrals[300],

@@ -8,11 +8,13 @@ export type DraftMedia = RecordaDraftMedia;
 
 type RecordaDraftContextValue = RecordaDraft & {
   clearMedia: () => void;
+  isSongMuted: boolean;
   reset: () => void;
   setMentionedUserIds: (ids: string[]) => void;
   setDescription: (description: string) => void;
   setMedia: (media: RecordaDraftMedia) => void;
   setSong: (song: RecordaDraftSong | null) => void;
+  toggleSongMuted: () => void;
 };
 
 const EMPTY_DRAFT: RecordaDraft = { description: "", media: null, song: null };
@@ -21,6 +23,7 @@ const RecordaDraftContext = createContext<RecordaDraftContextValue | undefined>(
 
 export function RecordaDraftProvider({ children }: PropsWithChildren) {
   const [draft, setDraft] = useState<RecordaDraft>(EMPTY_DRAFT);
+  const [isSongMuted, setIsSongMuted] = useState(false);
 
   const setMedia = useCallback((media: RecordaDraftMedia) => {
     setDraft((current) =>
@@ -46,13 +49,38 @@ export function RecordaDraftProvider({ children }: PropsWithChildren) {
     setDraft((current) => ({ ...current, mentionedUserIds }));
   }, []);
 
-  const reset = useCallback(() => setDraft(EMPTY_DRAFT), []);
+  const toggleSongMuted = useCallback(() => setIsSongMuted((current) => !current), []);
+
+  const reset = useCallback(() => {
+    setDraft(EMPTY_DRAFT);
+    setIsSongMuted(false);
+  }, []);
 
   useEffect(() => onPrivateStateReset(reset), [reset]);
 
   const value = useMemo<RecordaDraftContextValue>(
-    () => ({ ...draft, clearMedia, reset, setDescription, setMedia, setSong, setMentionedUserIds }),
-    [clearMedia, draft, reset, setDescription, setMedia, setSong, setMentionedUserIds]
+    () => ({
+      ...draft,
+      clearMedia,
+      isSongMuted,
+      reset,
+      setDescription,
+      setMedia,
+      setMentionedUserIds,
+      setSong,
+      toggleSongMuted
+    }),
+    [
+      clearMedia,
+      draft,
+      isSongMuted,
+      reset,
+      setDescription,
+      setMedia,
+      setMentionedUserIds,
+      setSong,
+      toggleSongMuted
+    ]
   );
 
   return <RecordaDraftContext.Provider value={value}>{children}</RecordaDraftContext.Provider>;

@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui";
-import { baseColors, colors, radius, spacing, withOpacity } from "@/theme";
+import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
 type SlideFrameProps = PropsWithChildren<
   Readonly<{
@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: baseColors.white,
+    fontFamily: fontFamily.primary.extraBold,
     marginTop: spacing[2]
   }
 });

@@ -458,13 +458,6 @@ describe("MyProfileScreen", () => {
       expect(screen.queryByTestId("profile-coming-soon-calendar")).toBeNull();
       expect(screen.queryByTestId("recorda-grid")).toBeNull();
     });
-
-    it("opens the camera from the empty calendar", async () => {
-      await renderLoaded();
-      fireEvent.press(screen.getByRole("tab", { name: "Calendário" }));
-      fireEvent.press(await screen.findByRole("button", { name: "Criar Recorda" }));
-      expect(mockNavigate).toHaveBeenCalledWith("Camera");
-    });
   });
 
   describe("navigation", () => {

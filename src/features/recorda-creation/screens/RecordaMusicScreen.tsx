@@ -24,7 +24,11 @@ import { useTrackSearch } from "@/features/music/hooks/useTrackSearch";
 import type { Track } from "@/features/music/services/musicService";
 import { baseColors, colors, fontFamily, radius, spacing, withOpacity } from "@/theme";
 
+import { useScreenFocused } from "@/hooks/useScreenFocused";
+
+import { SongSoundToggle } from "../components/SongSoundToggle";
 import { useRecordaDraft } from "../context/RecordaDraftContext";
+import { useSongPreviewPlayback } from "../hooks/useSongPreviewPlayback";
 import type { RecordaDraftSong } from "../types";
 
 const SEARCH_DEBOUNCE_MS = 350;
@@ -42,7 +46,8 @@ export function toDraftSong(track: Track): RecordaDraftSong {
 export function RecordaMusicScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { media, setSong, song } = useRecordaDraft();
+  const { isSongMuted, media, setSong, song, toggleSongMuted } = useRecordaDraft();
+  const isFocused = useScreenFocused(navigation);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedSong, setSelectedSong] = useState<RecordaDraftSong | null>(song);
@@ -61,6 +66,12 @@ export function RecordaMusicScreen() {
   const player = useVideoPlayer(media?.type === "video" ? media.uri : null, (instance) => {
     instance.muted = true;
   });
+
+  const { hasPreview } = useSongPreviewPlayback(
+    selectedSong?.previewUrl ?? null,
+    isFocused,
+    isSongMuted
+  );
 
   const handleNext = () => {
     if (!selectedSong) {
@@ -87,7 +98,9 @@ export function RecordaMusicScreen() {
         <AppText style={styles.topBarTitle} variant="headline4">
           {t("recordaMusic.header")}
         </AppText>
-        <View style={styles.topBarAction} />
+        <View style={styles.topBarAction}>
+          {hasPreview ? <SongSoundToggle muted={isSongMuted} onToggle={toggleSongMuted} /> : null}
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -360,6 +373,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4]
   },
   topBarAction: {
+    alignItems: "center",
     justifyContent: "center",
     width: 48
   },

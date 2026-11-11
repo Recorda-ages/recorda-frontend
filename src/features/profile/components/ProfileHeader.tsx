@@ -8,6 +8,7 @@ import { AppText } from "@/components/ui";
 import { resolveApiAssetUrl, useAuthImageSource } from "@/services/api";
 import { colors, fontFamily, spacing } from "@/theme";
 
+import { useFavoriteSongPreview } from "../hooks/useFavoriteSongPreview";
 import { ProfileInfoChip } from "./ProfileInfoChip";
 
 const AVATAR_SIZE = 160;
@@ -30,6 +31,7 @@ export type ProfileHeaderCounts = {
 export type ProfileHeaderFavoriteSong = {
   artistName: string;
   coverUrl: string | null;
+  previewUrl?: string | null;
   title: string;
 };
 
@@ -72,6 +74,8 @@ type ProfileHeaderProps = Readonly<{
   streakHintSlot?: ReactNode;
   /** Top-right corner of the header, e.g. the settings gear or the three-dots menu. */
   headerRight?: ReactNode;
+  /** Changing it stops the favorite song preview, e.g. when another screen covers the profile. */
+  songStopToken?: number;
 }>;
 
 /**
@@ -95,11 +99,13 @@ export function ProfileHeader({
   onEditAvatar,
   onPressFollowers,
   onPressFollowing,
+  songStopToken = 0,
   streakHintSlot,
   streakSlot,
   username
 }: ProfileHeaderProps) {
   const { t } = useTranslation();
+  const songPreview = useFavoriteSongPreview(favoriteSong?.previewUrl ?? null, songStopToken);
   const avatarSource = useAuthImageSource(avatarUrl ? resolveApiAssetUrl(avatarUrl) : null);
 
   const avatarContent = avatarSource ? (
@@ -176,6 +182,8 @@ export function ProfileHeader({
               // The cover may come as "" when Deezer has none (backend ADR 0001).
               imageUrl={favoriteSong.coverUrl || null}
               label={`${favoriteSong.title} · ${favoriteSong.artistName}`}
+              onPress={songPreview.canPlay ? () => void songPreview.toggle() : undefined}
+              spinning={songPreview.isPlaying}
               testID="profile-favorite-song"
             />
           ) : null}
@@ -237,6 +245,8 @@ type ProfileChipProps = Readonly<{
   fallbackIcon: string;
   imageUrl: string | null;
   label: string;
+  onPress?: () => void;
+  spinning?: boolean;
   testID: string;
 }>;
 
@@ -246,6 +256,8 @@ function ProfileChip({
   fallbackIcon,
   imageUrl,
   label,
+  onPress,
+  spinning,
   testID
 }: ProfileChipProps) {
   const imageSource = useAuthImageSource(imageUrl ? resolveApiAssetUrl(imageUrl) : null);
@@ -256,7 +268,10 @@ function ProfileChip({
       icon={fallbackIcon}
       imageSource={imageSource}
       label={label}
+      onPress={onPress}
+      spinning={spinning}
       testID={testID}
+      vinyl={onPress !== undefined}
     />
   );
 }

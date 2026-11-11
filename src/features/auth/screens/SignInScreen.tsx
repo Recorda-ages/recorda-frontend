@@ -50,7 +50,7 @@ export function SignInScreen() {
     try {
       const response = await signInMutation.mutateAsync({
         password: values.password,
-        username: values.username.trim()
+        username: values.username.trim().toLowerCase()
       });
 
       navigation.reset({
@@ -96,7 +96,7 @@ export function SignInScreen() {
             error={errors.username?.message}
             leftAccessory={<UsernameIcon />}
             onBlur={onBlur}
-            onChangeText={onChange}
+            onChangeText={(text) => onChange(text.toLowerCase())}
             placeholder={t("auth.signIn.username")}
             testID="input-username"
             textContentType="username"

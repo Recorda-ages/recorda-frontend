@@ -33,6 +33,7 @@ import { ProfileGlow } from "../components/ProfileGlow";
 import { PROFILE_AVATAR_CENTER_Y, ProfileHeader } from "../components/ProfileHeader";
 import { ProfilePrivateNotice } from "../components/ProfilePrivateNotice";
 import { ProfileTabs, type ProfileTab } from "../components/ProfileTabs";
+import { useBlurCount } from "../hooks/useBlurCount";
 import { canLoadMore, RecordaGrid } from "../components/RecordaGrid";
 import { StreakBadge } from "../components/StreakBadge";
 import { type ProfileMusicChips, useProfileMusicTastes } from "../hooks/useProfileMusicTastes";
@@ -55,6 +56,7 @@ const LOAD_MORE_THRESHOLD = 400;
  */
 export function UserProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const blurCount = useBlurCount(navigation);
   const { params } = useRoute<RouteProp<RootStackParamList, "UserProfile">>();
   const { userId } = params;
   const { t } = useTranslation();
@@ -174,6 +176,7 @@ export function UserProfileScreen() {
         {data ? (
           <ProfileContent
             activeTab={activeTab}
+            blurCount={blurCount}
             isRefreshing={isPullRefreshing}
             onLoadMore={loadMore}
             onPressRecorda={(recordaId) =>
@@ -208,6 +211,7 @@ export function UserProfileScreen() {
 
 type ProfileContentProps = Readonly<{
   activeTab: ProfileTab;
+  blurCount: number;
   isRefreshing: boolean;
   onLoadMore: () => void;
   onPressRecorda: (recordaId: string) => void;
@@ -221,6 +225,7 @@ type ProfileContentProps = Readonly<{
 
 function ProfileContent({
   activeTab,
+  blurCount,
   isRefreshing,
   onLoadMore,
   onPressRecorda,
@@ -263,8 +268,14 @@ function ProfileContent({
         // First item only, as on the own profile.
         favoriteArtists={tastes?.artists.slice(0, 1)}
         favoriteGenres={tastes?.genres.slice(0, 1)}
-        favoriteSong={{ artistName: song.artist_name, coverUrl: song.cover_url, title: song.title }}
+        favoriteSong={{
+          artistName: song.artist_name,
+          coverUrl: song.cover_url,
+          previewUrl: song.preview_url,
+          title: song.title
+        }}
         name={profile.name}
+        songStopToken={blurCount}
         streakSlot={<StreakBadge profile={profile} />}
         username={profile.username}
       />
@@ -274,24 +285,22 @@ function ProfileContent({
           calendarContent={privateNotice ?? <MemoryCalendarTab userId={profile.user_id} />}
           metricsContent={privateNotice ?? <DynamicMetricsDashboard userId={profile.user_id} />}
           onChange={onTabChange}
+          recordasContent={
+            privateNotice ?? (
+              <RecordaGrid
+                hasNextPage={recordas.hasNextPage}
+                isFetchNextPageError={recordas.isFetchNextPageError}
+                isFetchingNextPage={recordas.isFetchingNextPage}
+                items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
+                onLoadMore={onLoadMore}
+                onPressItem={onPressRecorda}
+                onRetry={() => void recordas.refetch()}
+                status={gridStatus(recordas)}
+              />
+            )
+          }
         />
       </View>
-      {activeTab === "recordas" ? (
-        <View style={styles.tabContent}>
-          {privateNotice ?? (
-            <RecordaGrid
-              hasNextPage={recordas.hasNextPage}
-              isFetchNextPageError={recordas.isFetchNextPageError}
-              isFetchingNextPage={recordas.isFetchingNextPage}
-              items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
-              onLoadMore={onLoadMore}
-              onPressItem={onPressRecorda}
-              onRetry={() => void recordas.refetch()}
-              status={gridStatus(recordas)}
-            />
-          )}
-        </View>
-      ) : null}
     </ScrollView>
   );
 }
@@ -397,9 +406,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: spacing[6],
     paddingHorizontal: spacing[5]
-  },
-  tabContent: {
-    marginTop: spacing[4]
   },
   tabs: {
     marginTop: spacing[6]

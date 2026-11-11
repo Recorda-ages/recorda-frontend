@@ -1,5 +1,6 @@
 import { Image, type ImageSource } from "expo-image";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 import { Icon } from "react-native-paper";
 
 import { AppText } from "@/components/ui";
@@ -7,6 +8,9 @@ import { colors, radius, spacing } from "@/theme";
 
 const CHIP_IMAGE_SIZE = 32;
 const ICON_SIZE = 18;
+const SPIN_DURATION = 3000;
+const SPIN_TURNS = 1000;
+const VINYL_HOLE_SIZE = 8;
 
 /**
  * - `default`: music chips (song, artist, genre).
@@ -21,8 +25,11 @@ type ProfileInfoChipProps = Readonly<{
   icon: string;
   imageSource?: ImageSource;
   label: string;
+  onPress?: () => void;
+  spinning?: boolean;
   testID: string;
   tone?: ProfileInfoChipTone;
+  vinyl?: boolean;
 }>;
 
 /**
@@ -34,10 +41,76 @@ export function ProfileInfoChip({
   icon,
   imageSource,
   label,
+  onPress,
+  spinning = false,
   testID,
-  tone = "default"
+  tone = "default",
+  vinyl = false
 }: ProfileInfoChipProps) {
   const toneStyle = TONES[tone];
+  const [rotation] = useState(() => new Animated.Value(0));
+  const [rotate] = useState(() =>
+    Animated.modulo(rotation, 1).interpolate({
+      inputRange: [0, 1],
+      outputRange: ["0deg", "360deg"]
+    })
+  );
+
+  useEffect(() => {
+    if (!spinning) {
+      rotation.stopAnimation();
+      return;
+    }
+    rotation.stopAnimation((value) => {
+      Animated.timing(rotation, {
+        duration: SPIN_DURATION * SPIN_TURNS,
+        easing: Easing.linear,
+        toValue: value + SPIN_TURNS,
+        useNativeDriver: true
+      }).start();
+    });
+    return () => rotation.stopAnimation();
+  }, [rotation, spinning]);
+
+  const content = (
+    <>
+      {imageSource ? (
+        <Animated.View style={vinyl ? { transform: [{ rotate }] } : undefined}>
+          <Image
+            contentFit="cover"
+            source={imageSource}
+            style={styles.image}
+            testID={`${testID}-image`}
+          />
+          {vinyl ? <View pointerEvents="none" style={styles.vinylHole} /> : null}
+        </Animated.View>
+      ) : (
+        <Animated.View
+          style={[styles.image, styles.icon, toneStyle.icon, vinyl && { transform: [{ rotate }] }]}
+        >
+          <Icon color={toneStyle.iconColor} size={ICON_SIZE} source={icon} />
+        </Animated.View>
+      )}
+      <AppText numberOfLines={1} style={[styles.label, toneStyle.label]}>
+        {label}
+      </AppText>
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <Pressable
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        accessibilityState={{ selected: spinning }}
+        onPress={onPress}
+        style={[styles.chip, toneStyle.chip]}
+        testID={testID}
+      >
+        {content}
+      </Pressable>
+    );
+  }
 
   return (
     <View
@@ -46,21 +119,7 @@ export function ProfileInfoChip({
       style={[styles.chip, toneStyle.chip]}
       testID={testID}
     >
-      {imageSource ? (
-        <Image
-          contentFit="cover"
-          source={imageSource}
-          style={styles.image}
-          testID={`${testID}-image`}
-        />
-      ) : (
-        <View style={[styles.image, styles.icon, toneStyle.icon]}>
-          <Icon color={toneStyle.iconColor} size={ICON_SIZE} source={icon} />
-        </View>
-      )}
-      <AppText numberOfLines={1} style={[styles.label, toneStyle.label]}>
-        {label}
-      </AppText>
+      {content}
     </View>
   );
 }
@@ -87,6 +146,15 @@ const styles = StyleSheet.create({
   },
   label: {
     flexShrink: 1
+  },
+  vinylHole: {
+    backgroundColor: colors.neutrals[900],
+    borderRadius: VINYL_HOLE_SIZE / 2,
+    height: VINYL_HOLE_SIZE,
+    left: (CHIP_IMAGE_SIZE - VINYL_HOLE_SIZE) / 2,
+    position: "absolute",
+    top: (CHIP_IMAGE_SIZE - VINYL_HOLE_SIZE) / 2,
+    width: VINYL_HOLE_SIZE
   }
 });
 

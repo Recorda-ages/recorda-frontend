@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { I18nextProvider } from "react-i18next";
+import { StyleSheet } from "react-native";
 import { PaperProvider } from "react-native-paper";
 
 import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
@@ -171,4 +172,14 @@ it("renders nothing while not visible", async () => {
   expect(screen.queryByTestId("retrospective-flow")).toBeNull();
   expect(getDetails).not.toHaveBeenCalled();
   await waitFor(() => expect(screen.queryByTestId("retrospective-screen")).toBeNull());
+});
+
+it("renders every slide title in Inter ExtraBold", async () => {
+  getPeriods.mockReset().mockImplementation(retrospectiveServiceMock.getAvailablePeriods);
+  renderFlow();
+  fireEvent.press(await screen.findByText("Prévia"));
+
+  const title = await screen.findByText("3 Recordas");
+
+  expect(StyleSheet.flatten(title.props.style).fontFamily).toBe("Inter_800ExtraBold");
 });

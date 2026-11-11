@@ -155,35 +155,75 @@ it("pauses and resumes the preview from the pill", async () => {
   expect(mockAudioPlayer.play).toHaveBeenCalled();
 });
 
-it("jumps between days that have memories without closing", async () => {
+function tapSlide(testIdSuffix: string, side: "left" | "right") {
+  const width = Dimensions.get("window").width;
+  fireEvent.press(screen.getByTestId(`day-memory-slide-${testIdSuffix}`), {
+    nativeEvent: { pageX: side === "left" ? width * 0.1 : width * 0.9 }
+  });
+}
+
+async function firstRecordaId(date: string) {
+  return (await memoryCalendarMock.getDayMemories(date)).memories[0].recorda_id;
+}
+
+it("has no on-screen day buttons", async () => {
   renderViewer();
   await screen.findByTestId("day-memories-carousel");
 
-  fireEvent.press(screen.getByLabelText("Próximo dia"));
+  expect(screen.queryByLabelText("Próximo dia")).toBeNull();
+  expect(screen.queryByLabelText("Dia anterior")).toBeNull();
+});
+
+it("moves between Recordas of the day by tapping the right and left sides", async () => {
+  renderViewer();
+  await screen.findByTestId("day-memories-carousel");
+  const first = await firstRecordaId(DAY_WITH_THREE);
+
+  tapSlide(first, "right");
+  expect(selectedSegment()).toBe(1);
+
+  tapSlide(first, "left");
+  expect(selectedSegment()).toBe(0);
+});
+
+it("tapping right on the last Recorda goes to the next day with memories", async () => {
+  renderViewer(FIRST_DAY);
+  await screen.findByTestId("day-memories-carousel");
+  const first = await firstRecordaId(FIRST_DAY);
+
+  tapSlide(first, "right");
+
   await waitFor(() =>
     expect(getDayMemories).toHaveBeenLastCalledWith(
-      "2026-10-12",
+      expect.not.stringMatching(FIRST_DAY),
       expect.any(AbortSignal),
       undefined
     )
   );
-  await waitFor(() => expect(screen.getAllByTestId(/^day-pagination-segment-/)).toHaveLength(1));
-
-  fireEvent.press(screen.getByLabelText("Dia anterior"));
-  await waitFor(() => expect(screen.getAllByTestId(/^day-pagination-segment-/)).toHaveLength(3));
 });
 
-it("hides the day buttons at the edges of the calendar", async () => {
+it("tapping left on the first Recorda of the first day stays put", async () => {
   renderViewer(FIRST_DAY);
   await screen.findByTestId("day-memories-carousel");
-  expect(screen.queryByLabelText("Dia anterior")).toBeNull();
-  expect(screen.getByLabelText("Próximo dia")).toBeTruthy();
+  const first = await firstRecordaId(FIRST_DAY);
+  getDayMemories.mockClear();
 
-  screen.unmount();
+  tapSlide(first, "left");
+
+  expect(getDayMemories).not.toHaveBeenCalled();
+  expect(selectedSegment()).toBe(0);
+});
+
+it("goes to the next day when the last Recorda is dragged past its end", async () => {
   renderViewer(LAST_DAY);
   await screen.findByTestId("day-memories-carousel");
-  expect(screen.queryByLabelText("Próximo dia")).toBeNull();
-  expect(screen.getByLabelText("Dia anterior")).toBeTruthy();
+  getDayMemories.mockClear();
+
+  fireEvent(screen.getByTestId("day-memories-carousel"), "scrollEndDrag", {
+    nativeEvent: { contentOffset: { x: -120, y: 0 } }
+  });
+
+  await waitFor(() => expect(getDayMemories).toHaveBeenCalled());
 });
 
 it("closes from the X button and stops the audio", async () => {

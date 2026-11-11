@@ -5,7 +5,6 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -18,6 +17,9 @@ import {
 import { Button, IconButton, Text, TextInput } from "react-native-paper";
 
 import { FriendMentionPicker } from "../components/FriendMentionPicker";
+import { SongSoundToggle } from "../components/SongSoundToggle";
+import { useSongPreviewPlayback } from "../hooks/useSongPreviewPlayback";
+import { useScreenFocused } from "@/hooks/useScreenFocused";
 import { Screen } from "@/components/ui";
 import type { RootStackParamList } from "@/app/navigation/RootNavigator";
 import { usePublishRecorda, type PublishRecordaDraft } from "@/features/recorda-publish";
@@ -70,6 +72,12 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
   const videoPlayer = useVideoPlayer(
     currentDraft.media?.type === "video" ? currentDraft.media.uri : null
   );
+  const isFocused = useScreenFocused(navigation);
+  const { hasPreview } = useSongPreviewPlayback(
+    currentDraft.song?.previewUrl ?? null,
+    isFocused,
+    storedDraft.isSongMuted
+  );
   const isPublishing = publishFlow.status === "uploading" || publishFlow.status === "creating";
   const canPublish = Boolean(currentDraft.media && currentDraft.song);
 
@@ -80,7 +88,6 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
 
     handledSuccessRef.current = true;
     storedDraft.reset();
-    Alert.alert(t("recordaDetails.publishSuccessTitle"), t("recordaDetails.publishSuccessMessage"));
     navigation.reset({
       index: 0,
       routes: [{ name: "Feed" }]
@@ -182,7 +189,14 @@ export function RecordaDetailsScreen({ draft, onPublish, onShare }: RecordaDetai
               >
                 {t("recordaDetails.descriptionLabel")}
               </Text>
-              <View style={styles.headerSpacer} />
+              <View style={styles.headerSpacer}>
+                {hasPreview ? (
+                  <SongSoundToggle
+                    muted={storedDraft.isSongMuted}
+                    onToggle={storedDraft.toggleSongMuted}
+                  />
+                ) : null}
+              </View>
             </View>
             <View style={styles.mediaStage}>
               {currentDraft.media ? (
@@ -337,6 +351,8 @@ const styles = StyleSheet.create({
     width: 48
   },
   headerSpacer: {
+    alignItems: "center",
+    justifyContent: "center",
     width: 48
   },
   headerTitle: {

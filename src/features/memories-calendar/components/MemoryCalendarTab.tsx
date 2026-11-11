@@ -6,7 +6,6 @@ import { Button, ErrorState } from "@/components/ui";
 import { spacing } from "@/theme";
 
 import { useMemoryCalendar } from "../hooks/useMemoryCalendar";
-import { CalendarEmptyState } from "./CalendarEmptyState";
 import { DayMemoriesViewerModal } from "./DayMemoriesViewerModal";
 import { MemoryCalendarGrid } from "./MemoryCalendarGrid";
 
@@ -20,17 +19,13 @@ function currentMonth() {
  * while it loads, and the day viewer for a day with Recordas. The header stays on screen in
  * every state, so another month is always one arrow away.
  */
-export function MemoryCalendarTab({
-  onCreateRecorda,
-  userId
-}: Readonly<{ onCreateRecorda?: () => void; userId?: string }>) {
+export function MemoryCalendarTab({ userId }: Readonly<{ userId?: string }>) {
   const { t } = useTranslation();
   const [today] = useState(currentMonth);
   const [visibleMonth, setVisibleMonth] = useState(today);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { month, year } = visibleMonth;
   const calendar = useMemoryCalendar(year, month, userId);
-  const isCurrentMonth = year === today.year && month === today.month;
 
   return (
     <View style={styles.container}>
@@ -57,8 +52,6 @@ export function MemoryCalendarTab({
             variant="secondary"
           />
         </View>
-      ) : calendar.data?.total_memories === 0 && isCurrentMonth ? (
-        <CalendarEmptyState onCreateRecorda={onCreateRecorda} />
       ) : null}
       {selectedDate ? (
         <DayMemoriesViewerModal

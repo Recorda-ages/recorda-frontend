@@ -15,6 +15,8 @@ import {
 } from "@/features/recorda-creation/screens/RecordaMusicScreen";
 import { i18n } from "@/i18n";
 
+import { mockAudioPlayer, resetAudioMock } from "../../../mocks/expoAudio";
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -87,7 +89,36 @@ function renderScreen() {
 describe("RecordaMusicScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetAudioMock();
     mockSearchTracks.mockResolvedValue(tracks);
+  });
+
+  it("plays the preview of the chosen song and lets the user mute it", async () => {
+    renderScreen();
+    expect(screen.queryByTestId("draft-sound-toggle")).toBeNull();
+
+    fireEvent.changeText(screen.getByLabelText("Que som te representa?"), "tempo");
+    fireEvent.press(await screen.findByRole("radio", { name: "Tempo Perdido, Legião Urbana" }));
+
+    await waitFor(() => expect(mockAudioPlayer.play).toHaveBeenCalled());
+    expect(mockAudioPlayer.replace).toHaveBeenCalledWith("https://cdn/preview.mp3");
+    expect(mockAudioPlayer.loop).toBe(true);
+    expect(mockAudioPlayer.muted).toBe(false);
+
+    fireEvent.press(screen.getByRole("button", { name: "Silenciar música" }));
+
+    await waitFor(() => expect(mockAudioPlayer.muted).toBe(true));
+    expect(screen.getByRole("button", { name: "Reativar música" })).toBeTruthy();
+  });
+
+  it("offers no sound control and plays nothing for a song without preview", async () => {
+    renderScreen();
+
+    fireEvent.changeText(screen.getByLabelText("Que som te representa?"), "evidencias");
+    fireEvent.press(await screen.findByRole("radio", { name: "Evidências, Chitãozinho & Xororó" }));
+
+    expect(screen.queryByTestId("draft-sound-toggle")).toBeNull();
+    expect(mockAudioPlayer.play).not.toHaveBeenCalled();
   });
 
   it("keeps next disabled until a song is chosen", async () => {

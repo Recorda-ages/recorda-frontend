@@ -39,6 +39,7 @@ import { isIncompleteProfileError, useMyProfile } from "../hooks/useMyProfile";
 import { useRemoveAvatarMutation } from "../hooks/useRemoveAvatarMutation";
 import { useUploadAvatarMutation } from "../hooks/useUploadAvatarMutation";
 import { useProfileRecordas } from "../hooks/useProfileRecordas";
+import { useBlurCount } from "../hooks/useBlurCount";
 import type { ProfileRead } from "../types";
 
 const BAR_ICON_SIZE = 28;
@@ -74,6 +75,7 @@ export function MyProfileScreen() {
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const [isRetrospectiveOpen, setIsRetrospectiveOpen] = useState(false);
   const redirected = useRef(false);
+  const blurCount = useBlurCount(navigation);
 
   const uploadAvatar = useUploadAvatarMutation(myUserId ?? "");
   const removeAvatar = useRemoveAvatarMutation(myUserId ?? "");
@@ -169,6 +171,7 @@ export function MyProfileScreen() {
                   favoriteGenres={preferences.data?.genres.slice(0, 1)}
                   favoriteSong={toHeaderSong(data.favorite_song)}
                   name={data.name}
+                  songStopToken={blurCount}
                   onEditAvatar={() => {
                     // One avatar operation at a time, so a DELETE can't land after a newer PUT.
                     if (!uploadAvatar.isPending && !removeAvatar.isPending) {
@@ -205,31 +208,27 @@ export function MyProfileScreen() {
             <View style={styles.tabs}>
               <ProfileTabs
                 activeTab={activeTab}
-                calendarContent={
-                  <MemoryCalendarTab onCreateRecorda={() => navigation.navigate("Camera")} />
-                }
+                calendarContent={<MemoryCalendarTab />}
                 metricsContent={
                   <DynamicMetricsDashboard onCreateRecorda={() => navigation.navigate("Camera")} />
                 }
                 onChange={setActiveTab}
+                recordasContent={
+                  <RecordaGrid
+                    hasNextPage={recordas.hasNextPage}
+                    isFetchNextPageError={recordas.isFetchNextPageError}
+                    isFetchingNextPage={recordas.isFetchingNextPage}
+                    items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
+                    onLoadMore={loadMore}
+                    onPressItem={(recordaId) =>
+                      navigation.navigate("PublishedRecorda", { postId: recordaId })
+                    }
+                    onRetry={() => void recordas.refetch()}
+                    status={gridStatus(recordas)}
+                  />
+                }
               />
             </View>
-            {activeTab === "recordas" ? (
-              <View style={styles.tabContent}>
-                <RecordaGrid
-                  hasNextPage={recordas.hasNextPage}
-                  isFetchNextPageError={recordas.isFetchNextPageError}
-                  isFetchingNextPage={recordas.isFetchingNextPage}
-                  items={recordas.data?.pages.flatMap((page) => page.items) ?? []}
-                  onLoadMore={loadMore}
-                  onPressItem={(recordaId) =>
-                    navigation.navigate("PublishedRecorda", { postId: recordaId })
-                  }
-                  onRetry={() => void recordas.refetch()}
-                  status={gridStatus(recordas)}
-                />
-              </View>
-            ) : null}
           </ScrollView>
         ) : profile.isError && !isIncomplete ? (
           <View style={styles.feedback}>
@@ -254,7 +253,12 @@ export function MyProfileScreen() {
 }
 
 function toHeaderSong(song: ProfileRead["favorite_song"]) {
-  return { artistName: song.artist_name, coverUrl: song.cover_url, title: song.title };
+  return {
+    artistName: song.artist_name,
+    coverUrl: song.cover_url,
+    previewUrl: song.preview_url,
+    title: song.title
+  };
 }
 
 function gridStatus(query: ReturnType<typeof useProfileRecordas>) {
@@ -283,9 +287,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: spacing[6],
     paddingHorizontal: spacing[5]
-  },
-  tabContent: {
-    marginTop: spacing[4]
   },
   tabs: {
     marginTop: spacing[6]
