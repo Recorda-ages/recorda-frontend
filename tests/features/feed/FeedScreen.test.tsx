@@ -274,16 +274,69 @@ describe("FeedScreen", () => {
       );
     });
 
-    it("offers only a disabled Delete on the signed-in user's own Recorda", () => {
+    it("offers only an enabled Delete on the signed-in user's own Recorda", () => {
       renderScreen(viewer);
 
       pressMoreOn(ownRecorda);
 
       const menu = within(screen.getByTestId("recorda-card-menu"));
       expect(menu.getAllByRole("button")).toHaveLength(1);
-      expect(menu.getByRole("button", { name: "Excluir" })).toBeDisabled();
+      expect(menu.getByRole("button", { name: "Excluir" })).toBeEnabled();
       expect(screen.queryByText("Denunciar")).toBeNull();
       expect(screen.queryByText("Não interessado")).toBeNull();
+    });
+
+    it("asks for confirmation and deletes the own Recorda from the feed", async () => {
+      const deleteRecorda = jest.spyOn(feedService, "deleteRecorda").mockResolvedValue(undefined);
+      renderScreen(viewer);
+
+      pressMoreOn(ownRecorda);
+      fireEvent.press(
+        within(screen.getByTestId("recorda-card-menu")).getByRole("button", { name: "Excluir" })
+      );
+
+      expect(screen.getByText("Excluir Recorda?")).toBeTruthy();
+      expect(deleteRecorda).not.toHaveBeenCalled();
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      fireEvent.press(screen.getByTestId("delete-recorda-confirm"));
+
+      await waitFor(() => expect(deleteRecorda).toHaveBeenCalledWith(ownRecorda.recorda_id));
+      await waitFor(() =>
+        expect(screen.queryByTestId(`feed-post-${ownRecorda.recorda_id}`)).toBeNull()
+      );
+      expect(screen.getByTestId(`feed-post-${otherRecorda.recorda_id}`)).toBeTruthy();
+    });
+
+    it("keeps the Recorda when the user cancels the confirmation", async () => {
+      const deleteRecorda = jest.spyOn(feedService, "deleteRecorda").mockResolvedValue(undefined);
+      renderScreen(viewer);
+
+      pressMoreOn(ownRecorda);
+      fireEvent.press(
+        within(screen.getByTestId("recorda-card-menu")).getByRole("button", { name: "Excluir" })
+      );
+      fireEvent.press(screen.getByRole("button", { name: "Cancelar" }));
+
+      expect(deleteRecorda).not.toHaveBeenCalled();
+      expect(screen.getByTestId(`feed-post-${ownRecorda.recorda_id}`)).toBeTruthy();
+    });
+
+    it("shows an error and keeps the Recorda when the delete fails", async () => {
+      jest.spyOn(feedService, "deleteRecorda").mockRejectedValue(new Error("offline"));
+      renderScreen(viewer);
+
+      pressMoreOn(ownRecorda);
+      fireEvent.press(
+        within(screen.getByTestId("recorda-card-menu")).getByRole("button", { name: "Excluir" })
+      );
+      fireEvent.press(screen.getByTestId("delete-recorda-confirm"));
+
+      expect(
+        await screen.findByText("Não foi possível excluir a Recorda. Tente novamente.")
+      ).toBeTruthy();
+      expect(screen.getByTestId(`feed-post-${ownRecorda.recorda_id}`)).toBeTruthy();
     });
 
     it("offers no report while the signed-in user is unknown", () => {

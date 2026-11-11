@@ -29,7 +29,9 @@ import { FeedEmptyState } from "../components/FeedEmptyState";
 import { FeedGlow } from "../components/FeedGlow";
 import { FeedHeader } from "../components/FeedHeader";
 import { FEED_TABS, FeedTabs } from "../components/FeedTabs";
+import { DeleteRecordaDialog } from "../components/DeleteRecordaDialog";
 import { RecordaCard, type RecordaOwnership } from "../components/RecordaCard";
+import { useDeleteRecordaMutation } from "../hooks/useDeleteRecordaMutation";
 import { useFollowingFeed } from "../hooks/useFollowingFeed";
 import { useGeneralFeed } from "../hooks/useGeneralFeed";
 import { useRecordaLikeMutation } from "../hooks/useRecordaLikeMutation";
@@ -59,6 +61,7 @@ type FeedRowProps = Readonly<{
   currentUserId: string | undefined;
   item: FeedItem;
   onOpen: (item: FeedItem) => void;
+  onDelete: (item: FeedItem) => void;
   onOpenAuthor: (userId: string) => void;
   onReport: (item: FeedItem) => void;
   onShare: (item: FeedItem) => void;
@@ -76,6 +79,7 @@ function ownershipOf(item: FeedItem, currentUserId: string | undefined): Recorda
 const FeedRow = memo(function FeedRow({
   currentUserId,
   item,
+  onDelete,
   onOpen,
   onOpenAuthor,
   onReport,
@@ -88,6 +92,7 @@ const FeedRow = memo(function FeedRow({
       focusKey={focusKeyFor(tab, item)}
       item={item}
       onAuthorPress={() => onOpenAuthor(item.author.user_id)}
+      onDelete={() => onDelete(item)}
       onPress={() => onOpen(item)}
       onReport={() => onReport(item)}
       onShare={() => onShare(item)}
@@ -115,6 +120,9 @@ export function FeedScreen() {
   const currentUser = useCurrentUser();
   const currentUserId = currentUser?.user_id;
   const { openReport, reportDialog } = useReportDialog();
+  const [recordaToDelete, setRecordaToDelete] = useState<FeedItem | null>(null);
+  const deleteRecorda = useDeleteRecordaMutation(() => setRecordaToDelete(null));
+  const { reset: resetDeleteRecorda } = deleteRecorda;
 
   const pagerRef = useRef<ComponentRef<typeof ScrollView>>(null);
   // Horizontal offset of the pager, read by the tab indicator on the native thread.
@@ -184,6 +192,14 @@ export function FeedScreen() {
     [openReport]
   );
 
+  const handleCardDelete = useCallback(
+    (item: FeedItem) => {
+      resetDeleteRecorda();
+      setRecordaToDelete(item);
+    },
+    [resetDeleteRecorda]
+  );
+
   // The profile screen sends the signed-in user on to "Profile", so no check is needed here.
   const handleAuthorPress = useCallback(
     (userId: string) => navigation.navigate("UserProfile", { userId }),
@@ -197,6 +213,7 @@ export function FeedScreen() {
           <FeedRow
             currentUserId={currentUserId}
             item={item}
+            onDelete={handleCardDelete}
             onOpen={handleCardPress}
             onOpenAuthor={handleAuthorPress}
             onReport={handleCardReport}
@@ -211,6 +228,7 @@ export function FeedScreen() {
     currentUserId,
     handleAuthorPress,
     handleCardPress,
+    handleCardDelete,
     handleCardReport,
     handleCardShare,
     handleToggleLike
@@ -493,6 +511,22 @@ export function FeedScreen() {
       </SafeAreaView>
       <BottomTabBar activeTab="feed" onPress={handleTabBarPress} />
       {reportDialog}
+      <DeleteRecordaDialog
+        error={deleteRecorda.isError}
+        onCancel={() => {
+          if (!deleteRecorda.isPending) setRecordaToDelete(null);
+        }}
+        onConfirm={() => {
+          if (recordaToDelete && !deleteRecorda.isPending) {
+            deleteRecorda.mutate({
+              ownerId: currentUserId,
+              recordaId: recordaToDelete.recorda_id
+            });
+          }
+        }}
+        submitting={deleteRecorda.isPending}
+        visible={recordaToDelete !== null}
+      />
     </View>
   );
 }

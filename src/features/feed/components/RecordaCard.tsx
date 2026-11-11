@@ -25,6 +25,7 @@ type RecordaCardProps = Readonly<{
   item: FeedItem;
   /** Opens the author's profile from the avatar or username, without opening the Recorda. */
   onAuthorPress: () => void;
+  onDelete?: () => void;
   onPress: () => void;
   onReport: () => void;
   onToggleLike: (liked: boolean) => Promise<void>;
@@ -42,6 +43,7 @@ export function RecordaCard({
   focusKey,
   item,
   onAuthorPress,
+  onDelete,
   onPress,
   onReport,
   onToggleLike,
@@ -211,6 +213,14 @@ export function RecordaCard({
         <RecordaCardMenu
           anchor={menuAnchor}
           onClose={closeMenu}
+          onDelete={
+            onDelete
+              ? () => {
+                  closeMenu();
+                  onDelete();
+                }
+              : undefined
+          }
           onReport={() => {
             closeMenu();
             onReport();
@@ -229,11 +239,13 @@ const MENU_GAP = spacing[1];
 function RecordaCardMenu({
   anchor,
   onClose,
+  onDelete,
   onReport,
   ownership
 }: Readonly<{
   anchor: MenuAnchor | null;
   onClose: () => void;
+  onDelete?: () => void;
   onReport: () => void;
   ownership: "own" | "other";
 }>) {
@@ -270,8 +282,13 @@ function RecordaCardMenu({
         testID="recorda-card-menu"
       >
         {ownership === "own" ? (
-          // Disabled until the delete flow for the feed exists.
-          <Pressable accessibilityRole="button" disabled style={styles.menuItem}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={!onDelete}
+            onPress={onDelete}
+            style={styles.menuItem}
+            testID="recorda-card-menu-delete"
+          >
             <Icon color={colors.error[200]} size={MENU_ICON_SIZE} source="trash-can-outline" />
             <AppText style={[styles.menuLabel, styles.menuDestructive]}>
               {t("publishedRecorda.delete")}
