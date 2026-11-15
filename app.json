@@ -7,7 +7,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.camana.Recorda",
-      "buildNumber": "2.0",
+      "buildNumber": "2.1",
       "supportsTablet": true,
       "requireFullScreen": false,
       "infoPlist": {
