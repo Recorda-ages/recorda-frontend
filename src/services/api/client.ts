@@ -62,17 +62,45 @@ export function buildApiUrl(path: string) {
   return `${baseUrl}${API_VERSION_PREFIX}${normalizedPath}`;
 }
 
+export function resolveApiAssetUrl(url: string) {
+  const normalizedUrl = url.trim();
+
+  if (
+    !normalizedUrl ||
+    /^[a-z][a-z\d+.-]*:/i.test(normalizedUrl) ||
+    normalizedUrl.startsWith("//")
+  ) {
+    return normalizedUrl;
+  }
+
+  const baseUrl = env.apiUrl.replace(/\/+$/, "");
+  return `${baseUrl}/${normalizedUrl.replace(/^\/+/, "")}`;
+}
+
+/** Whether a URL (relative or absolute) points at our API, i.e. may receive the auth token. */
+export function isApiUrl(url: string) {
+  const baseUrl = env.apiUrl.replace(/\/+$/, "");
+  return resolveApiAssetUrl(url).startsWith(`${baseUrl}/`);
+}
+
 async function request<TResponse>(path: string, options: ApiRequestOptions = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-  const signal = options.signal ?? controller.signal;
+  const externalSignal = options.signal;
+  const abortFromExternalSignal = () => controller.abort();
+
+  if (externalSignal?.aborted) {
+    controller.abort();
+  } else {
+    externalSignal?.addEventListener("abort", abortFromExternalSignal);
+  }
 
   try {
     const response = await fetch(buildApiUrl(path), {
       body: serializeBody(options.body),
       headers: buildHeaders(options.body, options.headers),
       method: options.method ?? "GET",
-      signal
+      signal: controller.signal
     });
     const payload = await parseResponse(response);
 
@@ -87,12 +115,17 @@ async function request<TResponse>(path: string, options: ApiRequestOptions = {})
     }
 
     if (error instanceof Error && error.name === "AbortError") {
+      if (externalSignal?.aborted) {
+        throw error;
+      }
+
       throw new ApiError("REQUEST_TIMEOUT", "The request timed out.", 408, null);
     }
 
     throw new ApiError("NETWORK_ERROR", "Unable to reach the API.", 0, error);
   } finally {
     clearTimeout(timeout);
+    externalSignal?.removeEventListener("abort", abortFromExternalSignal);
   }
 }
 

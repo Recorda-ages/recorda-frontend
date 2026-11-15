@@ -1,11 +1,22 @@
 module.exports = {
   moduleNameMapper: {
+    "^expo-audio$": "<rootDir>/tests/mocks/expoAudio.ts",
+    "^expo-camera$": "<rootDir>/tests/mocks/expoCamera.tsx",
+    "^expo-file-system$": "<rootDir>/tests/mocks/expoFileSystem.ts",
     "^expo-font$": "<rootDir>/tests/mocks/expoFont.ts",
+    "^@expo/vector-icons$": "<rootDir>/tests/mocks/expoVectorIcons.tsx",
+    "^expo-image-manipulator$": "<rootDir>/tests/mocks/expoImageManipulator.ts",
+    "^expo-image-picker$": "<rootDir>/tests/mocks/expoImagePicker.ts",
+    "^expo-localization$": "<rootDir>/tests/mocks/expoLocalization.ts",
+    "^expo-media-library$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",
+    "^expo-media-library/legacy$": "<rootDir>/tests/mocks/expoMediaLibrary.ts",
     "^expo-splash-screen$": "<rootDir>/tests/mocks/expoSplashScreen.ts",
+    "^expo-video$": "<rootDir>/tests/mocks/expoVideo.tsx",
     "^react-native-safe-area-context$": "<rootDir>/tests/mocks/safeAreaContext.tsx",
     "^react-native-screens$": "<rootDir>/tests/mocks/reactNativeScreens.tsx",
     "^@/(.*)$": "<rootDir>/src/$1"
   },
+  setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
   preset: "jest-expo",
   testMatch: ["<rootDir>/tests/**/*.test.ts?(x)"]
 };

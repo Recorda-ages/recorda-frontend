@@ -1,0 +1,392 @@
+{
+  "at": "2026-10-25T17:02:30.656774+00:00",
+  "base_url": "http://127.0.0.1:8000",
+  "requests": 77,
+  "results": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users",
+      "status": 403
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/me/settings",
+      "status": 422
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/me/settings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/me/settings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/me/settings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/me/settings",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/users/335a0274-573e-48d3-bcd5-a69dc862ff9b/follow",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/me/settings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/users/me/settings",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/users/335a0274-573e-48d3-bcd5-a69dc862ff9b/followers",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/users/me/music-preferences",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/users/me/music-preferences",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/media",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/recordas",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recordas/media/10c407fe-a7cf-45fb-b80b-5e5c6efa34d2.jpg",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recordas/media/10c407fe-a7cf-45fb-b80b-5e5c6efa34d2.jpg",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11/likes",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11/likes",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11/comments",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/435287f9-c1b1-4aa3-a8ea-8a0697bceb59",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11/comments",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/88b67319-b8cd-4ad1-9a1b-7c141ed91025",
+      "status": 403
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/88b67319-b8cd-4ad1-9a1b-7c141ed91025",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11/comments",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/ac0fda86-4c9c-4586-866b-555f3e3d1b02",
+      "status": 204
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/ac0fda86-4c9c-4586-866b-555f3e3d1b02",
+      "status": 404
+    },
+    {
+      "method": "DELETE",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/recordas/94169dae-2744-412d-a62e-a71e98f57d11",
+      "status": 404
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/media",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/recordas",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recordas/media/c1efaf61-1ed5-4e04-834d-0418dcf9ea3b.mp4",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recordas/media/c1efaf61-1ed5-4e04-834d-0418dcf9ea3b.mp4",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/recordas/media/c1efaf61-1ed5-4e04-834d-0418dcf9ea3b.mp4",
+      "status": 206
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda/likes",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda/likes",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda/comments",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/f7c8f5b5-bda6-41dd-b8b6-34b2f9d3f44c",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda/comments",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/ba65bb8d-a479-43d3-97d6-72e7dfac61f5",
+      "status": 403
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/ba65bb8d-a479-43d3-97d6-72e7dfac61f5",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda/comments",
+      "status": 201
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/1ac1c3e3-bf13-4fa4-ab26-fbbace5b760e",
+      "status": 204
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/1ac1c3e3-bf13-4fa4-ab26-fbbace5b760e",
+      "status": 404
+    },
+    {
+      "method": "DELETE",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/recordas/879b00cc-6d41-48e7-b0b0-4f4a4da5bbda",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/feed/general",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/feed/following",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/users/search?q=verify_90009fc14bcf_b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users?q=verify_90009fc14bcf_b&limit=1&offset=0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/d8bc5444-8843-43d3-a4a4-c77bfa0bcdf0",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/d8bc5444-8843-43d3-a4a4-c77bfa0bcdf0/suspend",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/d8bc5444-8843-43d3-a4a4-c77bfa0bcdf0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users?q=verify_90009fc14bcf_b&status=SUSPENDED",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/d8bc5444-8843-43d3-a4a4-c77bfa0bcdf0/reactivate",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/d8bc5444-8843-43d3-a4a4-c77bfa0bcdf0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/audit-log",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/reports",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/9548b7f7-24db-4e16-adf3-a6b3902964c4/suspend",
+      "status": 400
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/335a0274-573e-48d3-bcd5-a69dc862ff9b",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/users/me",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/d8bc5444-8843-43d3-a4a4-c77bfa0bcdf0",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/users/me",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 401
+    }
+  ]
+}

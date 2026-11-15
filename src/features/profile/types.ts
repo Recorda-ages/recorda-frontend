@@ -1,0 +1,85 @@
+import type { FeedItem } from "@/features/feed/types";
+import type { FollowStatus } from "@/features/follow";
+
+/**
+ * Espelha `ProfileRead` (contrato C-2) de `app/schemas/profile.py` no backend. É a resposta
+ * de `GET /users/me/profile` e de `GET /users/{id}/profile`, ambos na `dev` do backend
+ * (o segundo desde o merge do PR #152).
+ */
+export type ProfileRead = {
+  can_view_content: boolean;
+  /** `null` quando o backend não expõe os contadores (perfil privado, segundo a #109). */
+  counts: ProfileCounts | null;
+  favorite_song: ProfileFavoriteSong;
+  is_private: boolean;
+  name: string;
+  profile_picture_url: string | null;
+  relationship: ProfileRelationship;
+  /** Exibido pelo `StreakBadge` (US35, #260), que oculta o valor sem `can_view_content`. */
+  streak: ProfileStreak | null;
+  user_id: string;
+  username: string;
+};
+
+export type ProfileCounts = {
+  followers: number;
+  following: number;
+  recordas: number;
+};
+
+export type ProfileFavoriteSong = {
+  artist_name: string;
+  /** Pode vir `""` quando o Deezer não tem capa (ADR 0001 do backend). */
+  cover_url: string;
+  deezer_track_id: string;
+  preview_url: string | null;
+  title: string;
+};
+
+export type ProfileRelationship = {
+  follow_id: string | null;
+  follow_status: FollowStatus;
+  is_self: boolean;
+};
+
+export type ProfileStreak = {
+  current_days: number;
+  published_today: boolean;
+};
+
+/** Artista ou gênero favorito (`MusicItem` do backend), exibido como chip no cabeçalho. */
+export type ProfileMusicItem = {
+  deezer_id: number;
+  name: string;
+  picture_url: string | null;
+};
+
+/**
+ * Espelha `ProfileMusicTastes`: resposta de `GET /users/{id}/music-preferences`. Sem a música
+ * favorita, que já vem em `ProfileRead`.
+ */
+export type ProfileMusicTastes = {
+  artists: ProfileMusicItem[];
+  genres: ProfileMusicItem[];
+};
+
+/**
+ * Espelha `RecordaGridItem` de `app/schemas/recorda.py`: só o necessário para a miniatura,
+ * sem curtidas nem descrição. Resposta de `GET /users/{user_id}/recordas`.
+ */
+export type RecordaGridItem = {
+  /** ISO 8601. A grade vem da mais recente para a mais antiga. */
+  created_at: string;
+  media_type: FeedItem["media_type"];
+  media_url: string;
+  recorda_id: string;
+  song_artist_name: string;
+  song_cover_url: string;
+  song_title: string;
+};
+
+/** Espelha `RecordaGridPage`: página paginada por cursor; `null` no fim da lista. */
+export type RecordaGridPage = {
+  items: RecordaGridItem[];
+  next_cursor: string | null;
+};

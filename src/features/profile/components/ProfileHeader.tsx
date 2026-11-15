@@ -1,0 +1,412 @@
+import { Image } from "expo-image";
+import type { ReactNode } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Icon } from "react-native-paper";
+
+import { AppText } from "@/components/ui";
+import { resolveApiAssetUrl, useAuthImageSource } from "@/services/api";
+import { colors, fontFamily, spacing } from "@/theme";
+
+import { useFavoriteSongPreview } from "../hooks/useFavoriteSongPreview";
+import { ProfileInfoChip } from "./ProfileInfoChip";
+
+const AVATAR_SIZE = 160;
+const EDIT_BADGE_SIZE = 40;
+const EDIT_BADGE_ICON_SIZE = 20;
+const AVATAR_AREA_HEIGHT = AVATAR_SIZE + spacing[12] * 2;
+
+/**
+ * Distance from the top of the header to the avatar's center. The screen draws the green
+ * glow (ProfileGlow) behind the scroll and uses this to center it on the avatar.
+ */
+export const PROFILE_AVATAR_CENTER_Y = AVATAR_AREA_HEIGHT / 2;
+
+export type ProfileHeaderCounts = {
+  followers: number;
+  following: number;
+  recordas: number;
+};
+
+export type ProfileHeaderFavoriteSong = {
+  artistName: string;
+  coverUrl: string | null;
+  previewUrl?: string | null;
+  title: string;
+};
+
+/**
+ * A favorite artist or genre. Structurally compatible with the onboarding's
+ * `MusicSelection`, so the screen can pass the music preferences as they come.
+ */
+export type ProfileHeaderMusicItem = {
+  id: number | string;
+  name: string;
+  pictureUrl?: string | null;
+};
+
+type ProfileHeaderProps = Readonly<{
+  avatarUrl: string | null;
+  /** When true, shows a loading indicator over the avatar (US28 optimistic upload). */
+  avatarUploadingOverlay?: boolean;
+  name: string;
+  username: string;
+  favoriteSong: ProfileHeaderFavoriteSong | null;
+  /** Optional: only the own profile has a source for them today (music preferences). */
+  favoriteArtists?: readonly ProfileHeaderMusicItem[];
+  favoriteGenres?: readonly ProfileHeaderMusicItem[];
+  /** Hidden when absent or null: the screen decides whether the viewer may see them. */
+  counts?: ProfileHeaderCounts | null;
+  /** Make the followers / following counters pressable; the screen navigates. */
+  onPressFollowers?: () => void;
+  onPressFollowing?: () => void;
+  /** Shown between the music chips and the counters, e.g. a follow button. */
+  actionSlot?: ReactNode;
+  /** Makes the avatar pressable; only the own profile passes it. */
+  onEditAvatar?: () => void;
+  /**
+   * First cell of the information grid, before the music chips, e.g. the StreakBadge
+   * (#260). Rendered as is, without a wrapper, so a content that renders nothing leaves no
+   * empty cell.
+   */
+  streakSlot?: ReactNode;
+  /** Auxiliary text below the information grid, e.g. the StreakHint. Rendered as is. */
+  streakHintSlot?: ReactNode;
+  /** Top-right corner of the header, e.g. the settings gear or the three-dots menu. */
+  headerRight?: ReactNode;
+  /** Changing it stops the favorite song preview, e.g. when another screen covers the profile. */
+  songStopToken?: number;
+}>;
+
+/**
+ * Presentation of a profile shared by the third-party profile and the own profile (US28).
+ * Knows nothing about who is looking, privacy, follow or navigation: whoever renders it
+ * passes only what may be shown.
+ *
+ * The green glow is not drawn here: inside a ScrollView it would be clipped at the scroll's
+ * top edge. The screen renders ProfileGlow behind its layout instead.
+ */
+export function ProfileHeader({
+  actionSlot,
+  avatarUrl,
+  avatarUploadingOverlay = false,
+  counts,
+  favoriteArtists = [],
+  favoriteGenres = [],
+  favoriteSong,
+  headerRight,
+  name,
+  onEditAvatar,
+  onPressFollowers,
+  onPressFollowing,
+  songStopToken = 0,
+  streakHintSlot,
+  streakSlot,
+  username
+}: ProfileHeaderProps) {
+  const { t } = useTranslation();
+  const songPreview = useFavoriteSongPreview(favoriteSong?.previewUrl ?? null, songStopToken);
+  const avatarSource = useAuthImageSource(avatarUrl ? resolveApiAssetUrl(avatarUrl) : null);
+
+  const avatarContent = avatarSource ? (
+    <Image
+      accessibilityLabel={t("profile.avatarA11y", { name })}
+      contentFit="cover"
+      source={avatarSource}
+      style={styles.avatar}
+      testID="profile-avatar"
+    />
+  ) : (
+    <View
+      accessibilityLabel={t("profile.avatarA11y", { name })}
+      style={[styles.avatar, styles.avatarFallback]}
+      testID="profile-avatar-fallback"
+    >
+      <Icon color={colors.neutrals[400]} size={72} source="account" />
+    </View>
+  );
+
+  const avatar = (
+    <View>
+      {avatarContent}
+      {avatarUploadingOverlay ? (
+        <View style={styles.avatarOverlay} testID="profile-avatar-uploading">
+          <ActivityIndicator color={colors.neutrals[100]} size="large" />
+        </View>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <View testID="profile-header">
+      {headerRight ? (
+        <View style={styles.headerRight} testID="profile-header-right">
+          {headerRight}
+        </View>
+      ) : null}
+      <View style={styles.avatarArea}>
+        {onEditAvatar ? (
+          <Pressable
+            accessibilityLabel={t("profile.editAvatarA11y")}
+            accessibilityRole="button"
+            onPress={onEditAvatar}
+            testID="profile-edit-avatar"
+          >
+            {avatar}
+            <View pointerEvents="none" style={styles.editBadge} testID="profile-edit-avatar-icon">
+              <Icon color={colors.neutrals[100]} size={EDIT_BADGE_ICON_SIZE} source="pencil" />
+            </View>
+          </Pressable>
+        ) : (
+          avatar
+        )}
+      </View>
+
+      <AppText numberOfLines={2} style={styles.name} variant="headline1">
+        {name}
+      </AppText>
+      <AppText numberOfLines={1} style={styles.username}>
+        @{username}
+      </AppText>
+
+      {streakSlot || favoriteSong || favoriteArtists.length > 0 || favoriteGenres.length > 0 ? (
+        <View style={styles.chips} testID="profile-chips">
+          {streakSlot}
+          {favoriteSong ? (
+            <ProfileChip
+              accessibilityLabel={t("profile.favoriteSongA11y", {
+                artist: favoriteSong.artistName,
+                title: favoriteSong.title
+              })}
+              fallbackIcon="music-note"
+              // The cover may come as "" when Deezer has none (backend ADR 0001).
+              imageUrl={favoriteSong.coverUrl || null}
+              label={`${favoriteSong.title} · ${favoriteSong.artistName}`}
+              onPress={songPreview.canPlay ? () => void songPreview.toggle() : undefined}
+              spinning={songPreview.isPlaying}
+              testID="profile-favorite-song"
+            />
+          ) : null}
+          {favoriteArtists.map((artist) => (
+            <ProfileChip
+              accessibilityLabel={t("profile.favoriteArtistA11y", { name: artist.name })}
+              fallbackIcon="account-music"
+              imageUrl={artist.pictureUrl || null}
+              key={`artist-${artist.id}`}
+              label={artist.name}
+              testID={`profile-favorite-artist-${artist.id}`}
+            />
+          ))}
+          {favoriteGenres.map((genre) => (
+            // Genres use the icon, as in the visual reference, not the Deezer picture.
+            <ProfileChip
+              accessibilityLabel={t("profile.favoriteGenreA11y", { name: genre.name })}
+              fallbackIcon="music-note"
+              imageUrl={null}
+              key={`genre-${genre.id}`}
+              label={genre.name}
+              testID={`profile-favorite-genre-${genre.id}`}
+            />
+          ))}
+        </View>
+      ) : null}
+      {streakHintSlot}
+
+      {actionSlot ? <View style={styles.action}>{actionSlot}</View> : null}
+
+      {counts ? (
+        <View style={styles.counts} testID="profile-counts">
+          <ProfileCount
+            label={t("profile.counts.recordas", { count: counts.recordas })}
+            value={counts.recordas}
+          />
+          <ProfileCount
+            accessibilityHint={t("profile.counts.followersHint")}
+            label={t("profile.counts.followers", { count: counts.followers })}
+            onPress={onPressFollowers}
+            testID="profile-count-followers"
+            value={counts.followers}
+          />
+          <ProfileCount
+            accessibilityHint={t("profile.counts.followingHint")}
+            label={t("profile.counts.following")}
+            onPress={onPressFollowing}
+            testID="profile-count-following"
+            value={counts.following}
+          />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+type ProfileChipProps = Readonly<{
+  accessibilityLabel: string;
+  fallbackIcon: string;
+  imageUrl: string | null;
+  label: string;
+  onPress?: () => void;
+  spinning?: boolean;
+  testID: string;
+}>;
+
+/** Music chip: resolves the (authenticated) picture and draws a ProfileInfoChip. */
+function ProfileChip({
+  accessibilityLabel,
+  fallbackIcon,
+  imageUrl,
+  label,
+  onPress,
+  spinning,
+  testID
+}: ProfileChipProps) {
+  const imageSource = useAuthImageSource(imageUrl ? resolveApiAssetUrl(imageUrl) : null);
+
+  return (
+    <ProfileInfoChip
+      accessibilityLabel={accessibilityLabel}
+      icon={fallbackIcon}
+      imageSource={imageSource}
+      label={label}
+      onPress={onPress}
+      spinning={spinning}
+      testID={testID}
+      vinyl={onPress !== undefined}
+    />
+  );
+}
+
+type ProfileCountProps = Readonly<{
+  /** Read only when the counter is pressable. */
+  accessibilityHint?: string;
+  label: string;
+  onPress?: () => void;
+  testID?: string;
+  value: number;
+}>;
+
+function ProfileCount({ accessibilityHint, label, onPress, testID, value }: ProfileCountProps) {
+  const content = (
+    <>
+      <AppText style={styles.countValue} variant="headline3">
+        {value}
+      </AppText>
+      <AppText style={styles.countLabel} variant="body2">
+        {label}
+      </AppText>
+    </>
+  );
+
+  if (!onPress) {
+    return (
+      <View
+        accessibilityLabel={`${value} ${label}`}
+        accessible
+        style={styles.count}
+        testID={testID}
+      >
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={`${value} ${label}`}
+      accessibilityRole="button"
+      hitSlop={4}
+      onPress={onPress}
+      style={({ pressed }) => [styles.count, pressed && styles.countPressed]}
+      testID={testID}
+    >
+      {content}
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  action: {
+    marginTop: spacing[6]
+  },
+  avatar: {
+    borderRadius: AVATAR_SIZE / 2,
+    height: AVATAR_SIZE,
+    width: AVATAR_SIZE
+  },
+  avatarArea: {
+    alignItems: "center",
+    height: AVATAR_AREA_HEIGHT,
+    justifyContent: "center"
+  },
+  avatarFallback: {
+    alignItems: "center",
+    backgroundColor: colors.neutrals[800],
+    justifyContent: "center"
+  },
+  avatarOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.45)",
+    borderRadius: AVATAR_SIZE / 2,
+    bottom: 0,
+    justifyContent: "center",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
+  },
+  // Two columns, ready for the other music chips once their data exists.
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: spacing[4],
+    rowGap: spacing[3]
+  },
+  count: {
+    alignItems: "center",
+    flex: 1,
+    gap: spacing[1]
+  },
+  countLabel: {
+    color: colors.neutrals[100]
+  },
+  countPressed: {
+    opacity: 0.7
+  },
+  countValue: {
+    color: colors.neutrals[100]
+  },
+  counts: {
+    flexDirection: "row",
+    marginTop: spacing[6]
+  },
+  editBadge: {
+    alignItems: "center",
+    backgroundColor: colors.primary[500],
+    borderColor: colors.neutrals[900],
+    borderRadius: EDIT_BADGE_SIZE / 2,
+    borderWidth: 3,
+    bottom: 4,
+    height: EDIT_BADGE_SIZE,
+    justifyContent: "center",
+    position: "absolute",
+    right: 4,
+    width: EDIT_BADGE_SIZE
+  },
+  headerRight: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 1
+  },
+  name: {
+    color: colors.neutrals[100],
+    fontFamily: fontFamily.primary.bold
+  },
+  username: {
+    color: colors.neutrals[300],
+    fontSize: 16,
+    marginTop: spacing[1]
+  }
+});

@@ -82,6 +82,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,7 +99,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
 
       - name: Run unit tests with coverage
-        run: npm test -- --coverage
+        run: npm test -- --coverage --maxWorkers=50% --forceExit --testTimeout=30000
         working-directory: ${{ inputs.working-directory }}
 
       - name: Upload coverage

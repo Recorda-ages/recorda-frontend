@@ -1,0 +1,13 @@
+# Integração da publicação de Recorda contra o schema legado (Sprint 1)
+
+> **Status:** substituído pelo [ADR 0002](./0002-contrato-do-diagrama-do-banco.md).
+
+O frontend já implementa o Fluxo de Publicação (US9) contra o payload rico do Modelo v3 (`deezer_track_id`, `song_title`, `song_artist_name`, `song_cover_url`, `song_preview_url`), mas o backend em `dev`/`main` só tem o Schema legado da Recorda (`midia`, `music`, `description`, `data`) — o Modelo v3 só existe implementado na branch `feat/008-recorda-table`, ainda não mergeada. Para fechar a US9 na Sprint 1 sem esperar a migração do banco (planejada para a Sprint 2), decidimos adaptar o payload rico para o Schema legado na borda da API (`recordaPublishApi.ts`), preservando a estrutura rica internamente no frontend: `midia` recebe a URL retornada pelo upload de mídia, `music` recebe somente o `song_title`. Os demais campos do snapshot musical (`deezer_track_id`, artista, capa, preview) não são enviados nem persistidos nesta etapa — decidimos não concatená-los em `music` para manter o campo limpo.
+
+## Consequências
+
+Recordas criadas durante a Sprint 1 sob o Schema legado ficam **permanentemente** sem snapshot musical completo, mesmo depois da migração para o Modelo v3 na Sprint 2: como `deezer_track_id` não é persistido, não há como reidratar essas linhas de forma confiável mais tarde — o título isolado não é um identificador suficiente (mesma música pode ter múltiplos artistas, remixes, etc.). Essa perda de dado é conhecida e aceita; nenhuma estratégia de backfill/reprocessamento está planejada como parte desta decisão. Se o time futuramente quiser enriquecer essas Recordas, isso deve ser tratado como uma atividade separada de migração, sem garantia de recuperação perfeita.
+
+## Atualização — snapshot musical persistido na tabela legada
+
+A tabela `recordas` foi estendida com colunas aditivas e anuláveis (`user_id`, `media_type`, `deezer_track_id`, `song_artist_name`, `song_cover_url`), sem adotar ainda o Modelo v3. A partir desta mudança, `POST /recordas` exige `media_type`, `deezer_track_id` e `song_artist_name`, aceita `song_cover_url` opcional e preenche `user_id` a partir do Bearer token. `music` continua guardando o título da faixa e a URL de preview segue sem ser persistida. Recordas criadas antes dessa extensão permanecem com as colunas novas vazias.

@@ -2,18 +2,61 @@
   "expo": {
     "name": "Recorda",
     "slug": "recorda",
-    "version": "0.1.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "edgeToEdgeEnabled": true
+      "bundleIdentifier": "com.camana.Recorda",
+      "buildNumber": "2.1",
+      "supportsTablet": true,
+      "requireFullScreen": false,
+      "infoPlist": {
+        "CFBundleDisplayName": "Recorda",
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow Recorda to access your camera",
+        "NSMicrophoneUsageDescription": "Allow Recorda to access your microphone",
+        "NSFaceIDUsageDescription": "Allow Recorda to access your Face ID biometric data.",
+        "NSPhotoLibraryUsageDescription": "Allow Recorda to access your photos.",
+        "NSPhotoLibraryAddUsageDescription": "Allow Recorda to save images to your photo library.",
+        "LSApplicationQueriesSchemes": ["instagram-stories"]
+      }
     },
     "web": {
       "bundler": "metro"
     },
-    "plugins": ["expo-font", "expo-splash-screen"]
+    "plugins": [
+      "expo-font",
+      "expo-splash-screen",
+      "expo-secure-store",
+      "expo-status-bar",
+      "expo-image",
+      "expo-video",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Recorda to access your photos.",
+          "savePhotosPermission": "Allow Recorda to save images to your photo library.",
+          "granularPermissions": ["photo"]
+        }
+      ],
+      [
+        "react-native-share",
+        {
+          "android": ["com.instagram.android"],
+          "ios": ["instagram-stories"]
+        }
+      ],
+      "expo-audio",
+      "expo-localization",
+      "expo-sharing",
+      "expo-asset"
+    ],
+    "scheme": "recorda",
+    "extra": {
+      "eas": {
+        "projectId": "9918795c-c677-47a1-8e35-b4a9f6d59586"
+      }
+    },
+    "owner": "andrech"
   }
 }

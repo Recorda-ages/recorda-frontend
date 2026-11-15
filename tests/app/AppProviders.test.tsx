@@ -1,9 +1,39 @@
-import { render, screen } from "@testing-library/react-native";
-import { Text } from "react-native";
+import { useRecordaDraft } from "@/features/recorda-creation/context/RecordaDraftContext";
+import { useOnboarding } from "@/features/onboarding/state/OnboardingContext";
+import { clearSession, saveSession } from "@/features/auth/session";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { useState } from "react";
+import { Pressable, Text } from "react-native";
 import { useTheme } from "react-native-paper";
 
 import { AppProviders } from "@/app/providers/AppProviders";
+import { useToast } from "@/components/ui/ToastProvider";
+import { queryClient } from "@/app/providers/queryClient";
+import { AUTH_ME_QUERY_KEY } from "@/features/auth/api/getCurrentUser";
+import { useFeed } from "@/features/feed/state/FeedContext";
+import type { FeedItem } from "@/features/feed/types";
 import { semanticColors } from "@/theme";
+
+const PRIVATE_RECORDA: FeedItem = {
+  author: {
+    profile_picture_url: null,
+    user_id: "private-author",
+    username: "private_author"
+  },
+  created_at: "2026-09-26T12:00:00Z",
+  description: "Private session snapshot",
+  is_liked: false,
+  likes_count: 0,
+  media_type: "PHOTO",
+  media_url: "/private.jpg",
+  recorda_id: "private-session-recorda",
+  song_artist_name: "Artist",
+  song_cover_url: "",
+  song_preview_url: null,
+  song_title: "Song"
+};
+
+let feedConsumerMounts = 0;
 
 function PaperThemeConsumer() {
   const theme = useTheme();
@@ -11,7 +41,48 @@ function PaperThemeConsumer() {
   return <Text testID="paper-primary-color">{theme.colors.primary}</Text>;
 }
 
+function FeedSessionConsumer() {
+  const { openFeedItem, posts } = useFeed();
+  const [mountId] = useState(() => ++feedConsumerMounts);
+
+  return (
+    <>
+      <Text testID="feed-consumer-mount">{mountId}</Text>
+      <Text testID="session-feed-posts">{posts.map((post) => post.id).join(",")}</Text>
+      <Pressable onPress={() => openFeedItem(PRIVATE_RECORDA)}>
+        <Text>Open private Recorda</Text>
+      </Pressable>
+    </>
+  );
+}
+
+function SessionExpiryFlow() {
+  const [screenName, setScreenName] = useState("Admin");
+  const { showToast } = useToast();
+
+  if (screenName === "Login") {
+    return <Text testID="current-screen">Login</Text>;
+  }
+
+  return (
+    <Pressable
+      onPress={() => {
+        showToast("Sessão encerrada. Sua sessão expirou.");
+        setScreenName("Login");
+      }}
+    >
+      <Text>Expire session</Text>
+    </Pressable>
+  );
+}
+
 describe("AppProviders", () => {
+  beforeEach(() => {
+    feedConsumerMounts = 0;
+    queryClient.clear();
+  });
+  afterEach(() => act(() => queryClient.clear()));
+
   it("provides the Recorda Paper theme", () => {
     render(
       <AppProviders>
@@ -23,4 +94,90 @@ describe("AppProviders", () => {
       semanticColors.actionPrimary
     );
   });
+
+  it("keeps a toast visible after navigation replaces the current screen", () => {
+    render(
+      <AppProviders>
+        <SessionExpiryFlow />
+      </AppProviders>
+    );
+
+    fireEvent.press(screen.getByText("Expire session"));
+
+    expect(screen.getByTestId("current-screen")).toHaveTextContent("Login");
+    expect(screen.getByText("Sessão encerrada. Sua sessão expirou.")).toBeTruthy();
+  });
+
+  it("resets the local Feed state when the authenticated session ends", async () => {
+    queryClient.setQueryData(AUTH_ME_QUERY_KEY, {
+      name: "First user",
+      onboarding_completed: true,
+      role: "USER",
+      user_id: "first-user",
+      username: "first_user"
+    });
+    render(
+      <AppProviders>
+        <FeedSessionConsumer />
+      </AppProviders>
+    );
+
+    fireEvent.press(screen.getByText("Open private Recorda"));
+    expect(screen.getByTestId("session-feed-posts")).toHaveTextContent(/private-session-recorda/);
+
+    await act(async () => {
+      await clearSession();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("session-feed-posts")).not.toHaveTextContent(
+        /private-session-recorda/
+      )
+    );
+    expect(screen.getByTestId("feed-consumer-mount")).toHaveTextContent("1");
+  });
+});
+
+function PrivateDraftConsumer() {
+  const draft = useRecordaDraft();
+  const music = useOnboarding();
+  return (
+    <>
+      <Text testID="private-draft">{draft.description}</Text>
+      <Text testID="private-artists">{music.selectedArtists.length}</Text>
+      <Pressable
+        onPress={() => {
+          draft.setDescription("Private memory");
+          music.setSelectedArtists([{ id: 1, name: "Artist" }]);
+        }}
+      >
+        <Text>Fill private drafts</Text>
+      </Pressable>
+    </>
+  );
+}
+it("clears music selections and publication drafts when saving another account", async () => {
+  render(
+    <AppProviders>
+      <PrivateDraftConsumer />
+    </AppProviders>
+  );
+  fireEvent.press(screen.getByText("Fill private drafts"));
+  expect(screen.getByTestId("private-draft")).toHaveTextContent("Private memory");
+  await act(async () => {
+    await saveSession({
+      access_token: "next-token",
+      token_type: "bearer",
+      user: {
+        user_id: "next",
+        username: "next",
+        name: "Next",
+        language: "es",
+        onboarding_completed: true,
+        role: "USER"
+      }
+    });
+  });
+  expect(screen.getByTestId("private-draft")).toHaveTextContent("");
+  expect(screen.getByTestId("private-artists")).toHaveTextContent("0");
 });

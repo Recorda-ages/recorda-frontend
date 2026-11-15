@@ -1,8 +1,984 @@
 {
-  "home": {
-    "primaryAction": "Start",
-    "secondaryAction": "View structure",
-    "subtitle": "Memories with a soundtrack.",
-    "title": "Recorda"
+  "auth": {
+    "login": {
+      "forgotPassword": "Forgot my password"
+    },
+    "passwordRecovery": {
+      "description": "Enter your email to define a new password.",
+      "email": "Email",
+      "confirmPassword": "Confirm Password",
+      "genericError": "We could not reset your password. Try again.",
+      "hidePassword": "Hide password",
+      "loginAction": "Log in",
+      "logo": "recorda.",
+      "newPassword": "New Password",
+      "rememberedPassword": "Remembered your password?",
+      "showPassword": "Show password",
+      "submit": "Reset Password",
+      "success": "Your password was reset successfully.",
+      "title": "Back to remembering"
+    },
+    "signUp": {
+      "email": "Email",
+      "hasAccount": "Already have an account?",
+      "hidePassword": "Hide password",
+      "loginAction": "Log in",
+      "logo": "recorda.",
+      "name": "Name",
+      "networkError": "Unable to connect to the server. Please try again.",
+      "password": "Password",
+      "showPassword": "Show password",
+      "submit": "Sign Up",
+      "subtitle": "Create your account and transform moments into trails.",
+      "title": "Save the moment",
+      "username": "Username",
+      "invalidField": "Invalid field."
+    },
+    "signIn": {
+      "forgotPassword": "Forgot your password?",
+      "genericError": "Unable to sign in. Please try again.",
+      "hidePassword": "Hide password",
+      "logo": "recorda.",
+      "networkError": "Unable to connect to the server. Please try again.",
+      "noAccount": "Don't have an account?",
+      "password": "Password",
+      "showPassword": "Show password",
+      "signUpAction": "Sign up",
+      "submit": "Log in",
+      "subtitle": "Log in to relive moments that keep playing.",
+      "title": "Welcome back",
+      "username": "Username",
+      "invalidCredentials": "Invalid username or password."
+    },
+    "signOut": "Sign out",
+    "validation": {
+      "usernameRequired": "Enter your username.",
+      "usernameNoSpaces": "Your username can't contain spaces.",
+      "nameRequired": "Enter your name.",
+      "emailRequired": "Enter your email.",
+      "emailInvalid": "Enter a valid email.",
+      "passwordRequired": "Enter your password.",
+      "passwordMinLength": "Your password must be at least {{min}} characters long.",
+      "passwordMismatch": "The passwords must match."
+    }
+  },
+  "onboarding": {
+    "artists": {
+      "header": "Artists",
+      "back": "Back",
+      "continue": "Next",
+      "step": "STEP 1 OF 3",
+      "title": "Who is part of your story?",
+      "subtitle": "Choose at least 3 artists to personalize your memories.",
+      "search": "Search artists",
+      "clearSearch": "Clear search",
+      "popularLoading": "Loading popular artists",
+      "popularError": "Could not load popular artists.",
+      "searchError": "Could not search artists. Check your connection.",
+      "empty": "No artists found."
+    },
+    "music": {
+      "header": "Favorite song",
+      "back": "Back to genres",
+      "step": "STEP 3 OF 3",
+      "title": "Which song is a must?",
+      "subtitle": "Choose 1 song to set the tone for your first memories.",
+      "search": "Search songs",
+      "finish": "Start remembering",
+      "loading": "Searching songs",
+      "popularLoading": "Loading popular songs",
+      "popularError": "Could not load popular songs.",
+      "searchError": "Could not search songs.",
+      "retry": "Try again",
+      "empty": "No songs found. Try another title or artist.",
+      "saveError": "Could not save. Your selections are safe. Try again."
+    },
+    "genres": {
+      "back": "Back",
+      "continue": "Next",
+      "header": "Genres",
+      "loadError": "We couldn't load the genres.",
+      "loading": "Loading genres...",
+      "step": "STEP 2 OF 3",
+      "subtitle": "Choose at least 3 genres. You can change this later.",
+      "title": "What sounds feel like you?"
+    },
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected"
+  },
+  "recordaDetails": {
+    "mentions": {
+      "label": "Tag friends ({{count}})",
+      "search": "Search friends",
+      "loading": "Loading friends…",
+      "more": "Show more",
+      "clear": "Clear tags",
+      "empty": "No friends found"
+    },
+    "back": "Back",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Add a description...",
+    "mediaSelected": "Selected media",
+    "mediaUnavailable": "Media unavailable",
+    "publish": "Publish",
+    "publishCreating": "Publishing...",
+    "publishRetry": "Try again",
+    "publishSuccessMessage": "Your Recorda was published successfully.",
+    "publishSuccessTitle": "Recorda published",
+    "publishUploading": "Uploading media...",
+    "share": "Share",
+    "songCover": "Song cover",
+    "publishError": {
+      "upload": "Unable to upload the media. Please try again.",
+      "create": "Unable to publish the Recorda. Please try again."
+    }
+  },
+  "admin": {
+    "reasonDialog": {
+      "label": "Reason",
+      "placeholder": "Describe the reason",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel"
+    },
+    "status": {
+      "accessibilityLabel": "Status: {{status}}",
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "session": {
+      "expiredTitle": "Session ended",
+      "expiredMessage": "Your session has expired.",
+      "forbiddenTitle": "Administrative access removed",
+      "forbiddenMessage": "Your account does not have administrative access."
+    },
+    "signOut": "Sign out",
+    "navigation": {
+      "auditLog": "Audit log",
+      "reports": "Reports",
+      "users": "Users"
+    },
+    "reports": {
+      "contentRemoved": "Content removed",
+      "title": "Reports",
+      "search": "Search by user or content",
+      "loading": "Loading reports",
+      "loadError": "Unable to load reports.",
+      "loadMoreError": "Unable to load more reports.",
+      "retry": "Try again",
+      "empty": {
+        "open": "No open reports",
+        "resolved": "No resolved reports",
+        "dismissed": "No dismissed reports",
+        "search": "No reports match this search"
+      },
+      "groupedCount_zero": "0 grouped reports",
+      "groupedCount_one": "{{count}} grouped report",
+      "groupedCount_other": "{{count}} grouped reports",
+      "count_one": "{{count}} report",
+      "count_other": "{{count}} reports",
+      "openTarget": "{{target}}, {{status}}, {{count}}: {{title}}",
+      "reportedBy": "By @{{username}} • {{date}}",
+      "target": {
+        "recorda": "Recorda",
+        "user": "Profile"
+      },
+      "order": {
+        "desc": "Newest first",
+        "asc": "Oldest first",
+        "accessibilityLabel": "Order: {{order}}. Tap to reverse"
+      },
+      "filters": {
+        "allTargets": "All",
+        "recordas": "Recordas",
+        "profiles": "Profiles",
+        "open": "Open",
+        "resolved": "Resolved",
+        "dismissed": "Dismissed"
+      }
+    },
+    "reportDetail": {
+      "title": "Report details",
+      "loading": "Loading report",
+      "loadError": "We couldn't load this report.",
+      "notFound": "This report no longer exists.",
+      "retry": "Try again",
+      "back": "Back to reports",
+      "dateTime": "{{date}} at {{time}}",
+      "recordaLabel": "Reported Recorda",
+      "userLabel": "Reported profile",
+      "musicLabel": "Linked song",
+      "author": "Author: @{{username}}",
+      "removedAt": "Removed on {{date}}",
+      "accountDeletedAt": "Account deleted on {{date}}",
+      "privateAccount": "Private account",
+      "createdAt": "Account created on {{date}}",
+      "openUser": "Open user",
+      "photo": "Photo from @{{username}}'s Recorda",
+      "video": "Video from @{{username}}'s Recorda",
+      "reportsTitle": "Reports ({{count}})",
+      "noDescription": "No description",
+      "historyTitle": "History",
+      "historyEmpty": "No actions recorded.",
+      "historyBy": "By @{{username}} • {{date}}",
+      "historyReason": "Reason: {{reason}}",
+      "history": {
+        "REMOVE_RECORDA": "Content removed",
+        "CHANGE_REPORT_STATUS": "Report status changed",
+        "SUSPEND_USER": "Account suspended",
+        "REACTIVATE_USER": "Account reactivated",
+        "statusChangedTo": {
+          "OPEN": "Reports reopened",
+          "RESOLVED": "Reports marked as resolved",
+          "DISMISSED": "Reports dismissed"
+        }
+      },
+      "removeRecorda": {
+        "button": "Remove content",
+        "title": "Remove this Recorda?",
+        "warning": "This action takes the post down from the entire app (feed, search and profile) and is recorded in the audit log.",
+        "confirm": "Remove",
+        "success": "Content removed",
+        "error": "Could not remove the content. Please try again.",
+        "conflictTitle": "This content has already been handled",
+        "conflictMessage": "This Recorda has already been removed. The data was reloaded."
+      },
+      "statusActions": {
+        "DISMISSED": {
+          "button": "Dismiss report",
+          "title": "Dismiss reports",
+          "confirm": "Dismiss",
+          "success": "Reports dismissed."
+        },
+        "RESOLVED": {
+          "button": "Mark as resolved",
+          "title": "Mark reports as resolved",
+          "confirm": "Resolve",
+          "success": "Reports marked as resolved."
+        },
+        "OPEN": {
+          "button": "Reopen reports",
+          "title": "Reopen reports",
+          "confirm": "Reopen",
+          "success": "Reports reopened."
+        },
+        "error": "We couldn't change the status. Try again.",
+        "invalidReason": "Enter a reason between 1 and 500 characters.",
+        "conflictTitle": "This content has already been handled",
+        "conflictMessage": "Someone else changed these reports. The data has been reloaded."
+      }
+    },
+    "users": {
+      "title": "User Management",
+      "search": "Search by user or email",
+      "loading": "Loading users",
+      "loadingMore": "Loading more users",
+      "loadError": "We couldn't load users.",
+      "loadMoreError": "We couldn't load more users.",
+      "retry": "Try again",
+      "count_zero": "0 users found",
+      "count_one": "{{count}} user found",
+      "count_other": "{{count}} users found",
+      "noReports": "no reports",
+      "reportCount_zero": "no reports",
+      "reportCount_one": "{{count}} report",
+      "reportCount_other": "{{count}} reports",
+      "shortId": "ID #{{id}}",
+      "viewHistory": "View history",
+      "status": { "active": "Active", "suspended": "Suspended" },
+      "filters": { "all": "All", "active": "Active", "suspended": "Suspended" },
+      "empty": {
+        "list": "No users found.",
+        "search": "No users match this search."
+      }
+    },
+    "userDetail": {
+      "title": "User details",
+      "loading": "Loading user details",
+      "loadError": "We couldn't load user details.",
+      "retry": "Try again",
+      "back": "Back to users",
+      "accountTitle": "Account details",
+      "email": "Email",
+      "userId": "Full ID",
+      "copyId": "Copy ID",
+      "copySuccess": "ID copied.",
+      "copyError": "We couldn't copy the ID.",
+      "createdAt": "Created on",
+      "deletedAt": "Deleted on",
+      "privacy": "Privacy",
+      "private": "Private",
+      "public": "Public",
+      "recordas": "Recordas published",
+      "reports": "Reports received",
+      "reportsReceived": "Report groups ({{count}})",
+      "reportCount_zero": "No reports",
+      "reportCount_one": "{{count}} report",
+      "reportCount_other": "{{count}} reports",
+      "reportPeriod": "{{from}}–{{to}}",
+      "noReports": "No reports received.",
+      "historyTitle": "Action history",
+      "historyEmpty": "No actions recorded.",
+      "historyBy": "By @{{username}} • {{date}}",
+      "reason": "Reason: {{reason}}",
+      "role": { "admin": "Administrator", "user": "User" },
+      "targetType": { "recorda": "Recorda", "user": "Profile" },
+      "actionTypes": {
+        "SUSPEND_USER": "Account suspended",
+        "REACTIVATE_USER": "Account reactivated",
+        "REMOVE_RECORDA": "Recorda removed",
+        "CHANGE_REPORT_STATUS": "Report status changed"
+      }
+    },
+    "auditLog": {
+      "title": "Audit Log",
+      "loading": "Loading records",
+      "loadError": "Could not load records.",
+      "loadMoreError": "Could not load more records.",
+      "retry": "Try again",
+      "empty": "No records found.",
+      "emptySearch": "No records match this search.",
+      "ownedBy": "by",
+      "search": "Search by admin, user, Recorda or reason",
+      "count_one": "{{count}} record found",
+      "count_other": "{{count}} records found",
+      "filters": {
+        "all": "All",
+        "today": "Today",
+        "lastMonth": "Last month",
+        "allAdmins": "All admins"
+      },
+      "actions": {
+        "REMOVE_RECORDA": "removed the Recorda",
+        "CHANGE_REPORT_STATUS_RECORDA": "changed the reports on the Recorda",
+        "CHANGE_REPORT_STATUS_USER": "changed the reports on the profile",
+        "SUSPEND_USER": "suspended the account of",
+        "REACTIVATE_USER": "reactivated the account of"
+      },
+      "statusChange": "(from {{from}} to {{to}})",
+      "reason": "Reason: {{reason}}",
+      "dateTime": "{{date}} • {{time}}"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "openA11y": "Open {{username}}'s profile",
+    "avatarA11y": "{{name}}'s profile picture",
+    "editAvatarA11y": "Change profile picture",
+    "favoriteSongA11y": "Favorite song: {{title}}, by {{artist}}",
+    "favoriteArtistA11y": "Favorite artist: {{name}}",
+    "favoriteGenreA11y": "Favorite genre: {{name}}",
+    "counts": {
+      "recordas_one": "Recorda",
+      "recordas_other": "Recordas",
+      "followers_one": "Follower",
+      "followers_other": "Followers",
+      "following": "Following",
+      "followersHint": "Opens the followers list",
+      "followingHint": "Opens the following list"
+    },
+    "streak": {
+      "days_one": "{{count}}-day streak",
+      "days_other": "{{count}}-day streak",
+      "none": "No streak",
+      "hintStart": "Post today to start",
+      "hintKeep": "Post today to keep it",
+      "a11y": "Posting streak: {{value}}"
+    },
+    "tabs": {
+      "recordas": "Recordas",
+      "metrics": "Metrics",
+      "calendar": "Calendar"
+    },
+    "private": {
+      "title": "This account is private",
+      "message": "Follow this profile to see their Recordas."
+    },
+    "comingSoon": "Coming soon",
+    "loading": "Loading profile",
+    "loadError": "We couldn't load this profile.",
+    "retry": "Try again",
+    "back": "Back",
+    "unavailable": "This profile isn't available.",
+    "report": "Report profile",
+    "avatarMenuCamera": "Take photo",
+    "avatarMenuGallery": "Choose from gallery",
+    "avatarMenuRemove": "Remove photo",
+    "avatarCameraPermissionTitle": "Permission required",
+    "avatarCameraPermissionMessage": "Allow camera access to take a profile photo.",
+    "avatarGalleryPermissionTitle": "Permission required",
+    "avatarGalleryPermissionMessage": "Allow gallery access to choose a profile photo.",
+    "avatarPermissionCancel": "Cancel",
+    "avatarPermissionSettings": "Open settings",
+    "avatarUploadError": "Could not update profile photo. Try again.",
+    "avatarRemoveError": "Could not remove profile photo. Try again.",
+    "removeAvatarTitle": "Remove profile photo?",
+    "removeAvatarMessage": "Your profile photo will be removed.",
+    "removeAvatarCancel": "Cancel",
+    "removeAvatarConfirm": "Remove",
+    "grid": {
+      "empty": "No Recordas published yet.",
+      "loadError": "We couldn't load the Recordas.",
+      "loadMoreError": "We couldn't load more Recordas.",
+      "retry": "Try again",
+      "loading": "Loading Recordas",
+      "loadingMore": "Loading more Recordas",
+      "photoA11y": "Photo Recorda: {{title}}, by {{artist}}",
+      "videoA11y": "Video Recorda: {{title}}, by {{artist}}"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "back": "Back",
+    "editAccount": "My account",
+    "editMusicPreferences": "Edit music preferences",
+    "next": "Next",
+    "save": "Save",
+    "retry": "Try again",
+    "continueEditing": "Keep editing",
+    "discard": "Discard",
+    "musicPreferences": {
+      "title": "Edit music preferences",
+      "loading": "Loading music preferences",
+      "loadError": "We couldn't load your preferences.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your selections haven't been saved.",
+      "updated": "Preferences updated"
+    },
+    "account": {
+      "title": "My account",
+      "loading": "Loading account details",
+      "loadError": "We couldn't load your account details.",
+      "save": "Save changes",
+      "saveError": "We couldn't save your details. Try again.",
+      "networkError": "Can't connect to the server. Check your connection and try again.",
+      "updated": "Account details updated",
+      "personalDetails": "Personal details",
+      "name": "Name",
+      "username": "Username",
+      "email": "Email",
+      "passwordSection": "Change password",
+      "passwordHint": "Fill in both fields to change your password. Leave both empty to keep it.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "passwordRequired": "Enter a new password.",
+      "confirmPasswordRequired": "Confirm your new password.",
+      "emailTaken": "This email is already in use.",
+      "usernameTaken": "This username is already in use.",
+      "invalidField": "Check this field and try again.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your changes haven't been saved."
+    },
+    "loading": "Loading settings...",
+    "loadError": "Unable to load settings.",
+    "privateAccount": "Private account",
+    "privacyHint": "Making your account public accepts pending follow requests.",
+    "language": "Language",
+    "languages": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    },
+    "saved": "Settings saved.",
+    "acceptedRequests": "Settings saved. Accepted requests: {{count}}.",
+    "saveError": "Unable to save. Try again.",
+    "deleteAccount": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteMessage": "Your account and Recordas will be deleted. This cannot be undone.",
+    "cancel": "Cancel",
+    "deleteError": "Unable to delete your account. Try again."
+  },
+  "friends": {
+    "title": "Friends",
+    "followers": "Followers",
+    "following": "Following",
+    "search": "Search by username",
+    "remove": "Remove",
+    "removeTitle": "Remove follower",
+    "removeMessage": "Are you sure you want to remove {{name}} from your followers?",
+    "cancel": "Cancel",
+    "empty": "There are no users in this list.",
+    "searchEmpty": "No users found.",
+    "privateError": "This account is private.",
+    "loadError": "We couldn't load this list.",
+    "loadMoreError": "We couldn't load more users.",
+    "removeError": "We couldn't remove this follower. Try again.",
+    "retry": "Try again"
+  },
+  "recordaMusic": {
+    "back": "Back",
+    "header": "Music",
+    "search": "What sound represents you?",
+    "next": "Next",
+    "loading": "Searching songs",
+    "hint": "Search by song, artist or album to add to your Recorda.",
+    "searchError": "Unable to search songs.",
+    "retry": "Try again",
+    "empty": "No songs found. Try another name or artist.",
+    "noMedia": "No media selected."
+  },
+  "publishedRecorda": {
+    "back": "Back",
+    "open": "View Recorda details",
+    "likes_one": "{{count}} like",
+    "likes_other": "{{count}} likes",
+    "comments": "Comments",
+    "noComments": "No comments yet. Be the first to comment!",
+    "loadingComments": "Loading comments...",
+    "commentsLoadError": "Could not load comments. Tap to retry.",
+    "commentSubmitError": "Could not send the comment. Try again.",
+    "writeComment": "Add a comment...",
+    "closeComment": "Close comments",
+    "dragToClose": "Drag down to close",
+    "expandDescription": "Tap to see the full description",
+    "collapseDescription": "Collapse description",
+    "send": "Send comment",
+    "delete": "Delete",
+    "report": "Report",
+    "notInterested": "Not interested",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete Recorda?",
+    "deleteMessage": "This action cannot be undone.",
+    "deleteError": "Could not delete the Recorda. Try again.",
+    "confirmDelete": "Confirm deletion",
+    "unavailable": "This Recorda is no longer available.",
+    "sharePending": "Recorda sharing is not available in this version yet.",
+    "commentDeleteError": "Unable to delete the comment. Try again."
+  },
+  "feed": {
+    "logo": "recorda.",
+    "notifications": "Notifications",
+    "search": "Search users",
+    "more": "More options",
+    "like": "Like",
+    "comment": "Comment",
+    "share": "Share",
+    "likesCount_one": "{{count}} like",
+    "likesCount_other": "{{count}} likes",
+    "loading": "Loading feed...",
+    "loadingMore": "Loading more Recordas...",
+    "loadError": "We couldn't load the feed. Please try again.",
+    "loadMoreError": "We couldn't load more Recordas.",
+    "retry": "Try again",
+    "generalEmptyState": {
+      "title": "No Recordas here yet",
+      "message": "Open Following to keep up with the Recordas shared by people you follow."
+    },
+    "emptyState": {
+      "title": "It's still quiet around here",
+      "message": "Follow new people and keep up with the Recordas they share!"
+    },
+    "tabs": {
+      "geral": "For You",
+      "following": "Following"
+    },
+    "tabBar": {
+      "camera": "Create Recorda",
+      "feed": "Feed",
+      "profile": "Profile"
+    },
+    "notificationsUnread": "Notifications, {{count}} unread",
+    "videoLoading": "Loading video",
+    "sound": {
+      "mute": "Mute music",
+      "unmute": "Unmute music",
+      "unavailable": "This Recorda has no music preview"
+    }
+  },
+  "recordaView": {
+    "back": "Back",
+    "deleteComment": "Delete comment",
+    "deleteDialog": {
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "message": "Are you sure you want to delete this comment?\nThis action cannot be undone.",
+      "title": "Delete comment?"
+    }
+  },
+  "shareCard": {
+    "title": "Share",
+    "subtitle": "Choose the card style",
+    "back": "Back",
+    "share": "Share",
+    "instagramStories": "Instagram Stories",
+    "download": "Save image",
+    "storiesOpenedTitle": "Ready to share",
+    "storiesOpenedMessage": "Instagram opened with your card. Finish posting it there.",
+    "fallbackTitle": "Alternative sharing",
+    "fallbackMessage": "The system share menu opened with your card.",
+    "webFallbackMessage": "The card was downloaded. Share the image using the app you prefer.",
+    "savedTitle": "Image saved",
+    "savedMessage": "The card was saved to your device's gallery.",
+    "permissionDeniedTitle": "Permission needed",
+    "permissionDeniedMessage": "Allow gallery access to save the card.",
+    "saveErrorTitle": "Save error",
+    "saveErrorMessage": "Could not save the image. Please try again.",
+    "shareMessage": "Check out my new Recorda! <app link coming soon>",
+    "shareDialogTitle": "Share Recorda",
+    "shareErrorTitle": "Share error",
+    "shareErrorMessage": "Could not share. Please try again.",
+    "logo": "recorda."
+  },
+  "retrospectiveSummary": {
+    "posterTitle": "{{period}} Retrospective",
+    "eyebrow": "Your {{period}}, in one sentence",
+    "headline": "You turned moments into music.",
+    "recordas_one": "{{count}} Recorda",
+    "recordas_other": "{{count}} Recordas",
+    "activeDays_one": "{{count}} active day",
+    "activeDays_other": "{{count}} active days",
+    "song": "Song",
+    "artist": "Artist",
+    "genre": "Genre",
+    "friend": "Friend",
+    "engagement": "Engagement",
+    "engagementValue": "{{likes}} likes and {{comments}} comments",
+    "streak": "Streak",
+    "streakDays_one": "{{count}} day",
+    "streakDays_other": "{{count}} days",
+    "logo": "recorda.",
+    "share": "Share retrospective",
+    "finish": "Done",
+    "shareOptionsTitle": "Share retrospective",
+    "instagramStories": "Instagram Stories",
+    "moreOptions": "More options",
+    "saveToGallery": "Save to gallery",
+    "cancel": "Cancel",
+    "fallbackTitle": "Alternative sharing",
+    "fallbackMessage": "Instagram isn't available, so we opened the system share menu with your poster.",
+    "webFallbackMessage": "The poster was downloaded. Share the image using the app you prefer.",
+    "savedTitle": "Poster saved",
+    "savedMessage": "Your retrospective was saved to your device's gallery.",
+    "permissionDeniedTitle": "Permission needed",
+    "permissionDeniedMessage": "Allow gallery access in Settings to save the poster.",
+    "openSettings": "Open Settings",
+    "shareErrorTitle": "Share error",
+    "shareErrorMessage": "Could not share the poster. Please try again.",
+    "saveErrorTitle": "Save error",
+    "saveErrorMessage": "Could not save the poster. Please try again."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "back": "Back",
+    "loading": "Loading notifications...",
+    "loadError": "We couldn't load your notifications.",
+    "retry": "Try again",
+    "empty": "You have no notifications yet.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "actionError": "We couldn't respond to the request. Please try again.",
+    "types": {
+      "FOLLOW_REQUEST": "wants to follow you",
+      "FOLLOW_ACCEPTED": "accepted your follow request",
+      "NEW_FOLLOWER": "started following you",
+      "LIKE": "liked your post",
+      "COMMENT": "commented on your post",
+      "MENTION": "mentioned you in a post",
+      "CONTENT_REMOVED": "Your Recorda \"{{song}}\" was removed by moderation. Reason: {{reason}}"
+    },
+    "removedSongFallback": "Song not provided",
+    "removalReasonFallback": "Not provided",
+    "time": {
+      "now": "now",
+      "minutes": "{{count}} min",
+      "hours": "{{count}} h",
+      "days": "{{count}} d"
+    }
+  },
+  "userSearch": {
+    "back": "Back",
+    "header": "Search",
+    "search": "Search",
+    "loading": "Searching users",
+    "hint": "Search for a username to find people.",
+    "searchError": "Could not search users.",
+    "retry": "Try again",
+    "empty": "No users found. Try another username.",
+    "suggestions": "Suggested profiles"
+  },
+  "follow": {
+    "follow": "Follow",
+    "requested": "Requested",
+    "following": "Following",
+    "followA11y": "Follow {{username}}",
+    "requestedA11y": "Cancel follow request for {{username}}",
+    "followingA11y": "Unfollow {{username}}",
+    "unfollowTitle": "Unfollow?",
+    "unfollowMessage": "Are you sure you want to unfollow {{username}}?",
+    "unfollowCancel": "Cancel",
+    "unfollowConfirm": "Unfollow"
+  },
+  "moderation": {
+    "report": {
+      "title": {
+        "recorda": "Report Recorda",
+        "user": "Report profile"
+      },
+      "message": "Tell us why you are reporting this. Moderation will review your report.",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Write a description",
+      "counter": "{{current}}/{{max}}",
+      "cancel": "Cancel",
+      "submit": "Report",
+      "feedback": {
+        "success": "Report sent. Thank you for helping the community.",
+        "duplicate": "You have already reported this content.",
+        "unavailable": "This content is no longer available."
+      },
+      "error": {
+        "generic": "We could not send the report. Please try again."
+      }
+    },
+    "account": {
+      "suspendTitle": "Suspend Account",
+      "reactivateTitle": "Reactivate Account",
+      "suspendShort": "Suspend",
+      "reactivateShort": "Reactivate",
+      "suspendDialogTitle": "Suspend this account?",
+      "reactivateDialogTitle": "Reactivate this account?",
+      "suspendMessage": "@{{username}}'s account will be suspended. This action is recorded in the audit log.",
+      "reactivateMessage": "@{{username}}'s account will be active again. This action is recorded in the audit log.",
+      "resolveReports": "Mark the profile's open reports as resolved",
+      "adminNotice": "Suspending another administrator is not allowed.",
+      "unexpectedError": "Unexpected error while moderating."
+    }
+  },
+  "camera": {
+    "permissionMessage": "We need the camera and microphone to create your Recorda.",
+    "permissionAction": "Allow access",
+    "capture": "Take photo",
+    "galleryPermissionTitle": "Permission needed",
+    "galleryPermissionMessage": "Allow gallery access to choose a photo or video.",
+    "videoTooLongTitle": "Video too long",
+    "videoTooLongMessage": "Choose a video up to {{seconds}} seconds long."
+  },
+  "preview": {
+    "confirm": "Next"
+  },
+  "splash": {
+    "logo": "recorda."
+  },
+  "settings": {
+    "title": "Settings",
+    "back": "Back",
+    "accountSection": "Account",
+    "account": "My account",
+    "privateAccount": "Private account",
+    "privateSupport": "Only approved followers can see your Recordas",
+    "publicSupport": "Anyone can see your Recordas",
+    "preferencesSection": "Preferences",
+    "music": "Music preferences",
+    "musicSupport": "Artists, genres and favorite song",
+    "language": "Language",
+    "sessionSection": "Session",
+    "signOut": "Sign out",
+    "loading": "Loading settings…",
+    "saving": "Saving privacy…",
+    "loadError": "Unable to load your settings.",
+    "updateError": "Unable to change privacy. Your previous setting was restored. Please try again.",
+    "retry": "Try again",
+    "accepted_one": "{{count}} request was accepted",
+    "accepted_other": "{{count}} requests were accepted",
+    "pending": "This setting is under construction. You will be able to change it here soon.",
+    "signOutError": "Unable to sign out. Please try again.",
+    "cancel": "Cancel",
+    "confirmAction": "Confirm",
+    "confirm": {
+      "private": {
+        "title": "Make your account private?",
+        "message": "Your Recordas, including older ones, will only be visible to approved followers. Your current followers stay approved."
+      },
+      "public": {
+        "title": "Make your account public?",
+        "message": "Anyone will be able to see your Recordas, including older ones. All pending follow requests will be accepted."
+      },
+      "signOut": {
+        "title": "Sign out",
+        "message": "Do you want to sign out of your account?"
+      }
+    },
+    "musicPreferences": {
+      "title": "Edit music preferences",
+      "save": "Save",
+      "loading": "Loading music preferences",
+      "loadError": "Could not load your preferences.",
+      "discardTitle": "Discard changes?",
+      "discardMessage": "Your changes have not been saved.",
+      "updated": "Preferences updated"
+    }
+  },
+  "account": {
+    "title": "Account",
+    "back": "Back",
+    "infoSection": "Information",
+    "name": "Name",
+    "username": "Username",
+    "email": "Email",
+    "passwordSection": "Change Password",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat new password",
+    "passwordPairRequired": "Fill in both fields to change your password.",
+    "usernameTaken": "This username is already taken.",
+    "emailTaken": "This email is already in use.",
+    "invalidField": "Invalid field.",
+    "save": "Save",
+    "saveSuccess": "Your account was updated.",
+    "saveError": "Could not save. Please try again.",
+    "noChanges": "There are no changes to save.",
+    "loading": "Loading your account",
+    "loadError": "Could not load your account.",
+    "retry": "Try again",
+    "sessionExpired": "Your session expired. Please sign in again.",
+    "deleteAccount": "Delete Account",
+    "deleteSuccess": "Your account was deleted.",
+    "deleteDialog": {
+      "title": "Delete account",
+      "message": "Are you sure you want to delete your account? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "error": "Could not delete your account. Please try again."
+    }
+  },
+  "language": {
+    "title": "Language",
+    "back": "Back",
+    "names": {
+      "pt-BR": "Português",
+      "en": "English",
+      "es": "Español"
+    }
+  },
+  "memoriesMetrics": {
+    "periods": {
+      "last_30_days": "30 days",
+      "last_90_days": "90 days",
+      "last_year": "1 year",
+      "all_time": "All time"
+    },
+    "empty": "There are no Recordas in this period yet. Capture a memory!",
+    "create": "Create Recorda",
+    "loading": "Loading metrics",
+    "loadError": "Unable to load your metrics. Please try again.",
+    "emptyOther": "This profile has no Recordas in this period yet.",
+    "loadErrorOther": "We couldn't load this profile's metrics. Try again.",
+    "widgets": {
+      "total": {
+        "title": "Total Recordas",
+        "singular": "Recorda posted",
+        "plural": "Recordas posted"
+      },
+      "topArtists": {
+        "title": "Most frequent artists",
+        "empty": "No artists in this period yet.",
+        "photo": "Photo of {{name}}",
+        "countSingular": "{{count}} Recorda",
+        "countPlural": "{{count}} Recordas"
+      },
+      "topGenres": {
+        "title": "Top genres",
+        "empty": "No genres in this period yet."
+      },
+      "monthly": {
+        "title": "Recordas per month",
+        "empty": "No Recordas in this period yet.",
+        "a11y": "{{month}}: {{count}} Recordas"
+      },
+      "streak": {
+        "title": "Daily streak",
+        "none": "No active streak",
+        "daySingular": "day in a row",
+        "dayPlural": "days in a row",
+        "explanation": "The streak is daily and resets if a day ends without a post."
+      }
+    }
+  },
+  "memoriesCalendar": {
+    "grid": {
+      "monthTitle": "{{month}} {{year}}",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "summary": "{{memories}} across {{days}}",
+      "summaryEmpty": "No memories this month",
+      "memories_one": "{{count}} memory",
+      "memories_other": "{{count}} memories",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "dayLabel_one": "{{date}}, {{count}} memory",
+      "dayLabel_other": "{{date}}, {{count}} memories",
+      "extraMemories": "+{{extra}}",
+      "loading": "Loading calendar"
+    },
+    "viewer": {
+      "likes": "{{count}} likes",
+      "comments": "{{count}} comments",
+      "close": "Close",
+      "play": "Play song",
+      "pause": "Pause song",
+      "error": "Could not load this day’s memories.",
+      "retry": "Try again",
+      "empty": "No memories on this day."
+    },
+    "tab": {
+      "loadError": "We couldn't load the calendar.",
+      "retry": "Try again"
+    }
+  },
+  "retrospectiveFlow": {
+    "title": "Retrospectives",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "preview": "Preview",
+    "retry": "Try again",
+    "choose": "Choose another period",
+    "periodsError": "We couldn’t load your retrospectives.",
+    "detailsError": "We couldn’t load this retrospective.",
+    "noPeriods": "Your retrospectives will show up here once you post Recordas.",
+    "emptyPeriod": "There are no Recordas in this period."
+  },
+  "retrospective": {
+    "open": "Open recap",
+    "title": "Your recap",
+    "close": "Close",
+    "previous": "Previous slide",
+    "next": "Next slide",
+    "step": "Step {{current}} of {{total}}",
+    "featuredSong": "Featured song",
+    "recordasCount_one": "{{count}} Recorda",
+    "recordasCount_other": "{{count}} Recordas",
+    "total": {
+      "eyebrow": "Your period in music",
+      "title_one": "{{count}} Recorda",
+      "title_other": "{{count}} Recordas",
+      "subtitle": "Moments that found a song to stay."
+    },
+    "artists": {
+      "eyebrow": "Who played the most",
+      "subtitle": "The artists most present in your Recordas.",
+      "empty": "No artists in this period"
+    },
+    "genres": {
+      "eyebrow": "Your styles",
+      "title": "Music genres",
+      "subtitle": "How your period sounded."
+    },
+    "tagged": {
+      "eyebrow": "Who was there",
+      "title": "Most tagged",
+      "empty": "Nobody was tagged in this period.",
+      "count_one": "{{count}} tag",
+      "count_other": "{{count}} tags"
+    },
+    "engagement": {
+      "eyebrow": "Your reach",
+      "title": "Engagement",
+      "subtitle": "What your Recordas received and your longest streak.",
+      "likes": "Likes",
+      "comments": "Comments",
+      "streak": "Longest streak",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
+    }
   }
 }

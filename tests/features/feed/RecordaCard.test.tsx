@@ -1,0 +1,417 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { useEffect } from "react";
+import { I18nextProvider } from "react-i18next";
+import { Modal } from "react-native";
+
+import { RecordaCard, type RecordaOwnership } from "@/features/feed/components/RecordaCard";
+import { FeedAudioProvider, useFeedAudioActions } from "@/features/feed/state/FeedAudioContext";
+import type { FeedItem } from "@/features/feed/types";
+import { i18n } from "@/i18n";
+import { fontFamily } from "@/theme";
+
+import { mockUseVideoPlayer, resetVideoMock } from "../../mocks/expoVideo";
+
+const BASE_ITEM: FeedItem = {
+  author: {
+    profile_picture_url: "https://cdn.example.com/avatar.jpg",
+    user_id: "user-1",
+    username: "lucas_almeida"
+  },
+  created_at: "2026-01-01T12:00:00Z",
+  description: "Show I-N-C-R-I-V-E-L!",
+  is_liked: false,
+  likes_count: 12,
+  media_type: "PHOTO",
+  media_url: "https://cdn.example.com/media.jpg",
+  recorda_id: "recorda-1",
+  song_artist_name: "The American Dawn",
+  song_cover_url: "https://cdn.example.com/cover.jpg",
+  song_preview_url: null,
+  song_title: "The Edge"
+};
+
+function FocusCard({ focusKey, recordaId }: { focusKey?: string; recordaId: string }) {
+  const { setActivePreview } = useFeedAudioActions();
+  useEffect(
+    () => setActivePreview(recordaId, null, { focusKey }),
+    [focusKey, recordaId, setActivePreview]
+  );
+  return null;
+}
+
+function renderCard(
+  item: FeedItem,
+  onPress = jest.fn(),
+  onShare?: () => void,
+  onToggleLike = jest.fn(),
+  focused = false,
+  ownership: RecordaOwnership = "other",
+  onReport = jest.fn(),
+  onAuthorPress = jest.fn()
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      mutations: { gcTime: Infinity, retry: false },
+      queries: { gcTime: 0, retry: false }
+    }
+  });
+
+  render(
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <FeedAudioProvider>
+          {focused ? <FocusCard recordaId={item.recorda_id} /> : null}
+          <RecordaCard
+            item={item}
+            onAuthorPress={onAuthorPress}
+            onPress={onPress}
+            onReport={onReport}
+            onShare={onShare}
+            onToggleLike={onToggleLike}
+            ownership={ownership}
+          />
+        </FeedAudioProvider>
+      </QueryClientProvider>
+    </I18nextProvider>
+  );
+  return { onAuthorPress, onPress, onReport };
+}
+
+function renderMenu(ownership: RecordaOwnership) {
+  const result = renderCard(BASE_ITEM, jest.fn(), undefined, jest.fn(), false, ownership);
+  fireEvent.press(screen.getByLabelText("Mais opções"));
+  return result;
+}
+
+describe("RecordaCard", () => {
+  it("renders author, song and the description caption", () => {
+    renderCard(BASE_ITEM);
+
+    expect(screen.getAllByText("lucas_almeida").length).toBeGreaterThan(0);
+    expect(screen.getByText("The Edge")).toBeTruthy();
+    expect(screen.getByText(/The American Dawn/)).toBeTruthy();
+    expect(screen.getByText(/Show I-N-C-R-I-V-E-L!/)).toBeTruthy();
+  });
+
+  it("caps the caption at three lines", () => {
+    renderCard(BASE_ITEM);
+
+    const caption = screen.getByText(/Show I-N-C-R-I-V-E-L!/);
+    expect(caption.props.numberOfLines).toBe(3);
+    expect(caption.props.ellipsizeMode).toBe("tail");
+  });
+
+  it("omits the caption row when there is no description", () => {
+    renderCard({ ...BASE_ITEM, description: null });
+
+    expect(screen.queryByText(/Show I-N-C-R-I-V-E-L!/)).toBeNull();
+  });
+
+  it("shows the likes count when greater than zero", () => {
+    renderCard({ ...BASE_ITEM, likes_count: 1 });
+
+    expect(screen.getByText("1 curtida")).toBeTruthy();
+  });
+
+  it("shows zero likes beside the actions", () => {
+    renderCard({ ...BASE_ITEM, likes_count: 0 });
+
+    expect(screen.getByText("0 curtidas")).toBeTruthy();
+  });
+
+  it("renders a fallback avatar when there is no profile picture", () => {
+    renderCard({ ...BASE_ITEM, author: { ...BASE_ITEM.author, profile_picture_url: null } });
+
+    expect(screen.getAllByText("lucas_almeida").length).toBeGreaterThan(0);
+  });
+
+  it("resolves relative backend URLs before rendering images", () => {
+    renderCard({
+      ...BASE_ITEM,
+      author: { ...BASE_ITEM.author, profile_picture_url: "/api/v1/users/avatar.jpg" },
+      media_url: "/api/v1/recordas/media/photo.jpg"
+    });
+
+    expect(screen.getByTestId("recorda-author-avatar")).toHaveProp("source", [
+      { uri: "http://localhost:8000/api/v1/users/avatar.jpg" }
+    ]);
+    expect(screen.getByTestId("recorda-media-image")).toHaveProp("source", [
+      { uri: "http://localhost:8000/api/v1/recordas/media/photo.jpg" }
+    ]);
+  });
+
+  it("renders a video view for focused VIDEO media instead of a static image", () => {
+    renderCard(
+      { ...BASE_ITEM, media_type: "VIDEO", media_url: "https://cdn.example.com/media.mp4" },
+      jest.fn(),
+      undefined,
+      jest.fn(),
+      true
+    );
+
+    expect(screen.getByTestId("mock-video-view")).toBeTruthy();
+    expect(screen.queryByTestId("recorda-media-image")).toBeNull();
+  });
+
+  it("plays only the copy of a video in the tab that holds focus", () => {
+    const item: FeedItem = {
+      ...BASE_ITEM,
+      media_type: "VIDEO",
+      media_url: "https://cdn.example.com/media.mp4"
+    };
+    const queryClient = new QueryClient({ defaultOptions: { queries: { gcTime: 0 } } });
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <QueryClientProvider client={queryClient}>
+          <FeedAudioProvider>
+            <FocusCard focusKey="following:recorda-1" recordaId="recorda-1" />
+            <RecordaCard
+              focusKey="geral:recorda-1"
+              item={item}
+              onAuthorPress={jest.fn()}
+              onPress={jest.fn()}
+              onReport={jest.fn()}
+              onToggleLike={jest.fn()}
+              ownership="other"
+            />
+            <RecordaCard
+              focusKey="following:recorda-1"
+              item={item}
+              onAuthorPress={jest.fn()}
+              onPress={jest.fn()}
+              onReport={jest.fn()}
+              onToggleLike={jest.fn()}
+              ownership="other"
+            />
+          </FeedAudioProvider>
+        </QueryClientProvider>
+      </I18nextProvider>
+    );
+
+    expect(screen.getAllByTestId("mock-video-view")).toHaveLength(1);
+  });
+
+  it("waits for focus before loading a video", () => {
+    mockUseVideoPlayer.mockClear();
+    renderCard({
+      ...BASE_ITEM,
+      media_type: "VIDEO",
+      media_url: "/api/v1/recordas/media/video.mp4"
+    });
+
+    expect(mockUseVideoPlayer).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("mock-video-view")).toBeNull();
+    expect(screen.queryByTestId("recorda-video-loading")).toBeNull();
+  });
+
+  it("counts a video that was already ready before it was listened to", () => {
+    // Like the real hook, the same player instance across renders.
+    const readyPlayer = {
+      addListener: () => ({ remove: () => undefined }),
+      loop: false,
+      pause: () => undefined,
+      play: jest.fn(),
+      playing: false,
+      status: "readyToPlay"
+    };
+    mockUseVideoPlayer.mockImplementation(() => readyPlayer);
+    try {
+      renderCard(
+        { ...BASE_ITEM, media_type: "VIDEO", media_url: "/api/v1/recordas/media/video.mp4" },
+        jest.fn(),
+        undefined,
+        jest.fn(),
+        true
+      );
+
+      expect(screen.queryByTestId("recorda-video-loading")).toBeNull();
+    } finally {
+      resetVideoMock();
+    }
+  });
+
+  it("shows the loader while a focused video is loading", () => {
+    renderCard(
+      { ...BASE_ITEM, media_type: "VIDEO", media_url: "/api/v1/recordas/media/video.mp4" },
+      jest.fn(),
+      undefined,
+      jest.fn(),
+      true
+    );
+
+    expect(screen.getByTestId("recorda-video-loading")).toBeTruthy();
+  });
+
+  it("resolves a relative video URL once the card is focused", () => {
+    renderCard(
+      {
+        ...BASE_ITEM,
+        media_type: "VIDEO",
+        media_url: "/api/v1/recordas/media/video.mp4"
+      },
+      jest.fn(),
+      undefined,
+      jest.fn(),
+      true
+    );
+
+    expect(mockUseVideoPlayer).toHaveBeenLastCalledWith(
+      { uri: "http://localhost:8000/api/v1/recordas/media/video.mp4" },
+      expect.any(Function)
+    );
+  });
+
+  it("exposes the card, author, menu and like controls as interactive buttons", () => {
+    renderCard(BASE_ITEM);
+
+    expect(screen.getAllByRole("button")).toHaveLength(6);
+  });
+
+  it("opens the author's profile from the username without opening the card", () => {
+    const { onAuthorPress, onPress } = renderCard(BASE_ITEM);
+
+    fireEvent.press(screen.getByLabelText("Abrir perfil de lucas_almeida"));
+
+    expect(onAuthorPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("opens the author's profile from the avatar without opening the card", () => {
+    const { onAuthorPress, onPress } = renderCard(BASE_ITEM);
+
+    fireEvent.press(screen.getByTestId("recorda-author-avatar-button"));
+
+    expect(onAuthorPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("calls onPress with the whole card when tapped", () => {
+    const { onPress } = renderCard(BASE_ITEM);
+
+    fireEvent.press(screen.getByTestId("feed-post-recorda-1"));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onShare when the share button is pressed", () => {
+    const onShare = jest.fn();
+    renderCard(BASE_ITEM, jest.fn(), onShare);
+
+    fireEvent.press(screen.getByLabelText("Compartilhar"));
+
+    expect(onShare).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the detail from the comment control", () => {
+    const { onPress } = renderCard(BASE_ITEM);
+    fireEvent.press(screen.getByLabelText("Comentar"));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  describe("three-dots menu", () => {
+    it("offers only Not interested and Report on another user's Recorda", () => {
+      const { onPress, onReport } = renderMenu("other");
+
+      const menu = within(screen.getByTestId("recorda-card-menu"));
+      expect(onPress).not.toHaveBeenCalled();
+      expect(menu.getAllByRole("button")).toHaveLength(2);
+      expect(screen.queryByText("Excluir")).toBeNull();
+      // No backend contract yet: shown but cannot be triggered.
+      expect(menu.getByRole("button", { name: "Não interessado" })).toBeDisabled();
+      for (const label of ["Não interessado", "Denunciar"]) {
+        expect(menu.getByText(label)).toHaveStyle({
+          fontFamily: fontFamily.display.medium,
+          fontSize: 14
+        });
+      }
+
+      fireEvent.press(menu.getByRole("button", { name: "Denunciar" }));
+
+      expect(onReport).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+    });
+
+    it("offers only a disabled Delete on the user's own Recorda", () => {
+      const { onReport } = renderMenu("own");
+
+      const menu = within(screen.getByTestId("recorda-card-menu"));
+      expect(menu.getAllByRole("button")).toHaveLength(1);
+      expect(menu.getByRole("button", { name: "Excluir" })).toBeDisabled();
+      expect(menu.getByText("Excluir")).toHaveStyle({
+        fontFamily: fontFamily.display.medium,
+        fontSize: 14
+      });
+      expect(screen.queryByText("Denunciar")).toBeNull();
+      expect(screen.queryByText("Não interessado")).toBeNull();
+      expect(onReport).not.toHaveBeenCalled();
+    });
+
+    it("stays closed while the signed-in user is unknown", () => {
+      renderCard(BASE_ITEM, jest.fn(), undefined, jest.fn(), false, "unknown");
+
+      const more = screen.getByLabelText("Mais opções");
+      expect(more).toBeDisabled();
+      fireEvent.press(more);
+
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+      expect(screen.queryByText("Denunciar")).toBeNull();
+    });
+
+    it("closes on a tap outside it and on the Android back button", () => {
+      renderMenu("other");
+      fireEvent.press(screen.getByTestId("recorda-card-menu-backdrop"));
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+
+      fireEvent.press(screen.getByLabelText("Mais opções"));
+      fireEvent(screen.UNSAFE_getByType(Modal), "requestClose");
+      expect(screen.queryByTestId("recorda-card-menu")).toBeNull();
+    });
+  });
+
+  it("renders an empty date when created_at is not a valid ISO string", () => {
+    renderCard({ ...BASE_ITEM, created_at: "not-a-date" });
+
+    expect(screen.queryByText(/janeiro|fevereiro|março/i)).toBeNull();
+  });
+
+  it("toggles like immediately, calls the server handler and does not open the card", async () => {
+    const onPress = jest.fn();
+    const onToggleLike = jest.fn().mockResolvedValue(undefined);
+    renderCard(
+      { ...BASE_ITEM, is_liked: false, likes_count: 12 },
+      onPress,
+      undefined,
+      onToggleLike
+    );
+
+    expect(screen.getByText("12 curtidas")).toBeTruthy();
+    const likeButton = screen.getByTestId("like-button-recorda-1");
+    fireEvent.press(likeButton);
+
+    expect(screen.getByText("13 curtidas")).toBeTruthy();
+    expect(likeButton).toBeSelected();
+    await waitFor(() => expect(onToggleLike).toHaveBeenCalledWith(true));
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("reverts the optimistic like when the server request fails", async () => {
+    const onToggleLike = jest.fn().mockRejectedValue(new Error("offline"));
+    renderCard(
+      { ...BASE_ITEM, is_liked: false, likes_count: 12 },
+      jest.fn(),
+      undefined,
+      onToggleLike
+    );
+
+    const likeButton = screen.getByTestId("like-button-recorda-1");
+    fireEvent.press(likeButton);
+    expect(screen.getByText("13 curtidas")).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText("12 curtidas")).toBeTruthy();
+      expect(likeButton).not.toBeSelected();
+    });
+  });
+});

@@ -1,0 +1,241 @@
+import React from "react";
+import { render, waitFor } from "@testing-library/react-native";
+import { useNavigation } from "@react-navigation/native";
+
+import { queryClient } from "@/app/providers/queryClient";
+import { AUTH_ME_QUERY_KEY, getCurrentUser } from "@/features/auth/api/getCurrentUser";
+import { ROLE_KEY } from "@/features/auth/session";
+import { SPLASH_MIN_DURATION_MS, SPLASH_TIMEOUT_MS, SplashScreen } from "@/features/splash";
+import { i18n } from "@/i18n";
+import { AUTH_TOKEN_KEY } from "@/services/api/authClient";
+import { AUTH_TOKEN_QUERY_KEY } from "@/services/api/useAuthImageSource";
+import { ApiError } from "@/services/api/errors";
+import { secureStorage } from "@/services/storage/secureStorage";
+
+jest.mock("@react-navigation/native", () => ({
+  useNavigation: jest.fn()
+}));
+
+jest.mock("@/features/auth/api/getCurrentUser", () => ({
+  AUTH_ME_QUERY_KEY: ["auth", "me"],
+  getCurrentUser: jest.fn()
+}));
+
+jest.mock("@/services/storage/secureStorage", () => ({
+  secureStorage: {
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+    setItem: jest.fn()
+  }
+}));
+
+const NAVIGATE_WAIT_TIMEOUT = SPLASH_MIN_DURATION_MS + 1000;
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, reject, resolve };
+}
+
+describe("SplashScreen", () => {
+  const mockReplace = jest.fn();
+  const mockGetItem = secureStorage.getItem as jest.Mock;
+  const mockRemoveItem = secureStorage.removeItem as jest.Mock;
+  const mockGetCurrentUser = getCurrentUser as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    queryClient.clear();
+    mockGetItem.mockResolvedValue(null);
+    mockRemoveItem.mockResolvedValue(undefined);
+    (useNavigation as jest.Mock).mockReturnValue({ replace: mockReplace });
+  });
+
+  afterEach(async () => {
+    jest.useRealTimers();
+    await i18n.changeLanguage("pt-BR");
+  });
+
+  it("renders correctly with branding text", () => {
+    const { getByText, getByTestId } = render(<SplashScreen />);
+    expect(getByTestId("splash-screen-container")).toBeTruthy();
+    expect(getByText("recorda.")).toBeTruthy();
+  });
+
+  it("navigates to Login when there is no saved session", async () => {
+    mockGetItem.mockResolvedValueOnce(null);
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Login");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(getCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it("navigates to Feed when user is regular account with completed onboarding", async () => {
+    mockGetItem.mockResolvedValueOnce("valid-token");
+    const user = {
+      role: "USER",
+      user_id: "user-1",
+      username: "gabriel",
+      onboarding_completed: true
+    };
+    mockGetCurrentUser.mockResolvedValueOnce(user);
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Feed");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
+    expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
+    // Media on the first screen can use the token right away.
+    expect(queryClient.getQueryData(AUTH_TOKEN_QUERY_KEY)).toBe("valid-token");
+  });
+
+  it("navigates to the first onboarding step when user has not completed onboarding", async () => {
+    mockGetItem.mockResolvedValueOnce("valid-token");
+    const user = {
+      role: "USER",
+      user_id: "user-1",
+      username: "gabriel",
+      onboarding_completed: false
+    };
+    mockGetCurrentUser.mockResolvedValueOnce(user);
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("OnboardingArtists");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(getCurrentUser).toHaveBeenCalledWith("valid-token", expect.any(Object));
+    expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toEqual(user);
+  });
+
+  it("navigates to Admin when user has admin account type", async () => {
+    mockGetItem.mockResolvedValueOnce("valid-token");
+    mockGetCurrentUser.mockResolvedValueOnce({
+      role: "ADMIN",
+      user_id: "user-2",
+      username: "admin"
+    });
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("AdminReports");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+  });
+
+  it("clears session and navigates to Login when token is invalid", async () => {
+    mockGetItem.mockResolvedValueOnce("bad-token");
+    queryClient.setQueryData(AUTH_ME_QUERY_KEY, {
+      role: "USER",
+      user_id: "user-1",
+      username: "gabriel"
+    });
+    mockGetCurrentUser.mockRejectedValueOnce(
+      new ApiError("UNAUTHORIZED", "Unauthorized", 401, null)
+    );
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(secureStorage.removeItem).toHaveBeenCalledWith(AUTH_TOKEN_KEY);
+        expect(secureStorage.removeItem).toHaveBeenCalledWith(ROLE_KEY);
+        expect(mockReplace).toHaveBeenCalledWith("Login");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+  });
+
+  it(
+    "navigates to Login on the hard timeout and ignores subsequent backend responses",
+    async () => {
+      const delayedUser = createDeferred<{ role: string; user_id: string; username: string }>();
+      mockGetItem.mockResolvedValueOnce("valid-token");
+      mockGetCurrentUser.mockReturnValueOnce(delayedUser.promise);
+
+      render(<SplashScreen />);
+
+      await waitFor(() => {
+        expect(getCurrentUser).toHaveBeenCalledTimes(1);
+      });
+
+      await waitFor(
+        () => {
+          expect(mockReplace).toHaveBeenCalledWith("Login");
+        },
+        { timeout: SPLASH_TIMEOUT_MS + 3000 }
+      );
+      expect(mockReplace).toHaveBeenCalledTimes(1);
+
+      delayedUser.resolve({ role: "ADMIN", user_id: "user-2", username: "admin" });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockReplace).toHaveBeenCalledWith("Login");
+      expect(mockReplace).toHaveBeenCalledTimes(1);
+      expect(secureStorage.removeItem).not.toHaveBeenCalled();
+      expect(queryClient.getQueryData(AUTH_ME_QUERY_KEY)).toBeUndefined();
+    },
+    SPLASH_TIMEOUT_MS + 5000
+  );
+  it("applies the language saved on the device before leaving the splash", async () => {
+    mockGetItem.mockImplementation(async (key: string) => (key === "app_language" ? "es" : null));
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Login");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(i18n.language).toBe("es");
+  });
+
+  it("follows the language saved on the account when the session is restored", async () => {
+    mockGetItem.mockImplementation(async (key: string) =>
+      key === AUTH_TOKEN_KEY ? "valid-token" : null
+    );
+    mockGetCurrentUser.mockResolvedValueOnce({
+      language: "en",
+      onboarding_completed: true,
+      role: "USER",
+      user_id: "user-1",
+      username: "gabriel"
+    });
+
+    render(<SplashScreen />);
+
+    await waitFor(
+      () => {
+        expect(mockReplace).toHaveBeenCalledWith("Feed");
+      },
+      { timeout: NAVIGATE_WAIT_TIMEOUT }
+    );
+    expect(i18n.language).toBe("en");
+    expect(secureStorage.setItem).toHaveBeenCalledWith("app_language", "en");
+  });
+});

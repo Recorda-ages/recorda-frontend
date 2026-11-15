@@ -4,8 +4,10 @@ import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import es from "./locales/es.json";
 import ptBR from "./locales/pt-BR.json";
+import { defaultLanguage } from "./languages";
+import { resolveDeviceLanguage } from "./resolveDeviceLanguage";
 
-export const defaultLanguage = "pt-BR";
+export { defaultLanguage };
 
 const i18n = createInstance();
 
@@ -15,7 +17,7 @@ void i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false
   },
-  lng: defaultLanguage,
+  lng: resolveDeviceLanguage(),
   resources: {
     "pt-BR": {
       translation: ptBR

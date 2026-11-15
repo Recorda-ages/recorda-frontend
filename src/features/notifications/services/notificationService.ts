@@ -1,0 +1,15 @@
+import { authApiClient } from "@/services/api";
+
+import type { FollowRequestDecision, NotificationPage } from "../types";
+
+export const notificationService = {
+  list: (limit: number, offset: number, signal?: AbortSignal) =>
+    authApiClient.get<NotificationPage>(`/notifications?limit=${limit}&offset=${offset}`, {
+      signal
+    }),
+
+  markAllAsRead: () => authApiClient.post<void>("/notifications/read-all"),
+
+  respondToFollowRequest: (followId: string, decision: FollowRequestDecision) =>
+    authApiClient.patch<void>(`/follow-requests/${followId}`, { action: decision })
+};

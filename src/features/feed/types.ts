@@ -1,0 +1,91 @@
+export type FeedTab = "geral" | "following";
+
+export type MediaType = "PHOTO" | "VIDEO";
+
+export type FeedAuthor = {
+  profile_picture_url: string | null;
+  user_id: string;
+  username: string;
+};
+
+export type FeedItem = {
+  author: FeedAuthor;
+  created_at: string;
+  mentioned_users?: { user_id: string; username: string; avatar_url: string | null }[];
+  description: string | null;
+  is_liked: boolean;
+  likes_count: number;
+  media_type: MediaType;
+  media_url: string;
+  recorda_id: string;
+  song_artist_name: string;
+  song_cover_url: string;
+  song_preview_url: string | null;
+  song_title: string;
+};
+
+export type FeedPage = {
+  items: FeedItem[];
+  next_cursor: string | null;
+};
+
+export type RecordaDetailResponse = {
+  author: {
+    avatar_url: string | null;
+    user_id: string;
+    username: string;
+  };
+  created_at: string;
+  deezer_track_id: string;
+  mentioned_users?: { user_id: string; username: string; avatar_url: string | null }[];
+  description: string | null;
+  is_liked: boolean;
+  likes_count: number;
+  media_type: MediaType;
+  media_url: string;
+  recorda_id: string;
+  song_artist_name: string;
+  song_cover_url: string;
+  song_preview_url: string | null;
+  song_title: string;
+};
+
+export type RecordaLikeState = {
+  is_liked: boolean;
+  likes_count: number;
+};
+
+export type RecordaCommentResponse = {
+  comment_id: string;
+  user_id: string;
+  username: string;
+  avatar_url: string | null;
+  content: string;
+  created_at: string;
+};
+
+export type FeedComment = {
+  userId?: string;
+  id: string;
+  text: string;
+  username: string;
+  avatarUrl?: string | null;
+  createdAt?: string;
+};
+
+export type FeedPost = {
+  author: { id: string; avatarUrl: string; username: string };
+  comments: FeedComment[];
+  createdAt?: string;
+  mentionedUsers?: { user_id: string; username: string }[];
+  description: string;
+  id: string;
+  likedBy: { avatarUrl: string; username: string };
+  likesCount: number;
+  mediaType?: MediaType;
+  mediaUrl: string;
+  previewUrl?: string | null;
+  publishedAt: string;
+  song: { artistName: string; coverUrl?: string | null; title: string };
+  tabs: ("following" | "forYou")[];
+};
