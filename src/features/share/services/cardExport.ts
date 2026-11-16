@@ -53,7 +53,8 @@ export async function shareCardToInstagramStories(uri: string): Promise<"shared"
   let isInstagramAvailable = false;
   let Share: typeof import("react-native-share").default;
   try {
-    ({ default: Share } = await import("react-native-share"));
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- Conditional native loading also works in Jest's CommonJS runtime.
+    Share = require("react-native-share").default;
   } catch {
     await shareCardGeneric(uri);
     return "fallback";
@@ -82,7 +83,7 @@ export async function shareCardToInstagramStories(uri: string): Promise<"shared"
     backgroundImage: uri,
     social: "instagramstories" as Social
   });
-  if (!result.success) {
+  if (Platform.OS === "android" && !result.success) {
     throw new Error(result.message || "Instagram Stories did not open.");
   }
   return "shared";

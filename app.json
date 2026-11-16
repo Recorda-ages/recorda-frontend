@@ -4,10 +4,11 @@
     "slug": "recorda",
     "version": "2.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.camana.Recorda",
-      "buildNumber": "2.1",
+      "buildNumber": "2.2",
       "supportsTablet": true,
       "requireFullScreen": false,
       "infoPlist": {
@@ -26,7 +27,15 @@
     },
     "plugins": [
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#000000"
+        }
+      ],
       "expo-secure-store",
       "expo-status-bar",
       "expo-image",
