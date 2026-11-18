@@ -38,7 +38,7 @@ const REMOVE_BUTTON = "Remover conteúdo";
 const REMOVE_BUTTON_ID = "admin-report-remove-recorda";
 const DIALOG_TITLE = "Remover esta Recorda?";
 const DIALOG_WARNING =
-  "Esta ação retira a publicação de todo o aplicativo (feed, buscas e perfil) e fica registrada na auditoria.";
+  "Esta ação retira a publicação de todo o aplicativo (feed, buscas e perfil) e fica registrada na auditoria. O autor recebe uma notificação com o motivo informado.";
 const SUCCESS_MESSAGE = "Conteúdo removido";
 const REASON = "Conteúdo impróprio.";
 

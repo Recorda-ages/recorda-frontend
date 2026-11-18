@@ -238,7 +238,7 @@
       "removeRecorda": {
         "button": "Remover conteúdo",
         "title": "Remover esta Recorda?",
-        "warning": "Esta ação retira a publicação de todo o aplicativo (feed, buscas e perfil) e fica registrada na auditoria.",
+        "warning": "Esta ação retira a publicação de todo o aplicativo (feed, buscas e perfil) e fica registrada na auditoria. O autor recebe uma notificação com o motivo informado.",
         "confirm": "Remover",
         "success": "Conteúdo removido",
         "error": "Não foi possível remover o conteúdo. Tente novamente.",

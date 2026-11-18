@@ -238,7 +238,7 @@
       "removeRecorda": {
         "button": "Eliminar contenido",
         "title": "¿Eliminar esta Recorda?",
-        "warning": "Esta acción retira la publicación de toda la aplicación (feed, búsquedas y perfil) y queda registrada en la auditoría.",
+        "warning": "Esta acción retira la publicación de toda la aplicación (feed, búsquedas y perfil) y queda registrada en la auditoría. El autor recibe una notificación con el motivo informado.",
         "confirm": "Eliminar",
         "success": "Contenido eliminado",
         "error": "No se pudo eliminar el contenido. Inténtalo de nuevo.",
