@@ -2,13 +2,13 @@
   "expo": {
     "name": "Recorda",
     "slug": "recorda",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.camana.Recorda",
-      "buildNumber": "2.2",
+      "buildNumber": "2.3",
       "supportsTablet": true,
       "requireFullScreen": false,
       "infoPlist": {
