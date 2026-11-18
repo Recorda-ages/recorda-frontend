@@ -63,7 +63,7 @@ let serverPage: NotificationPage;
 
 const REMOVED_NOTIFICATION = notification({
   notification_id: "n-removed",
-  recorda_id: "removed-recorda",
+  recorda_id: null,
   recorda_song_title: "Pais e Filhos",
   removal_reason: "Violação das diretrizes da comunidade",
   sender: null,
