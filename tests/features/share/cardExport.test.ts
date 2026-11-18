@@ -1,5 +1,7 @@
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
+import { Linking } from "react-native";
+import Share from "react-native-share";
 
 import {
   saveCardToGallery,
@@ -11,6 +13,11 @@ jest.mock("expo-media-library", () => ({
   Asset: { create: jest.fn() }
 }));
 
+jest.mock("react-native-share", () => ({
+  __esModule: true,
+  default: { shareSingle: jest.fn(), isPackageInstalled: jest.fn() }
+}));
+
 jest.mock("expo-sharing", () => ({
   isAvailableAsync: jest.fn(),
   shareAsync: jest.fn()
@@ -20,6 +27,7 @@ const requestPermissions = MediaLibrary.requestPermissionsAsync as jest.Mock;
 const createAsset = MediaLibrary.Asset.create as jest.Mock;
 const isSharingAvailable = Sharing.isAvailableAsync as jest.Mock;
 const shareAsync = Sharing.shareAsync as jest.Mock;
+const shareSingle = Share.shareSingle as jest.Mock;
 const previousMetaAppId = process.env.EXPO_PUBLIC_META_APP_ID;
 
 describe("card export without Meta App ID", () => {
@@ -63,5 +71,32 @@ describe("card export without Meta App ID", () => {
     await expect(saveCardToGallery("file://card.png")).resolves.toBe("permission-denied");
 
     expect(createAsset).not.toHaveBeenCalled();
+  });
+});
+
+describe("Instagram Stories on iOS", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.EXPO_PUBLIC_META_APP_ID = "123";
+    jest.spyOn(Linking, "canOpenURL").mockResolvedValue(true);
+  });
+
+  afterAll(() => {
+    if (previousMetaAppId === undefined) {
+      delete process.env.EXPO_PUBLIC_META_APP_ID;
+    } else {
+      process.env.EXPO_PUBLIC_META_APP_ID = previousMetaAppId;
+    }
+  });
+
+  it("reports the share as opened even though the iOS native module resolves an array", async () => {
+    shareSingle.mockResolvedValue({ success: false, message: undefined });
+
+    await expect(shareCardToInstagramStories("file://card.png")).resolves.toBe("shared");
+
+    expect(shareSingle).toHaveBeenCalledWith(
+      expect.objectContaining({ appId: "123", backgroundImage: "file://card.png" })
+    );
+    expect(shareAsync).not.toHaveBeenCalled();
   });
 });

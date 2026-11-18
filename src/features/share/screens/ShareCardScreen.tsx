@@ -410,8 +410,9 @@ export function ShareCardScreen() {
       </AppText>
 
       {/* Preview area — visual only, not exported */}
-      <View style={[styles.previewArea, { height: previewHeight }]}>
+      <View testID="share-card-preview" style={[styles.previewArea, { height: previewHeight }]}>
         <View
+          testID="share-card-card"
           style={[styles.card, { height: previewHeight, width: CARD_PREVIEW_W * previewScale }]}
         >
           <LinearGradient
@@ -438,12 +439,21 @@ export function ShareCardScreen() {
           >
             <View style={styles.photoWrap}>
               {previewMediaSource ? (
-                <Image contentFit="cover" source={previewMediaSource} style={styles.photo} />
+                <Image
+                  testID="share-card-media"
+                  contentFit="cover"
+                  source={previewMediaSource}
+                  style={styles.photo}
+                />
               ) : (
                 <View style={[styles.photo, styles.photoFallback]} />
               )}
               {isMediaLoading ? (
-                <ActivityIndicator color={colors.neutrals[100]} style={styles.mediaLoading} />
+                <ActivityIndicator
+                  testID="share-card-media-progress"
+                  color={colors.neutrals[100]}
+                  style={styles.mediaLoading}
+                />
               ) : null}
               <LinearGradient
                 colors={[withOpacity(baseColors.black, 0), withOpacity(baseColors.black, 0.85)]}
@@ -491,7 +501,9 @@ export function ShareCardScreen() {
             ]}
           >
             <Pressable
+              testID={`share-card-preset-${p.id}`}
               accessibilityRole="radio"
+              aria-checked={selectedPreset === p.id}
               accessibilityState={{ checked: selectedPreset === p.id }}
               onPress={() => setSelectedPreset(p.id)}
               style={[styles.presetItem, selectedPreset === p.id && styles.presetItemSelected]}
@@ -512,6 +524,7 @@ export function ShareCardScreen() {
         <Pressable
           accessibilityRole="button"
           disabled={isExporting || isMediaLoading}
+          accessibilityLabel={t("shareCard.instagramStories")}
           onPress={() => void handleExport("stories")}
           style={[
             styles.shareButton,
@@ -529,6 +542,7 @@ export function ShareCardScreen() {
         <Pressable
           accessibilityRole="button"
           disabled={isExporting || isMediaLoading}
+          accessibilityLabel={t("shareCard.download")}
           onPress={() => void handleExport("save")}
           style={[
             styles.downloadButton,
@@ -536,7 +550,11 @@ export function ShareCardScreen() {
           ]}
         >
           {exportingAction === "save" ? (
-            <ActivityIndicator color={colors.primary[500]} size="small" />
+            <ActivityIndicator
+              testID="share-card-export-progress"
+              color={colors.primary[500]}
+              size="small"
+            />
           ) : (
             <AppText style={styles.downloadButtonLabel} variant="buttonLarge">
               {t("shareCard.download")}
@@ -550,6 +568,7 @@ export function ShareCardScreen() {
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         pointerEvents="none"
+        testID="share-card-export-canvas"
         style={styles.exportContainer}
       >
         <ViewShot
@@ -578,7 +597,7 @@ export function ShareCardScreen() {
           {/* Always mounted, so the (remote) album cover is already loaded when the card is
               captured; only the photo waits for the export. */}
           <View style={styles.exportPhotoShadow}>
-            <View style={styles.exportPhotoWrap}>
+            <View testID="share-card-export-media" style={styles.exportPhotoWrap}>
               {capturedMediaSource ? (
                 <Image
                   contentFit="cover"

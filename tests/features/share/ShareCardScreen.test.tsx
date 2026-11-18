@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { File, Paths } from "expo-file-system";
 
 import { mockDeleteFile } from "../../mocks/expoFileSystem";
@@ -95,7 +95,8 @@ jest.mock("expo-image", () => {
   const { View } = jest.requireActual("react-native");
 
   return {
-    Image: ({ style }: { style?: object }) => React.createElement(View, { style })
+    Image: ({ style, testID }: { style?: object; testID?: string }) =>
+      React.createElement(View, { style, testID })
   };
 });
 
@@ -329,5 +330,70 @@ describe("ShareCardScreen", () => {
     // 300×600 is taller than the 262:380 frame: full width, centered vertically.
     const [crop] = mockCrop.mock.calls.at(-1);
     expect(crop).toEqual({ height: 435, originX: 0, originY: 83, width: 300 });
+  });
+
+  // The recorda-test-suite E2E flow FL-06 relies on these selectors: renaming one breaks it.
+  describe("selectors used by the E2E share suite", () => {
+    it("identifies the card, its media, every preset and the export canvas", async () => {
+      renderScreen();
+
+      expect(screen.getByTestId("share-card-card")).toBeTruthy();
+      expect(await screen.findByTestId("share-card-media")).toBeTruthy();
+      const presets = within(screen.getByTestId("share-card-presets"));
+      for (const id of ["light", "mint", "teal", "dark"]) {
+        expect(presets.getByTestId(`share-card-preset-${id}`)).toBeTruthy();
+      }
+      // Off-screen and hidden from accessibility; the suite captures it as the exported PNG.
+      expect(
+        screen.getByTestId("share-card-export-canvas", { includeHiddenElements: true })
+      ).toBeTruthy();
+      expect(
+        screen.getByTestId("share-card-export-media", { includeHiddenElements: true })
+      ).toBeTruthy();
+    });
+
+    // Native views fold aria-checked into accessibilityState; react-native-web renders it as
+    // the DOM attribute the suite reads. So the check is on the prop the screen passes.
+    function ariaChecked(testID: string) {
+      let node: ReturnType<typeof screen.getByTestId> | null = screen.getByTestId(testID);
+      while (node && !("aria-checked" in node.props)) node = node.parent;
+      return node?.props["aria-checked"];
+    }
+
+    it("exposes the selected preset through aria-checked", () => {
+      renderScreen();
+
+      expect(ariaChecked("share-card-preset-teal")).toBe(true);
+      expect(ariaChecked("share-card-preset-light")).toBe(false);
+
+      fireEvent.press(screen.getByTestId("share-card-preset-light"));
+
+      expect(ariaChecked("share-card-preset-light")).toBe(true);
+      expect(ariaChecked("share-card-preset-teal")).toBe(false);
+    });
+
+    it("shows the first-frame progress and keeps the buttons' names while it loads", () => {
+      mockRouteParams.mediaType = "video";
+      mockRouteParams.mediaUri = "file://recorda-video.mp4";
+      videoMock.mockGenerateVideoThumbnails.mockImplementation(() => new Promise(() => {}));
+
+      renderScreen();
+
+      expect(screen.getByTestId("share-card-media-progress")).toBeTruthy();
+      // A spinner replaces the Stories label; the accessible name must survive it.
+      expect(screen.queryByText("Instagram Stories")).toBeNull();
+      expect(screen.getByRole("button", { name: "Instagram Stories" })).toBeDisabled();
+    });
+
+    it("keeps the download button's name while its export progress replaces the label", async () => {
+      mockSaveCropped.mockImplementation(() => new Promise(() => {}));
+      renderScreen();
+
+      fireEvent.press(screen.getByRole("button", { name: "Baixar imagem" }));
+
+      expect(await screen.findByTestId("share-card-export-progress")).toBeTruthy();
+      expect(screen.queryByText("Baixar imagem")).toBeNull();
+      expect(screen.getByRole("button", { name: "Baixar imagem" })).toBeDisabled();
+    });
   });
 });
