@@ -44,6 +44,7 @@ type InputAccessoryProps = {
 type InputErrorProps = {
   error?: string;
   style: StyleProp<TextStyle>;
+  testID?: string;
 };
 
 export function Input({
@@ -75,7 +76,11 @@ export function Input({
         <InputAccessory style={styles.accessoryRight}>{rightAccessory}</InputAccessory>
       </View>
 
-      <InputError error={error} style={variantStyle.error} />
+      <InputError
+        error={error}
+        style={variantStyle.error}
+        testID={props.testID ? `${props.testID}-error` : undefined}
+      />
     </View>
   );
 }
@@ -100,13 +105,13 @@ function InputAccessory({ children, style }: InputAccessoryProps) {
   return <View style={style}>{children}</View>;
 }
 
-function InputError({ error, style }: InputErrorProps) {
+function InputError({ error, style, testID }: InputErrorProps) {
   if (!error) {
     return null;
   }
 
   return (
-    <AppText accessibilityLiveRegion="polite" style={style} variant="caption">
+    <AppText accessibilityLiveRegion="polite" style={style} testID={testID} variant="caption">
       {error}
     </AppText>
   );
