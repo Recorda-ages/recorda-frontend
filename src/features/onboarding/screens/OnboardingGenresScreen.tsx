@@ -67,8 +67,10 @@ export function OnboardingGenresScreen(props: OnboardingGenresScreenProps) {
     <OnboardingStepLayout
       activeStep={2}
       backAccessibilityLabel={t("onboarding.genres.back")}
+      backButtonTestID="onboarding-genres-back-button"
       continueDisabled={!canContinue}
       continueLabel={continueLabel ?? t("onboarding.genres.continue")}
+      continueTestID="onboarding-genres-next-button"
       headerTitle={headerTitle ?? t("onboarding.genres.header")}
       onBack={onBack}
       onContinue={onContinue}
